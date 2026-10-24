@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gremlin Diaries: the strip archive</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--cream:#E8E4D8;--paper:#F1EDE2;--sage:#A6B89A;--forest:#54664A;--moss:#3A4A33;--ink:#1A1A18;--serif:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--cream);color:var(--ink);font-family:var(--sans)}
+body{display:flex;flex-direction:column;min-height:360px;overflow:hidden}
+header{display:flex;align-items:center;gap:10px;padding:10px 14px 6px;flex-wrap:wrap}
+h1{margin:0;font:600 clamp(17px,2.6vw,22px)/1.1 var(--serif);color:var(--moss)}
+.sub{margin:0;font-size:13px;color:var(--forest);flex:1 1 200px}
+.nav{display:flex;gap:6px;align-items:center}
+.btn{font:500 14px/1 var(--sans);background:var(--paper);color:var(--moss);border:1px solid rgba(84,102,74,.35);border-radius:999px;padding:8px 12px;min-width:38px;min-height:36px;cursor:pointer}
+.btn:hover{border-color:var(--forest)}.btn:disabled{opacity:.4;cursor:default}
+.btn:focus-visible,.card:focus-visible,.strip-btn:focus-visible{outline:3px solid var(--forest);outline-offset:2px}
+.count{font-size:13px;color:var(--forest);min-width:52px;text-align:center}
+#track{flex:1;display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding:6px 14px 14px;scroll-padding:0 14px;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+#track:focus-visible{outline:none}
+.card{flex:0 0 auto;width:min(420px,86vw);scroll-snap-align:start;display:flex;flex-direction:column;background:var(--paper);border-radius:14px;border:1px solid rgba(84,102,74,.25);box-shadow:0 4px 14px rgba(26,26,24,.12);overflow:hidden}
+.card-head{padding:10px 14px 8px;border-bottom:1px solid rgba(84,102,74,.15)}
+.ep{margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--forest)}
+.card h2{margin:2px 0 0;font:600 17px/1.25 var(--serif);color:var(--moss)}
+/* tall strips: fit the card width, never crop, scroll inside the card */
+.strip-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;background:var(--cream)}
+.strip-btn{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}
+.strip-btn img{display:block;width:100%;height:auto}
+.card-foot{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;font-size:12px;color:var(--forest);border-top:1px solid rgba(84,102,74,.15)}
+.card-foot button{font:600 12px var(--sans);background:none;border:0;color:var(--forest);cursor:pointer;padding:4px}
+.empty{margin:auto;font:italic 16px var(--serif);color:var(--forest);text-align:center;padding:20px}
+.ph{display:flex;align-items:center;justify-content:center;aspect-ratio:9/16;font:italic 15px var(--serif);color:var(--forest);border:2px dashed var(--sage);margin:12px;border-radius:10px}
+/* full-size reader */
+#reader{position:fixed;inset:0;z-index:10;background:rgba(26,26,24,.92);display:flex;flex-direction:column}
+#reader[hidden]{display:none}
+.reader-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;color:var(--paper)}
+.reader-bar h2{flex:1;margin:0;font:600 15px var(--serif)}
+.reader-bar .btn{background:rgba(241,237,226,.15);color:var(--paper);border-color:rgba(241,237,226,.3)}
+.reader-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;text-align:center}
+.reader-scroll img{display:inline-block;max-width:100%;height:auto;vertical-align:top}
+.reader-scroll.actual img{max-width:none}
+@media (prefers-reduced-motion:reduce){#track{scroll-behavior:auto}}
+@media (prefers-reduced-motion:no-preference){#track{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Gremlin Diaries</h1>
+  <p class="sub">Daily strips from the Gremlin Office, newest first. Swipe or use &larr; &rarr;. Tap a strip to read it full size.</p>
+  <div class="nav">
+    <button class="btn" id="prev" aria-label="Newer strip">&larr;</button>
+    <span class="count" id="count" aria-live="polite"></span>
+    <button class="btn" id="next" aria-label="Older strip">&rarr;</button>
+  </div>
+</header>
+<main id="track" tabindex="0" aria-label="Strip archive, newest first" aria-roledescription="carousel"></main>
+<div id="reader" role="dialog" aria-modal="true" aria-labelledby="reader-title" hidden>
+  <div class="reader-bar">
+    <h2 id="reader-title"></h2>
+    <button class="btn" id="reader-size" aria-pressed="false">Actual size</button>
+    <button class="btn" id="reader-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="reader-scroll"><img id="reader-img" alt=""></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var track = document.getElementById("track"), count = document.getElementById("count");
+  var reader = document.getElementById("reader"), rImg = document.getElementById("reader-img"), rScroll = reader.querySelector(".reader-scroll");
+  var strips = [], cards = [], lastFocus = null;
+  function name(s) { return (s.episode ? "Episode " + s.episode + ": " : "") + s.title; }
+  function fmt(d) { try { return new Date(d + "T12:00:00").toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" }); } catch (e) { return d; } }
+  function el(t, c) { var e = document.createElement(t); if (c) e.className = c; return e; }
+
+  function build() {
+    if (!strips.length) { var p = el("p", "empty"); p.textContent = "No strips yet. The gremlins are still drawing."; track.appendChild(p); return; }
+    strips.forEach(function (s, i) {
+      var card = el("article", "card"); card.setAttribute("aria-label", name(s) + ", " + fmt(s.date) + " (" + (i + 1) + " of " + strips.length + ")");
+      var head = el("div", "card-head"), ep = el("p", "ep"), h = el("h2");
+      ep.textContent = (s.episode ? "Episode " + s.episode + " \u00b7 " : "") + fmt(s.date); h.textContent = s.title;
+      head.appendChild(ep); head.appendChild(h); card.appendChild(head);
+      var sc = el("div", "strip-scroll");
+      if (s.filename) {
+        var b = el("button", "strip-btn"); b.setAttribute("aria-label", "Read " + name(s) + " full size");
+        var img = el("img"); img.alt = s.alt || name(s); img.decoding = "async";
+        if (i > 1) img.loading = "lazy";
+        if (s.width && s.height) { img.width = s.width; img.height = s.height; }
+        if (s.thumb) { img.srcset = s.thumb + " 300w, " + s.filename + " " + (s.width || 1000) + "w"; img.sizes = "(max-width: 480px) 86vw, 420px"; }
+        img.src = s.filename;
+        b.appendChild(img); b.addEventListener("click", function () { openReader(s, b); });
+        sc.appendChild(b);
+      } else { var ph = el("div", "ph"); ph.textContent = "[Strip image coming soon]"; sc.appendChild(ph); }
+      card.appendChild(sc);
+      var foot = el("div", "card-foot"), tip = el("span"), more = el("button");
+      tip.textContent = s.height && s.width && s.height / s.width > 1.4 ? "Tall strip: scroll inside the card" : "";
+      more.textContent = "Full size \u2197"; more.addEventListener("click", function () { openReader(s, more); });
+      foot.appendChild(tip); if (s.filename) foot.appendChild(more); card.appendChild(foot);
+      track.appendChild(card); cards.push(card);
+    });
+    update();
+  }
+  function current() {
+    var x = track.scrollLeft, best = 0, bd = Infinity;
+    cards.forEach(function (c, i) { var d = Math.abs(c.offsetLeft - track.offsetLeft - 14 - x); if (d < bd) { bd = d; best = i; } });
+    return best;
+  }
+  function update() {
+    var i = current();
+    count.textContent = cards.length ? (i + 1) + " / " + cards.length : "";
+    document.getElementById("prev").disabled = track.scrollLeft < 4;
+    document.getElementById("next").disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+  }
+  function go(d) { var i = Math.max(0, Math.min(cards.length - 1, current() + d)); if (cards[i]) track.scrollTo({ left: cards[i].offsetLeft - track.offsetLeft - 14 }); }
+  var raf = 0; track.addEventListener("scroll", function () { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); }, { passive: true });
+  window.addEventListener("resize", update);
+  document.getElementById("prev").addEventListener("click", function () { go(-1); });
+  document.getElementById("next").addEventListener("click", function () { go(1); });
+  document.addEventListener("keydown", function (e) {
+    if (!reader.hidden) { if (e.key === "Escape") closeReader(); return; }
+    if (e.key === "ArrowRight") { go(1); e.preventDefault(); }
+    else if (e.key === "ArrowLeft") { go(-1); e.preventDefault(); }
+  });
+
+  function openReader(s, from) {
+    lastFocus = from; document.getElementById("reader-title").textContent = name(s);
+    rImg.src = s.filename; rImg.alt = s.alt || name(s); rScroll.classList.remove("actual"); rScroll.scrollTop = 0;
+    document.getElementById("reader-size").setAttribute("aria-pressed", "false"); document.getElementById("reader-size").textContent = "Actual size";
+    reader.hidden = false; document.getElementById("reader-close").focus();
+  }
+  function closeReader() { reader.hidden = true; rImg.removeAttribute("src"); if (lastFocus) lastFocus.focus(); }
+  document.getElementById("reader-close").addEventListener("click", closeReader);
+  document.getElementById("reader-size").addEventListener("click", function () {
+    var on = rScroll.classList.toggle("actual"); this.setAttribute("aria-pressed", on); this.textContent = on ? "Fit width" : "Actual size";
+  });
+  reader.addEventListener("click", function (e) { if (e.target === rScroll) closeReader(); });
+
+  fetch("strips.json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
+    strips = (d.strips || []).filter(function (s) { return s.active !== false; }).sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+    build();
+  }).catch(function () { var p = el("p", "empty"); p.textContent = "Couldn't load strips.json (open this page through a web server, not as a file)."; track.appendChild(p); });
+})();
+</script>
+</body>
+</html>

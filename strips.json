@@ -1,0 +1,35 @@
+{
+  "_readme": "Comics archive manifest. One entry per strip; the page sorts newest first by date. Add strips with: python3 tools/add-strips.py <folder>, then fill in episode/title/alt.",
+  "strips": [
+    {
+      "filename": "assets/strips/gremlin-diaries-2026-10-24.webp",
+      "thumb": "assets/strips/gremlin-diaries-2026-10-24-thumb.webp",
+      "date": "2026-10-24",
+      "episode": 3,
+      "title": "The Flyer Relay",
+      "width": 720,
+      "height": 1280,
+      "alt": "Six-panel comic. Bryan needs a flyer by noon; Moth sketches, Pip pitches sticky-note ideas, Vesper approves, Noodle rides an office chair to Dot's print shop, and the crew cheers the finished flyer stack while Grimble juggles three headsets."
+    },
+    {
+      "filename": "assets/strips/gremlin-diaries-2026-10-23.webp",
+      "thumb": "assets/strips/gremlin-diaries-2026-10-23-thumb.webp",
+      "date": "2026-10-23",
+      "episode": 2,
+      "title": "Moth's Night Out",
+      "width": 1000,
+      "height": 1593,
+      "alt": "Comic strip about the gremlins' team outing: karaoke, and Moth drawing everyone, though nobody remembers posing."
+    },
+    {
+      "filename": "assets/strips/gremlin-diaries-2026-10-22.webp",
+      "thumb": "assets/strips/gremlin-diaries-2026-10-22-thumb.webp",
+      "date": "2026-10-22",
+      "episode": 1,
+      "title": "First Day",
+      "width": 1000,
+      "height": 1932,
+      "alt": "Comic strip: the Grateful Gremlins' first day at the office."
+    }
+  ]
+}
