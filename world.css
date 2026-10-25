@@ -1,0 +1,101 @@
+/* Gremlin World additions on top of office.css */
+.hud-left{display:flex;gap:6px;align-items:center;min-width:0}
+.title .t-world{font-size:.7em;color:var(--forest);font-style:italic;margin-right:4px}
+#socks{display:inline-flex;align-items:center;gap:5px}
+#socks img{width:16px;height:18px}
+#socks.bump{animation:bump .6s ease}
+@keyframes bump{40%{transform:scale(1.25)}}
+
+/* items placed on faces */
+.it{position:absolute;border:0;padding:0;margin:0;background:transparent;border-radius:16px;cursor:pointer;font:inherit;color:inherit}
+.it.hasimg{border-radius:6px}
+.it>img.prop{display:block;width:100%;height:100%;pointer-events:none}
+.it:hover,.it:focus-visible,.it.glow,.reveal .it{background:radial-gradient(closest-side,rgba(255,246,220,.5),rgba(255,246,220,0));box-shadow:0 0 28px 10px var(--glow)}
+.it.hasimg:hover,.it.hasimg:focus-visible{background:transparent}
+.it:focus-visible{outline:3px dashed var(--forest);outline-offset:4px}
+.it.portal{cursor:pointer}
+.it.portal .tag{position:absolute;left:50%;top:-18px;transform:translate(-50%,-100%);white-space:nowrap;font:600 22px var(--serif);color:var(--paper);
+  background:rgba(58,74,51,.88);padding:6px 14px;border-radius:999px;opacity:0;transition:opacity .25s;pointer-events:none}
+.it.portal:hover .tag,.it.portal:focus-visible .tag,.it.portal.glow .tag{opacity:1}
+.it.portal.nofocus .tag{opacity:.0}
+.it.portal::before{content:"";position:absolute;inset:-6px;border-radius:inherit;border:4px dashed rgba(243,217,139,.0);transition:border-color .3s}
+.it.portal:hover::before,.it.portal:focus-visible::before{border-color:rgba(243,217,139,.9)}
+.it.sock{border-radius:50%;cursor:pointer}
+.it.sock img{width:100%;height:100%;display:block;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+.it.sock.got{animation:sockgo .9s ease-in forwards;pointer-events:none}
+@keyframes sockgo{40%{transform:scale(1.6) rotate(20deg)}100%{transform:scale(0) rotate(200deg);opacity:0}}
+.it.found::after{content:"\2726";position:absolute;right:-6px;top:-10px;font-size:18px;color:#F3D98B;text-shadow:0 0 3px rgba(0,0,0,.5)}
+.it.wiggle{animation:wiggle .5s ease 2}
+@keyframes wiggle{25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+.it.knock{animation:knock .18s ease 3}
+@keyframes knock{50%{transform:translateX(3px)}}
+.puff{position:absolute;left:70%;top:0;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.75);pointer-events:none;animation:puff 2.2s ease-out forwards}
+@keyframes puff{from{transform:translateY(0) scale(.5);opacity:.9}to{transform:translateY(-140px) scale(2.2);opacity:0}}
+/* Mona's returning eye: an eye that pops in, then winks */
+.eye{position:absolute;width:18px;height:12px;margin:-6px 0 0 -9px;border-radius:50%;background:var(--ink);transform:scaleY(0);pointer-events:none}
+.eye.painted{width:19px;height:10px;margin:-5px 0 0 -9px;background:radial-gradient(circle at 50% 55%,#1d140e 0 26%,#4a3322 28% 46%,#e3d3b0 52%,#c9ae84 100%);box-shadow:0 0 2px 1px rgba(60,40,25,.35)}
+.eye.on{animation:wink 2.6s ease forwards}
+@keyframes wink{15%{transform:scaleY(1)}45%{transform:scaleY(1)}55%{transform:scaleY(.1)}65%{transform:scaleY(1)}100%{transform:scaleY(1)}}
+.it .sparkle{position:absolute;font-size:34px;color:#F3D98B;text-shadow:0 0 6px #fff;pointer-events:none;animation:spark 1.8s ease forwards}
+@keyframes spark{0%{transform:scale(0) rotate(0)}40%{transform:scale(1.3) rotate(40deg)}100%{transform:scale(0) rotate(90deg);opacity:0}}
+
+/* warm burrow lighting: a slow, gentle glow (never flicker) */
+#mood{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;z-index:1}
+body.mood-burrow #mood{opacity:1;background:radial-gradient(ellipse at 50% 45%,rgba(255,214,140,.10),rgba(70,40,15,.28) 75%);animation:lamp 7s ease-in-out infinite}
+@keyframes lamp{50%{opacity:.75}}
+
+/* squishy tunnel transition */
+#warp{position:absolute;inset:0;z-index:7;pointer-events:none;display:flex;align-items:center;justify-content:center;opacity:0;overflow:hidden}
+#warp i{position:absolute;width:30vmax;height:30vmax;border-radius:47% 53% 50% 50%;border:5vmax solid #8A6A48;box-shadow:0 0 0 2vmax #C9A273 inset}
+#warp.on{opacity:1;background:radial-gradient(circle,#FFF3C8 0,#F4D592 8%,#B79168 30%,#7E5E40 70%)}
+#warp.on i{animation:ring .9s ease-in infinite}
+#warp.on i:nth-child(2){animation-delay:-.18s}#warp.on i:nth-child(3){animation-delay:-.36s}#warp.on i:nth-child(4){animation-delay:-.54s}#warp.on i:nth-child(5){animation-delay:-.72s}
+@keyframes ring{from{transform:scale(.05,.08) rotate(0);opacity:0}30%{opacity:1}to{transform:scale(4.2,3.6) rotate(25deg);opacity:1}}
+#warp.squish{animation:squish .9s ease-in-out}
+@keyframes squish{30%{transform:scale(1.08,.9)}60%{transform:scale(.94,1.08)}}
+
+/* gremlin speech bubble */
+.bubble{position:absolute;left:12px;bottom:60px;z-index:6;display:flex;align-items:flex-end;gap:8px;max-width:min(420px,calc(100% - 24px));animation:pop .3s ease-out;cursor:pointer}
+.bubble img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid var(--paper);box-shadow:0 3px 10px rgba(0,0,0,.25);flex:none;background:var(--cream)}
+.bubble p{position:relative;margin:0 0 18px;background:var(--paper);color:var(--ink);border-radius:16px;padding:10px 14px;font:15px/1.4 var(--sans);box-shadow:0 6px 18px rgba(26,26,24,.25)}
+.bubble p::before{content:"";position:absolute;left:-8px;bottom:12px;border:8px solid transparent;border-right-color:var(--paper);border-left:0}
+.bubble b{display:block;font:600 12px var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--forest);margin-bottom:2px}
+
+/* map */
+.mapbox{right:12px;left:auto;bottom:auto;max-height:calc(100% - 70px)}
+#map-svg{width:100%;height:auto;background:var(--cream);border-radius:12px;margin-bottom:8px}
+#map-svg .link{stroke:var(--forest);stroke-width:3;stroke-dasharray:3 5;fill:none;opacity:.6}
+#map-svg .node rect{fill:var(--paper);stroke:var(--forest);stroke-width:2}
+#map-svg .node.here rect{fill:#F3D98B;stroke:var(--moss);stroke-width:3}
+#map-svg .node.unknown rect{fill:#D6D1C2;stroke-dasharray:3 3}
+#map-svg text{font:600 9px var(--sans);fill:var(--moss);text-anchor:middle}
+#map-list{list-style:none;margin:0;padding:0}
+#map-list button{width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid rgba(84,102,74,.15);padding:10px 4px;font:15px var(--sans);color:var(--ink);cursor:pointer}
+#map-list button:hover,#map-list button:focus-visible{background:var(--cream)}
+#map-list button[disabled]{color:#8a8a80;font-style:italic;cursor:default}
+#map-list .here{font-weight:600;color:var(--moss)}
+
+/* prize screen */
+.prize{position:absolute;inset:0;z-index:12;background:rgba(26,26,24,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.prize[hidden]{display:none}
+.prize-card{background:var(--paper);border-radius:20px;padding:22px 22px 18px;max-width:400px;width:100%;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.35);animation:pop .35s ease-out;border:2px solid #F3D98B}
+.prize-card img{width:170px;height:auto}
+.prize-card h2{font:600 24px/1.2 var(--serif);color:var(--moss);margin:6px 0 8px}
+.prize-card p{font-size:15px;line-height:1.5;margin:0 0 10px}
+.prize-note{display:inline-block;background:#F3D98B;border-radius:999px;padding:6px 14px;font-weight:600;color:var(--moss)}
+.prize .btn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.prize .btn-row button{font:600 14px var(--sans);background:var(--forest);color:var(--paper);border:0;border-radius:999px;padding:10px 16px;cursor:pointer}
+.prize .btn-row button.ghost{background:transparent;color:var(--forest);border:1px solid var(--forest)}
+@media (max-width:560px){
+  .title .t-world{display:none}
+  .bubble{bottom:58px}
+  .bubble img{width:52px;height:52px}
+  .bubble p{font-size:14px}
+  #btn-back span{display:none}
+  .mapbox{left:8px;right:8px;width:auto}
+}
+.it.strip>img.prop{object-fit:cover;border-radius:2px}
+.it.sock.bare{border-radius:50%}
+/* items are flat on their wall: flattening each face makes taps land on the item, not the wall behind it */
+#world .face{transform-style:flat}
+@media (max-width:700px){body:has(#bubble:not([hidden])) #hint{opacity:0;transition:opacity .3s}}

@@ -1,0 +1,1388 @@
+{
+  "_readme": "Gremlin World sample. Rooms are cube panoramas. Positions are {face, x, y} in face pixels (0-1024; faces: front/right/back/left/floor/ceiling). 'at' = position on the drawn SVG room; 'atArt' = position when painted art (assets/world/<room>/<face>.webp|png) is present. Items with no atArt are hidden in painted-art mode unless they carry their own 'img'. Types: portal, sock, egg. See README-world.md.",
+  "version": 1,
+  "start": "office",
+  "socksTotal": 5,
+  "rooms": {
+    "office": {
+      "name": "The Office",
+      "short": "Office",
+      "faces": "assets/room/{face}.svg",
+      "importOffice": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -2
+      },
+      "greet": {
+        "who": "grimble",
+        "text": "Welcome to the wider office! Five gremlin socks went missing in the wash. If you spot one, give it a tap."
+      },
+      "items": [
+        {
+          "id": "to-tunnel",
+          "type": "portal",
+          "to": "tunnel",
+          "label": "Supply closet (it's a tunnel)",
+          "at": {
+            "face": "right",
+            "x": 885,
+            "y": 830
+          },
+          "size": [
+            170,
+            255
+          ],
+          "img": "assets/world/props/closet-door.svg"
+        },
+        {
+          "id": "sock-noodle",
+          "type": "sock",
+          "gremlin": "noodle",
+          "label": "A stray sock",
+          "at": {
+            "face": "front",
+            "x": 600,
+            "y": 930
+          },
+          "size": [
+            46,
+            52
+          ],
+          "rot": -18,
+          "say": "My lucky sock! It was under my desk the whole time. Thank you!"
+        }
+      ]
+    },
+    "tunnel": {
+      "name": "The Supply Closet Tunnel",
+      "short": "Tunnel",
+      "faces": "assets/world/tunnel/{face}.svg",
+      "mood": "burrow",
+      "startView": {
+        "yaw": 0,
+        "pitch": -4
+      },
+      "greet": {
+        "who": "pip",
+        "text": "It's a burrow, not a scary tunnel. Lamps, cushions, tea. The gallery is round the bend."
+      },
+      "items": [
+        {
+          "id": "to-gallery",
+          "type": "portal",
+          "to": "gallery",
+          "label": "Round the bend to the Gallery of Odd Things",
+          "at": {
+            "face": "front",
+            "x": 650,
+            "y": 552
+          },
+          "size": [
+            240,
+            250
+          ],
+          "atArt": {
+            "face": "front",
+            "x": 506,
+            "y": 640
+          },
+          "artSize": [
+            400,
+            470
+          ]
+        },
+        {
+          "id": "to-office-hatch",
+          "type": "portal",
+          "to": "office",
+          "label": "Supply closet: back to the Office",
+          "at": {
+            "face": "back",
+            "x": 512,
+            "y": 470
+          },
+          "size": [
+            420,
+            420
+          ],
+          "atArt": {
+            "face": "back",
+            "x": 510,
+            "y": 690
+          },
+          "artSize": [
+            340,
+            510
+          ]
+        },
+        {
+          "id": "to-arcade",
+          "type": "portal",
+          "to": "arcade",
+          "label": "A tiny green door. Beeping behind it.",
+          "at": {
+            "face": "front",
+            "x": 795,
+            "y": 858
+          },
+          "size": [
+            90,
+            140
+          ],
+          "artOnly": true
+        },
+        {
+          "id": "tiny-door",
+          "type": "egg",
+          "label": "A very tiny door",
+          "at": {
+            "face": "left",
+            "x": 858,
+            "y": 939
+          },
+          "size": [
+            70,
+            92
+          ],
+          "effect": "wiggle",
+          "card": {
+            "meta": "a very small door",
+            "title": "Too small. Try later.",
+            "text": "You knock. The door is about the size of a slice of toast.\n\nA tiny voice: \"Too small, try later!\""
+          },
+          "repeat": "Still too small. (You're doing great, though.)"
+        },
+        {
+          "id": "printer-door",
+          "type": "egg",
+          "label": "Door: Do Not Feed the Printer",
+          "at": {
+            "face": "left",
+            "x": 535,
+            "y": 640
+          },
+          "size": [
+            230,
+            680
+          ],
+          "effect": "knock",
+          "card": {
+            "meta": "a door with a sign",
+            "title": "Do Not Feed the Printer",
+            "text": "Knock knock.\n\nFrom somewhere behind the door, a slow, contented hum. The printer is having a nap.\n\nA note taped below the sign: \"Paper jams are just the printer taking a breath.\""
+          },
+          "atArt": {
+            "face": "back",
+            "x": 185,
+            "y": 470
+          },
+          "artSize": [
+            220,
+            140
+          ],
+          "artImg": "assets/world/props/printer-sign.svg",
+          "artCard": {
+            "meta": "a sign",
+            "title": "Do Not Feed the Printer",
+            "text": "Someone hung this by the supply closet.\n\nFrom somewhere far off, a slow, contented hum: the office printer, having a nap.\n\nA note in smaller writing: \"Paper jams are just the printer taking a breath.\""
+          }
+        },
+        {
+          "id": "feelings-drawer",
+          "type": "egg",
+          "label": "A filing drawer with a label",
+          "at": {
+            "face": "left",
+            "x": 755,
+            "y": 840
+          },
+          "size": [
+            110,
+            280
+          ],
+          "effect": "wiggle",
+          "card": {
+            "meta": "office supplies",
+            "title": "Forms drawer",
+            "text": "The drawer is politely stuck. It is very, very full.\n\nA sticky note on the handle: \"Forms overflow. See Archive.\""
+          }
+        },
+        {
+          "id": "chalk-wall",
+          "type": "egg",
+          "label": "Chalk doodles",
+          "at": {
+            "face": "left",
+            "x": 230,
+            "y": 470
+          },
+          "size": [
+            300,
+            560
+          ],
+          "card": {
+            "meta": "the doodle wall",
+            "title": "The doodle wall",
+            "text": "Gremlin faces, a star, a sock (suspicious), a sun, and a line of little glyphs signed by six sets of initials.\n\nThe glyphs are Gremlish. Nobody here will translate them for you. Yet."
+          },
+          "atArt": {
+            "face": "right",
+            "x": 260,
+            "y": 520
+          },
+          "artSize": [
+            300,
+            160
+          ],
+          "artImg": "assets/world/props/gremlish-doodle.svg"
+        },
+        {
+          "id": "porthole",
+          "type": "egg",
+          "label": "A round window full of stars",
+          "artOnly": true,
+          "atArt": {
+            "face": "right",
+            "x": 506,
+            "y": 593
+          },
+          "artSize": [
+            190,
+            190
+          ],
+          "effect": "puff",
+          "card": {
+            "meta": "a small window",
+            "title": "The star porthole",
+            "text": "A round window in the burrow wall, full of stars. It's painted on.\n\nThe gremlins come here to look at it for a minute when a day has been a lot. It works anyway."
+          }
+        },
+        {
+          "id": "patience-jar",
+          "type": "egg",
+          "label": "A jar on the top shelf",
+          "artOnly": true,
+          "atArt": {
+            "face": "left",
+            "x": 783,
+            "y": 362
+          },
+          "artSize": [
+            90,
+            110
+          ],
+          "effect": "wiggle",
+          "card": {
+            "meta": "supplies",
+            "title": "Jar of Spare Patience",
+            "text": "Label: \"Spare Patience. Take what you need.\"\n\nIt's about half full. It's always about half full, no matter how much anyone takes."
+          }
+        },
+        {
+          "id": "nook-hole",
+          "type": "egg",
+          "label": "A little round hole in the wall",
+          "artOnly": true,
+          "atArt": {
+            "face": "right",
+            "x": 842,
+            "y": 373
+          },
+          "artSize": [
+            110,
+            110
+          ],
+          "effect": "wiggle",
+          "card": {
+            "meta": "a nook",
+            "title": "Occupied!",
+            "text": "You peek into the little round hole. A sleepy voice from inside: \"Occupied! Five more minutes.\"\n\nSomeone in there is taking a very good nap."
+          }
+        },
+        {
+          "id": "rest-nook",
+          "type": "egg",
+          "label": "Cushions under a sign",
+          "at": {
+            "face": "right",
+            "x": 290,
+            "y": 600
+          },
+          "size": [
+            440,
+            620
+          ],
+          "card": {
+            "meta": "a rest stop",
+            "title": "The cushion pile",
+            "text": "Three cushions, one lamp, a sign in Gremlish.\n\nThe burrow is the gremlins' favourite place to sit down for a minute between big ideas. You're welcome to as well."
+          }
+        },
+        {
+          "id": "kettle",
+          "type": "egg",
+          "label": "A little kettle",
+          "at": {
+            "face": "right",
+            "x": 520,
+            "y": 740
+          },
+          "size": [
+            190,
+            130
+          ],
+          "effect": "puff",
+          "card": {
+            "meta": "tea",
+            "title": "The burrow kettle",
+            "text": "It's always almost ready.\n\nVesper says the waiting is part of the tea."
+          },
+          "atArt": {
+            "face": "back",
+            "x": 190,
+            "y": 760
+          },
+          "artSize": [
+            110,
+            118
+          ],
+          "artImg": "assets/world/props/kettle.svg"
+        },
+        {
+          "id": "gnn",
+          "type": "egg",
+          "label": "Gremlin News Network desk",
+          "at": {
+            "face": "right",
+            "x": 805,
+            "y": 590
+          },
+          "size": [
+            310,
+            760
+          ],
+          "card": {
+            "meta": "live-ish from the burrow",
+            "title": "Gremlin News Network",
+            "text": "Nancy, anchoring from a cardboard desk: \"Tonight's top story: five socks remain missing. Experts advise: look low, look up, and look under things.\"\n\nDot, operating a camera made from a box: \"And we're... still live.\""
+          }
+        },
+        {
+          "id": "sock-pip",
+          "type": "sock",
+          "gremlin": "pip",
+          "label": "A stray sock",
+          "at": {
+            "face": "ceiling",
+            "x": 296,
+            "y": 690
+          },
+          "size": [
+            46,
+            52
+          ],
+          "rot": 160,
+          "say": "How did it get up on the roots?! Thank you. I'll keep it somewhere sensible. Like a drawer.",
+          "atArt": {
+            "face": "left",
+            "x": 300,
+            "y": 640
+          }
+        },
+        {
+          "id": "sock-dot",
+          "type": "sock",
+          "gremlin": "dot",
+          "label": "A stray sock",
+          "at": {
+            "face": "right",
+            "x": 470,
+            "y": 890
+          },
+          "size": [
+            44,
+            50
+          ],
+          "rot": -30,
+          "say": "My camera-cleaning sock! The news can go on. Thank you!",
+          "atArt": {
+            "face": "right",
+            "x": 735,
+            "y": 880
+          }
+        }
+      ]
+    },
+    "gallery": {
+      "name": "The Gallery of Odd Things",
+      "short": "Gallery",
+      "faces": "assets/world/gallery/{face}.svg",
+      "startView": {
+        "yaw": 0,
+        "pitch": 0
+      },
+      "greet": {
+        "who": "moth",
+        "text": "Welcome to the gallery. I curated it. Mostly by accident. Please walk slowly; the art is shy."
+      },
+      "items": [
+        {
+          "id": "to-office-door",
+          "type": "portal",
+          "to": "office",
+          "label": "Door back to the Office",
+          "at": {
+            "face": "back",
+            "x": 685,
+            "y": 625
+          },
+          "size": [
+            250,
+            650
+          ],
+          "atArt": {
+            "face": "right",
+            "x": 905,
+            "y": 790
+          },
+          "artImg": "assets/world/props/office-door.svg",
+          "artSize": [
+            150,
+            300
+          ]
+        },
+        {
+          "id": "to-tunnel-hole",
+          "type": "portal",
+          "to": "tunnel",
+          "label": "Round hole back to the tunnel",
+          "at": {
+            "face": "back",
+            "x": 250,
+            "y": 835
+          },
+          "size": [
+            280,
+            240
+          ],
+          "atArt": {
+            "face": "left",
+            "x": 747,
+            "y": 862
+          },
+          "artSize": [
+            230,
+            210
+          ]
+        },
+        {
+          "id": "to-archive",
+          "type": "portal",
+          "to": "archive",
+          "label": "A round hatch in the floor",
+          "at": {
+            "face": "floor",
+            "x": 507,
+            "y": 531
+          },
+          "size": [
+            370,
+            370
+          ],
+          "artOnly": true
+        },
+        {
+          "id": "mona",
+          "type": "egg",
+          "label": "Mona, Mostly (a painting)",
+          "at": {
+            "face": "front",
+            "x": 512,
+            "y": 400
+          },
+          "size": [
+            308,
+            408
+          ],
+          "effect": "wink",
+          "eye": {
+            "x": 186,
+            "y": 134
+          },
+          "atArt": {
+            "face": "front",
+            "x": 514,
+            "y": 415
+          },
+          "artSize": [
+            450,
+            575
+          ],
+          "artEye": {
+            "x": 231,
+            "y": 175
+          },
+          "card": {
+            "meta": "the collection",
+            "title": "Mona, Mostly",
+            "text": "After da Vinci, by Moth.\n\nHer missing eye was out to lunch. It just got back, and it would like you to know it saw that."
+          }
+        },
+        {
+          "id": "sock-puppet",
+          "type": "egg",
+          "label": "Self-Portrait as a Sock (a sculpture)",
+          "at": {
+            "face": "front",
+            "x": 188,
+            "y": 640
+          },
+          "size": [
+            130,
+            280
+          ],
+          "atArt": {
+            "face": "left",
+            "x": 224,
+            "y": 650
+          },
+          "artSize": [
+            120,
+            190
+          ],
+          "say": {
+            "who": "moth",
+            "lines": [
+              "The sculpture would like you to know it is NOT one of the missing socks. It is art.",
+              "It says it's been practising sitting very still. It's getting good at it.",
+              "It asks if you've tried wiggling your toes today. No reason."
+            ]
+          }
+        },
+        {
+          "id": "pie",
+          "type": "egg",
+          "label": "Noodle's Hot-Sauce Pie",
+          "at": {
+            "face": "front",
+            "x": 850,
+            "y": 715
+          },
+          "size": [
+            190,
+            110
+          ],
+          "card": {
+            "meta": "the collection (do not taste)",
+            "title": "Noodle's Hot-Sauce Pie",
+            "text": "On loan from Noodle's kitchen. Noodle says it's \"only a little spicy.\"\n\nThe plinth has been quietly moved a bit further from the visitors each week."
+          },
+          "atArt": {
+            "face": "back",
+            "x": 149,
+            "y": 486
+          },
+          "artSize": [
+            88,
+            122
+          ],
+          "artImg": "assets/world/props/pie-mini.svg",
+          "artCard": {
+            "meta": "the collection (do not taste)",
+            "title": "Still Life with Hot-Sauce Pie",
+            "text": "A portrait of Noodle's hot-sauce pie. The real one is in Noodle's kitchen, where Noodle says it is \"only a little spicy.\"\n\nThe painting was moved a bit further from the snack table, just in case."
+          }
+        },
+        {
+          "id": "gremlish-plaque",
+          "type": "egg",
+          "label": "Small glyphs under a plaque",
+          "at": {
+            "face": "front",
+            "x": 512,
+            "y": 722
+          },
+          "size": [
+            200,
+            70
+          ],
+          "card": {
+            "meta": "fine print",
+            "title": "Fine print, in Gremlish",
+            "text": "Two short lines of little glyphs. The gremlins write in Gremlish when something matters to them.\n\nIf you crack it, keep it to yourself for a bit. It's more fun that way."
+          },
+          "atArt": {
+            "face": "front",
+            "x": 512,
+            "y": 700
+          },
+          "artSize": [
+            170,
+            60
+          ],
+          "artImg": "assets/world/props/gremlish-plaque.svg"
+        },
+        {
+          "id": "houseplant",
+          "type": "egg",
+          "label": "Portrait of a Houseplant",
+          "at": {
+            "face": "right",
+            "x": 300,
+            "y": 420
+          },
+          "size": [
+            348,
+            428
+          ],
+          "atArt": {
+            "face": "back",
+            "x": 510,
+            "y": 438
+          },
+          "artSize": [
+            430,
+            600
+          ],
+          "card": {
+            "meta": "the collection",
+            "title": "Portrait of a Houseplant",
+            "text": "The office plant, painted from life over six months. It sat very still.\n\nIt grew one new leaf during the sitting, which the artist had to add at the last minute. There's a note on the pot. Pip says it's from \"nobody.\""
+          }
+        },
+        {
+          "id": "chickens",
+          "type": "egg",
+          "label": "Morning Practice (a painting)",
+          "at": {
+            "face": "right",
+            "x": 750,
+            "y": 380
+          },
+          "size": [
+            408,
+            308
+          ],
+          "card": {
+            "meta": "the collection",
+            "title": "Morning Practice",
+            "text": "Three chickens, mid-tai-chi. The gremlins swear the chickens hold each pose for exactly one slow breath.\n\nNobody knows where the chickens practise. Somewhere sunny, presumably."
+          },
+          "atArt": {
+            "face": "right",
+            "x": 153,
+            "y": 486
+          },
+          "artSize": [
+            100,
+            132
+          ],
+          "artImg": "assets/world/props/chicken-mini.svg"
+        },
+        {
+          "id": "sticky-painting",
+          "type": "egg",
+          "label": "Untitled (Reminder)",
+          "at": {
+            "face": "left",
+            "x": 512,
+            "y": 420
+          },
+          "size": [
+            424,
+            500
+          ],
+          "atArt": {
+            "face": "front",
+            "x": 150,
+            "y": 483
+          },
+          "artSize": [
+            100,
+            132
+          ],
+          "artImg": "assets/world/props/sticky-note.svg",
+          "card": {
+            "meta": "the collection",
+            "title": "Untitled (Reminder), 2026",
+            "text": "Sticky note on canvas. The note says:\n\nWhy did the gremlin sit on the clock?\nTo be on time.\n\nCritics are divided."
+          }
+        },
+        {
+          "id": "idea-mountain",
+          "type": "egg",
+          "label": "Mountain of Unfinished Ideas",
+          "at": {
+            "face": "left",
+            "x": 150,
+            "y": 820
+          },
+          "size": [
+            250,
+            220
+          ],
+          "card": {
+            "meta": "the collection (ongoing)",
+            "title": "Mountain of Unfinished Ideas",
+            "text": "Every crumpled page is an idea that's still cooking.\n\nIt grows a little every day. Grimble calls it \"the compost heap of genius.\""
+          }
+        },
+        {
+          "id": "lost-library",
+          "type": "egg",
+          "label": "A sign: Lost Gremlin Library",
+          "at": {
+            "face": "left",
+            "x": 885,
+            "y": 415
+          },
+          "size": [
+            200,
+            90
+          ],
+          "card": {
+            "meta": "a sign",
+            "title": "Lost Gremlin Library",
+            "text": "The sign points firmly at a wall.\n\nThe library is, as advertised, lost."
+          }
+        },
+        {
+          "id": "mug-tower",
+          "type": "egg",
+          "label": "A tower of mugs",
+          "artOnly": true,
+          "atArt": {
+            "face": "right",
+            "x": 506,
+            "y": 400
+          },
+          "artSize": [
+            200,
+            540
+          ],
+          "card": {
+            "meta": "the collection",
+            "title": "Tower of Borrowed Mugs",
+            "text": "Every mug the gremlins have ever \"just borrowed for a second.\"\n\nIt is very steady. Please don't test this."
+          }
+        },
+        {
+          "id": "sock-grimble",
+          "type": "sock",
+          "gremlin": "grimble",
+          "label": "A stray sock",
+          "at": {
+            "face": "left",
+            "x": 168,
+            "y": 735
+          },
+          "size": [
+            44,
+            50
+          ],
+          "rot": 24,
+          "atArt": {
+            "face": "right",
+            "x": 905,
+            "y": 430
+          },
+          "say": "Found it on the Mountain of Unfinished Ideas? That tracks. Thank you, friend."
+        }
+      ]
+    },
+    "archive": {
+      "name": "The Comics Archive",
+      "short": "Archive",
+      "faces": "assets/world/archive/{face}.webp",
+      "startView": {
+        "yaw": 0,
+        "pitch": 2
+      },
+      "greet": {
+        "who": "vesper",
+        "text": "Welcome to the Archive. Every strip we finish gets a frame. Feel free to sit; the chair is very good at its job."
+      },
+      "items": [
+        {
+          "id": "to-gallery-up",
+          "type": "portal",
+          "to": "gallery",
+          "label": "Arched door, up to the Gallery",
+          "at": {
+            "face": "back",
+            "x": 495,
+            "y": 570
+          },
+          "size": [
+            280,
+            620
+          ]
+        },
+        {
+          "id": "to-rooftop",
+          "type": "portal",
+          "to": "rooftop",
+          "label": "The library ladder goes all the way up",
+          "at": {
+            "face": "front",
+            "x": 105,
+            "y": 500
+          },
+          "size": [
+            130,
+            600
+          ]
+        },
+        {
+          "id": "strip-0",
+          "type": "strip",
+          "strip": 0,
+          "label": "Framed comic strip",
+          "at": {
+            "face": "front",
+            "x": 324,
+            "y": 480
+          },
+          "size": [
+            150,
+            318
+          ]
+        },
+        {
+          "id": "strip-1",
+          "type": "strip",
+          "strip": 1,
+          "label": "Framed comic strip",
+          "at": {
+            "face": "front",
+            "x": 510,
+            "y": 480
+          },
+          "size": [
+            150,
+            318
+          ]
+        },
+        {
+          "id": "strip-2",
+          "type": "strip",
+          "strip": 2,
+          "label": "Framed comic strip",
+          "at": {
+            "face": "front",
+            "x": 696,
+            "y": 480
+          },
+          "size": [
+            150,
+            318
+          ]
+        },
+        {
+          "id": "empty-frames",
+          "type": "egg",
+          "label": "Two empty frames",
+          "at": {
+            "face": "back",
+            "x": 750,
+            "y": 480
+          },
+          "size": [
+            150,
+            320
+          ],
+          "card": {
+            "meta": "the archive",
+            "title": "Saved for later",
+            "text": "Two frames, still empty, already dusted.\n\nVesper dusts them every morning. \"They're for strips we haven't made yet. No rush. They'll keep.\""
+          }
+        },
+        {
+          "id": "reading-chair",
+          "type": "egg",
+          "label": "A big red armchair",
+          "at": {
+            "face": "right",
+            "x": 417,
+            "y": 765
+          },
+          "size": [
+            330,
+            270
+          ],
+          "card": {
+            "meta": "a good chair",
+            "title": "The Reading Chair",
+            "text": "There's a blanket, a tea that's still warm, and a dent in the cushion exactly the shape of a gremlin.\n\nA little card on the armrest: \"Reserved for whoever needs a sit.\""
+          },
+          "effect": "puff"
+        },
+        {
+          "id": "archive-drawer",
+          "type": "egg",
+          "label": "The long drawers under the frames",
+          "at": {
+            "face": "front",
+            "x": 510,
+            "y": 860
+          },
+          "size": [
+            500,
+            100
+          ],
+          "card": {
+            "meta": "filing",
+            "title": "The Drawer of Forms",
+            "text": "Most drawers here hold sketches. One is labelled DISCLOSURE OF FEELINGS (FORM 7B).\n\nIt's full of forms. Every single one just says \"I'm fine!\" with a little doodle of a heart that's been scribbled out and then drawn back in."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "globe",
+          "type": "egg",
+          "label": "A desk globe",
+          "at": {
+            "face": "left",
+            "x": 480,
+            "y": 740
+          },
+          "size": [
+            120,
+            150
+          ],
+          "card": {
+            "meta": "geography",
+            "title": "The Nap Globe",
+            "text": "Little pins mark every place a gremlin has had a really good nap.\n\nThere are a lot of pins. Most of them are in this building."
+          }
+        },
+        {
+          "id": "open-book",
+          "type": "egg",
+          "label": "An open book on the rug",
+          "at": {
+            "face": "floor",
+            "x": 342,
+            "y": 501
+          },
+          "size": [
+            220,
+            180
+          ],
+          "card": {
+            "meta": "reading",
+            "title": "A Library Card",
+            "text": "Tucked in the book: a library card from the Lost Gremlin Library.\n\nDue date: \"whenever you're done.\" Nobody knows where that library is. The card seems to think it's close."
+          }
+        }
+      ]
+    },
+    "rooftop": {
+      "name": "The Rooftop Garden",
+      "short": "Rooftop",
+      "faces": "assets/world/rooftop/{face}.webp",
+      "startView": {
+        "yaw": 0,
+        "pitch": -4
+      },
+      "greet": {
+        "who": "pip",
+        "text": "You climbed all those stairs? Come sit. The tomatoes are nearly ready and the tea already is."
+      },
+      "items": [
+        {
+          "id": "to-archive-down",
+          "type": "portal",
+          "to": "archive",
+          "label": "The stair hut, back down to the Archive",
+          "at": {
+            "face": "back",
+            "x": 282,
+            "y": 720
+          },
+          "size": [
+            140,
+            340
+          ]
+        },
+        {
+          "id": "tea-table",
+          "type": "egg",
+          "label": "A little tea table for two",
+          "at": {
+            "face": "front",
+            "x": 480,
+            "y": 840
+          },
+          "size": [
+            290,
+            230
+          ],
+          "card": {
+            "meta": "the roof",
+            "title": "Tea for Two",
+            "text": "Two cups, one pot, two cushions that face the sunset.\n\nThe gremlins have a rule up here: you can't talk about work until the first cup is empty. Most days they forget to talk about work at all."
+          },
+          "effect": "puff"
+        },
+        {
+          "id": "hammock",
+          "type": "egg",
+          "label": "A hammock between the planters",
+          "at": {
+            "face": "left",
+            "x": 675,
+            "y": 816
+          },
+          "size": [
+            300,
+            250
+          ],
+          "card": {
+            "meta": "the roof",
+            "title": "The Hammock",
+            "text": "A sign tied to the hammock: \"For lying in. That's it. That's the instructions.\"\n\nIt sways a little, even with no wind."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "watering-can",
+          "type": "egg",
+          "label": "A green watering can",
+          "at": {
+            "face": "right",
+            "x": 732,
+            "y": 950
+          },
+          "size": [
+            130,
+            110
+          ],
+          "card": {
+            "meta": "the garden",
+            "title": "The Spare Watering Can",
+            "text": "Pip keeps a watering can down in the office too, but that one is for one very particular plant.\n\nThis one is for everything else. It's shared. It's patient. It does a little every day."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "egg-basket",
+          "type": "egg",
+          "label": "A basket of fresh eggs",
+          "at": {
+            "face": "floor",
+            "x": 432,
+            "y": 381
+          },
+          "size": [
+            220,
+            200
+          ],
+          "card": {
+            "meta": "the garden",
+            "title": "From the Chickens",
+            "text": "A note on the basket: \"Back after tai chi. Please don't wait up. Cluck.\"\n\nNobody has ever seen the chickens' tai chi. Everyone agrees it's probably very good."
+          }
+        },
+        {
+          "id": "birdhouse",
+          "type": "egg",
+          "label": "A birdhouse on the wall",
+          "at": {
+            "face": "right",
+            "x": 948,
+            "y": 705
+          },
+          "size": [
+            90,
+            120
+          ],
+          "card": {
+            "meta": "the garden",
+            "title": "Vacancy",
+            "text": "The birdhouse has a tiny sign: NO VACANCY.\n\nInside you can hear a small, happy snore."
+          },
+          "effect": "knock"
+        },
+        {
+          "id": "moon",
+          "type": "egg",
+          "label": "The moon, coming up early",
+          "at": {
+            "face": "left",
+            "x": 204,
+            "y": 171
+          },
+          "size": [
+            90,
+            90
+          ],
+          "card": {
+            "meta": "the sky",
+            "title": "Early Moon",
+            "text": "The moon came up a bit early tonight. It likes this garden too."
+          }
+        }
+      ]
+    },
+    "arcade": {
+      "name": "The Calm Arcade",
+      "short": "Arcade",
+      "faces": "assets/world/arcade/{face}.webp",
+      "startView": {
+        "yaw": 0,
+        "pitch": 0
+      },
+      "greet": {
+        "who": "noodle",
+        "text": "Welcome to the arcade! No timers, no high scores. Every machine says \"nice\" no matter what. Also, somebody lost a sock in here. Not me. Probably."
+      },
+      "items": [
+        {
+          "id": "to-tunnel-beads",
+          "type": "portal",
+          "to": "tunnel",
+          "label": "Bead curtain, back to the Tunnel",
+          "at": {
+            "face": "back",
+            "x": 507,
+            "y": 600
+          },
+          "size": [
+            280,
+            560
+          ]
+        },
+        {
+          "id": "claw",
+          "type": "egg",
+          "label": "The claw machine",
+          "at": {
+            "face": "right",
+            "x": 357,
+            "y": 540
+          },
+          "size": [
+            250,
+            330
+          ],
+          "card": {
+            "meta": "the arcade",
+            "title": "The Gentle Claw",
+            "text": "You press the button. The claw floats down, picks up a little plush mushroom, gives it a squeeze, and puts it back exactly where it was.\n\nThat's the whole game. Everyone in there gets a hug eventually."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "cabinet-blue",
+          "type": "egg",
+          "label": "An arcade cabinet with a blank screen",
+          "at": {
+            "face": "front",
+            "x": 375,
+            "y": 495
+          },
+          "size": [
+            160,
+            170
+          ],
+          "card": {
+            "meta": "the arcade",
+            "title": "PRESS START (WHENEVER)",
+            "text": "The screen says: PRESS START WHENEVER YOU'RE READY.\n\nThere's no countdown. It will wait. It has been waiting very contentedly since Tuesday."
+          }
+        },
+        {
+          "id": "cabinet-red",
+          "type": "egg",
+          "label": "A red arcade cabinet",
+          "at": {
+            "face": "front",
+            "x": 645,
+            "y": 510
+          },
+          "size": [
+            160,
+            170
+          ],
+          "card": {
+            "meta": "the arcade",
+            "title": "Breath Racer",
+            "text": "A racing game where the car only moves while you breathe out slowly.\n\nNoodle has never finished a lap. Noodle says that's not the point."
+          },
+          "effect": "knock"
+        },
+        {
+          "id": "swirl-cabinet",
+          "type": "egg",
+          "label": "A cabinet with swirly art",
+          "at": {
+            "face": "right",
+            "x": 672,
+            "y": 480
+          },
+          "size": [
+            200,
+            200
+          ],
+          "card": {
+            "meta": "the arcade",
+            "title": "Swirl Mode",
+            "text": "The screen is just colours, gently swirling. There are no buttons that do anything.\n\nThe gremlins call it the most relaxing game in the building. Nobody has ever lost."
+          }
+        },
+        {
+          "id": "skee-ball",
+          "type": "egg",
+          "label": "A skee-ball lane",
+          "at": {
+            "face": "left",
+            "x": 810,
+            "y": 651
+          },
+          "size": [
+            220,
+            520
+          ],
+          "card": {
+            "meta": "the arcade",
+            "title": "Skee-Ball",
+            "text": "Every ball you roll scores the same: NICE.\n\nThe tickets that come out are blank. Noodle uses them as bookmarks."
+          }
+        },
+        {
+          "id": "tv-console",
+          "type": "egg",
+          "label": "An old TV and a console",
+          "at": {
+            "face": "left",
+            "x": 360,
+            "y": 651
+          },
+          "size": [
+            270,
+            220
+          ],
+          "card": {
+            "meta": "the arcade",
+            "title": "Two-Player Co-op",
+            "text": "There's only one game on this console: two gremlins carry a very large sandwich across a bridge, together.\n\nYou can't lose. You can only drop the sandwich and laugh."
+          }
+        },
+        {
+          "id": "bean-bag",
+          "type": "egg",
+          "label": "A big yellow bean bag",
+          "at": {
+            "face": "back",
+            "x": 171,
+            "y": 840
+          },
+          "size": [
+            250,
+            200
+          ],
+          "card": {
+            "meta": "the arcade",
+            "title": "Pause Button",
+            "text": "The bean bag has a controller left on it, paused.\n\nA sticky note on the controller: \"Paused. Went for a stretch. Back soon.\""
+          }
+        },
+        {
+          "id": "disco",
+          "type": "egg",
+          "label": "A disco ball on the ceiling",
+          "at": {
+            "face": "ceiling",
+            "x": 510,
+            "y": 471
+          },
+          "size": [
+            200,
+            200
+          ],
+          "card": {
+            "meta": "the arcade",
+            "title": "Very Slow Disco",
+            "text": "The disco ball turns about once an hour. The gremlins find this ideal."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "sock-vesper",
+          "type": "sock",
+          "gremlin": "vesper",
+          "label": "A stray sock",
+          "at": {
+            "face": "floor",
+            "x": 597,
+            "y": 681
+          },
+          "size": [
+            210,
+            170
+          ],
+          "artBare": true,
+          "say": "That's MY sock! I must have danced right out of it. Thank you, dear."
+        }
+      ]
+    }
+  },
+  "links": [
+    [
+      "office",
+      "tunnel"
+    ],
+    [
+      "tunnel",
+      "gallery"
+    ],
+    [
+      "gallery",
+      "office"
+    ],
+    [
+      "tunnel",
+      "arcade"
+    ],
+    [
+      "gallery",
+      "archive"
+    ],
+    [
+      "archive",
+      "rooftop"
+    ]
+  ],
+  "map": {
+    "rooftop": [
+      35,
+      18
+    ],
+    "archive": [
+      35,
+      62
+    ],
+    "gallery": [
+      100,
+      40
+    ],
+    "office": [
+      70,
+      108
+    ],
+    "tunnel": [
+      140,
+      100
+    ],
+    "arcade": [
+      178,
+      62
+    ]
+  },
+  "prize": {
+    "title": "All five socks are home!",
+    "text": "Every gremlin has a warm foot again. They made you a tiny trophy out of the socks (they've since asked for them back).",
+    "note": "Prizes coming soon."
+  }
+}
