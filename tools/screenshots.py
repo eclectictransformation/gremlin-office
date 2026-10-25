@@ -18,7 +18,7 @@ with sync_playwright() as p:
     # GPU (SwiftShader) compositing: the default headless software compositor mis-clips CSS 3D planes
     b = p.chromium.launch(executable_path=CHROME, args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
     pg, reqs = page_for(b, 1280, 800)
-    pg.goto(BASE + "index.html"); pg.wait_for_timeout(1500)
+    pg.goto(BASE + "office-classic.html"); pg.wait_for_timeout(1500)
     pg.screenshot(path=str(OUT / "desktop-01-desks.png"))
     # hover reveal glow on a hidden hotspot
     pg.hover('[data-id="poem-grimble"]'); pg.wait_for_timeout(400)
@@ -60,7 +60,7 @@ with sync_playwright() as p:
     print("desktop requests:", len(reqs), "external:", ext)
 
     pg, reqs = page_for(b, 390, 844, mobile=True)
-    pg.goto(BASE + "index.html"); pg.wait_for_timeout(1500)
+    pg.goto(BASE + "office-classic.html"); pg.wait_for_timeout(1500)
     pg.screenshot(path=str(OUT / "phone-01-desks.png"))
     pg.tap('[data-id="noodle-chair"]'); pg.wait_for_timeout(1400)
     pg.screenshot(path=str(OUT / "phone-02-tap-card.png"))
@@ -87,7 +87,7 @@ with sync_playwright() as p:
     pg.wait_for_timeout(1500); pg.screenshot(path=str(OUT / "desktop-15-comics-embedded-560px.png"))
     # embed test: iframe at 100% x 600
     pg.set_content('<body style="margin:0;font-family:sans-serif;background:#fff"><p style="padding:8px">Host page (eclectictransformation.com stand-in)</p>'
-                   '<iframe src="' + BASE + 'index.html" style="width:100%;height:600px;border:0" title="The Gremlin Office"></iframe></body>')
+                   '<iframe src="' + BASE + 'office-classic.html" style="width:100%;height:600px;border:0" title="The Gremlin Office"></iframe></body>')
     pg.wait_for_timeout(2000)
     pg.screenshot(path=str(OUT / "desktop-14-embedded-iframe-600px.png"))
     b.close()

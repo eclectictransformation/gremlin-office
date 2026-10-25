@@ -3,9 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Gremlin World (sample)</title>
+<title>Gremlin World</title>
 <meta name="description" content="Wander the Gremlin Office, crawl through a cozy burrow, and visit the Gallery of Odd Things.">
 <link rel="icon" href="data:,">
+<script>
+/* Storage check: some browsers block localStorage inside iframes (third-party storage). Then we swap in an
+   in-memory stand-in so the world still works; progress just lasts until the tab closes. */
+(function () {
+  try { var s = window.localStorage, k = "gremlin-world-probe"; s.setItem(k, "1"); s.removeItem(k); window.GW_STORAGE = "local"; return; } catch (e) {}
+  var m = {}, has = function (k) { return Object.prototype.hasOwnProperty.call(m, k); };
+  var mem = { getItem: function (k) { return has(k) ? m[k] : null; }, setItem: function (k, v) { m[k] = String(v); }, removeItem: function (k) { delete m[k]; },
+    clear: function () { m = {}; }, key: function (i) { return Object.keys(m)[i] || null; }, get length() { return Object.keys(m).length; } };
+  try { Object.defineProperty(window, "localStorage", { value: mem, configurable: true }); } catch (e) {}
+  window.GW_STORAGE = "memory"; document.documentElement.classList.add("no-storage");
+})();
+</script>
 <link rel="stylesheet" href="office.css">
 <link rel="stylesheet" href="world.css">
 <link rel="stylesheet" href="games/arcade.css">
@@ -27,6 +39,7 @@
       <button id="socks" class="pill btn" aria-live="polite" aria-label="Sock hunt progress"><img src="assets/world/props/sock-pip.svg" alt=""> <span id="sock-count">0 / 5</span></button>
       <button id="btn-map" class="pill btn" aria-haspopup="dialog" aria-controls="map">Map</button>
       <button id="btn-help" class="pill btn" aria-label="How to explore">?</button>
+      <a id="btn-popout" class="pill btn" href="world.html" target="_blank" rel="noopener" hidden aria-label="Open Gremlin World in a new window">&#8599;</a>
     </div>
   </header>
 
@@ -72,7 +85,7 @@
     </div>
   </div>
 </div>
-<noscript><p style="padding:1rem">Gremlin World needs JavaScript. You can still <a href="index.html">visit the office</a>.</p></noscript>
+<noscript><p style="padding:1rem">Gremlin World needs JavaScript. You can still <a href="office-classic.html">visit the classic office</a>.</p></noscript>
 <script src="games/arcade.js" defer></script>
 <script src="world-player.js" defer></script>
 <script src="world.js" defer></script>

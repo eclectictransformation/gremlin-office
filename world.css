@@ -220,3 +220,17 @@ body.mood-burrow #mood{opacity:1;background:radial-gradient(ellipse at 50% 45%,r
 .it.arcade[data-id=cabinet-purple] .scrtxt{color:#ffe9a8;text-shadow:0 0 6px rgba(255,209,102,.9),2px 2px 0 rgba(0,0,0,.35)}
 .it.arcade[data-id=cabinet-purple] .scrtxt small{white-space:normal;font-size:11px;line-height:1.2;max-width:100%}
 @media (max-width:560px){.gw-toasts{top:auto;bottom:64px}}
+
+/* ===== inside an iframe (diaries.html pop-up uses ?embed) ===== */
+.embed .title .t-world{display:none}          /* the host's bar already says "Gremlin World" */
+#btn-popout{text-decoration:none;color:inherit}
+#btn-popout[hidden]{display:none}
+.gw-memory{background:#F3D98B;border-radius:8px;padding:6px 10px;color:var(--moss)}
+.hud-right .pill{white-space:nowrap}
+@media (max-width:420px){                     /* phone pop-ups are ~375px wide: keep the HUD on one line */
+  .hud-top{padding:6px 6px}.hud-right{gap:3px}
+  .hud-right .pill{padding:7px 8px;font-size:13px}
+  #socks img{display:none}
+  .title{padding:6px 9px;font-size:14px}
+}
+.gw-memory a{color:var(--forest);font-weight:600}

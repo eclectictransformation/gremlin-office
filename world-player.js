@@ -217,12 +217,23 @@
     var b = view("choose");
     head(b, "welcome to gremlin world", "Who's visiting?", "No email, no passwords. A Gremlin Name is a nickname plus a silly three-word key, so your quest journal and arcade scores follow you to any device.");
     var g = el("div", "gw-choices");
-    g.appendChild(btn("Play as a guest", "ghost", function () { save("player-choice", "guest"); closePanel(); toast("\uD83C\uDF3F", "Exploring as a guest", "Progress stays on this device. Tap the badge up top any time to save it."); }));
+    g.appendChild(btn("Play as a guest", "ghost", function () { save("player-choice", "guest"); closePanel(); toast("\uD83C\uDF3F", "Exploring as a guest", window.GW_STORAGE === "memory" ? "Progress lasts until you close this window. Tap the badge up top any time to save it with a Gremlin Name." : "Progress stays on this device. Tap the badge up top any time to save it."); }));
     g.appendChild(btn(hasLocalProgress() ? "Save my progress (new Gremlin Name)" : "New Gremlin Name", "", viewNew));
     g.appendChild(btn("I have a Gremlin Key", "ghost", viewLogin));
     b.appendChild(g);
     b.appendChild(el("p", "gw-fine", "Guests can play everything. Only named gremlins can join the Break Room Brawl boards and sign the guestbook."));
+    if (window.GW_STORAGE === "memory") memoryNote(b);
     showPanel(signin);
+  }
+  // This browser blocks storage in this frame: say so kindly and offer the full-window version.
+  function memoryNote(b) {
+    var p = el("p", "gw-fine gw-memory", "Heads up: this browser won't let the pop-up remember things, so progress lasts until you close it. ");
+    if (window.self !== window.top) {
+      var q = new URLSearchParams(location.search); q.delete("embed"); q.delete("noprompt");
+      var a = el("a", "", "Open in a new window"); a.href = "world.html" + (q.toString() ? "?" + q : "") + location.hash; a.target = "_blank"; a.rel = "noopener";
+      p.appendChild(a); p.appendChild(document.createTextNode(" to keep it."));
+    }
+    b.appendChild(p);
   }
   function hasLocalProgress() { var p = localProgress(); return p.socks.length + p.found.length + Math.max(0, p.visited.length - 1) + Object.keys(p.bests).length > 0; }
   function viewNew() {

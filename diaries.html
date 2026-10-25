@@ -119,6 +119,7 @@ footer{text-align:center;font-size:12px;color:var(--forest);margin-top:8px}
 .overlay[hidden]{display:none}
 .panel{width:min(100%,1000px);flex:1 1 auto;min-height:0;max-height:var(--reader-max);display:flex;flex-direction:column;color:var(--paper)}
 #office-pop .panel{max-height:none}
+#office-pop .bar .head{flex-basis:120px}   /* phones: title + New window + Close on one row */
 .bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding:0 0 10px}
 .bar .head{flex:1 1 260px;min-width:0}
 .bar .head p{margin:0;font-size:13px;color:var(--sage)}
@@ -169,14 +170,14 @@ footer{text-align:center;font-size:12px;color:var(--forest);margin-top:8px}
   <p class="hint phone">Swipe for older strips. Tap a strip to read it bigger.</p>
 
   <section class="office" aria-labelledby="office-title">
-    <button class="peek" id="peek" aria-label="Pop the Gremlin Office up here"><img src="assets/office-teaser.webp" width="720" height="360" alt="A peek into the Gremlin Office: two desks with monitors, a wall clock, an orange office chair and a framed comic strip." loading="lazy"></button>
+    <button class="peek" id="peek" aria-label="Pop Gremlin World up here"><img src="assets/office-teaser.webp" width="720" height="360" alt="A peek into the Gremlin Office: two desks with monitors, a wall clock, an orange office chair and a framed comic strip." loading="lazy"></button>
     <div>
-      <p class="kicker">Psst. The door's open.</p>
-      <h2 id="office-title">Visit the Gremlin Office</h2>
-      <p>Look around the room where the gremlins work. Some things glow when you get close. Nobody will tell you what's behind the monitors. (Noodle might.)</p>
+      <p class="kicker">Psst. The supply closet door is open.</p>
+      <h2 id="office-title">Step into Gremlin World</h2>
+      <p>Start in the office where the gremlins work, then crawl through the tunnels to the burrow, the gallery and beyond. Five socks are hiding somewhere. Nobody will tell you where. (Noodle might.)</p>
       <div class="row">
-        <a class="btn" href="index.html" target="_blank" rel="noopener">Open in a new window &#8599;</a>
-        <button class="btn ghost" id="open-office" aria-haspopup="dialog">Pop it up here</button>
+        <a class="btn" href="world.html" target="_blank" rel="noopener">Open in a new window &#8599;</a>
+        <button class="btn ghost" id="open-office" aria-haspopup="dialog">Pop through the closet door</button>
       </div>
     </div>
   </section>
@@ -198,11 +199,11 @@ footer{text-align:center;font-size:12px;color:var(--forest);margin-top:8px}
     <div class="stage" id="stage"><img id="reader-img" alt=""></div>
   </div>
 </div>
-<div class="overlay" id="office-pop" role="dialog" aria-modal="true" aria-label="The Gremlin Office" hidden>
+<div class="overlay" id="office-pop" role="dialog" aria-modal="true" aria-label="Gremlin World" hidden>
   <div class="panel">
-    <div class="bar"><div class="head"><h2>The Gremlin Office</h2></div>
-      <div class="tools"><a class="ob" href="index.html" target="_blank" rel="noopener">New window <span aria-hidden="true">&#8599;</span></a><button class="ob close" data-close aria-label="Close the office">&times; <span class="lbl">Close</span></button></div></div>
-    <div class="office-frame"><iframe id="office-iframe" title="The Gremlin Office, an explorable 360 degree room" allow="fullscreen"></iframe></div>
+    <div class="bar"><div class="head"><h2>Gremlin World</h2></div>
+      <div class="tools"><a class="ob" href="world.html" target="_blank" rel="noopener">New window <span aria-hidden="true">&#8599;</span></a><button class="ob close" data-close aria-label="Close Gremlin World">&times; <span class="lbl">Close</span></button></div></div>
+    <div class="office-frame"><iframe id="office-iframe" title="Gremlin World, explorable 360 degree rooms joined by doors and tunnels" allow="fullscreen"></iframe></div>
   </div>
 </div>
 
@@ -347,7 +348,7 @@ footer{text-align:center;font-size:12px;color:var(--forest);margin-top:8px}
   $("#r-zoom").addEventListener("click", function () { setZoom(!$("#stage").classList.contains("zoomed")); });
   $("#reader-img").addEventListener("click", function () { setZoom(!$("#stage").classList.contains("zoomed")); });
   $("#reader").addEventListener("click", function (e) { if (e.target === this) hide(); });   // click the dark backdrop to close
-  function openOffice(from) { $("#office-iframe").src = "index.html"; show($("#office-pop"), from); }
+  function openOffice(from) { $("#office-iframe").src = "world.html?embed"; show($("#office-pop"), from); }
   $("#open-office").addEventListener("click", function () { openOffice(this); });
   $("#peek").addEventListener("click", function () { openOffice(this); });
 

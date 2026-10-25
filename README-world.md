@@ -293,3 +293,14 @@ Desk Duel on touch, `?offline` and a blocked server. Screenshots: `screenshots/l
 `journal-*.png`, `brawl-*.png`. **It creates a real test player** (`Tester NNNN`, printed at the end):
 delete it afterwards with the SQL above so the boards start empty. The older `screenshots-world.py` and
 `screenshots-arcade.py` use `?noprompt`.
+
+
+## Inside an iframe (go-live, Oct 25 2026)
+- `diaries.html` pops `world.html?embed` up in an iframe. `?embed` (only honoured when framed) hides the duplicate
+  "Gremlin World" title because the pop-up bar already has it plus a "New window" link. Framed *without* `?embed`,
+  world.html shows its own small "open in a new window" button (`#btn-popout`).
+- Esc with nothing open inside the world tells the host (`gremlin-office-escape` postMessage) so the pop-up closes.
+- If the browser blocks localStorage in the frame, an inline check in world.html swaps in an in-memory store
+  (`window.GW_STORAGE === "memory"`): everything still works for that visit, and the sign-in card explains and links
+  to a new window. The drawn-only office no longer probes for painted art (no 404s in the console).
+- Test: `python3 tools/test-live-embed.py` (site on 127.0.0.1:8765, host stand-in on localhost:8766; never creates players).

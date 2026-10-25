@@ -11,6 +11,16 @@
   if (coarse) document.body.classList.add("coarse");
   if (standalone) document.body.classList.add("standalone");
   var params = new URLSearchParams(location.search);
+  // Inside an iframe: ?embed means the host page already has a title bar + "new window" link (diaries.html pop-up),
+  // so we drop the duplicate bits. Without ?embed we offer our own small "open in a new window" button.
+  var embedHost = !standalone && params.has("embed");
+  if (!standalone) document.body.classList.add("framed");
+  if (embedHost) document.body.classList.add("embed");
+  if (!standalone && !embedHost) (function () {
+    var a = $("#btn-popout"); if (!a) return;
+    var q = new URLSearchParams(location.search); q.delete("embed"); q.delete("noprompt");
+    a.href = "world.html" + (q.toString() ? "?" + q : "") + location.hash; a.hidden = false;
+  })();
   var forceSvg = params.get("art") === "svg";
 
   var D2R = Math.PI / 180, R2D = 180 / Math.PI, S = 1024, H = 512, P = 600;
@@ -75,6 +85,7 @@
   function probe(src) { return new Promise(function (res) { var im = new Image(); im.onload = function () { res(true); }; im.onerror = function () { res(false); }; im.src = src; }); }
   function detectArt(id) {
     if (forceSvg) return Promise.resolve(null);
+    if (W && W.rooms[id] && !W.rooms[id].painted) { artMode[id] = null; return Promise.resolve(null); }   // drawn-only room: don't probe (avoids 404 noise in the console)
     if (id in artMode) return Promise.resolve(artMode[id]);
     var base = "assets/world/" + id + "/front.";
     return probe(base + "webp").then(function (ok) { return ok ? "webp" : probe(base + "png").then(function (ok2) { return ok2 ? "png" : null; }); })
@@ -254,7 +265,11 @@
     if (playerOpen()) return;   // the sign-in card / journal / guestbook handle their own keys
     poke();
     var open = !$("#card").hidden || !$("#map").hidden || !$("#prize").hidden;
-    if (e.key === "Escape") { closeCard(); closeMap(); closePrize(); hideBubble(); return; }
+    if (e.key === "Escape") {
+      // nothing left to close: tell a host pop-up (diaries.html) so Esc closes the whole thing
+      if (!open && !standalone) { try { window.parent.postMessage({ type: "gremlin-office-escape" }, "*"); } catch (err) {} }
+      closeCard(); closeMap(); closePrize(); hideBubble(); return;
+    }
     if (open) return;
     if (/^Arrow/.test(e.key)) { keys[e.key] = true; anim = null; e.preventDefault(); }
     else if (e.key === "+" || e.key === "=") { view.zoom = Math.min(2.2, view.zoom * 1.1); dirty = true; }

@@ -3,11 +3,13 @@
 A tiny explorable office for eclectictransformation.com. It's plain HTML/CSS/JS with no build step,
 no libraries and no network calls outside this folder.
 
-- `index.html` + `office.css` + `office.js`: the 360-degree room (CSS 3D cube, drag/swipe/arrow keys).
+- **Live: `world.html` (Gremlin World)** is the explorable site now. `index.html` just redirects there (meta refresh + JS
+  `location.replace` that keeps `?query#room`, plus a fallback link).
+- `office-classic.html` + `office.css` + `office.js`: the original single 360-degree room (CSS 3D cube), kept as-is.
 - `diaries.html`: **the page Remixer's /comics iframes.** One featured strip (newest first) in a swipe/scroll carousel:
   big Older/Newer arrows, keyboard arrows, a thumbnail filmstrip and month pills that jump to that month's first strip.
   Click/tap a strip for the reader (title kept clear of the host's sticky header, fit or zoom, prev/next, "Full size" link),
-  then a compact "Visit the Gremlin Office" block (new tab or pop-up). Compact on purpose (about 950px tall on desktop,
+  then a compact "Step into Gremlin World" block: "Open in a new window" (world.html) or a pop-up iframe (world.html?embed). Compact on purpose (about 950px tall on desktop,
   1160px on phone) and reports that height to the host page. Reads `strips.json` live; all CSS/JS is inline.
 - `comics.html`: the older sideways-swipe archive (still works, newest first; tall strips scroll inside their card; tap for full size).
 - `office-data.json`: **everything in the room** (strips on walls, Easter eggs, cards, links).
@@ -17,7 +19,7 @@ no libraries and no network calls outside this folder.
 
 ## Run locally
     python3 -m http.server 8765    # then open http://localhost:8765/
-(Opening index.html straight from disk won't load the JSON; it needs any web server.)
+(Opening the pages straight from disk won't load the JSON; it needs any web server.)
 
 ## Edit content (office-data.json)
 - **Hang or rotate strips**: edit `strips[]`. Each strip has `filename`, `thumb`, `date`, `episode`, `title`, `alt`,
