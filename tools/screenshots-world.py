@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright
 OUT = pathlib.Path(__file__).resolve().parent.parent / "screenshots"; OUT.mkdir(exist_ok=True)
 SVG = "--svg" in sys.argv
 BASE = "http://127.0.0.1:8765/"
-URL = BASE + "world.html" + ("?art=svg" if SVG else "")
+URL = BASE + "world.html?noprompt" + ("&art=svg" if SVG else "")  # ?noprompt: skip the Gremlin Name card
 TAG = "world-svg-" if SVG else "world-"
 errors = []
 

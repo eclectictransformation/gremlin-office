@@ -46,6 +46,28 @@
   function load(k, def) { try { var v = localStorage.getItem("gremlin-world-" + k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
   function save(k, v) { try { localStorage.setItem("gremlin-world-" + k, JSON.stringify(v)); } catch (e) {} }
   var socks = load("socks", []), visited = load("visited", []), found = load("found", []);
+  // world-player.js (Gremlin Names, the quest journal, badges, sync) listens in here; the world never needs it
+  function notify(kind, data) { var P = window.GremlinPlayer; if (P && P.onEvent) try { P.onEvent(kind, data); } catch (e) { console.error(e); } }
+  function playerOpen() { var P = window.GremlinPlayer; return !!(P && P.isOpen && P.isOpen()); }
+  // re-read progress after a sync merged in finds from another device
+  function reloadProgress() {
+    socks = load("socks", []); visited = load("visited", []); found = load("found", []);
+    if (!W) return; updateSocks(); if (current && !busy) { buildRoom(current); render(); }
+  }
+  // secrets you can actually find in each room with the art that's showing (painted art hides a few drawn-only ones)
+  function secretList() {
+    var out = [];
+    Object.keys(W.rooms).forEach(function (rid) {
+      var r = W.rooms[rid], painted = rid in artMode ? !!artMode[rid] : (!!r.painted && !forceSvg), hasSvg = /\.svg$/.test(r.faces);
+      (r.items || []).forEach(function (it) {
+        if (it.type !== "egg") return;
+        if (painted ? (hasSvg && !it.atArt && !it.img && !it.artOnly) : it.artOnly) return;
+        if (!(painted && it.atArt ? it.atArt : it.at)) return;
+        out.push({ id: it.id, room: rid, label: (it.card && it.card.title) || it.label || it.id });
+      });
+    });
+    return out;
+  }
 
   function el(tag, cls, attrs) { var e = document.createElement(tag); if (cls) e.className = cls; if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
 
@@ -98,10 +120,12 @@
       if (it.type === "portal") { var tg = el("span", "tag"); tg.textContent = W.rooms[it.to].short + " \u2192"; b.appendChild(tg); }
       if (it.type === "egg" && found.indexOf(it.id) >= 0) b.classList.add("found");
       if (it.type === "arcade") decorateCabinet(b, it);
+      if (it.type === "scoreboard") { var ch = el("span", "chalk"); var h = el("b"); h.textContent = it.title || "SCORES"; ch.appendChild(h); ch.appendChild(el("span", "chalk-rows")); b.appendChild(ch); }
       var lk = lookOf(at);
       b._item = { it: it, yaw: lk.yaw, pitch: lk.pitch, painted: painted, size: size, strip: strip };
       wire(b); itemEls[it.id] = b; faceEls[at.face].appendChild(b);
     });
+    notify("room-built", { room: id, painted: painted });
   }
   // playable cabinets get their name lit up on the painted marquee and a sleepy "press start" on the screen
   function decorateCabinet(b, it) {
@@ -226,6 +250,8 @@
   vp.addEventListener("scroll", function () { vp.scrollTop = 0; vp.scrollLeft = 0; });
   window.addEventListener("keydown", function (e) {
     if (arcadeOpen()) return;   // the cabinet has the keyboard while it's open
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;   // typing a Gremlin Name or Key
+    if (playerOpen()) return;   // the sign-in card / journal / guestbook handle their own keys
     poke();
     var open = !$("#card").hidden || !$("#map").hidden || !$("#prize").hidden;
     if (e.key === "Escape") { closeCard(); closeMap(); closePrize(); hideBubble(); return; }
@@ -259,10 +285,12 @@
     if (it.type === "portal") { travel(it.to, b); return; }
     if (it.type === "sock") { grabSock(b, it); return; }
     if (it.type === "arcade") { turnTo(x.yaw, x.pitch, 1.35, function () { openArcade(it.machine, b); }); return; }
+    if (it.type === "scoreboard") { turnTo(x.yaw, x.pitch, 1.3, function () { openArcade(it.machine, b); if (window.GremlinArcade && GremlinArcade.isOpen()) GremlinArcade.showBoards(); }); return; }
+    if (it.type === "guestbook") { turnTo(x.yaw, x.pitch, 1.4, function () { if (window.GremlinPlayer) GremlinPlayer.openGuestbook(b); else showCard({ meta: "the archive", title: "The Gremlin Guestbook", text: "The ink is still drying. Try again in a moment." }); }); return; }
     if (it.type === "strip") { var st = x.strip; turnTo(x.yaw, x.pitch, 1.3, function () { showCard({ image: st.thumb || st.filename, alt: st.alt, meta: "the archive" + (st.episode ? " \u00b7 episode " + st.episode : ""), title: st.title, text: st.alt, link: { href: "comics.html", label: "Read it in the comics archive" } }); }); return; }
     // eggs
     var first = found.indexOf(it.id) < 0;
-    if (first) { found.push(it.id); save("found", found); b.classList.add("found"); }
+    if (first) { found.push(it.id); save("found", found); b.classList.add("found"); notify("egg", { id: it.id, room: current }); }
     effect(b, it.effect, x);
     turnTo(x.yaw, x.pitch, it.effect === "wink" ? 1.6 : 1.3, function () {
       if (it.say) { var n = (b._n = ((b._n || 0) + 1)); var lines = it.say.lines; say(it.say.who, lines[(n - 1) % lines.length]); return; }
@@ -342,6 +370,12 @@
   function grabSock(b, it) {
     if (socks.indexOf(it.id) >= 0) return;
     socks.push(it.id); save("socks", socks); updateSocks();
+    // sock-hunt timer for the quest journal: first sock -> fifth sock (the hunt itself has no countdown)
+    var ss = load("sock", {}), now = Date.now();
+    if (socks.length === 1 || !ss.start) ss.start = now;
+    if (socks.length >= W.socksTotal) { ss.last = Math.max(1000, now - ss.start); ss.best = ss.best ? Math.min(ss.best, ss.last) : ss.last; ss.done = (ss.done || 0) + 1; }
+    save("sock", ss);
+    notify("sock", { id: it.id, count: socks.length, total: W.socksTotal, hunt: ss });
     b.classList.add("got"); var pill = $("#socks"); pill.classList.remove("bump"); void pill.offsetWidth; pill.classList.add("bump");
     setTimeout(function () { b.remove(); }, 950);
     say(it.gremlin, it.say + " (" + socks.length + " of " + W.socksTotal + ")");
@@ -353,7 +387,7 @@
   }
   function closePrize() { $("#prize").hidden = true; }
   $("#prize-close").addEventListener("click", closePrize);
-  $("#prize-reset").addEventListener("click", function () { socks = []; save("socks", socks); updateSocks(); closePrize(); buildRoom(current); render(); say("grimble", "Socks re-hidden. Same spots, mind you. We're not very creative at hiding."); });
+  $("#prize-reset").addEventListener("click", function () { socks = []; save("socks", socks); save("socksReset", load("socksReset", 0) + 1); var ss = load("sock", {}); delete ss.start; save("sock", ss); updateSocks(); notify("socks-reset"); closePrize(); buildRoom(current); render(); say("grimble", "Socks re-hidden. Same spots, mind you. We're not very creative at hiding."); });
   $("#socks").addEventListener("click", function () {
     if (socks.length >= W.socksTotal) { openPrize(); return; }
     say("grimble", socks.length ? "You've found " + socks.length + " of " + W.socksTotal + " socks. The rest are somewhere in these rooms. Look low, look up." : "Five socks went missing in the wash. They're hiding somewhere in these rooms. No rush.");
@@ -367,7 +401,7 @@
     if (room.mood) document.body.classList.add("mood-" + room.mood);
     $("#btn-back").hidden = !history.length;
     if (history.length) $("#btn-back").setAttribute("aria-label", "Go back to " + W.rooms[history[history.length - 1]].name);
-    if (visited.indexOf(current) < 0) { visited.push(current); save("visited", visited); }
+    if (visited.indexOf(current) < 0) { visited.push(current); save("visited", visited); notify("room", { id: current, count: visited.length }); }
   }
   function enter(id, opts) {
     opts = opts || {};
@@ -378,7 +412,7 @@
       setRoomUI(); resize(); render();
       try { window.history.replaceState(null, "", "#" + id); } catch (e) {}
       var g = W.rooms[id].greet, seen = load("greeted", []);
-      if (g && seen.indexOf(id) < 0) { seen.push(id); save("greeted", seen); setTimeout(function () { say(g.who, g.text, 8000); }, opts.zoomFrom ? 900 : 1200); }
+      if (g && seen.indexOf(id) < 0) { seen.push(id); save("greeted", seen); notify("greeted", { id: id }); setTimeout(function () { if (!playerOpen()) say(g.who, g.text, 8000); }, opts.zoomFrom ? 900 : 1200); }
     });
   }
   function travel(to, fromBtn, isBack) {
@@ -427,7 +461,7 @@
   $("#map .card-close").addEventListener("click", closeMap);
   $("#btn-help").addEventListener("click", function () {
     returnFocus = $("#btn-help");
-    showCard({ meta: "a small helpful thing", title: "How to explore", text: "Drag (or swipe) to look around. Arrow keys work too, and + / - zoom.\n\nDoors, hatches and tunnels take you to other rooms; the Map jumps back to rooms you've visited, and Back returns you the way you came.\n\nFive gremlin socks are hiding somewhere. No timer, no rush. Your progress stays on this device.\n\nKeyboard: Tab moves between clickable things, Enter opens them, Esc closes." });
+    showCard({ meta: "a small helpful thing", title: "How to explore", text: "Drag (or swipe) to look around. Arrow keys work too, and + / - zoom.\n\nDoors, hatches and tunnels take you to other rooms; the Map jumps back to rooms you've visited, and Back returns you the way you came.\n\nFive gremlin socks are hiding somewhere. No timer, no rush. Your progress stays on this device, or pick a Gremlin Name (the little badge up top) to keep it on any device. The notebook button opens your quest journal.\n\nKeyboard: Tab moves between clickable things, Enter opens them, Esc closes." });
   });
   window.addEventListener("hashchange", function () { var id = location.hash.slice(1); if (W.rooms[id] && id !== current && !busy) travel(id, null); });
 
@@ -451,7 +485,11 @@
     if (/[?&]debug/.test(location.search)) { debugOn = true; $("#debug").hidden = false; }
     window.GremlinWorld = { view: view, turnTo: turnTo, travel: travel, lookOf: lookOf, get room() { return current; }, get busy() { return busy; }, data: W,
       look: function (id) { var b = itemEls[id]; if (b) turnTo(b._item.yaw, b._item.pitch, 1); }, click: function (id) { var b = itemEls[id]; if (b) activate(b); },
-      openArcade: function (id) { var cab = null; for (var k in itemEls) if (itemEls[k]._item.it && itemEls[k]._item.it.machine === id) cab = itemEls[k]; openArcade(id, cab); } };
+      openArcade: function (id) { var cab = null; for (var k in itemEls) if (itemEls[k]._item.it && itemEls[k]._item.it.type === "arcade" && itemEls[k]._item.it.machine === id) cab = itemEls[k]; openArcade(id, cab); },
+      reloadProgress: reloadProgress, secrets: secretList, say: say, showCard: showCard, closeCard: closeCard, hideBubble: hideBubble,
+      get artMode() { return artMode; }, item: function (id) { return itemEls[id]; } };
+    notify("ready", window.GremlinWorld);
+    try { window.dispatchEvent(new CustomEvent("gremlinworld:ready")); } catch (e) {}
   }).catch(function (err) {
     console.error(err);
     $("#loading").textContent = "The tunnel is stuck. (Couldn't load world-data.json; open this page through a web server, not as a file.)";

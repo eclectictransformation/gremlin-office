@@ -1,5 +1,5 @@
 {
-  "_readme": "Gremlin World sample. Rooms are cube panoramas. Positions are {face, x, y} in face pixels (0-1024; faces: front/right/back/left/floor/ceiling). 'at' = position on the drawn SVG room; 'atArt' = position when painted art (assets/world/<room>/<face>.webp|png) is present. Items with no atArt are hidden in painted-art mode unless they carry their own 'img'. Types: portal, sock, egg, arcade (opens the cabinet named by 'machine'; machines live under 'arcade'). See README-world.md.",
+  "_readme": "Gremlin World sample. Rooms are cube panoramas. Positions are {face, x, y} in face pixels (0-1024; faces: front/right/back/left/floor/ceiling). 'at' = position on the drawn SVG room; 'atArt' = position when painted art (assets/world/<room>/<face>.webp|png) is present. Items with no atArt are hidden in painted-art mode unless they carry their own 'img'. Types: portal, sock, egg, arcade (opens the cabinet named by 'machine'; machines live under 'arcade'). See README-world.md. Extra types: scoreboard (chalk Brawl board, draws the shared top 3s), guestbook (opens the guestbook). 'painted': true marks rooms with painted art, so the quest journal counts only the secrets you can find there. 'badges', 'guestbook' and the arcade 'ranked' flags must match the ids seeded in supabase/migrations (see README-world.md).",
   "version": 1,
   "start": "office",
   "socksTotal": 5,
@@ -411,7 +411,8 @@
             "y": 880
           }
         }
-      ]
+      ],
+      "painted": true
     },
     "gallery": {
       "name": "The Gallery of Odd Things",
@@ -788,7 +789,8 @@
           },
           "say": "Found it on the Mountain of Unfinished Ideas? That tracks. Thank you, friend."
         }
-      ]
+      ],
+      "painted": true
     },
     "archive": {
       "name": "The Comics Archive",
@@ -974,8 +976,25 @@
             "title": "A Library Card",
             "text": "Tucked in the book: a library card from the Lost Gremlin Library.\n\nDue date: \"whenever you're done.\" Nobody knows where that library is. The card seems to think it's close."
           }
+        },
+        {
+          "id": "guestbook",
+          "type": "guestbook",
+          "label": "The Gremlin Guestbook. Tap to read it or sign it.",
+          "at": {
+            "face": "front",
+            "x": 510,
+            "y": 734
+          },
+          "size": [
+            210,
+            100
+          ],
+          "img": "assets/world/props/guestbook.svg",
+          "artOnly": true
         }
-      ]
+      ],
+      "painted": true
     },
     "rooftop": {
       "name": "The Rooftop Garden",
@@ -1123,7 +1142,8 @@
             "text": "The moon came up a bit early tonight. It likes this garden too."
           }
         }
-      ]
+      ],
+      "painted": true
     },
     "arcade": {
       "name": "The Calm Arcade",
@@ -1135,7 +1155,7 @@
       },
       "greet": {
         "who": "noodle",
-        "text": "Welcome to the arcade! The two big cabinets actually work now: OFFICE OLYMPICS and GARDEN GREMLINS. No timers, nobody loses for real, every machine says \"nice\". Also, somebody lost a sock in here. Not me. Probably."
+        "text": "Welcome to the arcade! Three cabinets work now: OFFICE OLYMPICS and GARDEN GREMLINS are the calm ones. The purple one, BREAK ROOM BRAWL, is for friendly rivals: short rounds and real top-10 boards. Also, somebody lost a sock in here. Not me. Probably."
       },
       "items": [
         {
@@ -1240,6 +1260,51 @@
               134
             ]
           }
+        },
+        {
+          "id": "cabinet-purple",
+          "type": "arcade",
+          "machine": "break-room-brawl",
+          "label": "Break Room Brawl arcade cabinet, the competitive one. Tap to play.",
+          "at": {
+            "face": "front",
+            "x": 132,
+            "y": 677
+          },
+          "size": [
+            180,
+            615
+          ],
+          "img": "assets/world/props/cabinet-purple.svg",
+          "artOnly": true,
+          "screen": {
+            "text": "HI-SCORES",
+            "sub": "TOP 10 BOARDS",
+            "box": [
+              30,
+              138,
+              120,
+              96
+            ],
+            "board": true
+          }
+        },
+        {
+          "id": "brawl-board",
+          "type": "scoreboard",
+          "machine": "break-room-brawl",
+          "label": "The chalk scoreboard for Break Room Brawl",
+          "at": {
+            "face": "left",
+            "x": 479,
+            "y": 419
+          },
+          "size": [
+            276,
+            166
+          ],
+          "artOnly": true,
+          "title": "BRAWL BOARD"
         },
         {
           "id": "swirl-cabinet",
@@ -1354,7 +1419,8 @@
           "artBare": true,
           "say": "That's MY sock! I must have danced right out of it. Thank you, dear."
         }
-      ]
+      ],
+      "painted": true
     }
   },
   "links": [
@@ -1580,7 +1646,320 @@
             }
           }
         ]
+      },
+      "break-room-brawl": {
+        "id": "break-room-brawl",
+        "title": "BREAK ROOM BRAWL",
+        "tagline": "Quick games. Friendly rivals. Top 10 boards.",
+        "script": "games/break-room-brawl.js",
+        "color": "#6a3fa0",
+        "colorDark": "#43246e",
+        "accent": "#ffd166",
+        "screen": "#1b1030",
+        "ranked": true,
+        "foot": "SHORT ROUNDS \u00b7 TOP 10 BOARDS",
+        "hint": "The competitive cabinet: short rounds and shared top-10 boards. Still very polite.",
+        "games": [
+          {
+            "id": "coffee-relay",
+            "name": "Coffee Relay",
+            "blurb": "Carry wobbly mugs to thirsty desks. One minute. Don't spill!",
+            "scoreLabel": "POINTS",
+            "best": "high",
+            "ranked": true,
+            "pad": [
+              "up",
+              "down",
+              "left",
+              "right"
+            ],
+            "keysHelp": "Arrows or WASD to walk. Smooth moves keep the mug steady. 60 seconds.",
+            "touchHelp": "Drag on the screen to walk (or use the pad). 60 seconds.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 3000
+              },
+              "message": ""
+            }
+          },
+          {
+            "id": "jam-buster",
+            "name": "Jam Buster",
+            "blurb": "The printers keep jamming. Bop the jams, build combos. 45 seconds.",
+            "scoreLabel": "POINTS",
+            "best": "high",
+            "ranked": true,
+            "pad": [
+              "up",
+              "down",
+              "left",
+              "right",
+              "action"
+            ],
+            "actionLabel": "BOP",
+            "keysHelp": "Click a jam, or arrows + Space. Bopping an empty printer breaks your combo.",
+            "touchHelp": "Tap the jams as they pop up. Gold ones are worth more.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 2500
+              },
+              "message": ""
+            }
+          },
+          {
+            "id": "desk-duel",
+            "name": "Desk Duel (2P)",
+            "blurb": "Two players, one desk, one very fast donut. First to 7.",
+            "scoreLabel": "RALLY",
+            "best": "high",
+            "ranked": false,
+            "pad": [],
+            "keysHelp": "Left player W / S, right player \u2191 / \u2193. First to 7. Just for fun, no board.",
+            "touchHelp": "Each player drags on their own half of the screen. First to 7.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 20
+              },
+              "message": ""
+            }
+          }
+        ]
       }
     }
+  },
+  "badges": {
+    "_readme": "Fun stamps for the quest journal. Rule types: rooms (n), allRooms, sockHunt, sockTime (ms), secrets (n), allSecrets, playedAll, event (awarded by code: brawl-score, brawl-top10), hours (from..to, local clock). Ids must also be in gw.known_ids (kind 'badge'). No prizes, no codes.",
+    "list": [
+      {
+        "id": "first-door",
+        "icon": "\ud83d\udeaa",
+        "name": "First Door",
+        "desc": "Stepped through your first door.",
+        "rule": {
+          "type": "rooms",
+          "n": 2
+        }
+      },
+      {
+        "id": "all-rooms",
+        "icon": "\ud83d\uddfa\ufe0f",
+        "name": "Cartographer",
+        "desc": "Discovered every room.",
+        "rule": {
+          "type": "allRooms"
+        }
+      },
+      {
+        "id": "sock-hunt",
+        "icon": "\ud83e\udde6",
+        "name": "Sock Whisperer",
+        "desc": "Brought all five socks home.",
+        "rule": {
+          "type": "sockHunt"
+        }
+      },
+      {
+        "id": "speedy-socks",
+        "icon": "\u23f1\ufe0f",
+        "name": "Speedy Socks",
+        "desc": "Finished the sock hunt in under 3 minutes.",
+        "rule": {
+          "type": "sockTime",
+          "ms": 180000
+        }
+      },
+      {
+        "id": "ten-secrets",
+        "icon": "\u2728",
+        "name": "Nosy Gremlin",
+        "desc": "Found 10 secrets.",
+        "rule": {
+          "type": "secrets",
+          "n": 10
+        }
+      },
+      {
+        "id": "all-secrets",
+        "icon": "\ud83d\udd0d",
+        "name": "Knows Everything",
+        "desc": "Found every secret.",
+        "rule": {
+          "type": "allSecrets"
+        }
+      },
+      {
+        "id": "arcade-tourist",
+        "icon": "\ud83d\udd79\ufe0f",
+        "name": "Arcade Tourist",
+        "desc": "Played every arcade game at least once.",
+        "rule": {
+          "type": "playedAll"
+        }
+      },
+      {
+        "id": "brawl-debut",
+        "icon": "\ud83c\udfc5",
+        "name": "On The Board",
+        "desc": "Put a first score on a Break Room Brawl board.",
+        "rule": {
+          "type": "event",
+          "event": "brawl-score"
+        }
+      },
+      {
+        "id": "brawl-top10",
+        "icon": "\ud83c\udfc6",
+        "name": "Top Ten Gremlin",
+        "desc": "Finished in a Break Room Brawl top 10.",
+        "rule": {
+          "type": "event",
+          "event": "brawl-top10"
+        }
+      },
+      {
+        "id": "night-owl",
+        "icon": "\ud83e\udd89",
+        "name": "Night Owl",
+        "desc": "Visited after midnight. Shh, the gremlins are napping.",
+        "rule": {
+          "type": "hours",
+          "from": 0,
+          "to": 5
+        }
+      }
+    ]
+  },
+  "guestbook": {
+    "_readme": "Preset lines only (no free text). Ids must match gw.guestbook_phrases / gw.guestbook_stamps; the server's text is what gets shown.",
+    "phrases": [
+      {
+        "id": 1,
+        "text": "The socks are watching. Kindly."
+      },
+      {
+        "id": 2,
+        "text": "I came for the art, stayed for the stapler."
+      },
+      {
+        "id": 3,
+        "text": "Ten out of ten. Would get lost in the tunnel again."
+      },
+      {
+        "id": 4,
+        "text": "I petted the ficus. It approved."
+      },
+      {
+        "id": 5,
+        "text": "Left a crumb for Grimble. You're welcome."
+      },
+      {
+        "id": 6,
+        "text": "The chair in the Archive is very good at its job."
+      },
+      {
+        "id": 7,
+        "text": "I found a sock and gave it back. Hero stuff."
+      },
+      {
+        "id": 8,
+        "text": "The kettle and I are friends now."
+      },
+      {
+        "id": 9,
+        "text": "Please tell Moth the paintings are lovely."
+      },
+      {
+        "id": 10,
+        "text": "I lost at Desk Tennis to a stapler. Worth it."
+      },
+      {
+        "id": 11,
+        "text": "Visited the rooftop. The moon waved."
+      },
+      {
+        "id": 12,
+        "text": "My houseplant says hello."
+      },
+      {
+        "id": 13,
+        "text": "Brought snacks. Ate snacks. Sorry."
+      },
+      {
+        "id": 14,
+        "text": "The disco ball is my spirit animal."
+      },
+      {
+        "id": 15,
+        "text": "Please file me under 'snacks'."
+      },
+      {
+        "id": 16,
+        "text": "Noodle, I believe in you."
+      },
+      {
+        "id": 17,
+        "text": "This guestbook smells faintly of tea."
+      },
+      {
+        "id": 18,
+        "text": "Came in quietly. Leaving quietly. Very cozy."
+      },
+      {
+        "id": 19,
+        "text": "Officially a part-time gremlin now."
+      },
+      {
+        "id": 20,
+        "text": "Hello from a very small desk far away."
+      }
+    ],
+    "stamps": [
+      {
+        "id": "sock",
+        "emoji": "\ud83e\udde6",
+        "label": "Sock"
+      },
+      {
+        "id": "tea",
+        "emoji": "\u2615",
+        "label": "Tea"
+      },
+      {
+        "id": "star",
+        "emoji": "\u2b50",
+        "label": "Star"
+      },
+      {
+        "id": "sprout",
+        "emoji": "\ud83c\udf31",
+        "label": "Sprout"
+      },
+      {
+        "id": "moon",
+        "emoji": "\ud83c\udf19",
+        "label": "Moon"
+      },
+      {
+        "id": "heart",
+        "emoji": "\ud83d\udc9b",
+        "label": "Heart"
+      },
+      {
+        "id": "mushroom",
+        "emoji": "\ud83c\udf44",
+        "label": "Mushroom"
+      },
+      {
+        "id": "paperclip",
+        "emoji": "\ud83d\udcce",
+        "label": "Paperclip"
+      }
+    ]
   }
 }

@@ -4,11 +4,15 @@
 
    A game factory gets an `api` and returns { start(), update(dt), draw(ctx), press(key)?, release(key)?,
    pointer(type, x, y)? }. The screen is 320 x 240 logical pixels; keys are left/right/up/down/action.
-   Games call api.score(n) as they go and api.end({ title, msg, score }) for a soft, silly ending. */
+   Games call api.score(n) as they go and api.end({ title, msg, score }) for a soft, silly ending.
+
+   Ranked machines ("ranked": true, only Break Room Brawl) also show shared top-10 boards. The board data
+   comes from hooks set by world-player.js via GremlinArcade.setHooks({ played, ended, leaderboard, ranked,
+   signIn }); with no hooks (or no network) the cabinets still work exactly as before. */
 (function () {
   "use strict";
   var GW = 320, GH = 240, HUD = 14;
-  var factories = {}, scripts = {}, sprites = {}, held = {}, S = null, root = null, ctx = null;
+  var factories = {}, scripts = {}, sprites = {}, held = {}, S = null, root = null, ctx = null, hooks = {};
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
   var coarse = window.matchMedia("(pointer: coarse)").matches;
   var KEYMAP = { ArrowLeft: "left", a: "left", A: "left", ArrowRight: "right", d: "right", D: "right",
@@ -75,7 +79,12 @@
           '<canvas width="320" height="240" aria-hidden="true"></canvas>' +
           '<div class="scr scr-menu"><p class="scr-head">PICK A GAME</p><ul class="menu"></ul><p class="scr-foot">NO TIMERS &middot; NO RUSH</p></div>' +
           '<div class="scr scr-over" hidden><p class="over-title"></p><p class="over-msg"></p><p class="over-score"></p>' +
-            '<div class="over-btns"><button type="button" class="ab again">AGAIN?</button><button type="button" class="ab tomenu">OTHER GAMES</button></div></div>' +
+            '<div class="board over-board" hidden><p class="board-status"></p><ol class="board-list"></ol></div>' +
+            '<div class="over-btns"><button type="button" class="ab again">AGAIN?</button><button type="button" class="ab tomenu">OTHER GAMES</button>' +
+            '<button type="button" class="ab getname" hidden>GET A NAME</button></div></div>' +
+          '<div class="scr scr-boards" hidden><p class="scr-head">&#9733; TOP 10 &#9733;</p><div class="board-tabs"></div>' +
+            '<div class="board"><p class="board-status"></p><ol class="board-list"></ol></div>' +
+            '<div class="over-btns"><button type="button" class="ab boards-back">BACK</button><button type="button" class="ab getname" hidden>GET A NAME</button></div></div>' +
           '<div class="scr scr-prize" hidden><p class="over-title">&#9733; NICE ONE &#9733;</p><p class="prize-msg"></p><p class="prize-soon"></p>' +
             '<div class="over-btns"><button type="button" class="ab prize-ok">OK</button></div></div>' +
           '<p class="scr-live" aria-live="polite"></p>' +
@@ -97,6 +106,11 @@
     $(".close").addEventListener("click", close);
     $(".again").addEventListener("click", function () { if (S && S.cfg) startGame(S.cfg); });
     $(".tomenu").addEventListener("click", toMenu);
+    $(".boards-back").addEventListener("click", toMenu);
+    root.querySelectorAll(".getname").forEach(function (b) { b.addEventListener("click", function () {
+      var pend = S && S.pending; close();
+      if (hooks.signIn) hooks.signIn(pend);
+    }); });
     $(".prize-ok").addEventListener("click", function () { $(".scr-prize").hidden = true; if (S) S.mode = "over"; $(".again").focus({ preventScroll: true }); });
 
     // on-screen buttons: hold to move, tap to act; they never take focus, so Space can't double-fire them
@@ -177,14 +191,16 @@
     root.hidden = false; root.classList.remove("in"); void root.offsetWidth; root.classList.add("in");
     renderMenu(true);
     S.raf = requestAnimationFrame(frame);
-    loadScript(machine.script).then(function () { if (S && S.m === machine) renderMenu(); })
+    loadScript(machine.script).then(function () { if (S && S.m === machine && S.mode === "menu") renderMenu(); })
       .catch(function () { if (S && S.m === machine) { $(".scr-head").textContent = "THIS MACHINE IS NAPPING. TRY AGAIN LATER."; } });
   }
   function renderMenu(loading) {
     var m = S.m, ul = $(".menu"); ul.innerHTML = "";
     S.mode = "menu"; S.game = null; S.cfg = null; held = {};
-    $(".scr-menu").hidden = false; $(".scr-over").hidden = true; $(".scr-prize").hidden = true;
-    $(".scr-head").textContent = loading ? "WARMING UP\u2026" : "PICK A GAME";
+    $(".scr-menu").hidden = false; $(".scr-over").hidden = true; $(".scr-prize").hidden = true; $(".scr-boards").hidden = true;
+    $(".scr-menu .scr-head").textContent = loading ? "WARMING UP\u2026" : "PICK A GAME";
+    $(".scr-menu .scr-foot").textContent = m.foot || "NO TIMERS \u00b7 NO RUSH";
+    root.classList.toggle("ranked", !!m.ranked);
     (m.games || []).forEach(function (g) {
       var li = el("li"), b = el("button", "menu-item"); b.type = "button";
       var ready = !!factories[g.id];
@@ -196,12 +212,65 @@
       b.addEventListener("click", function () { startGame(g); });
       li.appendChild(b); ul.appendChild(li);
     });
+    if (m.ranked && !loading) {
+      var li2 = el("li"), bb = el("button", "menu-item boards-item"); bb.type = "button";
+      bb.appendChild(el("span", "mi-name", "\u2605 Top 10 boards"));
+      bb.appendChild(el("span", "mi-best", ""));
+      bb.appendChild(el("span", "mi-blurb", "Who's the best in the break room? (Desk Duel is just for fun.)"));
+      bb.addEventListener("click", function () { showBoards(); });
+      li2.appendChild(bb); ul.appendChild(li2);
+      tickerFor(m, bb.querySelector(".mi-best"));
+    }
     setPad(null);
     $(".cab-help").textContent = m.hint || "Pick a game. Arrow keys or the pad below work too.";
     $(".back").innerHTML = "CLOSE &#10005;"; $(".back").hidden = true;
     fit();
     var first = ul.querySelector("button:not([disabled])");
     if (first) first.focus({ preventScroll: true }); else $(".close").focus({ preventScroll: true });
+  }
+
+  /* ---------- shared top-10 boards (ranked machines only) ---------- */
+  function rankedGames(m) { return (m.games || []).filter(function (g) { return g.ranked; }); }
+  // a small "#1 NAME 1234" ticker on the menu's boards button
+  function tickerFor(m, span) {
+    if (!hooks.leaderboard) return;
+    var gs = rankedGames(m), lines = [];
+    Promise.all(gs.map(function (g) { return hooks.leaderboard(g.id).then(function (rows) { if (rows && rows[0]) lines.push(g.name.split(" ")[0].toUpperCase() + ": " + rows[0].name + " " + rows[0].score); }, function () {}); }))
+      .then(function () { if (!S || !span.isConnected) return; span.textContent = lines.length ? "#1 " + lines[0] : "BE THE FIRST!";
+        var i = 0; clearInterval(S.tick); if (lines.length > 1) S.tick = setInterval(function () { if (!span.isConnected) return; i = (i + 1) % lines.length; span.textContent = "#1 " + lines[i]; }, 2600); });
+  }
+  function fillBoard(box, rows, status, me) {
+    var ol = box.querySelector(".board-list"); ol.innerHTML = "";
+    box.querySelector(".board-status").textContent = status || "";
+    if (rows && rows.length) rows.forEach(function (r) {
+      var li = el("li", me && r.name.toLowerCase() === me.toLowerCase() ? "me" : "");
+      li.appendChild(el("span", "br-rank", String(r.rank))); li.appendChild(el("span", "br-name", r.name)); li.appendChild(el("span", "br-score", String(r.score)));
+      ol.appendChild(li);
+    });
+    else if (rows) ol.appendChild(el("li", "empty", "Nobody yet. The board is fresh and sparkly."));
+    box.hidden = false;
+  }
+  function guestNote() { return hooks.player && hooks.player() ? "" : "Get a Gremlin Name to join the board!"; }
+  function showBoards(gameId) {
+    if (!S) return;
+    var gs = rankedGames(S.m); if (!gs.length) return;
+    gameId = gameId || S.boardGame || gs[0].id; S.boardGame = gameId; S.mode = "boards";
+    $(".scr-menu").hidden = true; $(".scr-over").hidden = true; $(".scr-boards").hidden = false;
+    var tabs = $(".board-tabs"); tabs.innerHTML = "";
+    gs.forEach(function (g) {
+      var t = el("button", "ab tab" + (g.id === gameId ? " on" : ""), g.name.toUpperCase()); t.type = "button";
+      t.setAttribute("aria-pressed", g.id === gameId ? "true" : "false");
+      t.addEventListener("click", function () { showBoards(g.id); $(".board-tabs .tab.on").focus({ preventScroll: true }); });
+      tabs.appendChild(t);
+    });
+    var box = $(".scr-boards .board"), me = hooks.player && hooks.player();
+    $(".scr-boards .getname").hidden = !!me || !hooks.signIn;
+    fillBoard(box, null, "Asking the gremlins\u2026");
+    if (!hooks.leaderboard) { fillBoard(box, null, "The scoreboard is napping. Scores still count on this device."); return; }
+    hooks.leaderboard(gameId).then(function (rows) {
+      if (S && S.mode === "boards" && S.boardGame === gameId) fillBoard(box, rows, me ? "Your best counts. Play again to climb!" : guestNote(), me);
+    }, function () { if (S && S.mode === "boards") fillBoard(box, null, "The scoreboard is napping (no connection). You can still play!"); });
+    $(".scr-live").textContent = "Top 10 board for " + gameId;
   }
   function setPad(g) {
     var keys = g ? (g.pad || []) : ["up", "down", "left", "right", "action"];
@@ -214,8 +283,9 @@
     if (S.game && S.game.stop) S.game.stop();
     S.cfg = g; S.score = 0; S.toast = null; held = {};
     S.game = factories[g.id](makeApi(g)); if (S.game.start) S.game.start();
-    S.mode = "play";
-    $(".scr-menu").hidden = true; $(".scr-over").hidden = true; $(".scr-prize").hidden = true;
+    S.mode = "play"; S.pending = null;
+    $(".scr-menu").hidden = true; $(".scr-over").hidden = true; $(".scr-prize").hidden = true; $(".scr-boards").hidden = true;
+    if (hooks.played) try { hooks.played(g, S.m); } catch (e) {}
     setPad(g);
     $(".cab-help").textContent = (coarse ? g.touchHelp : g.keysHelp) || g.keysHelp || "";
     $(".back").hidden = false; $(".back").innerHTML = "&#9664; GAMES";
@@ -236,14 +306,39 @@
     $(".scr-live").textContent = (o.title || "") + " " + (o.msg || "");
     setPad(null);
     setTimeout(function () { if (S && S.mode === "over") $(".again").focus({ preventScroll: true }); }, 700);   // a beat, so a held Space doesn't skip the joke
+    if (hooks.ended) try { hooks.ended(g, score, S.m, isNew); } catch (e) {}
+    var ob = $(".over-board"), gn = $(".scr-over .getname"); ob.hidden = true; gn.hidden = true;
+    $(".scr-over").classList.toggle("has-board", !!(S.m.ranked && g.ranked));
+    if (S.m.ranked && g.ranked) {
+      var me = hooks.player && hooks.player(), mach = S.m;
+      S.pending = score > 0 ? { game: g.id, score: score } : null;
+      fillBoard(ob, null, me ? "Sending your score to the board\u2026" : "Asking the gremlins\u2026");
+      var p = me && score > 0 && hooks.ranked ? hooks.ranked(g, score) : Promise.resolve(null);
+      p.then(function (res) {
+        return (hooks.leaderboard ? hooks.leaderboard(g.id) : Promise.reject()).then(function (rows) { return { res: res, rows: rows }; });
+      }).then(function (o) {
+        if (!S || S.mode !== "over" || S.m !== mach) return;
+        var r = o.res, msg;
+        if (!me) { msg = score > 0 ? "Get a Gremlin Name to put " + score + " on the board!" : "Get a Gremlin Name to join the board!"; gn.hidden = !hooks.signIn; }
+        else if (!r) msg = score > 0 ? "" : "Score some points to get on the board.";
+        else if (r.ok === false) msg = r.message || "The board didn't take that one. Try again in a minute.";
+        else { S.pending = null; msg = r.top10 ? (r.improved ? "\u2605 You're #" + r.rank + " on the board!" : "Your best (" + r.best + ") is still #" + r.rank + ".") : (r.improved ? "New best! You're #" + r.rank + ". The top 10 is close." : "Your best is " + r.best + " (#" + r.rank + ")."); }
+        fillBoard(ob, o.rows, msg, me);
+      }).catch(function () {
+        if (!S || S.mode !== "over" || S.m !== mach) return;
+        fillBoard(ob, null, "The scoreboard is napping (no connection). Your score is saved on this device.");
+        if (!me) gn.hidden = !hooks.signIn;
+      });
+    }
     maybeAwardPrize(g.id, score);
   }
   function toMenu() { if (!S) return; if (S.game && S.game.stop) S.game.stop(); renderMenu(); }
   function back() { if (!S) return; if (S.mode === "menu") close(); else toMenu(); }
+  function setHooks(h) { hooks = h || {}; }
   function close(silent) {
     if (!S) return;
     if (S.game && S.game.stop) S.game.stop();
-    cancelAnimationFrame(S.raf);
+    cancelAnimationFrame(S.raf); clearInterval(S.tick);
     var cb = S.opts.onClose; S = null; held = {};
     root.hidden = true;
     if (!silent && cb) cb();
@@ -305,7 +400,8 @@
   }
 
   window.GremlinArcade = {
-    register: register, open: open, close: close, back: back,
+    register: register, open: open, close: close, back: back, setHooks: setHooks, showBoards: function (id) { showBoards(id); },
+    factories: factories,
     isOpen: function () { return !!S; },
     get mode() { return S ? S.mode : "closed"; },
     get game() { return S && S.game; },

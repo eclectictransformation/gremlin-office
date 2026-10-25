@@ -5,7 +5,7 @@ Saves screenshots/arcade-*.png and prints a pass/fail line per check."""
 import pathlib, sys
 from playwright.sync_api import sync_playwright
 OUT = pathlib.Path(__file__).resolve().parent.parent / "screenshots"; OUT.mkdir(exist_ok=True)
-URL = "http://127.0.0.1:8765/world.html#arcade"
+URL = "http://127.0.0.1:8765/world.html?noprompt#arcade"
 errors, fails = [], []
 
 def ok(cond, label):
@@ -182,7 +182,7 @@ with sync_playwright() as p:
     m.tap(".cab-pad [data-k=down]"); m.wait_for_timeout(300)
     start_game(m, 1, touch=True) if mode(m) == "menu" else None
     m.tap(".arcade-overlay .close"); m.wait_for_timeout(800); ok(mode(m) == "closed", "phone: Close works")
-    m.goto("http://127.0.0.1:8765/world.html#arcade"); m.wait_for_timeout(2500)
+    m.goto("http://127.0.0.1:8765/world.html?noprompt#arcade"); m.wait_for_timeout(2500)
     open_cab(m, "cabinet-blue", touch=True); start_game(m, 2, touch=True)
     x0, y0 = canvas_xy(m, 150, 120); x1, y1 = canvas_xy(m, 100, 160)
     cdp = m.context.new_cdp_session(m)

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 615" width="180" height="615">
+  <!-- Break Room Brawl cabinet: drawn to sit in the arcade's painted style (dark outlines, flat shading) -->
+  <defs>
+    <linearGradient id="body" x1="0" x2="1"><stop offset="0" stop-color="#4b2a78"/><stop offset=".18" stop-color="#6a3fa0"/><stop offset=".85" stop-color="#6a3fa0"/><stop offset="1" stop-color="#4b2a78"/></linearGradient>
+    <linearGradient id="scr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b1a4a"/><stop offset="1" stop-color="#140c26"/></linearGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#fff3c4"/><stop offset="1" stop-color="#ffd166"/></radialGradient>
+  </defs>
+  <g stroke="#1f1626" stroke-width="5" stroke-linejoin="round">
+    <!-- side + top -->
+    <path d="M14 22 Q14 8 28 8 H160 Q172 8 172 22 V600 H10 V250 L22 236 V120 L14 112 Z" fill="url(#body)"/>
+    <!-- marquee box -->
+    <rect x="24" y="20" width="138" height="66" rx="8" fill="#2a1840"/>
+    <rect x="31" y="27" width="124" height="52" rx="5" fill="url(#glow)"/>
+    <!-- screen bezel -->
+    <path d="M24 100 H164 V250 H24 Z" fill="#2a1840"/>
+    <rect x="30" y="136" width="128" height="100" rx="10" fill="url(#scr)"/>
+    <!-- control ledge -->
+    <path d="M10 262 L26 250 H168 L176 262 V300 H10 Z" fill="#7d52b5"/>
+    <!-- lower body + coin door -->
+    <rect x="16" y="308" width="152" height="286" fill="#5b3590"/>
+    <rect x="58" y="392" width="72" height="96" rx="6" fill="#2a1840"/>
+  </g>
+  <!-- marquee lettering -->
+  <g font-family="ui-monospace,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-weight="900" text-anchor="middle">
+    <text x="93" y="50" font-size="17" fill="#5a2a7a" textLength="112" lengthAdjust="spacingAndGlyphs">BREAK ROOM</text>
+    <text x="93" y="72" font-size="20" fill="#c0392b" textLength="80" lengthAdjust="spacingAndGlyphs">BRAWL</text>
+  </g>
+  <!-- little mug + donut doodles on the marquee -->
+  <g stroke="#1f1626" stroke-width="2">
+    <rect x="37" y="57" width="10" height="12" rx="2" fill="#f1ede2"/><path d="M47 60 h3 v5 h-3" fill="none"/>
+    <circle cx="143" cy="63" r="7" fill="#f49ac1"/><circle cx="143" cy="63" r="2.5" fill="#fff3c4"/>
+  </g>
+  <!-- screen text lines are added live by world-player.js; this is the sleepy default -->
+  <g fill="#ffd166" opacity=".18"><rect x="40" y="150" width="108" height="3"/><rect x="40" y="170" width="108" height="3"/><rect x="40" y="190" width="108" height="3"/><rect x="40" y="210" width="108" height="3"/></g>
+  <!-- buttons + sticks -->
+  <g stroke="#1f1626" stroke-width="3">
+    <line x1="48" y1="272" x2="48" y2="258"/><circle cx="48" cy="255" r="8" fill="#ffd166"/>
+    <line x1="134" y1="272" x2="134" y2="258"/><circle cx="134" cy="255" r="8" fill="#7fd3f0"/>
+    <circle cx="78" cy="276" r="6" fill="#e8574a"/><circle cx="98" cy="276" r="6" fill="#7fc96b"/>
+    <ellipse cx="48" cy="275" rx="12" ry="4" fill="#1f1626"/><ellipse cx="134" cy="275" rx="12" ry="4" fill="#1f1626"/>
+  </g>
+  <!-- coin door: two slots, labelled "FREE PLAY" (no coins, no prizes) -->
+  <g stroke="#1f1626" stroke-width="2">
+    <rect x="68" y="404" width="20" height="26" rx="3" fill="#e8574a"/><rect x="100" y="404" width="20" height="26" rx="3" fill="#e8574a"/>
+    <rect x="72" y="410" width="12" height="3" fill="#1f1626"/><rect x="104" y="410" width="12" height="3" fill="#1f1626"/>
+  </g>
+  <text x="94" y="462" font-family="ui-monospace,Menlo,monospace" font-size="11" font-weight="800" fill="#ffd166" text-anchor="middle">FREE PLAY</text>
+  <!-- side stripe + feet -->
+  <path d="M16 330 H168" stroke="#ffd166" stroke-width="4"/><path d="M16 340 H168" stroke="#c0392b" stroke-width="3"/>
+  <g fill="#ffd166" opacity=".9"><path d="M30 540 l4 9 9 1 -7 6 2 9 -8 -5 -8 5 2 -9 -7 -6 9 -1z"/><path d="M146 520 l3 6 6 1 -5 4 2 6 -6 -3 -5 3 1 -6 -4 -4 6 -1z"/></g>
+  <rect x="10" y="596" width="162" height="12" rx="3" fill="#1f1626"/>
+</svg>

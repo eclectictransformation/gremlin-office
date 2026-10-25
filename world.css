@@ -100,3 +100,123 @@ body.mood-burrow #mood{opacity:1;background:radial-gradient(ellipse at 50% 45%,r
 /* items are flat on their wall: flattening each face makes taps land on the item, not the wall behind it */
 #world .face{transform-style:flat}
 @media (max-width:700px){body:has(#bubble:not([hidden])) #hint{opacity:0;transition:opacity .3s}}
+
+/* ===== Gremlin Names, quest journal, guestbook, badges (world-player.js) ===== */
+.title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gw-player-btn,.gw-journal-btn{display:inline-flex;align-items:center;gap:6px;max-width:180px}
+.gw-player-btn img{width:20px;height:20px;border-radius:50%;object-fit:cover;margin:-4px 0 -4px -4px;border:1px solid rgba(84,102,74,.4);background:var(--cream)}
+.gw-player-btn .gw-pname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gw-player-btn.named{background:#F3D98B;border-color:var(--forest)}
+.gw-journal-btn svg{margin:-3px 0}
+@media (max-width:560px){
+  .hud-top{padding:8px 8px;gap:4px}.hud-right{gap:4px}
+  .hud-right .pill{padding:8px 9px}
+  .gw-journal-btn span,.gw-player-btn .gw-pname{display:none}
+  .gw-player-btn img{margin:-4px}
+  .title{padding:6px 10px;font-size:15px}
+}
+
+.gw-panel{position:absolute;inset:0;z-index:13;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(26,26,24,.42)}
+.gw-panel[hidden]{display:none}
+.gw-box{position:relative;width:min(440px,100%);max-height:calc(100% - 10px);overflow:auto;background:var(--paper);color:var(--ink);border-radius:20px;
+  border:2px solid #F3D98B;box-shadow:0 16px 50px rgba(0,0,0,.35);padding:20px 20px 16px;box-sizing:border-box;animation:pop .28s ease-out}
+.gw-journal .gw-box{width:min(640px,100%)}
+.gw-guestbook .gw-box{width:min(520px,100%);background:#fbf3dc;border-color:#c9a273}
+.gw-box .card-close{position:absolute;right:10px;top:10px}
+.gw-body h2{font:600 22px/1.2 var(--serif);color:var(--moss);margin:0 30px 8px 0}
+.gw-body .meta{font-size:12px;color:var(--forest);text-transform:uppercase;letter-spacing:.08em;margin:0 0 4px}
+.gw-text{margin:0 0 12px;font-size:15px;line-height:1.5}
+.gw-fine{margin:10px 0 0;font-size:13px;line-height:1.45;color:#5d5f55}
+.gw-noodle{float:right;width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #F3D98B;margin:0 26px 6px 10px;background:var(--cream)}
+.gw-choices{display:flex;flex-direction:column;gap:8px;clear:both}
+.gw-btn{font:600 15px var(--sans);background:var(--forest);color:var(--paper);border:2px solid var(--forest);border-radius:999px;padding:11px 16px;cursor:pointer}
+.gw-btn:hover{background:var(--moss)}
+.gw-btn:focus-visible{outline:3px solid #F3D98B;outline-offset:2px}
+.gw-btn.ghost{background:transparent;color:var(--forest)}
+.gw-btn.ghost:hover{background:var(--cream)}
+.gw-btn.small{font-size:13px;padding:7px 12px}
+.gw-btn.danger{background:#a0402e;border-color:#a0402e}
+.gw-btn[disabled]{opacity:.5;cursor:default}
+.gw-form{display:flex;flex-direction:column;gap:8px;clear:both}
+.gw-label{display:flex;flex-direction:column;gap:4px;font:600 13px var(--sans);color:var(--moss)}
+.gw-label input,.gw-label select,.gw-forget input{font:16px var(--sans);padding:10px 12px;border-radius:12px;border:2px solid rgba(84,102,74,.4);background:#fff;color:var(--ink)}
+.gw-label input:focus,.gw-label select:focus{outline:none;border-color:var(--forest);box-shadow:0 0 0 3px rgba(243,217,139,.8)}
+.gw-err{margin:0;min-height:1.2em;font-size:14px;line-height:1.4;color:#8a3324}
+.gw-err:empty{min-height:0}
+.gw-key{clear:both;text-align:center;background:#1f1a24;color:#F3D98B;border-radius:14px;padding:14px 10px;margin:4px 0 10px}
+.gw-key-label{display:block;font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:#d6d1c2;margin-bottom:6px}
+.gw-key-code{font:800 clamp(18px,5vw,24px)/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.03em;user-select:all;word-break:break-word}
+.gw-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.gw-row .gw-btn{flex:1}
+.gw-check{display:flex;align-items:center;gap:6px;font-size:14px;margin:4px 0}
+.gw-signin [data-view=key-shown] > .gw-btn{width:100%;margin-top:10px}
+.gw-sync{clear:both;font-size:13px;color:var(--forest);margin:0 0 10px}
+.gw-forget{margin-top:14px;font-size:14px}.gw-forget summary{cursor:pointer;color:#8a3324}
+.gw-forget input{width:100%;box-sizing:border-box;margin:6px 0}
+
+/* journal */
+.gw-jhead .gw-text .gw-btn{margin-left:4px;vertical-align:middle}
+.gw-sec{border-top:1px dashed rgba(84,102,74,.3);padding:12px 0 6px}
+.gw-sec h3{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 8px;font:600 16px var(--serif);color:var(--moss)}
+.gw-count{font:700 14px var(--sans);color:var(--forest)}
+.gw-bar{height:10px;border-radius:999px;background:var(--cream);overflow:hidden;margin-bottom:8px;border:1px solid rgba(84,102,74,.25)}
+.gw-bar i{display:block;height:100%;background:linear-gradient(90deg,#A6B89A,#54664A);border-radius:inherit;transition:width .5s}
+.gw-socks{display:flex;gap:8px;flex-wrap:wrap}
+.gw-sock{width:58px;height:58px;border-radius:14px;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed rgba(84,102,74,.35);font-size:12px;color:#7d7f74}
+.gw-sock.got{background:#fff8e1;border:2px solid #F3D98B;color:var(--moss)}
+.gw-sock img{width:30px;height:32px}
+.gw-sock small{font-size:10px}
+.gw-note{margin:6px 0 0;font-size:13px;line-height:1.45;color:#4d5046}
+.gw-room-line{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+.gw-room-name{flex:none;width:84px;font:600 12px var(--sans);color:var(--moss);padding-top:4px}
+.gw-chips{display:flex;gap:5px;flex-wrap:wrap}
+.gw-chip{font:12px/1.2 var(--sans);padding:4px 8px;border-radius:999px;background:#fff8e1;border:1px solid #e3c977;color:var(--moss);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gw-chip.off{background:var(--cream);border:1px dashed rgba(84,102,74,.35);color:#8a8a80}
+.gw-games{display:grid;gap:3px}
+.gw-game{display:grid;grid-template-columns:1fr auto auto;gap:8px;font-size:13px;padding:4px 6px;border-radius:8px;background:#fff8e1}
+.gw-game.off{background:var(--cream);color:#8a8a80}
+.gw-gmach{font-size:11px;color:#6f6a5c;align-self:center}
+.gw-gbest{font-weight:700;color:var(--moss);min-width:64px;text-align:right}
+.gw-badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.gw-badge{display:grid;grid-template-columns:40px 1fr;grid-template-rows:auto auto;gap:0 8px;align-items:center;padding:8px;border-radius:14px;background:var(--cream);border:2px dashed rgba(84,102,74,.3);color:#7d7f74}
+.gw-badge .gw-bicon{grid-row:1 / span 2;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;background:#e2ddd0;color:#9a978a;font-weight:700}
+.gw-badge b{font:600 13px var(--sans)}.gw-badge small{font-size:11px;line-height:1.3}
+.gw-badge.on{background:#fff8e1;border:2px solid #F3D98B;color:var(--moss)}
+.gw-badge.on .gw-bicon{background:#F3D98B;transform:rotate(-8deg);box-shadow:0 2px 0 rgba(58,74,51,.3)}
+
+/* guestbook */
+.gw-entries{list-style:none;margin:0 0 12px;padding:10px 12px;max-height:260px;overflow:auto;background:#fffaf0;border-radius:12px;border:1px solid #e3d3b0;
+  background-image:repeating-linear-gradient(transparent 0 27px,#efe3c7 27px 28px)}
+.gw-entries li{display:flex;gap:10px;align-items:flex-start;padding:6px 0}
+.gw-stamp{flex:none;width:34px;height:34px;border-radius:50%;border:2px dashed #c0392b;display:flex;align-items:center;justify-content:center;font-size:18px;transform:rotate(-10deg);background:#fff}
+.gw-entry q{display:block;font:italic 16px/1.35 Georgia,serif;color:#3b2a1e}
+.gw-entry small{font-size:12px;color:#7a6a55}
+.gw-empty{font:italic 15px Georgia,serif;color:#7a6a55}
+.gw-sign h3{font:600 16px var(--serif);color:var(--moss);margin:0 0 8px}
+.gw-sign .gw-label{margin-bottom:8px}
+.gw-stamps{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}
+.gw-stampbtn{width:40px;height:40px;border-radius:50%;border:2px solid rgba(84,102,74,.3);background:#fff;font-size:18px;cursor:pointer}
+.gw-stampbtn.on{border-color:#c0392b;background:#fff1d6;transform:rotate(-8deg)}
+.gw-sign > .gw-btn{width:100%}
+
+/* toasts */
+.gw-toasts{position:absolute;left:50%;top:60px;transform:translateX(-50%);z-index:16;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(380px,calc(100% - 24px))}
+.gw-toast{display:flex;gap:10px;align-items:center;background:var(--paper);border:2px solid #F3D98B;border-radius:18px;padding:10px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);animation:toastin .4s ease-out;width:100%;box-sizing:border-box}
+.gw-toast.out{opacity:0;transform:translateY(-8px);transition:all .4s}
+.gw-toast-icon{font-size:28px;line-height:1}
+.gw-toast-text{display:flex;flex-direction:column}.gw-toast-text b{font:600 15px var(--serif);color:var(--moss)}.gw-toast-text small{font-size:13px;color:#4d5046}
+@keyframes toastin{from{opacity:0;transform:translateY(-12px) scale(.96)}}
+@media (prefers-reduced-motion:reduce){.gw-toast,.gw-box{animation:none}}
+
+/* in-room props: the chalk Brawl board and the guestbook */
+.it.scoreboard{border-radius:4px}
+.it.scoreboard .chalk{position:absolute;inset:6px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;
+  font:600 15px/1.25 "Comic Sans MS","Chalkboard SE","Segoe Print",cursive;color:rgba(245,242,230,.92);text-shadow:0 0 2px rgba(255,255,255,.35)}
+.it.scoreboard .chalk b{font-size:20px;letter-spacing:.08em;border-bottom:2px dashed rgba(245,242,230,.6)}
+.it.scoreboard .chalk-rows{display:flex;gap:16px;width:100%;justify-content:center}
+.chalk-col{display:flex;flex-direction:column;align-items:flex-start;min-width:0;max-width:50%}
+.chalk-col i{font-style:normal;font-size:13px;color:#ffd166;margin-bottom:2px}
+.chalk-col span{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.it.guestbook>img.prop{filter:drop-shadow(0 4px 3px rgba(0,0,0,.3))}
+.it.arcade[data-id=cabinet-purple] .scrtxt{color:#ffe9a8;text-shadow:0 0 6px rgba(255,209,102,.9),2px 2px 0 rgba(0,0,0,.35)}
+.it.arcade[data-id=cabinet-purple] .scrtxt small{white-space:normal;font-size:11px;line-height:1.2;max-width:100%}
+@media (max-width:560px){.gw-toasts{top:auto;bottom:64px}}
