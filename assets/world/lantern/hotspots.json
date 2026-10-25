@@ -1,0 +1,20 @@
+[
+  {"id": "exit-skylight-ladder", "label": "Round skylight and rope ladder, up to the Rooftop Garden", "type": "exit", "face": "ceiling", "x": 510, "y": 650, "w": 390, "h": 720, "leadsTo": "Rooftop Garden"},
+  {"id": "exit-crawlspace", "label": "Sketchbook-lined crawlspace behind the lantern wall, to the Archive", "type": "exit", "face": "back", "x": 510, "y": 858, "w": 360, "h": 275, "leadsTo": "Archive Library (archive)"},
+  {"id": "breathing-lantern-glow", "label": "CLEAR AREA for the animated breathing lantern (in 4, hold 7, out 8; 3 breaths, then 'You don't have to fill every panel.')", "type": "prop", "face": "back", "x": 512, "y": 407, "w": 465, "h": 497},
+  {"id": "lantern-wall", "label": "Wall of paper lanterns (one flickers brighter as you approach; all light up when the five moths are found)", "type": "prop", "face": "back", "x": 512, "y": 330, "w": 1000, "h": 660},
+  {"id": "moon-lamp", "label": "Moon desk lamp with a tiny circling moth (tap: room dims to the breathing lantern)", "type": "prop", "face": "front", "x": 735, "y": 470, "w": 160, "h": 190},
+  {"id": "drafting-table", "label": "Drafting table with a half-finished comic panel", "type": "prop", "face": "front", "x": 535, "y": 580, "w": 455, "h": 190},
+  {"id": "cardigan-chair", "label": "Tan cardigan on the chair, pencils in every pocket", "type": "prop", "face": "front", "x": 365, "y": 790, "w": 255, "h": 350},
+  {"id": "caption-page-1", "label": "Drying comic page 1 (Caption This)", "type": "prop", "face": "right", "x": 152, "y": 433, "w": 200, "h": 270},
+  {"id": "caption-page-2", "label": "Drying comic page 2 (Caption This)", "type": "prop", "face": "right", "x": 332, "y": 455, "w": 180, "h": 260},
+  {"id": "caption-page-3", "label": "Drying comic page 3 (Caption This)", "type": "prop", "face": "right", "x": 515, "y": 470, "w": 165, "h": 250},
+  {"id": "caption-page-4", "label": "Drying comic page 4 (Caption This)", "type": "prop", "face": "right", "x": 700, "y": 465, "w": 180, "h": 250},
+  {"id": "caption-page-5", "label": "Drying comic page 5 (Caption This)", "type": "prop", "face": "right", "x": 880, "y": 435, "w": 200, "h": 270},
+  {"id": "captions-jar", "label": "Jar of folded slips: Collected Captions (blank label for overlay; Bryan poem only once he approves)", "type": "prop", "face": "right", "x": 838, "y": 718, "w": 138, "h": 205},
+  {"id": "moth-doodle-1", "label": "Hidden moth doodle 1 of 5", "type": "egg", "face": "front", "x": 120, "y": 600, "w": 60, "h": 60},
+  {"id": "moth-doodle-2", "label": "Hidden moth doodle 2 of 5", "type": "egg", "face": "right", "x": 470, "y": 170, "w": 60, "h": 60},
+  {"id": "moth-doodle-3", "label": "Hidden moth doodle 3 of 5", "type": "egg", "face": "right", "x": 130, "y": 700, "w": 56, "h": 56},
+  {"id": "moth-doodle-4", "label": "Hidden moth doodle 4 of 5", "type": "egg", "face": "back", "x": 820, "y": 712, "w": 58, "h": 58},
+  {"id": "moth-doodle-5", "label": "Hidden moth doodle 5 of 5", "type": "egg", "face": "left", "x": 240, "y": 560, "w": 60, "h": 60}
+]

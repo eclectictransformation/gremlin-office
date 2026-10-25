@@ -98,7 +98,8 @@
   }
 
   /* ---------- build a room ---------- */
-  function clearRoom() { world.innerHTML = ""; faceEls = {}; itemEls = {}; }
+  var decorTimers = [];
+  function clearRoom() { world.innerHTML = ""; faceEls = {}; itemEls = {}; decorTimers.forEach(clearInterval); decorTimers = []; }
   function buildRoom(id) {
     var room = W.rooms[id], painted = !!artMode[id]; var hasSvg = /\.svg$/.test(room.faces);
     clearRoom();
@@ -121,6 +122,7 @@
       if (painted && hasSvg && !it.atArt && !img && !it.artOnly && it.type !== "sock") return;
       if (!painted && it.artOnly) return;
       if (!at) return;
+      if (it.type === "decor") { buildDecor(it, at, size); return; }
       var strip = null;
       if (it.type === "strip") { strip = STRIPS[it.strip || 0]; if (!strip) return; img = strip.thumb || strip.filename; }
       var b = el("button", "it " + it.type + (img ? " hasimg" : ""), { "aria-label": it.label || it.id, "data-id": it.id });
@@ -131,6 +133,8 @@
       if (it.type === "portal") { var tg = el("span", "tag"); tg.textContent = W.rooms[it.to].short + " \u2192"; b.appendChild(tg); }
       if (it.type === "egg" && found.indexOf(it.id) >= 0) b.classList.add("found");
       if (it.type === "arcade") decorateCabinet(b, it);
+      if (it.hover) { var hv = el("span", "hov"); hv.textContent = it.hover; b.appendChild(hv); }
+      if (it.showIf) { b.dataset.showIf = it.showIf; if (!condMet(it.showIf)) b.classList.add("is-hidden"); }
       if (it.type === "scoreboard") { var ch = el("span", "chalk"); var h = el("b"); h.textContent = it.title || "SCORES"; ch.appendChild(h); ch.appendChild(el("span", "chalk-rows")); b.appendChild(ch); }
       var lk = lookOf(at);
       b._item = { it: it, yaw: lk.yaw, pitch: lk.pitch, painted: painted, size: size, strip: strip };
@@ -138,6 +142,34 @@
     });
     notify("room-built", { room: id, painted: painted });
   }
+  // non-interactive overlays: painted-blank labels, signs, glows and the little animations (text or an image)
+  function buildDecor(it, at, size) {
+    var d = el("div", "decor" + (it.cls ? " " + it.cls : ""), { "aria-hidden": it.alt ? "false" : "true" });
+    place(d, at, size);
+    var tf = []; if (it.rot) tf.push("rotate(" + it.rot + "deg)"); if (it.skew) tf.push("skewY(" + it.skew + "deg)"); if (tf.length) d.style.transform = tf.join(" ");
+    if (it.fs) d.style.fontSize = it.fs + "px"; if (it.color) d.style.color = it.color; if (it.font) d.classList.add("f-" + it.font);
+    if (it.img) { var im = el("img", "", { alt: it.alt || "", draggable: "false" }); im.dataset.src = it.img; d.appendChild(im); }
+    if (it.text) it.text.split("\n").forEach(function (ln, i) { if (i) d.appendChild(el("br")); d.appendChild(document.createTextNode(ln)); });
+    if (it.alt) { d.setAttribute("role", "img"); d.setAttribute("aria-label", it.alt); }
+    if (it.cycle) {   // words that print themselves one at a time (reduced motion: all of them, still)
+      if (mqReduce.matches) { d.textContent = it.cycle.join(" / "); }
+      else { var n = 0, w = el("span", "cyc"); w.textContent = it.cycle[0]; d.appendChild(w);
+        decorTimers.push(setInterval(function () { n = (n + 1) % it.cycle.length; w.classList.remove("in"); void w.offsetWidth; w.textContent = it.cycle[n]; w.classList.add("in"); }, it.every || 3200)); }
+    }
+    if (it.typewriter) {
+      var full = it.typewriter;
+      if (mqReduce.matches) d.textContent = full;
+      else { var k = 0, tw = el("span", "tw"); d.appendChild(tw);
+        decorTimers.push(setInterval(function () { k = k > full.length + 14 ? 0 : k + 1; tw.textContent = full.slice(0, Math.min(k, full.length)); }, it.every || 260)); }
+    }
+    if (it.showIf) { d.dataset.showIf = it.showIf; if (!condMet(it.showIf)) d.classList.add("is-hidden"); }
+    faceEls[at.face].appendChild(d);
+  }
+  // showIf: "<egg id>" (found) or "set:<name>" (every piece of a set tapped)
+  function condMet(c) { if (/^set:/.test(c)) return setDone(c.slice(4)); return found.indexOf(c) >= 0; }
+  function refreshShowIf() { world.querySelectorAll("[data-show-if]").forEach(function (e) { e.classList.toggle("is-hidden", !condMet(e.dataset.showIf)); }); }
+  function setDef(name) { return (W.sets && W.sets[name]) || null; }
+  function setDone(name) { var d = setDef(name), got = load("sets", {})[name] || []; return !!d && got.length >= d.total; }
   // playable cabinets get their name lit up on the painted marquee and a sleepy "press start" on the screen
   function decorateCabinet(b, it) {
     var box = function (e, bx) { e.style.left = bx[0] + "px"; e.style.top = bx[1] + "px"; e.style.width = bx[2] + "px"; e.style.height = bx[3] + "px"; };
@@ -159,6 +191,7 @@
     });
     (OFFICE.hotspots || []).forEach(function (h) {
       if (h.active === false || !h.position) return;
+      if ((W.rooms[current] && W.rooms[current].officeSkip || []).indexOf(h.id) >= 0) return;   // replaced by a world item (the GREMLINS ONLY door -> the Gremlin Wing)
       var pr = project(h.position.yaw, h.position.pitch), sz = h.size || [80, 80];
       var b = el("button", "hs " + (h.style || "hidden"), { "aria-label": h.label || h.card.title, "data-id": h.id });
       b.style.left = (pr.x - sz[0] / 2) + "px"; b.style.top = (pr.y - sz[1] / 2) + "px"; b.style.width = sz[0] + "px"; b.style.height = sz[1] + "px";
@@ -261,6 +294,7 @@
   vp.addEventListener("scroll", function () { vp.scrollTop = 0; vp.scrollLeft = 0; });
   window.addEventListener("keydown", function (e) {
     if (arcadeOpen()) return;   // the cabinet has the keyboard while it's open
+    if (roomGameOpen()) return;   // so does a room mini-game (it closes itself on Esc)
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;   // typing a Gremlin Name or Key
     if (playerOpen()) return;   // the sign-in card / journal / guestbook handle their own keys
     poke();
@@ -303,9 +337,15 @@
     if (it.type === "scoreboard") { turnTo(x.yaw, x.pitch, 1.3, function () { openArcade(it.machine, b); if (window.GremlinArcade && GremlinArcade.isOpen()) GremlinArcade.showBoards(); }); return; }
     if (it.type === "guestbook") { turnTo(x.yaw, x.pitch, 1.4, function () { if (window.GremlinPlayer) GremlinPlayer.openGuestbook(b); else showCard({ meta: "the archive", title: "The Gremlin Guestbook", text: "The ink is still drying. Try again in a moment." }); }); return; }
     if (it.type === "strip") { var st = x.strip; turnTo(x.yaw, x.pitch, 1.3, function () { showCard({ image: st.thumb || st.filename, alt: st.alt, meta: "the archive" + (st.episode ? " \u00b7 episode " + st.episode : ""), title: st.title, text: st.alt, link: { href: "comics.html", label: "Read it in the comics archive" } }); }); return; }
+    if (it.type === "game") { turnTo(x.yaw, x.pitch, 1.3, function () { openRoomGame(it, b); }); return; }
+    if (it.type === "setpiece") { tapSetPiece(b, it, x); return; }
     // eggs
     var first = found.indexOf(it.id) < 0;
-    if (first) { found.push(it.id); save("found", found); b.classList.add("found"); notify("egg", { id: it.id, room: current }); }
+    if (it.steps && first) {   // a few gentle taps before it gives up its secret
+      var sn = (b._steps = (b._steps || 0) + 1);
+      if (sn <= it.steps.lines.length) { effect(b, it.effect, x); turnTo(x.yaw, x.pitch, 1.3, function () { say(it.steps.who, it.steps.lines[sn - 1]); }); return; }
+    }
+    if (first) { found.push(it.id); save("found", found); b.classList.add("found"); notify("egg", { id: it.id, room: current }); refreshShowIf(); }
     effect(b, it.effect, x);
     turnTo(x.yaw, x.pitch, it.effect === "wink" ? 1.6 : 1.3, function () {
       if (it.say) { var n = (b._n = ((b._n || 0) + 1)); var lines = it.say.lines; say(it.say.who, lines[(n - 1) % lines.length]); return; }
@@ -320,6 +360,15 @@
     if (kind === "puff") { for (var i = 0; i < 3; i++) (function (i) { setTimeout(function () { var p = el("span", "puff"); p.style.left = (55 + i * 12) + "%"; b.appendChild(p); setTimeout(function () { p.remove(); }, 2300); }, i * 350); })(i); }
     if (kind === "wink") {
       var eyePos = x.painted ? x.it.artEye : x.it.eye; if (!eyePos) return;
+      var ei = x.painted && x.it.artEyeImg;
+      if (ei) {   // the painted eye itself pops back into the empty socket (and stays for this visit)
+        var sp = el("span", "sparkle"); sp.textContent = "\u2726"; sp.style.left = (eyePos.x + 6) + "px"; sp.style.top = (eyePos.y - 46) + "px";
+        setTimeout(function () { b.appendChild(sp); setTimeout(function () { sp.remove(); }, 1900); }, 1400);
+        var im = b.querySelector("img.eye-img"); if (!im) { im = el("img", "eye-img", { alt: "", draggable: "false", src: ei.src }); b.appendChild(im); }
+        im.style.left = ei.x + "px"; im.style.top = ei.y + "px"; im.style.width = ei.w + "px"; im.style.height = ei.h + "px";
+        im.classList.remove("on"); void im.offsetWidth; setTimeout(function () { im.classList.add("on"); }, 500);
+        return;
+      }
       var s = el("span", "sparkle"); s.textContent = "\u2726"; s.style.left = (eyePos.x + 6) + "px"; s.style.top = (eyePos.y - 46) + "px";
       setTimeout(function () { b.appendChild(s); setTimeout(function () { s.remove(); }, 1900); }, 1400);
       var e = b.querySelector(".eye"); if (!e) { e = el("span", "eye" + (x.painted ? " painted" : "")); b.appendChild(e); }
@@ -362,10 +411,47 @@
     var m = W.arcade && W.arcade.machines && W.arcade.machines[id];
     if (!m || !window.GremlinArcade) return;
     hideBubble(); keys = {}; vel.yaw = vel.pitch = 0; anim = null; dragging = false; down = null; vp.classList.remove("dragging");   // the world holds still while you play
-    window.GremlinArcade.open(m, { machines: W.arcade.machines, prizeNote: W.prize && W.prize.note, onClose: function () {
+    window.GremlinArcade.open(m, { machines: W.arcade.machines, onClose: function () {
       turnTo(view.yaw, view.pitch, 1);
       var f = btn || returnFocus; if (f && document.contains(f)) try { f.focus({ preventScroll: true }); } catch (e) {}
     } });
+  }
+
+  /* ---------- gentle room mini-games (games/room-games.js, loaded on first use; no timers, no fail state) ---------- */
+  var gamesLoading = null;
+  function roomGameOpen() { return !!(window.GremlinRoomGames && window.GremlinRoomGames.isOpen()); }
+  function loadRoomGames() {
+    if (window.GremlinRoomGames) return Promise.resolve();
+    if (gamesLoading) return gamesLoading;
+    gamesLoading = new Promise(function (res, rej) {
+      var l = el("link", "", { rel: "stylesheet", href: "games/room-games.css" }); document.head.appendChild(l);
+      var sc = el("script", "", { src: "games/room-games.js" }); sc.onload = function () { res(); }; sc.onerror = function () { gamesLoading = null; rej(new Error("room-games.js")); }; document.head.appendChild(sc);
+    });
+    return gamesLoading;
+  }
+  function openRoomGame(it, btn) {
+    hideBubble(); keys = {}; vel.yaw = vel.pitch = 0; anim = null; dragging = false; down = null; vp.classList.remove("dragging");
+    loadRoomGames().then(function () {
+      window.GremlinRoomGames.open(it.game, Object.assign({ title: it.label }, it.opts || {}), { say: say, onClose: function (done) {
+        turnTo(view.yaw, view.pitch, 1);
+        if (done && it.doneSay) setTimeout(function () { say(it.doneSay.who, it.doneSay.text); }, 400);
+        var f = btn || returnFocus; if (f && document.contains(f)) try { f.focus({ preventScroll: true }); } catch (e) {}
+      } });
+      notify("room-game", { id: it.game, room: current });
+    }).catch(function (e) { console.error(e); showCard({ meta: "a small helpful thing", title: it.label || "A little game", text: "The game's still being glued together. Try again in a moment." }); });
+  }
+  // set pieces (e.g. Vesper's frogs): tap them all, something new appears. Progress lives on this device.
+  function tapSetPiece(b, it, x) {
+    var d = setDef(it.set); if (!d) return;
+    var all = load("sets", {}), got = all[it.set] || [], first = got.indexOf(it.id) < 0;
+    if (first) { got.push(it.id); all[it.set] = got; save("sets", all); b.classList.add("found"); }
+    effect(b, it.effect || "wiggle", x);
+    if (got.length >= d.total && first) refreshShowIf();   // reveal the reward now, even if the turn below gets interrupted
+    turnTo(x.yaw, x.pitch, 1.25, function () {
+      var n = got.length;
+      if (n >= d.total && first) say(d.who, d.doneSay);
+      else say(d.who, (first ? (it.line || d.line) : d.again).replace("{n}", n).replace("{total}", d.total));
+    });
   }
 
   /* ---------- gremlin speech bubbles ---------- */
@@ -433,6 +519,7 @@
   function travel(to, fromBtn, isBack) {
     if (busy || to === current) return;
     if (arcadeOpen()) window.GremlinArcade.close(true);
+    if (roomGameOpen()) window.GremlinRoomGames.close(true);
     busy = true; hideBubble(); closeCard(); closeMap();
     var warp = $("#warp"), from = current;
     var go = function () {
@@ -456,6 +543,7 @@
   /* ---------- map ---------- */
   function openMap() {
     var svg = $("#map-svg"), list = $("#map-list"), NS = "http://www.w3.org/2000/svg"; svg.innerHTML = ""; list.innerHTML = "";
+    if (W.mapView) svg.setAttribute("viewBox", W.mapView.join(" "));
     W.links.forEach(function (l) { var a = W.map[l[0]], b = W.map[l[1]], p = document.createElementNS(NS, "path"); p.setAttribute("class", "link"); p.setAttribute("d", "M" + a[0] + " " + a[1] + " Q" + ((a[0] + b[0]) / 2 + 8) + " " + ((a[1] + b[1]) / 2 + 10) + " " + b[0] + " " + b[1]); svg.appendChild(p); });
     Object.keys(W.rooms).forEach(function (id) {
       var r = W.rooms[id], pos = W.map[id], known = visited.indexOf(id) >= 0;
@@ -502,7 +590,8 @@
       look: function (id) { var b = itemEls[id]; if (b) turnTo(b._item.yaw, b._item.pitch, 1); }, click: function (id) { var b = itemEls[id]; if (b) activate(b); },
       openArcade: function (id) { var cab = null; for (var k in itemEls) if (itemEls[k]._item.it && itemEls[k]._item.it.type === "arcade" && itemEls[k]._item.it.machine === id) cab = itemEls[k]; openArcade(id, cab); },
       reloadProgress: reloadProgress, secrets: secretList, say: say, showCard: showCard, closeCard: closeCard, hideBubble: hideBubble,
-      get artMode() { return artMode; }, item: function (id) { return itemEls[id]; } };
+      get artMode() { return artMode; }, item: function (id) { return itemEls[id]; },
+      get gameOpen() { return roomGameOpen(); }, closeGame: function () { if (roomGameOpen()) window.GremlinRoomGames.close(true); } };
     notify("ready", window.GremlinWorld);
     try { window.dispatchEvent(new CustomEvent("gremlinworld:ready")); } catch (e) {}
   }).catch(function (err) {

@@ -50,7 +50,25 @@
           ],
           "rot": -18,
           "say": "My lucky sock! It was under my desk the whole time. Thank you!"
+        },
+        {
+          "id": "office-to-wing",
+          "type": "portal",
+          "to": "wing",
+          "label": "The GREMLINS ONLY door, to the Gremlin Wing",
+          "at": {
+            "face": "left",
+            "x": 512,
+            "y": 640
+          },
+          "size": [
+            224,
+            690
+          ]
         }
+      ],
+      "officeSkip": [
+        "door"
       ]
     },
     "tunnel": {
@@ -84,11 +102,11 @@
           "atArt": {
             "face": "front",
             "x": 506,
-            "y": 640
+            "y": 632
           },
           "artSize": [
-            400,
-            470
+            448,
+            496
           ]
         },
         {
@@ -122,12 +140,12 @@
           "label": "A tiny green door. Beeping behind it.",
           "at": {
             "face": "front",
-            "x": 795,
-            "y": 858
+            "x": 793,
+            "y": 848
           },
           "size": [
-            90,
-            140
+            86,
+            128
           ],
           "artOnly": true
         },
@@ -247,8 +265,8 @@
             "y": 593
           },
           "artSize": [
-            190,
-            190
+            166,
+            166
           ],
           "effect": "puff",
           "card": {
@@ -264,12 +282,12 @@
           "artOnly": true,
           "atArt": {
             "face": "left",
-            "x": 783,
-            "y": 362
+            "x": 789,
+            "y": 370
           },
           "artSize": [
-            90,
-            110
+            78,
+            88
           ],
           "effect": "wiggle",
           "card": {
@@ -285,12 +303,12 @@
           "artOnly": true,
           "atArt": {
             "face": "right",
-            "x": 842,
-            "y": 373
+            "x": 841,
+            "y": 365
           },
           "artSize": [
-            110,
-            110
+            142,
+            134
           ],
           "effect": "wiggle",
           "card": {
@@ -468,12 +486,12 @@
           ],
           "atArt": {
             "face": "left",
-            "x": 747,
-            "y": 862
+            "x": 744,
+            "y": 850
           },
           "artSize": [
-            230,
-            210
+            252,
+            216
           ]
         },
         {
@@ -520,13 +538,20 @@
             575
           ],
           "artEye": {
-            "x": 231,
+            "x": 225,
             "y": 175
           },
           "card": {
             "meta": "the collection",
             "title": "Mona, Mostly",
             "text": "After da Vinci, by Moth.\n\nHer missing eye was out to lunch. It just got back, and it would like you to know it saw that."
+          },
+          "artEyeImg": {
+            "src": "assets/world/props/mona-eye.png",
+            "x": 207,
+            "y": 159.5,
+            "w": 37,
+            "h": 31
           }
         },
         {
@@ -545,11 +570,11 @@
           "atArt": {
             "face": "left",
             "x": 224,
-            "y": 650
+            "y": 668
           },
           "artSize": [
-            120,
-            190
+            110,
+            180
           ],
           "say": {
             "who": "moth",
@@ -615,11 +640,11 @@
           "atArt": {
             "face": "front",
             "x": 512,
-            "y": 700
+            "y": 741
           },
           "artSize": [
-            170,
-            60
+            125,
+            44
           ],
           "artImg": "assets/world/props/gremlish-plaque.svg"
         },
@@ -639,11 +664,11 @@
           "atArt": {
             "face": "back",
             "x": 510,
-            "y": 438
+            "y": 410
           },
           "artSize": [
-            430,
-            600
+            440,
+            580
           ],
           "card": {
             "meta": "the collection",
@@ -755,11 +780,11 @@
           "atArt": {
             "face": "right",
             "x": 506,
-            "y": 400
+            "y": 424
           },
           "artSize": [
-            200,
-            540
+            228,
+            532
           ],
           "card": {
             "meta": "the collection",
@@ -812,12 +837,12 @@
           "label": "Arched door, up to the Gallery",
           "at": {
             "face": "back",
-            "x": 495,
-            "y": 570
+            "x": 516,
+            "y": 545
           },
           "size": [
-            280,
-            620
+            265,
+            682
           ]
         },
         {
@@ -827,12 +852,12 @@
           "label": "The library ladder goes all the way up",
           "at": {
             "face": "front",
-            "x": 105,
-            "y": 500
+            "x": 102,
+            "y": 670
           },
           "size": [
-            130,
-            600
+            140,
+            560
           ]
         },
         {
@@ -905,12 +930,12 @@
           "label": "A big red armchair",
           "at": {
             "face": "right",
-            "x": 417,
-            "y": 765
+            "x": 428,
+            "y": 787
           },
           "size": [
-            330,
-            270
+            345,
+            335
           ],
           "card": {
             "meta": "a good chair",
@@ -926,11 +951,11 @@
           "at": {
             "face": "front",
             "x": 510,
-            "y": 860
+            "y": 852
           },
           "size": [
-            500,
-            100
+            620,
+            115
           ],
           "card": {
             "meta": "filing",
@@ -945,12 +970,12 @@
           "label": "A desk globe",
           "at": {
             "face": "left",
-            "x": 480,
-            "y": 740
+            "x": 482,
+            "y": 683
           },
           "size": [
-            120,
-            150
+            100,
+            138
           ],
           "card": {
             "meta": "geography",
@@ -964,12 +989,12 @@
           "label": "An open book on the rug",
           "at": {
             "face": "floor",
-            "x": 342,
-            "y": 501
+            "x": 343,
+            "y": 508
           },
           "size": [
-            220,
-            180
+            270,
+            210
           ],
           "card": {
             "meta": "reading",
@@ -992,6 +1017,22 @@
           ],
           "img": "assets/world/props/guestbook.svg",
           "artOnly": true
+        },
+        {
+          "id": "archive-to-lantern",
+          "type": "portal",
+          "to": "lantern",
+          "label": "A little crawlspace hatch, up to the Lantern Loft",
+          "at": {
+            "face": "right",
+            "x": 705,
+            "y": 840
+          },
+          "size": [
+            170,
+            130
+          ],
+          "img": "assets/world/props/crawl-hatch.svg"
         }
       ],
       "painted": true
@@ -1016,12 +1057,12 @@
           "label": "The stair hut, back down to the Archive",
           "at": {
             "face": "back",
-            "x": 282,
-            "y": 720
+            "x": 294,
+            "y": 715
           },
           "size": [
-            140,
-            340
+            190,
+            420
           ]
         },
         {
@@ -1030,12 +1071,12 @@
           "label": "A little tea table for two",
           "at": {
             "face": "front",
-            "x": 480,
-            "y": 840
+            "x": 510,
+            "y": 845
           },
           "size": [
-            290,
-            230
+            250,
+            250
           ],
           "card": {
             "meta": "the roof",
@@ -1050,8 +1091,8 @@
           "label": "A hammock between the planters",
           "at": {
             "face": "left",
-            "x": 675,
-            "y": 816
+            "x": 720,
+            "y": 830
           },
           "size": [
             300,
@@ -1090,12 +1131,12 @@
           "label": "A basket of fresh eggs",
           "at": {
             "face": "floor",
-            "x": 432,
-            "y": 381
+            "x": 430,
+            "y": 397
           },
           "size": [
-            220,
-            200
+            215,
+            232
           ],
           "card": {
             "meta": "the garden",
@@ -1110,7 +1151,7 @@
           "at": {
             "face": "right",
             "x": 948,
-            "y": 705
+            "y": 712
           },
           "size": [
             90,
@@ -1130,7 +1171,7 @@
           "at": {
             "face": "left",
             "x": 204,
-            "y": 171
+            "y": 179
           },
           "size": [
             90,
@@ -1141,6 +1182,38 @@
             "title": "Early Moon",
             "text": "The moon came up a bit early tonight. It likes this garden too."
           }
+        },
+        {
+          "id": "rooftop-to-lantern",
+          "type": "portal",
+          "to": "lantern",
+          "label": "A round skylight, down to Moth's Lantern Loft",
+          "at": {
+            "face": "floor",
+            "x": 560,
+            "y": 110
+          },
+          "size": [
+            200,
+            170
+          ],
+          "img": "assets/world/props/skylight-hatch.svg"
+        },
+        {
+          "id": "rooftop-to-roots",
+          "type": "portal",
+          "to": "roots",
+          "label": "A hole in the planks with glowing mushrooms: the Root Tunnel",
+          "at": {
+            "face": "floor",
+            "x": 860,
+            "y": 950
+          },
+          "size": [
+            170,
+            124
+          ],
+          "img": "assets/world/props/root-hole.svg"
         }
       ],
       "painted": true
@@ -1165,12 +1238,12 @@
           "label": "Bead curtain, back to the Tunnel",
           "at": {
             "face": "back",
-            "x": 507,
-            "y": 600
+            "x": 508,
+            "y": 616
           },
           "size": [
-            280,
-            560
+            272,
+            575
           ]
         },
         {
@@ -1312,12 +1385,12 @@
           "label": "A cabinet with swirly art",
           "at": {
             "face": "right",
-            "x": 672,
-            "y": 480
+            "x": 668,
+            "y": 492
           },
           "size": [
-            200,
-            200
+            195,
+            175
           ],
           "card": {
             "meta": "the arcade",
@@ -1331,12 +1404,12 @@
           "label": "A skee-ball lane",
           "at": {
             "face": "left",
-            "x": 810,
-            "y": 651
+            "x": 817,
+            "y": 670
           },
           "size": [
-            220,
-            520
+            265,
+            630
           ],
           "card": {
             "meta": "the arcade",
@@ -1350,8 +1423,8 @@
           "label": "An old TV and a console",
           "at": {
             "face": "left",
-            "x": 360,
-            "y": 651
+            "x": 363,
+            "y": 665
           },
           "size": [
             270,
@@ -1369,12 +1442,12 @@
           "label": "A big yellow bean bag",
           "at": {
             "face": "back",
-            "x": 171,
-            "y": 840
+            "x": 178,
+            "y": 825
           },
           "size": [
-            250,
-            200
+            290,
+            262
           ],
           "card": {
             "meta": "the arcade",
@@ -1388,12 +1461,12 @@
           "label": "A disco ball on the ceiling",
           "at": {
             "face": "ceiling",
-            "x": 510,
-            "y": 471
+            "x": 508,
+            "y": 492
           },
           "size": [
-            200,
-            200
+            210,
+            215
           ],
           "card": {
             "meta": "the arcade",
@@ -1421,6 +1494,4969 @@
         }
       ],
       "painted": true
+    },
+    "wing": {
+      "name": "The Gremlin Wing",
+      "short": "Wing",
+      "faces": "assets/world/wing/{face}.svg",
+      "startView": {
+        "yaw": 0,
+        "pitch": -2
+      },
+      "greet": {
+        "who": "grimble",
+        "text": "Welcome to the Wing. Six doors, six gremlins. Knock gently, everyone's in, and every room has a way back here."
+      },
+      "items": [
+        {
+          "id": "wing-to-office",
+          "type": "portal",
+          "to": "office",
+          "label": "The GREMLINS ONLY door, back to the Office",
+          "at": {
+            "face": "back",
+            "x": 512,
+            "y": 610
+          },
+          "size": [
+            290,
+            660
+          ]
+        },
+        {
+          "id": "wing-to-burrow",
+          "type": "portal",
+          "to": "burrow",
+          "label": "Grimble's round oak door: The Listening Burrow",
+          "at": {
+            "face": "front",
+            "x": 300,
+            "y": 695
+          },
+          "size": [
+            240,
+            480
+          ]
+        },
+        {
+          "id": "wing-to-greenhouse",
+          "type": "portal",
+          "to": "greenhouse",
+          "label": "Pip's glass door: The Idea Greenhouse",
+          "at": {
+            "face": "front",
+            "x": 724,
+            "y": 695
+          },
+          "size": [
+            240,
+            480
+          ]
+        },
+        {
+          "id": "wing-to-lantern",
+          "type": "portal",
+          "to": "lantern",
+          "label": "Moth's lavender door: The Lantern Loft",
+          "at": {
+            "face": "right",
+            "x": 300,
+            "y": 695
+          },
+          "size": [
+            240,
+            480
+          ]
+        },
+        {
+          "id": "wing-to-press",
+          "type": "portal",
+          "to": "press",
+          "label": "Dot's ink-striped door: The Back-Room Press",
+          "at": {
+            "face": "right",
+            "x": 724,
+            "y": 695
+          },
+          "size": [
+            240,
+            480
+          ]
+        },
+        {
+          "id": "wing-to-dispatch",
+          "type": "portal",
+          "to": "dispatch",
+          "label": "Noodle's porthole door: The Dispatch Loft",
+          "at": {
+            "face": "left",
+            "x": 300,
+            "y": 695
+          },
+          "size": [
+            240,
+            480
+          ]
+        },
+        {
+          "id": "wing-to-returns",
+          "type": "portal",
+          "to": "returns",
+          "label": "Vesper's door with a book slot: The Returns Bin",
+          "at": {
+            "face": "left",
+            "x": 724,
+            "y": 695
+          },
+          "size": [
+            240,
+            480
+          ]
+        },
+        {
+          "id": "wing-hologram",
+          "type": "egg",
+          "label": "A see-through iPad on a stand",
+          "at": {
+            "face": "back",
+            "x": 830,
+            "y": 640
+          },
+          "size": [
+            200,
+            220
+          ],
+          "card": {
+            "meta": "the wing",
+            "title": "Hello from the iPad",
+            "text": "Bryan pops up as a small, friendly hologram on the see-through iPad, waves, and flickers off again.\n\nThis is the only way he visits the Wing. The rooms past these doors belong to the gremlins."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "wing-notice",
+          "type": "egg",
+          "label": "A notice by the door",
+          "at": {
+            "face": "back",
+            "x": 196,
+            "y": 635
+          },
+          "size": [
+            210,
+            160
+          ],
+          "card": {
+            "meta": "the wing",
+            "title": "House Notice",
+            "text": "Gremlin Wing. Knock gently.\nEvery room has a way back here.\n\nUnderneath, smaller, in six handwritings: \"agreed\", \"agreed\", \"agreed (with tea)\", \"ok\", \"!!\", \"noted -V\"."
+          }
+        },
+        {
+          "id": "wing-mat",
+          "type": "egg",
+          "label": "A long rug: wipe your paws",
+          "at": {
+            "face": "floor",
+            "x": 512,
+            "y": 560
+          },
+          "size": [
+            300,
+            400
+          ],
+          "card": {
+            "meta": "the wing",
+            "title": "Wipe Your Paws",
+            "text": "The rug has been wiped on so politely that it's now the cleanest thing in the building."
+          }
+        }
+      ]
+    },
+    "burrow": {
+      "name": "The Listening Burrow",
+      "short": "Burrow",
+      "faces": "assets/world/burrow/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -4
+      },
+      "greet": {
+        "who": "grimble",
+        "text": "Come in, sit anywhere. Nobody's in trouble. I mostly just listen down here."
+      },
+      "items": [
+        {
+          "id": "burrow-to-corridor",
+          "type": "portal",
+          "to": "corridor",
+          "label": "Round door to the Cool-Off Corridor",
+          "at": {
+            "face": "back",
+            "x": 508,
+            "y": 555
+          },
+          "size": [
+            500,
+            610
+          ]
+        },
+        {
+          "id": "burrow-armchairs",
+          "type": "egg",
+          "label": "Two mismatched armchairs and two teacups",
+          "at": {
+            "face": "front",
+            "x": 515,
+            "y": 775
+          },
+          "size": [
+            940,
+            400
+          ],
+          "card": {
+            "meta": "the burrow",
+            "title": "Sit. Talk.",
+            "text": "Two armchairs that don't match, a tiny table, two teacups already poured.\n\nGrimble's rule down here: listening first, fixing second. Most things feel smaller once someone's actually heard them."
+          },
+          "hover": "Sit. Talk. Nobody's in trouble.",
+          "effect": "puff"
+        },
+        {
+          "id": "burrow-porthole",
+          "type": "egg",
+          "label": "Round window up to the meadow",
+          "at": {
+            "face": "front",
+            "x": 517,
+            "y": 290
+          },
+          "size": [
+            340,
+            340
+          ],
+          "card": {
+            "meta": "the burrow",
+            "title": "The Meadow Window",
+            "text": "A round window at grass level. Mostly you see stems, a bit of sky, and the occasional very surprised beetle."
+          }
+        },
+        {
+          "id": "burrow-complaints",
+          "type": "egg",
+          "label": "The COMPLAINTS cabinet",
+          "at": {
+            "face": "right",
+            "x": 205,
+            "y": 795
+          },
+          "size": [
+            225,
+            285
+          ],
+          "card": {
+            "meta": "the filing",
+            "title": "Complaints",
+            "text": "One drawer. One tiny folder. Inside, a single note: \"The kettle is too loud.\" Someone has written underneath: \"Fixed. Got a quieter kettle. -G\""
+          },
+          "effect": "knock"
+        },
+        {
+          "id": "burrow-nice-things",
+          "type": "egg",
+          "label": "The NICE THINGS PEOPLE SAID cabinet (it won't close)",
+          "at": {
+            "face": "right",
+            "x": 511,
+            "y": 640
+          },
+          "size": [
+            325,
+            625
+          ],
+          "card": {
+            "meta": "the filing",
+            "title": "Nice Things People Said",
+            "text": "This cabinet is so full it won't close. Grimble has stopped trying.\n\nA few slips on top: \"Thanks for listening.\" \"You remembered my tea.\" \"I feel lighter.\" \"The comic made my week.\""
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "burrow-folded-sock",
+          "type": "egg",
+          "label": "A sock, folded neatly in the inbox tray",
+          "at": {
+            "face": "right",
+            "x": 835,
+            "y": 600
+          },
+          "size": [
+            250,
+            230
+          ],
+          "card": {
+            "meta": "the burrow",
+            "title": "Filed Under: Sock",
+            "text": "Grimble's sock, folded into a perfect square and placed in the inbox tray. It is not lost. It is pending."
+          }
+        },
+        {
+          "id": "burrow-slow-clock",
+          "type": "egg",
+          "label": "A clock, a few minutes slow",
+          "at": {
+            "face": "right",
+            "x": 512,
+            "y": 207
+          },
+          "size": [
+            195,
+            195
+          ],
+          "card": {
+            "meta": "the burrow",
+            "title": "Slow on Purpose",
+            "text": "It's {localtime}, roughly. The burrow clock says a few minutes earlier, on purpose.\n\n\"Gives everyone a little extra time to arrive,\" says Grimble."
+          }
+        },
+        {
+          "id": "burrow-gremlish-plaque",
+          "type": "egg",
+          "label": "An oval plaque over the door, in Gremlish",
+          "at": {
+            "face": "back",
+            "x": 510,
+            "y": 163
+          },
+          "size": [
+            228,
+            126
+          ],
+          "card": {
+            "meta": "fine print",
+            "title": "Over the Door, in Gremlish",
+            "text": "Two short lines of glyphs, carved and polished. Grimble reads them every time he goes in or out.\n\nIf you crack it, keep it to yourself for a bit."
+          },
+          "img": "assets/world/props/gremlish-say-it-kindly.svg"
+        },
+        {
+          "id": "burrow-ear-trumpet",
+          "type": "egg",
+          "label": "An ear trumpet: Listening Equipment",
+          "at": {
+            "face": "left",
+            "x": 575,
+            "y": 322
+          },
+          "size": [
+            160,
+            200
+          ],
+          "card": {
+            "meta": "the burrow",
+            "title": "Listening Equipment",
+            "text": "A brass ear trumpet with a little tag: LISTENING EQUIPMENT.\n\nGrimble doesn't actually use it. He says it reminds him what the job is."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "burrow-hold-my-calls",
+          "type": "egg",
+          "label": "A small hanging sign",
+          "at": {
+            "face": "left",
+            "x": 412,
+            "y": 404
+          },
+          "size": [
+            165,
+            115
+          ],
+          "card": {
+            "meta": "the burrow",
+            "title": "Hold My Calls",
+            "text": "The sign is hanging upside down. Grimble says that means \"unless it's a nice call.\""
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "burrow-nameplate",
+          "type": "egg",
+          "label": "A desk nameplate",
+          "at": {
+            "face": "left",
+            "x": 500,
+            "y": 681
+          },
+          "size": [
+            150,
+            46
+          ],
+          "card": {
+            "meta": "the burrow",
+            "title": "Head Gremlin, Probably",
+            "text": "Nobody remembers voting. Grimble didn't ask. It just sort of happened, and it's been working out."
+          }
+        },
+        {
+          "id": "burrow-pip-plant-file",
+          "type": "egg",
+          "label": "A very thick folder: PIP & PLANT",
+          "at": {
+            "face": "left",
+            "x": 693,
+            "y": 651
+          },
+          "size": [
+            280,
+            135
+          ],
+          "card": {
+            "meta": "the filing",
+            "title": "File: Pip & Plant",
+            "text": "The thickest folder in the burrow. Inside, one blank sheet.\n\n\"Nothing to report,\" says Grimble. \"They're very happy.\""
+          }
+        },
+        {
+          "id": "burrow-lbl-complaints",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 190,
+            "y": 752
+          },
+          "size": [
+            62,
+            26
+          ],
+          "text": "COMPLAINTS",
+          "fs": 9,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "burrow-lbl-complaints2",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 190,
+            "y": 856
+          },
+          "size": [
+            62,
+            26
+          ],
+          "text": "(one)",
+          "fs": 12,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "burrow-lbl-nice",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 510,
+            "y": 436
+          },
+          "size": [
+            62,
+            26
+          ],
+          "text": "NICE",
+          "fs": 14,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "burrow-lbl-things",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 510,
+            "y": 574
+          },
+          "size": [
+            62,
+            26
+          ],
+          "text": "THINGS",
+          "fs": 12,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "burrow-lbl-people",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 510,
+            "y": 710
+          },
+          "size": [
+            62,
+            26
+          ],
+          "text": "PEOPLE",
+          "fs": 12,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "burrow-lbl-said",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 510,
+            "y": 860
+          },
+          "size": [
+            62,
+            26
+          ],
+          "text": "SAID",
+          "fs": 14,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "burrow-lbl-calls",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 412,
+            "y": 412
+          },
+          "size": [
+            150,
+            80
+          ],
+          "text": "HOLD\nMY CALLS",
+          "fs": 22,
+          "rot": 180,
+          "cls": "ink"
+        },
+        {
+          "id": "burrow-lbl-nameplate",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 500,
+            "y": 681
+          },
+          "size": [
+            146,
+            40
+          ],
+          "text": "HEAD GREMLIN, PROBABLY",
+          "fs": 11,
+          "font": "sans",
+          "color": "#f3e3b0"
+        },
+        {
+          "id": "burrow-to-wing",
+          "type": "portal",
+          "to": "wing",
+          "label": "A little sign: GREMLIN WING, this way",
+          "at": {
+            "face": "back",
+            "x": 900,
+            "y": 470
+          },
+          "size": [
+            150,
+            100
+          ],
+          "img": "assets/world/props/wing-sign.svg"
+        }
+      ]
+    },
+    "greenhouse": {
+      "name": "The Idea Greenhouse",
+      "short": "Greenhouse",
+      "faces": "assets/world/greenhouse/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -4
+      },
+      "greet": {
+        "who": "pip",
+        "text": "Mind the seedlings! Every jar's an idea. Some are ready, some are resting. All of them count."
+      },
+      "items": [
+        {
+          "id": "greenhouse-to-roots",
+          "type": "portal",
+          "to": "roots",
+          "label": "Glowing-mushroom root tunnel under the potting bench",
+          "at": {
+            "face": "back",
+            "x": 515,
+            "y": 828
+          },
+          "size": [
+            300,
+            220
+          ]
+        },
+        {
+          "id": "greenhouse-to-someday",
+          "type": "portal",
+          "to": "someday",
+          "label": "A little brick burrow: The Someday Shelf",
+          "at": {
+            "face": "back",
+            "x": 918,
+            "y": 815
+          },
+          "size": [
+            150,
+            185
+          ]
+        },
+        {
+          "id": "greenhouse-idea-jars",
+          "type": "egg",
+          "label": "Shelves of idea jars",
+          "at": {
+            "face": "right",
+            "x": 515,
+            "y": 555
+          },
+          "size": [
+            900,
+            700
+          ],
+          "card": {
+            "meta": "the greenhouse",
+            "title": "The Idea Jars",
+            "text": "Floor to ceiling, every jar holds one idea. Some glow. Some are napping. Pip labels them all, even the silly ones. Especially the silly ones."
+          },
+          "steps": {
+            "who": "pip",
+            "lines": [
+              "*pop* \"A hat for the plant\" floats out as a bubble.",
+              "*pop* \"Soup, but fancy\" drifts up to the roof."
+            ]
+          }
+        },
+        {
+          "id": "greenhouse-plant",
+          "type": "egg",
+          "label": "The Plant, on its tiny armchair",
+          "at": {
+            "face": "front",
+            "x": 508,
+            "y": 705
+          },
+          "size": [
+            310,
+            340
+          ],
+          "card": {
+            "meta": "the greenhouse",
+            "title": "The Plant Blushes",
+            "text": "Third splash and the plant goes properly pink. A flower pops out, right on top.\n\nPip pretends not to notice. Pip noticed."
+          },
+          "effect": "wiggle",
+          "steps": {
+            "who": "pip",
+            "lines": [
+              "*sploosh* The plant sits up a little straighter.",
+              "*sploosh* The plant goes a faint shade of pink."
+            ]
+          }
+        },
+        {
+          "id": "greenhouse-plant-flower",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 508,
+            "y": 548
+          },
+          "size": [
+            60,
+            60
+          ],
+          "text": "✿",
+          "fs": 52,
+          "color": "#e2468c",
+          "showIf": "greenhouse-plant"
+        },
+        {
+          "id": "greenhouse-watering-can",
+          "type": "egg",
+          "label": "A heart-shaped watering can",
+          "at": {
+            "face": "front",
+            "x": 770,
+            "y": 862
+          },
+          "size": [
+            225,
+            150
+          ],
+          "card": {
+            "meta": "the greenhouse",
+            "title": "The Heart-Shaped Can",
+            "text": "It only waters one plant. It has never once been used on anything else."
+          }
+        },
+        {
+          "id": "greenhouse-lightbulb",
+          "type": "egg",
+          "label": "A lightbulb, sprouting leaves",
+          "at": {
+            "face": "back",
+            "x": 515,
+            "y": 440
+          },
+          "size": [
+            160,
+            360
+          ],
+          "card": {
+            "meta": "the greenhouse",
+            "title": "Idea in Progress",
+            "text": "A lightbulb that's grown two leaves and a root. It doesn't switch on yet. Pip waters it anyway."
+          }
+        },
+        {
+          "id": "greenhouse-bench-sign",
+          "type": "egg",
+          "label": "A sign over the potting bench",
+          "at": {
+            "face": "back",
+            "x": 520,
+            "y": 148
+          },
+          "size": [
+            455,
+            128
+          ],
+          "card": {
+            "meta": "the greenhouse",
+            "title": "Over the Bench",
+            "text": "Not everything has to bloom today. Water it anyway."
+          }
+        },
+        {
+          "id": "greenhouse-lbl-bench",
+          "type": "decor",
+          "at": {
+            "face": "back",
+            "x": 520,
+            "y": 148
+          },
+          "size": [
+            420,
+            110
+          ],
+          "text": "Not everything has to bloom today.\nWater it anyway.",
+          "fs": 24,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "greenhouse-compost",
+          "type": "egg",
+          "label": "The compost bin",
+          "at": {
+            "face": "left",
+            "x": 238,
+            "y": 825
+          },
+          "size": [
+            390,
+            225
+          ],
+          "card": {
+            "meta": "the greenhouse",
+            "title": "Ideas Resting (Not Dead)",
+            "text": "Ideas that didn't work out go here to rest. They turn into soil, and the soil grows the next ones.\n\nNothing in here is wasted. It's just early."
+          }
+        },
+        {
+          "id": "greenhouse-lbl-compost",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 330,
+            "y": 845
+          },
+          "size": [
+            96,
+            60
+          ],
+          "text": "IDEAS RESTING\n(NOT DEAD)",
+          "fs": 10,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "greenhouse-gauge",
+          "type": "egg",
+          "label": "A rain gauge: Brainstorm Level",
+          "at": {
+            "face": "left",
+            "x": 393,
+            "y": 423
+          },
+          "size": [
+            105,
+            345
+          ],
+          "card": {
+            "meta": "the greenhouse",
+            "title": "Brainstorm Level",
+            "text": "The gauge always reads SOME. It has never read NONE. Pip checks it every morning, just to be sure."
+          }
+        },
+        {
+          "id": "greenhouse-lbl-gauge",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 455,
+            "y": 425
+          },
+          "size": [
+            70,
+            30
+          ],
+          "text": "SOME",
+          "fs": 16,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "greenhouse-sock",
+          "type": "egg",
+          "label": "A sock, planted in a pot",
+          "at": {
+            "face": "left",
+            "x": 545,
+            "y": 690
+          },
+          "size": [
+            160,
+            240
+          ],
+          "card": {
+            "meta": "the greenhouse",
+            "title": "What Grows from a Sock?",
+            "text": "Pip planted a sock to see what would happen. So far: nothing. Pip is very patient."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "greenhouse-idea-net",
+          "type": "game",
+          "game": "net",
+          "label": "A butterfly net: Idea Net",
+          "at": {
+            "face": "left",
+            "x": 848,
+            "y": 693
+          },
+          "size": [
+            195,
+            450
+          ],
+          "hover": "Catch an idea",
+          "doneSay": {
+            "who": "pip",
+            "text": "Look at all those jars! Half-finished ones count too, you know."
+          }
+        },
+        {
+          "id": "greenhouse-tag-1",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 300,
+            "y": 318
+          },
+          "size": [
+            140,
+            26
+          ],
+          "text": "soup, but fancy",
+          "fs": 14,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "greenhouse-tag-2",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 640,
+            "y": 464
+          },
+          "size": [
+            150,
+            26
+          ],
+          "text": "a hat for the plant",
+          "fs": 14,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "greenhouse-tag-3",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 860,
+            "y": 602
+          },
+          "size": [
+            150,
+            26
+          ],
+          "text": "nap o'clock",
+          "fs": 14,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "greenhouse-to-wing",
+          "type": "portal",
+          "to": "wing",
+          "label": "A little sign: GREMLIN WING, this way",
+          "at": {
+            "face": "left",
+            "x": 150,
+            "y": 560
+          },
+          "size": [
+            150,
+            100
+          ],
+          "img": "assets/world/props/wing-sign.svg"
+        }
+      ]
+    },
+    "roots": {
+      "name": "The Root Tunnel",
+      "short": "Roots",
+      "faces": "assets/world/roots/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": 0
+      },
+      "greet": {
+        "who": "pip",
+        "text": "Glow-mushrooms light the way. Root steps go up to the roof; the sunny arch behind you is the greenhouse."
+      },
+      "items": [
+        {
+          "id": "roots-to-greenhouse",
+          "type": "portal",
+          "to": "greenhouse",
+          "label": "Sunny archway, back to the Idea Greenhouse",
+          "at": {
+            "face": "back",
+            "x": 512,
+            "y": 540
+          },
+          "size": [
+            760,
+            660
+          ]
+        },
+        {
+          "id": "roots-to-rooftop",
+          "type": "portal",
+          "to": "rooftop",
+          "label": "Root steps, up to the Rooftop Garden",
+          "at": {
+            "face": "front",
+            "x": 500,
+            "y": 520
+          },
+          "size": [
+            460,
+            800
+          ]
+        },
+        {
+          "id": "roots-tangle",
+          "type": "egg",
+          "label": "Glowing caps across the root ceiling",
+          "at": {
+            "face": "ceiling",
+            "x": 512,
+            "y": 512
+          },
+          "size": [
+            900,
+            900
+          ],
+          "card": {
+            "meta": "the roots",
+            "title": "Everything's Connected",
+            "text": "These roots belong to the rooftop garden. The greenhouse feeds them, they hold up the roof. Nobody's in charge. It works."
+          }
+        },
+        {
+          "id": "roots-mushrooms",
+          "type": "egg",
+          "label": "Friendly glowing mushrooms by the steps",
+          "at": {
+            "face": "front",
+            "x": 870,
+            "y": 790
+          },
+          "size": [
+            230,
+            330
+          ],
+          "card": {
+            "meta": "the roots",
+            "title": "Friendly Mushrooms",
+            "text": "They glow a little brighter when someone walks past. Pip says they're just being polite."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "roots-acorns",
+          "type": "egg",
+          "label": "A little hollow full of acorns",
+          "at": {
+            "face": "left",
+            "x": 492,
+            "y": 255
+          },
+          "size": [
+            210,
+            170
+          ],
+          "card": {
+            "meta": "the roots",
+            "title": "Somebody's Pantry",
+            "text": "A neat little stash of acorns. Pip doesn't know whose they are, so Pip leaves one extra every week, just in case."
+          }
+        },
+        {
+          "id": "roots-seedlings",
+          "type": "egg",
+          "label": "A root shelf with three seedling pots",
+          "at": {
+            "face": "right",
+            "x": 515,
+            "y": 560
+          },
+          "size": [
+            330,
+            200
+          ],
+          "card": {
+            "meta": "the roots",
+            "title": "The Nursery Shelf",
+            "text": "Three seedlings, getting used to the dark before they go up to the roof. Pip visits them every morning to say good luck."
+          }
+        },
+        {
+          "id": "roots-ladder",
+          "type": "egg",
+          "label": "Orange mushrooms climbing a root",
+          "at": {
+            "face": "right",
+            "x": 175,
+            "y": 420
+          },
+          "size": [
+            180,
+            560
+          ],
+          "card": {
+            "meta": "the roots",
+            "title": "Mushroom Stairs",
+            "text": "They grew in a neat little column all by themselves. Pip is fairly sure they want to see the roof too."
+          }
+        }
+      ]
+    },
+    "someday": {
+      "name": "The Someday Shelf",
+      "short": "Someday",
+      "faces": "assets/world/someday/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -2
+      },
+      "greet": {
+        "who": "pip",
+        "text": "This is where ideas wait. Not forgotten, just saved for later. They like it here."
+      },
+      "items": [
+        {
+          "id": "someday-to-greenhouse",
+          "type": "portal",
+          "to": "greenhouse",
+          "label": "Sunny root arch and steps, back to the Idea Greenhouse",
+          "at": {
+            "face": "back",
+            "x": 500,
+            "y": 560
+          },
+          "size": [
+            420,
+            560
+          ]
+        },
+        {
+          "id": "someday-jars",
+          "type": "egg",
+          "label": "The Someday Shelf: jars of saved ideas",
+          "at": {
+            "face": "front",
+            "x": 512,
+            "y": 560
+          },
+          "size": [
+            900,
+            620
+          ],
+          "card": {
+            "meta": "the someday shelf",
+            "title": "Saved for Later",
+            "text": "Every jar here is an idea that isn't ready yet: a ukulele for the plant, a hat for every sock, a rocking bench, a slower Monday.\n\nThey're not failures. They're just waiting for the right weather."
+          }
+        },
+        {
+          "id": "someday-tag-1",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 221,
+            "y": 339
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "ukulele\nfor the plant",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-2",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 326,
+            "y": 339
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "sock\nhats",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-3",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 437,
+            "y": 339
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "slower\nMondays",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-4",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 542,
+            "y": 339
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "rocking\nbench",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-5",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 647,
+            "y": 339
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "moon\ngarden",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-6",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 752,
+            "y": 339
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "tea\npicnic",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-7",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 860,
+            "y": 339
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "later\n(nice)",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-8",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 221,
+            "y": 549
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "frog\nchoir",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-9",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 326,
+            "y": 549
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "tiny\nboat",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-10",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 437,
+            "y": 549
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "kite\nday",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-11",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 542,
+            "y": 549
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "nap\nmap",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-12",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 647,
+            "y": 549
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "a big\nmaybe",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-13",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 752,
+            "y": 549
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "pen\npals",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-14",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 860,
+            "y": 549
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "rain\nsong",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-15",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 221,
+            "y": 744
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "bird\nbath",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-16",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 326,
+            "y": 744
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "slow\ncomic",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-17",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 437,
+            "y": 744
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "seed\nswap",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-18",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 542,
+            "y": 744
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "star\nchart",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-19",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 647,
+            "y": 744
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "soup\nclub",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-20",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 752,
+            "y": 744
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "paper\nlanterns",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-tag-21",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 860,
+            "y": 744
+          },
+          "size": [
+            44,
+            30
+          ],
+          "text": "someday\n!",
+          "fs": 7,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-napping-jar",
+          "type": "egg",
+          "label": "A jar with a cloth cap on",
+          "at": {
+            "face": "front",
+            "x": 515,
+            "y": 355
+          },
+          "size": [
+            110,
+            150
+          ],
+          "card": {
+            "meta": "the someday shelf",
+            "title": "Do Not Disturb",
+            "text": "This idea is napping. Pip put a little cloth cap on it so the light doesn't wake it. It'll get up when it's ready."
+          }
+        },
+        {
+          "id": "someday-cal-head",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 498,
+            "y": 378
+          },
+          "size": [
+            240,
+            30
+          ],
+          "text": "SOMEDAY · any month",
+          "fs": 14,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-cal-note",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 498,
+            "y": 590
+          },
+          "size": [
+            240,
+            28
+          ],
+          "text": "plant whenever",
+          "fs": 13,
+          "font": "hand",
+          "color": "#5a7d3a"
+        },
+        {
+          "id": "someday-calendar",
+          "type": "egg",
+          "label": "A calendar with nothing on it but one sprout",
+          "at": {
+            "face": "left",
+            "x": 495,
+            "y": 460
+          },
+          "size": [
+            280,
+            320
+          ],
+          "card": {
+            "meta": "the someday shelf",
+            "title": "This Month",
+            "text": "Nothing scheduled. Just one little sprout doodled in a square, any day it likes. Pip says that's a full calendar."
+          }
+        },
+        {
+          "id": "someday-cloche",
+          "type": "egg",
+          "label": "A seedling under a glass cloche",
+          "at": {
+            "face": "left",
+            "x": 760,
+            "y": 620
+          },
+          "size": [
+            190,
+            260
+          ],
+          "card": {
+            "meta": "the someday shelf",
+            "title": "Taking Its Time",
+            "text": "Some ideas need a little glass house of their own while they get going. This one is doing great. It just doesn't want to be watched too closely."
+          }
+        },
+        {
+          "id": "someday-cushion",
+          "type": "egg",
+          "label": "A squashy thinking cushion",
+          "at": {
+            "face": "left",
+            "x": 230,
+            "y": 810
+          },
+          "size": [
+            460,
+            240
+          ],
+          "card": {
+            "meta": "the someday shelf",
+            "title": "A Cushion for Waiting",
+            "text": "For sitting beside an idea that isn't ready. You don't have to do anything. Just keep it company."
+          },
+          "effect": "puff"
+        },
+        {
+          "id": "someday-bud-jar",
+          "type": "egg",
+          "label": "The special jar: one bud, glowing",
+          "at": {
+            "face": "right",
+            "x": 735,
+            "y": 440
+          },
+          "size": [
+            190,
+            240
+          ],
+          "card": {
+            "meta": "the someday shelf",
+            "title": "Not Yet",
+            "text": "One bud, glowing softly, not open yet. Pip checks on it every day and says the same thing every time: \"not yet, and that's fine.\""
+          }
+        },
+        {
+          "id": "someday-packet-1",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 234,
+            "y": 668
+          },
+          "size": [
+            92,
+            26
+          ],
+          "text": "maybe beans",
+          "fs": 10,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-packet-2",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 504,
+            "y": 668
+          },
+          "size": [
+            92,
+            26
+          ],
+          "text": "later lettuce",
+          "fs": 10,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-packet-3",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 759,
+            "y": 668
+          },
+          "size": [
+            92,
+            26
+          ],
+          "text": "big ideas",
+          "fs": 10,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-packet-4",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 234,
+            "y": 812
+          },
+          "size": [
+            92,
+            26
+          ],
+          "text": "tiny ideas",
+          "fs": 10,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-packet-5",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 504,
+            "y": 812
+          },
+          "size": [
+            92,
+            26
+          ],
+          "text": "rainy-day peas",
+          "fs": 10,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-packet-6",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 759,
+            "y": 812
+          },
+          "size": [
+            92,
+            26
+          ],
+          "text": "someday sprouts",
+          "fs": 10,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-fallen-packet",
+          "type": "decor",
+          "at": {
+            "face": "floor",
+            "x": 770,
+            "y": 685
+          },
+          "size": [
+            130,
+            40
+          ],
+          "text": "SOMEDAY SEEDS\nplant whenever",
+          "fs": 11,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "someday-seeds",
+          "type": "egg",
+          "label": "Drawers of seed packets",
+          "at": {
+            "face": "right",
+            "x": 505,
+            "y": 760
+          },
+          "size": [
+            770,
+            330
+          ],
+          "card": {
+            "meta": "the someday shelf",
+            "title": "Seed Packets",
+            "text": "Every packet is labelled in Pip's handwriting. None of them say when to plant. Pip says the seeds will let you know."
+          }
+        }
+      ]
+    },
+    "lantern": {
+      "name": "The Lantern Loft",
+      "short": "Lantern Loft",
+      "faces": "assets/world/lantern/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -4
+      },
+      "greet": {
+        "who": "moth",
+        "text": "Shh, the ink's drying. Make yourself small and cozy. The lanterns don't mind company."
+      },
+      "items": [
+        {
+          "id": "lantern-breathe-ring",
+          "type": "decor",
+          "at": {
+            "face": "back",
+            "x": 514,
+            "y": 414
+          },
+          "size": [
+            470,
+            470
+          ],
+          "cls": "breathe-ring"
+        },
+        {
+          "id": "lantern-flicker",
+          "type": "decor",
+          "at": {
+            "face": "back",
+            "x": 840,
+            "y": 172
+          },
+          "size": [
+            130,
+            130
+          ],
+          "cls": "flicker"
+        },
+        {
+          "id": "lantern-all-lit",
+          "type": "decor",
+          "at": {
+            "face": "back",
+            "x": 512,
+            "y": 330
+          },
+          "size": [
+            1000,
+            640
+          ],
+          "cls": "alllit",
+          "showIf": "set:moths"
+        },
+        {
+          "id": "lantern-to-archive",
+          "type": "portal",
+          "to": "archive",
+          "label": "Sketchbook-lined crawlspace, to the Archive",
+          "at": {
+            "face": "back",
+            "x": 510,
+            "y": 858
+          },
+          "size": [
+            360,
+            275
+          ]
+        },
+        {
+          "id": "lantern-to-rooftop",
+          "type": "portal",
+          "to": "rooftop",
+          "label": "Round skylight and rope ladder, up to the Rooftop Garden",
+          "at": {
+            "face": "ceiling",
+            "x": 510,
+            "y": 650
+          },
+          "size": [
+            390,
+            720
+          ]
+        },
+        {
+          "id": "lantern-moon-lamp",
+          "type": "game",
+          "game": "breathe",
+          "label": "The moon desk lamp",
+          "at": {
+            "face": "front",
+            "x": 735,
+            "y": 470
+          },
+          "size": [
+            160,
+            190
+          ],
+          "hover": "Dim the room",
+          "opts": {
+            "who": "moth",
+            "title": "One Lantern, Breathing",
+            "theme": "moon",
+            "pattern": [
+              [
+                "Breathe in",
+                4
+              ],
+              [
+                "Hold",
+                7
+              ],
+              [
+                "Breathe out",
+                8
+              ]
+            ],
+            "rounds": 3,
+            "skippable": true,
+            "intro": "The room dims to one lantern. Follow its glow for three slow breaths.",
+            "note": "Breathe at your own pace. Skip the hold if it's uncomfortable.",
+            "end": "You don't have to fill every panel."
+          },
+          "doneSay": {
+            "who": "moth",
+            "text": "Lanterns back on. Take your time."
+          }
+        },
+        {
+          "id": "lantern-drafting-table",
+          "type": "egg",
+          "label": "A drafting table with a half-finished panel",
+          "at": {
+            "face": "front",
+            "x": 535,
+            "y": 580
+          },
+          "size": [
+            455,
+            190
+          ],
+          "card": {
+            "meta": "the loft",
+            "title": "Half a Panel",
+            "text": "The panel's half inked: a gremlin, a teacup, and a lot of empty space.\n\nMoth leaves it that way on purpose some days. The empty bit is where the quiet goes."
+          }
+        },
+        {
+          "id": "lantern-cardigan",
+          "type": "egg",
+          "label": "A tan cardigan on the chair",
+          "at": {
+            "face": "front",
+            "x": 365,
+            "y": 790
+          },
+          "size": [
+            255,
+            350
+          ],
+          "card": {
+            "meta": "the loft",
+            "title": "Pencils in Every Pocket",
+            "text": "Every pocket has a pencil in it. One pocket has three. One pencil is just a twig Moth liked the look of."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "lantern-captions-jar",
+          "type": "egg",
+          "label": "A jar of folded slips: Collected Captions",
+          "at": {
+            "face": "right",
+            "x": 838,
+            "y": 718
+          },
+          "size": [
+            138,
+            205
+          ],
+          "card": {
+            "meta": "the loft",
+            "title": "Collected Captions",
+            "text": "Moth's favourite captions, folded small:\n\n\"Tea, but make it weather.\"\n\"It has places to be.\"\n\"Dressed for the job it wants.\"\n\"Night shift says hi.\"\n\"The frog has accepted this.\""
+          }
+        },
+        {
+          "id": "lantern-lbl-jar",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 836,
+            "y": 752
+          },
+          "size": [
+            104,
+            62
+          ],
+          "text": "Collected\nCaptions",
+          "fs": 13,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lantern-caption-1",
+          "type": "game",
+          "game": "caption",
+          "label": "Drying comic page 1: Caption This",
+          "at": {
+            "face": "right",
+            "x": 152,
+            "y": 433
+          },
+          "size": [
+            200,
+            270
+          ],
+          "opts": {
+            "page": 0,
+            "title": "Caption This"
+          }
+        },
+        {
+          "id": "lantern-caption-2",
+          "type": "game",
+          "game": "caption",
+          "label": "Drying comic page 2: Caption This",
+          "at": {
+            "face": "right",
+            "x": 332,
+            "y": 455
+          },
+          "size": [
+            180,
+            260
+          ],
+          "opts": {
+            "page": 1,
+            "title": "Caption This"
+          }
+        },
+        {
+          "id": "lantern-caption-3",
+          "type": "game",
+          "game": "caption",
+          "label": "Drying comic page 3: Caption This",
+          "at": {
+            "face": "right",
+            "x": 515,
+            "y": 470
+          },
+          "size": [
+            165,
+            250
+          ],
+          "opts": {
+            "page": 2,
+            "title": "Caption This"
+          }
+        },
+        {
+          "id": "lantern-caption-4",
+          "type": "game",
+          "game": "caption",
+          "label": "Drying comic page 4: Caption This",
+          "at": {
+            "face": "right",
+            "x": 700,
+            "y": 465
+          },
+          "size": [
+            180,
+            250
+          ],
+          "opts": {
+            "page": 3,
+            "title": "Caption This"
+          }
+        },
+        {
+          "id": "lantern-caption-5",
+          "type": "game",
+          "game": "caption",
+          "label": "Drying comic page 5: Caption This",
+          "at": {
+            "face": "right",
+            "x": 880,
+            "y": 435
+          },
+          "size": [
+            200,
+            270
+          ],
+          "opts": {
+            "page": 4,
+            "title": "Caption This"
+          }
+        },
+        {
+          "id": "lantern-all-lit-egg",
+          "type": "egg",
+          "label": "Every lantern, lit",
+          "at": {
+            "face": "back",
+            "x": 840,
+            "y": 172
+          },
+          "size": [
+            130,
+            130
+          ],
+          "card": {
+            "meta": "the loft",
+            "title": "Every Lantern Lit",
+            "text": "You found all five moths, and every lantern in the loft has woken up to say thank you.\n\nMoth is pretending to be very busy inking. Moth is smiling."
+          },
+          "showIf": "set:moths"
+        },
+        {
+          "id": "lantern-moth-1",
+          "type": "setpiece",
+          "set": "moths",
+          "label": "A tiny moth doodle",
+          "at": {
+            "face": "front",
+            "x": 120,
+            "y": 600
+          },
+          "size": [
+            60,
+            60
+          ]
+        },
+        {
+          "id": "lantern-moth-2",
+          "type": "setpiece",
+          "set": "moths",
+          "label": "A tiny moth doodle",
+          "at": {
+            "face": "right",
+            "x": 470,
+            "y": 170
+          },
+          "size": [
+            60,
+            60
+          ]
+        },
+        {
+          "id": "lantern-moth-3",
+          "type": "setpiece",
+          "set": "moths",
+          "label": "A tiny moth doodle",
+          "at": {
+            "face": "right",
+            "x": 130,
+            "y": 700
+          },
+          "size": [
+            56,
+            56
+          ]
+        },
+        {
+          "id": "lantern-moth-4",
+          "type": "setpiece",
+          "set": "moths",
+          "label": "A tiny moth doodle",
+          "at": {
+            "face": "back",
+            "x": 820,
+            "y": 712
+          },
+          "size": [
+            58,
+            58
+          ]
+        },
+        {
+          "id": "lantern-moth-5",
+          "type": "setpiece",
+          "set": "moths",
+          "label": "A tiny moth doodle",
+          "at": {
+            "face": "left",
+            "x": 240,
+            "y": 560
+          },
+          "size": [
+            60,
+            60
+          ]
+        },
+        {
+          "id": "lantern-to-stacks",
+          "type": "portal",
+          "to": "stacks",
+          "label": "A little ladder hatch marked ILLUSTRATIONS, down to the Stacks Below",
+          "at": {
+            "face": "front",
+            "x": 170,
+            "y": 770
+          },
+          "size": [
+            130,
+            170
+          ],
+          "img": "assets/world/props/book-hatch.svg"
+        },
+        {
+          "id": "lantern-illustrations-plate",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 170,
+            "y": 668
+          },
+          "size": [
+            118,
+            22
+          ],
+          "text": "ILLUSTRATIONS",
+          "fs": 10,
+          "font": "sans",
+          "cls": "paper"
+        },
+        {
+          "id": "lantern-to-wing",
+          "type": "portal",
+          "to": "wing",
+          "label": "A little sign: GREMLIN WING, this way",
+          "at": {
+            "face": "left",
+            "x": 440,
+            "y": 620
+          },
+          "size": [
+            150,
+            100
+          ],
+          "img": "assets/world/props/wing-sign.svg"
+        }
+      ]
+    },
+    "press": {
+      "name": "The Back-Room Press",
+      "short": "Press",
+      "faces": "assets/world/press/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -4
+      },
+      "greet": {
+        "who": "dot",
+        "text": "Mind the wet ink! Everything in here is a first draft. That's the best kind."
+      },
+      "items": [
+        {
+          "id": "press-to-proof",
+          "type": "portal",
+          "to": "proof",
+          "label": "Paper-lined tunnel behind the ream stack: The Proof Room",
+          "at": {
+            "face": "back",
+            "x": 418,
+            "y": 520
+          },
+          "size": [
+            330,
+            700
+          ]
+        },
+        {
+          "id": "press-letterpress",
+          "type": "egg",
+          "label": "A hand-crank letterpress",
+          "at": {
+            "face": "front",
+            "x": 530,
+            "y": 710
+          },
+          "size": [
+            560,
+            500
+          ],
+          "card": {
+            "meta": "the press",
+            "title": "It Prints by Itself",
+            "text": "Nobody's cranking it. Every so often it prints a word anyway: seed, breathe, later.\n\nDot says it knows what people need to read."
+          }
+        },
+        {
+          "id": "press-words",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 405,
+            "y": 738
+          },
+          "size": [
+            190,
+            120
+          ],
+          "cycle": [
+            "seed",
+            "breathe",
+            "later"
+          ],
+          "cls": "press-words",
+          "rot": -3
+        },
+        {
+          "id": "press-radio",
+          "type": "egg",
+          "label": "A low radio",
+          "at": {
+            "face": "front",
+            "x": 890,
+            "y": 233
+          },
+          "size": [
+            175,
+            115
+          ],
+          "card": {
+            "meta": "the press",
+            "title": "The Press Jingle",
+            "text": "♪ Ink it, print it, pin it up,\nwonky's fine and so's a smudge,\nfirst drafts welcome, come on in,\nevery print's a place to begin ♪\n\n(Dot hums it all day. Nobody minds.)"
+          },
+          "steps": {
+            "who": "dot",
+            "lines": [
+              "A little crackle, then a hum.",
+              "Nearly a tune. Nearly..."
+            ]
+          }
+        },
+        {
+          "id": "press-notes",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 890,
+            "y": 150
+          },
+          "size": [
+            120,
+            60
+          ],
+          "text": "♪ ♫",
+          "cls": "notes",
+          "showIf": "press-radio"
+        },
+        {
+          "id": "press-misprints",
+          "type": "egg",
+          "label": "A wall of framed misprints",
+          "at": {
+            "face": "right",
+            "x": 528,
+            "y": 440
+          },
+          "size": [
+            760,
+            400
+          ],
+          "card": {
+            "meta": "the press",
+            "title": "The Misprint Gallery",
+            "text": "Every frame holds a print that went a bit wrong: a sun that slid, a balloon that doubled, a star that went pink.\n\nDot framed them all. They're her favourites."
+          }
+        },
+        {
+          "id": "press-lbl-drafts",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 520,
+            "y": 152
+          },
+          "size": [
+            640,
+            100
+          ],
+          "text": "First drafts welcome here.",
+          "fs": 44,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "press-line-it-up",
+          "type": "game",
+          "game": "lineup",
+          "label": "The light table: Line It Up",
+          "at": {
+            "face": "right",
+            "x": 512,
+            "y": 740
+          },
+          "size": [
+            540,
+            120
+          ],
+          "hover": "Line It Up",
+          "doneSay": {
+            "who": "dot",
+            "text": "Pin it up! Every print goes on the wall."
+          }
+        },
+        {
+          "id": "press-ream-stack",
+          "type": "egg",
+          "label": "A tall stack of paper reams",
+          "at": {
+            "face": "back",
+            "x": 115,
+            "y": 690
+          },
+          "size": [
+            230,
+            500
+          ],
+          "card": {
+            "meta": "the press",
+            "title": "Pushed Aside",
+            "text": "Somebody shoved the reams over to get at the tunnel. Paper dust everywhere. Dot calls it ambience."
+          }
+        },
+        {
+          "id": "press-squeegee",
+          "type": "egg",
+          "label": "A squeegee hung like a sword",
+          "at": {
+            "face": "back",
+            "x": 805,
+            "y": 400
+          },
+          "size": [
+            390,
+            480
+          ],
+          "card": {
+            "meta": "the press",
+            "title": "The Squeegee of Destiny",
+            "text": "Hung over the screen frame like a sword. Dot only takes it down for the important prints."
+          }
+        },
+        {
+          "id": "press-flyers",
+          "type": "egg",
+          "label": "Flyers for events that haven't happened yet",
+          "at": {
+            "face": "left",
+            "x": 512,
+            "y": 230
+          },
+          "size": [
+            1000,
+            320
+          ],
+          "card": {
+            "meta": "the press",
+            "title": "Coming Soon (Ish)",
+            "text": "Flyers for things that might happen one day: a sock swap, a quiet hour, kite day, a plant show, nap club.\n\nNone have dates. That's part of the fun."
+          }
+        },
+        {
+          "id": "press-fly-1",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 126,
+            "y": 340
+          },
+          "size": [
+            170,
+            30
+          ],
+          "text": "SOCK SWAP · someday",
+          "fs": 13,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "press-fly-2",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 312,
+            "y": 340
+          },
+          "size": [
+            170,
+            30
+          ],
+          "text": "QUIET HOUR · soon",
+          "fs": 13,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "press-fly-3",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 512,
+            "y": 352
+          },
+          "size": [
+            170,
+            30
+          ],
+          "text": "KITE DAY? · maybe",
+          "fs": 13,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "press-fly-4",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 712,
+            "y": 340
+          },
+          "size": [
+            170,
+            30
+          ],
+          "text": "PLANT SHOW · when ready",
+          "fs": 12,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "press-fly-5",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 906,
+            "y": 340
+          },
+          "size": [
+            170,
+            30
+          ],
+          "text": "NAP CLUB · whenever",
+          "fs": 13,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "press-bleed-jar",
+          "type": "egg",
+          "label": "A glowing jar of scraps",
+          "at": {
+            "face": "left",
+            "x": 178,
+            "y": 600
+          },
+          "size": [
+            260,
+            400
+          ],
+          "card": {
+            "meta": "the press",
+            "title": "Bleed & Trim",
+            "text": "All the edges cut off the prints. Dot can't throw them out. They glow a little, like they're proud of being part of something."
+          }
+        },
+        {
+          "id": "press-lbl-jar",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 176,
+            "y": 640
+          },
+          "size": [
+            116,
+            80
+          ],
+          "text": "BLEED\n& TRIM",
+          "fs": 18,
+          "cls": "ink"
+        },
+        {
+          "id": "press-cat",
+          "type": "egg",
+          "label": "A sleepy cat on the cardstock",
+          "at": {
+            "face": "left",
+            "x": 840,
+            "y": 640
+          },
+          "size": [
+            310,
+            230
+          ],
+          "card": {
+            "meta": "the press",
+            "title": "The Paper-Cutter Cat",
+            "text": "Not a paper cutter. A cat who sleeps on the paper cutter's cardstock. She supervises. Mostly with her eyes closed."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "press-in-register",
+          "type": "egg",
+          "label": "A little registration target",
+          "at": {
+            "face": "back",
+            "x": 805,
+            "y": 130
+          },
+          "size": [
+            100,
+            100
+          ],
+          "card": {
+            "meta": "the press",
+            "title": "In Register",
+            "text": "You found all four crop marks. Dot is thrilled: the whole room is officially in register.\n\n(It's still a bit wonky. That's fine.)"
+          },
+          "showIf": "set:crops"
+        },
+        {
+          "id": "press-register-mark",
+          "type": "decor",
+          "at": {
+            "face": "back",
+            "x": 805,
+            "y": 130
+          },
+          "size": [
+            100,
+            100
+          ],
+          "text": "⊕",
+          "fs": 80,
+          "color": "#e2468c",
+          "showIf": "set:crops"
+        },
+        {
+          "id": "press-crop-1",
+          "type": "setpiece",
+          "set": "crops",
+          "label": "A tiny crop mark",
+          "at": {
+            "face": "front",
+            "x": 102,
+            "y": 402
+          },
+          "size": [
+            70,
+            70
+          ]
+        },
+        {
+          "id": "press-crop-2",
+          "type": "setpiece",
+          "set": "crops",
+          "label": "A tiny crop mark",
+          "at": {
+            "face": "right",
+            "x": 958,
+            "y": 666
+          },
+          "size": [
+            70,
+            70
+          ]
+        },
+        {
+          "id": "press-crop-3",
+          "type": "setpiece",
+          "set": "crops",
+          "label": "A tiny crop mark",
+          "at": {
+            "face": "back",
+            "x": 203,
+            "y": 353
+          },
+          "size": [
+            70,
+            70
+          ]
+        },
+        {
+          "id": "press-crop-4",
+          "type": "setpiece",
+          "set": "crops",
+          "label": "A tiny crop mark",
+          "at": {
+            "face": "left",
+            "x": 934,
+            "y": 468
+          },
+          "size": [
+            70,
+            70
+          ]
+        },
+        {
+          "id": "press-to-dispatch",
+          "type": "portal",
+          "to": "dispatch",
+          "label": "A brass tube hatch, up to the Dispatch Loft",
+          "at": {
+            "face": "front",
+            "x": 140,
+            "y": 760
+          },
+          "size": [
+            130,
+            130
+          ],
+          "img": "assets/world/props/tube-hatch.svg"
+        },
+        {
+          "id": "press-to-stacks",
+          "type": "portal",
+          "to": "stacks",
+          "label": "A little book-lined hatch, down to the Stacks Below",
+          "at": {
+            "face": "right",
+            "x": 110,
+            "y": 800
+          },
+          "size": [
+            150,
+            200
+          ],
+          "img": "assets/world/props/book-hatch.svg"
+        },
+        {
+          "id": "press-to-wing",
+          "type": "portal",
+          "to": "wing",
+          "label": "A little sign: GREMLIN WING, this way",
+          "at": {
+            "face": "front",
+            "x": 200,
+            "y": 560
+          },
+          "size": [
+            150,
+            100
+          ],
+          "img": "assets/world/props/wing-sign.svg"
+        }
+      ]
+    },
+    "proof": {
+      "name": "The Proof Room",
+      "short": "Proof Room",
+      "faces": "assets/world/proof/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -2
+      },
+      "greet": {
+        "who": "dot",
+        "text": "The Proof Room! Proofs get read slowly in here, on a comfy seat, with kind little notes in the margins."
+      },
+      "items": [
+        {
+          "id": "proof-to-press",
+          "type": "portal",
+          "to": "press",
+          "label": "Glowing paper tunnel, back to the Back-Room Press",
+          "at": {
+            "face": "back",
+            "x": 510,
+            "y": 510
+          },
+          "size": [
+            345,
+            720
+          ]
+        },
+        {
+          "id": "proof-sheet",
+          "type": "egg",
+          "label": "Proof sheets pegged on a line",
+          "at": {
+            "face": "left",
+            "x": 510,
+            "y": 420
+          },
+          "size": [
+            900,
+            260
+          ],
+          "card": {
+            "meta": "the proof room",
+            "title": "Kind Proof Marks",
+            "text": "The margin notes in here are all kind: \"nice!\", \"tiny bit left?\", \"yes :)\".\n\nIn the Proof Room, a correction is just a friend pointing."
+          }
+        },
+        {
+          "id": "proof-mark-1",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 168,
+            "y": 424
+          },
+          "size": [
+            120,
+            90
+          ],
+          "text": "nice!",
+          "fs": 19,
+          "font": "hand",
+          "color": "#d6336c",
+          "rot": -8
+        },
+        {
+          "id": "proof-mark-2",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 332,
+            "y": 439
+          },
+          "size": [
+            120,
+            90
+          ],
+          "text": "tiny bit\nleft?",
+          "fs": 19,
+          "font": "hand",
+          "color": "#1c7ed6",
+          "rot": -3
+        },
+        {
+          "id": "proof-mark-3",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 512,
+            "y": 453
+          },
+          "size": [
+            120,
+            90
+          ],
+          "text": "yes :)",
+          "fs": 19,
+          "font": "hand",
+          "color": "#d6336c",
+          "rot": 0
+        },
+        {
+          "id": "proof-mark-4",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 688,
+            "y": 439
+          },
+          "size": [
+            120,
+            90
+          ],
+          "text": "love this\nline",
+          "fs": 19,
+          "font": "hand",
+          "color": "#1c7ed6",
+          "rot": 4
+        },
+        {
+          "id": "proof-mark-5",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 855,
+            "y": 417
+          },
+          "size": [
+            120,
+            90
+          ],
+          "text": "one more\npass, no\nrush",
+          "fs": 19,
+          "font": "hand",
+          "color": "#d6336c",
+          "rot": 8
+        },
+        {
+          "id": "proof-window-seat",
+          "type": "egg",
+          "label": "A round window seat with cushions",
+          "at": {
+            "face": "front",
+            "x": 500,
+            "y": 585
+          },
+          "size": [
+            580,
+            570
+          ],
+          "card": {
+            "meta": "the proof room",
+            "title": "Read Slowly",
+            "text": "A seat for reading slowly. Slowly is how you catch the little things, and how you notice the good bits too."
+          },
+          "effect": "puff"
+        },
+        {
+          "id": "proof-loupe",
+          "type": "egg",
+          "label": "A teacup and a loupe",
+          "at": {
+            "face": "front",
+            "x": 710,
+            "y": 820
+          },
+          "size": [
+            230,
+            340
+          ],
+          "card": {
+            "meta": "the proof room",
+            "title": "Checking the Dots",
+            "text": "A loupe for looking at the tiny dots that make up a print. Up close, every picture is just lots of small dots trying their best together."
+          }
+        },
+        {
+          "id": "proof-seedling-print",
+          "type": "egg",
+          "label": "A framed seedling print",
+          "at": {
+            "face": "right",
+            "x": 333,
+            "y": 340
+          },
+          "size": [
+            150,
+            170
+          ],
+          "card": {
+            "meta": "the proof room",
+            "title": "A Collab",
+            "text": "Pip drew the seedling, Dot printed it. It came out a tiny bit out of register and they both liked it better that way."
+          }
+        },
+        {
+          "id": "proof-rug-book",
+          "type": "egg",
+          "label": "An open book on the braided rug",
+          "at": {
+            "face": "floor",
+            "x": 455,
+            "y": 590
+          },
+          "size": [
+            220,
+            190
+          ],
+          "card": {
+            "meta": "the proof room",
+            "title": "Left Open on Purpose",
+            "text": "Dot leaves a book open on the rug so whoever comes in next can pick up where it stops. Today it stops on a nice bit."
+          }
+        }
+      ]
+    },
+    "dispatch": {
+      "name": "The Dispatch Loft",
+      "short": "Dispatch",
+      "faces": "assets/world/dispatch/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -4
+      },
+      "greet": {
+        "who": "noodle",
+        "text": "Welcome to Dispatch! Everything gets where it's going. Eventually. Mostly. Snacks first."
+      },
+      "items": [
+        {
+          "id": "dispatch-tube-wall",
+          "type": "egg",
+          "label": "A wall of pneumatic tubes",
+          "at": {
+            "face": "right",
+            "x": 520,
+            "y": 470
+          },
+          "size": [
+            920,
+            720
+          ],
+          "card": {
+            "meta": "the dispatch loft",
+            "title": "The Tube Wall",
+            "text": "Capsules whoosh about all day: memos, sketches, a sock (twice), and once, a very confused biscuit.\n\nThey all arrive. Just not always in order."
+          }
+        },
+        {
+          "id": "dispatch-board",
+          "type": "egg",
+          "label": "The departures board",
+          "at": {
+            "face": "front",
+            "x": 485,
+            "y": 322
+          },
+          "size": [
+            610,
+            400
+          ],
+          "card": {
+            "meta": "the dispatch loft",
+            "title": "Departures",
+            "text": "Everything's departing on time-ish. Noodle updates the board whenever he remembers, which is often, because he likes the clacky noise it makes in his head."
+          }
+        },
+        {
+          "id": "dispatch-board-text",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 490,
+            "y": 325
+          },
+          "size": [
+            540,
+            300
+          ],
+          "text": "THE KETTLE    BOARDING\nSOMEDAY       ON TIME-ISH\nMONDAY        DELAYED (FINE)\nTHE ROOF      NAPPING\nLOST SOCKS    ARRIVING",
+          "fs": 25,
+          "cls": "board"
+        },
+        {
+          "id": "dispatch-schedule",
+          "type": "egg",
+          "label": "A hand-drawn wonky schedule",
+          "at": {
+            "face": "front",
+            "x": 905,
+            "y": 378
+          },
+          "size": [
+            210,
+            260
+          ],
+          "card": {
+            "meta": "the dispatch loft",
+            "title": "The Schedule",
+            "text": "Colour blocks, no words. Noodle can read it perfectly. Nobody else can. It has never once been wrong. It has also never once been on time."
+          }
+        },
+        {
+          "id": "dispatch-noodles",
+          "type": "egg",
+          "label": "A bowl of noodles that's never cold",
+          "at": {
+            "face": "front",
+            "x": 495,
+            "y": 660
+          },
+          "size": [
+            260,
+            210
+          ],
+          "card": {
+            "meta": "the dispatch loft",
+            "title": "The Never-Cold Bowl",
+            "text": "Always warm, always steaming. Nobody knows how. Noodle says it's \"just good noodles\"."
+          },
+          "effect": "puff"
+        },
+        {
+          "id": "dispatch-chair",
+          "type": "egg",
+          "label": "A racing-stripe chair: NOODLE 1",
+          "at": {
+            "face": "front",
+            "x": 672,
+            "y": 800
+          },
+          "size": [
+            300,
+            380
+          ],
+          "card": {
+            "meta": "the dispatch loft",
+            "title": "Noodle 1",
+            "text": "Three spins and the chair does a little victory wobble. Noodle claims the record is eleven spins. Nobody has seen it."
+          },
+          "effect": "wiggle",
+          "steps": {
+            "who": "noodle",
+            "lines": [
+              "Wheee. One spin.",
+              "Two spins! Keep going!"
+            ]
+          }
+        },
+        {
+          "id": "dispatch-chair-patch",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 722,
+            "y": 712
+          },
+          "size": [
+            88,
+            50
+          ],
+          "text": "NOODLE\n1",
+          "fs": 12,
+          "font": "sans",
+          "color": "#fff7e0"
+        },
+        {
+          "id": "dispatch-capsules",
+          "type": "egg",
+          "label": "A tray of capsules",
+          "at": {
+            "face": "right",
+            "x": 483,
+            "y": 915
+          },
+          "size": [
+            470,
+            120
+          ],
+          "say": {
+            "who": "noodle",
+            "lines": [
+              "A capsule note: \"Snacks at 3? -Pip\"",
+              "A capsule note: \"Found the C plate. It was in my apron. -Dot\"",
+              "A capsule note: \"Please return the moon lamp's moth. -Moth\"",
+              "A capsule note: \"Book overdue. No rush. Love, the library\"",
+              "A capsule note: \"Say it kindly. -G\""
+            ]
+          }
+        },
+        {
+          "id": "dispatch-corkboard",
+          "type": "egg",
+          "label": "A red-string corkboard",
+          "at": {
+            "face": "back",
+            "x": 380,
+            "y": 515
+          },
+          "size": [
+            560,
+            760
+          ],
+          "card": {
+            "meta": "the dispatch loft",
+            "title": "Who's Bringing Snacks?",
+            "text": "Red string, pins, sticky notes. It looks like a big mystery. It's just the snack rota.\n\nThe string always ends up pointing at Noodle."
+          }
+        },
+        {
+          "id": "dispatch-night-window",
+          "type": "egg",
+          "label": "A round window with a night train",
+          "at": {
+            "face": "left",
+            "x": 510,
+            "y": 320
+          },
+          "size": [
+            400,
+            400
+          ],
+          "card": {
+            "meta": "the dispatch loft",
+            "title": "The 2 AM Train",
+            "text": "A tiny night train crosses the window, always at two in the morning, always with one light on. Noodle waves at it. It never waves back. He keeps waving."
+          }
+        },
+        {
+          "id": "dispatch-one-thing",
+          "type": "egg",
+          "label": "A note card pinned to the wall",
+          "at": {
+            "face": "left",
+            "x": 813,
+            "y": 425
+          },
+          "size": [
+            150,
+            160
+          ],
+          "card": {
+            "meta": "the dispatch loft",
+            "title": "One Thing at a Time",
+            "text": "One thing at a time. The rest will wait.\n\nNoodle wrote it on a busy day and pinned it where he'd see it."
+          }
+        },
+        {
+          "id": "dispatch-lbl-note",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 813,
+            "y": 428
+          },
+          "size": [
+            120,
+            120
+          ],
+          "text": "One thing\nat a time.\nThe rest\nwill wait.",
+          "fs": 15,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "dispatch-sort",
+          "type": "game",
+          "game": "sort",
+          "label": "Six inbox trays: Sort the Chaos",
+          "at": {
+            "face": "left",
+            "x": 515,
+            "y": 735
+          },
+          "size": [
+            950,
+            150
+          ],
+          "hover": "Sort the Chaos (no rush)",
+          "doneSay": {
+            "who": "noodle",
+            "text": "Sorted! Ish! That's my favourite amount of sorted."
+          }
+        },
+        {
+          "id": "dispatch-tray-0",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 116,
+            "y": 731
+          },
+          "size": [
+            76,
+            24
+          ],
+          "text": "PIP",
+          "fs": 12,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "dispatch-tray-1",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 276,
+            "y": 731
+          },
+          "size": [
+            76,
+            24
+          ],
+          "text": "MOTH",
+          "fs": 12,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "dispatch-tray-2",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 432,
+            "y": 731
+          },
+          "size": [
+            76,
+            24
+          ],
+          "text": "DOT",
+          "fs": 12,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "dispatch-tray-3",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 592,
+            "y": 731
+          },
+          "size": [
+            76,
+            24
+          ],
+          "text": "VESPER",
+          "fs": 12,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "dispatch-tray-4",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 748,
+            "y": 731
+          },
+          "size": [
+            76,
+            24
+          ],
+          "text": "GRIMBLE",
+          "fs": 12,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "dispatch-tray-5",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 908,
+            "y": 731
+          },
+          "size": [
+            76,
+            24
+          ],
+          "text": "LATER",
+          "fs": 12,
+          "font": "sans",
+          "cls": "ink"
+        },
+        {
+          "id": "dispatch-to-press",
+          "type": "portal",
+          "to": "press",
+          "label": "Tube crawlspace behind the corkboard, down to Dot's Press",
+          "at": {
+            "face": "back",
+            "x": 780,
+            "y": 485
+          },
+          "size": [
+            220,
+            590
+          ]
+        },
+        {
+          "id": "dispatch-to-lostfound",
+          "type": "portal",
+          "to": "lostfound",
+          "label": "Little hatch with a sock poking out",
+          "at": {
+            "face": "back",
+            "x": 918,
+            "y": 815
+          },
+          "size": [
+            175,
+            210
+          ]
+        },
+        {
+          "id": "dispatch-to-wing",
+          "type": "portal",
+          "to": "wing",
+          "label": "A little sign: GREMLIN WING, this way",
+          "at": {
+            "face": "front",
+            "x": 110,
+            "y": 400
+          },
+          "size": [
+            150,
+            100
+          ],
+          "img": "assets/world/props/wing-sign.svg"
+        }
+      ]
+    },
+    "lostfound": {
+      "name": "The Lost & Found",
+      "short": "Lost & Found",
+      "faces": "assets/world/lostfound/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -2
+      },
+      "greet": {
+        "who": "noodle",
+        "text": "Every sock that ever went missing ends up here eventually. They all have tags. They all have stories."
+      },
+      "items": [
+        {
+          "id": "lostfound-to-dispatch",
+          "type": "portal",
+          "to": "dispatch",
+          "label": "Brass porthole, back up to the Dispatch Loft",
+          "at": {
+            "face": "back",
+            "x": 460,
+            "y": 440
+          },
+          "size": [
+            440,
+            500
+          ]
+        },
+        {
+          "id": "lostfound-cubbies",
+          "type": "egg",
+          "label": "Cubbies full of single socks",
+          "at": {
+            "face": "front",
+            "x": 512,
+            "y": 520
+          },
+          "size": [
+            1000,
+            780
+          ],
+          "card": {
+            "meta": "lost & found",
+            "title": "Last Seen",
+            "text": "Each sock has a tag saying where it was last seen: in a teapot, sunbathing on the roof, inside another sock, on the moon (maybe).\n\nThe five socks you're hunting aren't here. They're still out in the rooms, having adventures."
+          }
+        },
+        {
+          "id": "lostfound-tag-1",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 172,
+            "y": 232
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "teapot",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-2",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 368,
+            "y": 232
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "roof",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-3",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 562,
+            "y": 232
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "in a\nsock",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-4",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 752,
+            "y": 232
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "moon?",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-5",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 958,
+            "y": 232
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "dryer",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-6",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 172,
+            "y": 422
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "Tues-\nday",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-7",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 368,
+            "y": 422
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "the\nstacks",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-8",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 562,
+            "y": 422
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "a shoe",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-9",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 752,
+            "y": 422
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "garden",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-10",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 958,
+            "y": 422
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "under\nbed",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-11",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 172,
+            "y": 604
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "pocket",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-12",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 368,
+            "y": 604
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "with a\nfrog",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-13",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 562,
+            "y": 604
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "drawer",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-14",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 752,
+            "y": 604
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "sun-\nbeam",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-15",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 958,
+            "y": 604
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "found!",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-16",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 172,
+            "y": 794
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "port-\nhole",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-17",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 368,
+            "y": 794
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "mail\nbag",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-18",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 562,
+            "y": 794
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "a hat",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-19",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 752,
+            "y": 794
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "teacup",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-tag-20",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 958,
+            "y": 794
+          },
+          "size": [
+            44,
+            50
+          ],
+          "text": "home\nsoon",
+          "fs": 8,
+          "font": "hand",
+          "cls": "ink"
+        },
+        {
+          "id": "lostfound-darned",
+          "type": "egg",
+          "label": "The sock with the darned patch",
+          "at": {
+            "face": "front",
+            "x": 880,
+            "y": 630
+          },
+          "size": [
+            170,
+            170
+          ],
+          "card": {
+            "meta": "lost & found",
+            "title": "Still Waiting",
+            "text": "This one's been mended with care, and it's still waiting for its pair. It's in no hurry. It knows they'll turn up."
+          }
+        },
+        {
+          "id": "lostfound-tube",
+          "type": "egg",
+          "label": "The tube catch-tray",
+          "at": {
+            "face": "left",
+            "x": 930,
+            "y": 660
+          },
+          "size": [
+            160,
+            170
+          ],
+          "card": {
+            "meta": "lost & found",
+            "title": "Just Arrived",
+            "text": "Fwump. A sock, fresh from Dispatch. It has a tag: \"FOUND BEHIND THE SNACK DRAWER. SORRY. -N\""
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "lostfound-line",
+          "type": "egg",
+          "label": "A clothesline of mismatched socks",
+          "at": {
+            "face": "left",
+            "x": 470,
+            "y": 420
+          },
+          "size": [
+            900,
+            420
+          ],
+          "card": {
+            "meta": "lost & found",
+            "title": "Drying Line",
+            "text": "Freshly found socks, drying before they go home. None of them match. They seem to get on very well anyway."
+          }
+        },
+        {
+          "id": "lostfound-matching",
+          "type": "egg",
+          "label": "Two socks that are almost a pair",
+          "at": {
+            "face": "right",
+            "x": 500,
+            "y": 700
+          },
+          "size": [
+            460,
+            180
+          ],
+          "card": {
+            "meta": "lost & found",
+            "title": "Almost a Pair",
+            "text": "Not quite the same, but close. Noodle has decided that counts."
+          }
+        },
+        {
+          "id": "lostfound-cork-note",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 860,
+            "y": 490
+          },
+          "size": [
+            220,
+            180
+          ],
+          "text": "LOST SOMETHING?\nIt's probably\njust resting.\n- the socks",
+          "fs": 15,
+          "font": "hand",
+          "cls": "paper"
+        },
+        {
+          "id": "lostfound-book",
+          "type": "egg",
+          "label": "A note pinned to the cork",
+          "at": {
+            "face": "right",
+            "x": 860,
+            "y": 490
+          },
+          "size": [
+            220,
+            180
+          ],
+          "card": {
+            "meta": "lost & found",
+            "title": "The Lost & Found Book",
+            "text": "Every entry in the same handwriting:\n\"One sock. Stripy. Found.\"\n\"One sock. Spotty. Found.\"\n\"One mood. Grumpy. Found (it was hungry).\""
+          }
+        },
+        {
+          "id": "lostfound-stray",
+          "type": "egg",
+          "label": "Stray socks on the floor",
+          "at": {
+            "face": "floor",
+            "x": 140,
+            "y": 185
+          },
+          "size": [
+            130,
+            200
+          ],
+          "card": {
+            "meta": "lost & found",
+            "title": "Escapees",
+            "text": "Two socks that made a run for it. They didn't get far. They seem pleased with themselves."
+          }
+        }
+      ]
+    },
+    "returns": {
+      "name": "The Returns Bin",
+      "short": "Returns",
+      "faces": "assets/world/returns/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -4
+      },
+      "greet": {
+        "who": "vesper",
+        "text": "Oh, hello. Mind the frogs, they're everywhere. Sit, read, scribble in the margins. The margins are the good part."
+      },
+      "items": [
+        {
+          "id": "returns-rain-window",
+          "type": "egg",
+          "label": "A rainy window",
+          "at": {
+            "face": "front",
+            "x": 390,
+            "y": 330
+          },
+          "size": [
+            410,
+            580
+          ],
+          "card": {
+            "meta": "the returns bin",
+            "title": "Sit with It a Minute",
+            "text": "Sit with it a minute.\n\nThe rain doesn't need anything from you. It's just keeping you company."
+          }
+        },
+        {
+          "id": "returns-rain",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 390,
+            "y": 330
+          },
+          "size": [
+            380,
+            540
+          ],
+          "cls": "rain",
+          "showIf": "returns-rain-window"
+        },
+        {
+          "id": "returns-rain-line",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 395,
+            "y": 588
+          },
+          "size": [
+            260,
+            40
+          ],
+          "text": "Sit with it a minute.",
+          "fs": 20,
+          "font": "hand",
+          "color": "#fdf6e6",
+          "showIf": "returns-rain-window"
+        },
+        {
+          "id": "returns-big-chair",
+          "type": "egg",
+          "label": "An oversized reading chair",
+          "at": {
+            "face": "front",
+            "x": 780,
+            "y": 720
+          },
+          "size": [
+            430,
+            470
+          ],
+          "card": {
+            "meta": "the returns bin",
+            "title": "The Big Chair",
+            "text": "Sticky notes all over it, each one a page number someone wanted to come back to. Nobody minds how long it takes."
+          },
+          "effect": "puff"
+        },
+        {
+          "id": "returns-shelve",
+          "type": "game",
+          "game": "shelve",
+          "label": "The book-return slot: Shelve It",
+          "at": {
+            "face": "right",
+            "x": 258,
+            "y": 456
+          },
+          "size": [
+            170,
+            95
+          ],
+          "hover": "Shelve It",
+          "doneSay": {
+            "who": "vesper",
+            "text": "Thank you. The rest can wait in the pile. It likes it there."
+          }
+        },
+        {
+          "id": "returns-bin-nest",
+          "type": "egg",
+          "label": "A dented returns bin with a blanket nest",
+          "at": {
+            "face": "right",
+            "x": 262,
+            "y": 760
+          },
+          "size": [
+            430,
+            370
+          ],
+          "card": {
+            "meta": "the returns bin",
+            "title": "The Nap Nook",
+            "text": "A dented returns bin, lined with every blanket that was ever left in a library. Vesper's favourite reading spot, and a gold-star nap nook."
+          }
+        },
+        {
+          "id": "returns-textbook",
+          "type": "egg",
+          "label": "A giant used textbook on a lectern",
+          "at": {
+            "face": "right",
+            "x": 765,
+            "y": 580
+          },
+          "size": [
+            430,
+            230
+          ],
+          "card": {
+            "meta": "the returns bin",
+            "title": "Margin Notes",
+            "text": "The margins are full of notes from everyone who read it before you:\n\n\"You don't have to finish the chapter today.\"\n\"Rereading counts.\"\n\"Confusion is the first page of learning something.\"\n\"??\" (a classic)"
+          }
+        },
+        {
+          "id": "returns-note-1",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 690,
+            "y": 545
+          },
+          "size": [
+            150,
+            30
+          ],
+          "text": "Rereading counts.",
+          "fs": 13,
+          "font": "hand",
+          "color": "#3d5a80",
+          "rot": -4
+        },
+        {
+          "id": "returns-note-2",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 860,
+            "y": 520
+          },
+          "size": [
+            60,
+            30
+          ],
+          "text": "??",
+          "fs": 18,
+          "font": "hand",
+          "color": "#8a3b4a"
+        },
+        {
+          "id": "returns-to-stacks",
+          "type": "portal",
+          "to": "stacks",
+          "label": "Gap behind the poetry shelf, down to the Stacks Below",
+          "at": {
+            "face": "back",
+            "x": 520,
+            "y": 560
+          },
+          "size": [
+            300,
+            720
+          ]
+        },
+        {
+          "id": "returns-coats",
+          "type": "egg",
+          "label": "Two coats on the hook",
+          "at": {
+            "face": "back",
+            "x": 905,
+            "y": 540
+          },
+          "size": [
+            230,
+            470
+          ],
+          "card": {
+            "meta": "the returns bin",
+            "title": "Two Coats",
+            "text": "Two coats, hung neatly. They turn up on editorial days. Vesper keeps the hook clear for them."
+          },
+          "hover": "Steve's coat · Sarah's coat"
+        },
+        {
+          "id": "returns-sticky-books",
+          "type": "egg",
+          "label": "Books bristling with sticky notes",
+          "at": {
+            "face": "left",
+            "x": 315,
+            "y": 200
+          },
+          "size": [
+            610,
+            180
+          ],
+          "card": {
+            "meta": "the returns bin",
+            "title": "So Many Sticky Notes",
+            "text": "Every book on this shelf has been loved hard. Each sticky note is someone saying \"this bit, this bit right here\"."
+          }
+        },
+        {
+          "id": "returns-catalog",
+          "type": "egg",
+          "label": "A card catalog",
+          "at": {
+            "face": "left",
+            "x": 295,
+            "y": 630
+          },
+          "size": [
+            540,
+            620
+          ],
+          "card": {
+            "meta": "the catalog",
+            "title": "The Card Catalog",
+            "text": "Every drawer is labelled in Vesper's tiny handwriting, and none of them contain what the label says. That's half the fun. Try a few."
+          }
+        },
+        {
+          "id": "returns-drawer-teacup",
+          "type": "egg",
+          "label": "A card-catalog drawer, pulled open",
+          "at": {
+            "face": "left",
+            "x": 210,
+            "y": 400
+          },
+          "size": [
+            180,
+            110
+          ],
+          "card": {
+            "meta": "the catalog",
+            "title": "Filed Under: T",
+            "text": "A teacup, still warm. Nobody knows who filed it."
+          }
+        },
+        {
+          "id": "returns-drawer-moth",
+          "type": "egg",
+          "label": "A card-catalog drawer, pulled open",
+          "at": {
+            "face": "left",
+            "x": 355,
+            "y": 520
+          },
+          "size": [
+            160,
+            110
+          ],
+          "card": {
+            "meta": "the catalog",
+            "title": "Filed Under: M",
+            "text": "A moth, reading. It looks up, nods politely, and goes back to its page."
+          }
+        },
+        {
+          "id": "returns-drawer-sock",
+          "type": "egg",
+          "label": "A card-catalog drawer, pulled open",
+          "at": {
+            "face": "left",
+            "x": 380,
+            "y": 660
+          },
+          "size": [
+            200,
+            110
+          ],
+          "card": {
+            "meta": "the catalog",
+            "title": "Filed Under: S",
+            "text": "A single stripy sock. Not one of the five you're hunting, Vesper says. This one's just visiting the library."
+          }
+        },
+        {
+          "id": "returns-drawer-globe",
+          "type": "egg",
+          "label": "A card-catalog drawer, pulled open",
+          "at": {
+            "face": "left",
+            "x": 360,
+            "y": 795
+          },
+          "size": [
+            170,
+            120
+          ],
+          "card": {
+            "meta": "the catalog",
+            "title": "Filed Under: G",
+            "text": "A globe that spins by itself, slowly, like it's thinking."
+          },
+          "effect": "wiggle"
+        },
+        {
+          "id": "returns-typewriter",
+          "type": "egg",
+          "label": "A typewriter that types by itself",
+          "at": {
+            "face": "left",
+            "x": 783,
+            "y": 590
+          },
+          "size": [
+            290,
+            210
+          ],
+          "card": {
+            "meta": "the returns bin",
+            "title": "It Types by Itself",
+            "text": "Clack... clack... clack. It types the same line over and over, very slowly, as if it wants to get it right: \"Margins are where understanding happens.\""
+          }
+        },
+        {
+          "id": "returns-typewriter-page",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 796,
+            "y": 512
+          },
+          "size": [
+            140,
+            44
+          ],
+          "typewriter": "Margins are where understanding happens.",
+          "fs": 9,
+          "font": "mono",
+          "cls": "wrap ink"
+        },
+        {
+          "id": "returns-frog-chorus",
+          "type": "egg",
+          "label": "The frog family, all together",
+          "at": {
+            "face": "front",
+            "x": 780,
+            "y": 600
+          },
+          "size": [
+            160,
+            90
+          ],
+          "card": {
+            "meta": "the returns bin",
+            "title": "The Frog Family",
+            "text": "You found all seven margin frogs. They've gathered on the big chair for a quiet little croak of thanks.\n\nVesper asked for them to stay. They're staying."
+          },
+          "showIf": "set:frogs"
+        },
+        {
+          "id": "returns-frog-chorus-art",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 780,
+            "y": 600
+          },
+          "size": [
+            160,
+            90
+          ],
+          "text": "🐸🐸🐸",
+          "fs": 40,
+          "showIf": "set:frogs"
+        },
+        {
+          "id": "returns-frog-1",
+          "type": "setpiece",
+          "set": "frogs",
+          "label": "A tiny frog doodle",
+          "at": {
+            "face": "front",
+            "x": 112,
+            "y": 478
+          },
+          "size": [
+            44,
+            44
+          ]
+        },
+        {
+          "id": "returns-frog-2",
+          "type": "setpiece",
+          "set": "frogs",
+          "label": "A tiny frog doodle",
+          "at": {
+            "face": "right",
+            "x": 538,
+            "y": 250
+          },
+          "size": [
+            44,
+            44
+          ]
+        },
+        {
+          "id": "returns-frog-3",
+          "type": "setpiece",
+          "set": "frogs",
+          "label": "A tiny frog doodle",
+          "at": {
+            "face": "right",
+            "x": 372,
+            "y": 512
+          },
+          "size": [
+            44,
+            44
+          ]
+        },
+        {
+          "id": "returns-frog-4",
+          "type": "setpiece",
+          "set": "frogs",
+          "label": "A tiny frog doodle",
+          "at": {
+            "face": "right",
+            "x": 900,
+            "y": 640
+          },
+          "size": [
+            44,
+            44
+          ]
+        },
+        {
+          "id": "returns-frog-5",
+          "type": "setpiece",
+          "set": "frogs",
+          "label": "A tiny frog doodle",
+          "at": {
+            "face": "right",
+            "x": 636,
+            "y": 757
+          },
+          "size": [
+            44,
+            44
+          ]
+        },
+        {
+          "id": "returns-frog-6",
+          "type": "setpiece",
+          "set": "frogs",
+          "label": "A tiny frog doodle",
+          "at": {
+            "face": "back",
+            "x": 905,
+            "y": 238
+          },
+          "size": [
+            44,
+            44
+          ]
+        },
+        {
+          "id": "returns-frog-7",
+          "type": "setpiece",
+          "set": "frogs",
+          "label": "A tiny frog doodle",
+          "at": {
+            "face": "left",
+            "x": 705,
+            "y": 178
+          },
+          "size": [
+            44,
+            44
+          ]
+        },
+        {
+          "id": "returns-to-wing",
+          "type": "portal",
+          "to": "wing",
+          "label": "A little sign: GREMLIN WING, this way",
+          "at": {
+            "face": "right",
+            "x": 150,
+            "y": 220
+          },
+          "size": [
+            150,
+            100
+          ],
+          "img": "assets/world/props/wing-sign.svg"
+        }
+      ]
+    },
+    "stacks": {
+      "name": "The Stacks Below",
+      "short": "Stacks",
+      "faces": "assets/world/stacks/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -2
+      },
+      "greet": {
+        "who": "vesper",
+        "text": "The Stacks Below. The lamps float, the books lean, and every path leads back up the stairs."
+      },
+      "items": [
+        {
+          "id": "stacks-to-returns",
+          "type": "portal",
+          "to": "returns",
+          "label": "Lamp-lit stair, up to the Returns Bin",
+          "at": {
+            "face": "back",
+            "x": 512,
+            "y": 560
+          },
+          "size": [
+            300,
+            700
+          ]
+        },
+        {
+          "id": "stacks-to-press",
+          "type": "portal",
+          "to": "press",
+          "label": "Book archway, on to Dot's Print Shop",
+          "at": {
+            "face": "front",
+            "x": 515,
+            "y": 585
+          },
+          "size": [
+            380,
+            720
+          ]
+        },
+        {
+          "id": "stacks-to-lantern",
+          "type": "portal",
+          "to": "lantern",
+          "label": "A little hatch marked ILLUSTRATIONS, up the ladder to Moth's Lantern Loft",
+          "at": {
+            "face": "left",
+            "x": 520,
+            "y": 640
+          },
+          "size": [
+            240,
+            560
+          ]
+        },
+        {
+          "id": "stacks-illustrations-plate",
+          "type": "decor",
+          "at": {
+            "face": "left",
+            "x": 560,
+            "y": 505
+          },
+          "size": [
+            56,
+            44
+          ],
+          "text": "ILLUS-\nTRATIONS",
+          "fs": 7,
+          "font": "sans",
+          "color": "#3a2614"
+        },
+        {
+          "id": "stacks-margins",
+          "type": "egg",
+          "label": "A clear cream wall of kind margin notes",
+          "at": {
+            "face": "right",
+            "x": 512,
+            "y": 270
+          },
+          "size": [
+            820,
+            380
+          ],
+          "card": {
+            "meta": "the stacks",
+            "title": "Kind Margin Notes",
+            "text": "Vesper keeps this wall for notes that were too nice to leave in just one book.\n\nVesper adds the best ones she finds. The only rule is the one over Grimble's door: say it kindly."
+          }
+        },
+        {
+          "id": "stacks-note-1",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 290,
+            "y": 170
+          },
+          "size": [
+            300,
+            40
+          ],
+          "text": "You don't have to finish today.",
+          "fs": 19,
+          "font": "hand",
+          "color": "#6a3d7a",
+          "rot": -3
+        },
+        {
+          "id": "stacks-note-2",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 720,
+            "y": 160
+          },
+          "size": [
+            300,
+            40
+          ],
+          "text": "Rereading counts.",
+          "fs": 19,
+          "font": "hand",
+          "color": "#3d5a80",
+          "rot": 2
+        },
+        {
+          "id": "stacks-note-3",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 300,
+            "y": 290
+          },
+          "size": [
+            300,
+            40
+          ],
+          "text": "Confused? That's the first page.",
+          "fs": 19,
+          "font": "hand",
+          "color": "#6a3d7a",
+          "rot": 2
+        },
+        {
+          "id": "stacks-note-4",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 760,
+            "y": 280
+          },
+          "size": [
+            300,
+            40
+          ],
+          "text": "Slow is a speed.",
+          "fs": 19,
+          "font": "hand",
+          "color": "#3d5a80",
+          "rot": -2
+        },
+        {
+          "id": "stacks-note-5",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 480,
+            "y": 400
+          },
+          "size": [
+            300,
+            40
+          ],
+          "text": "Ask. It's allowed.",
+          "fs": 19,
+          "font": "hand",
+          "color": "#6a3d7a",
+          "rot": -1
+        },
+        {
+          "id": "stacks-note-6",
+          "type": "decor",
+          "at": {
+            "face": "right",
+            "x": 740,
+            "y": 410
+          },
+          "size": [
+            300,
+            40
+          ],
+          "text": "This bit made me smile. -V",
+          "fs": 19,
+          "font": "hand",
+          "color": "#3d5a80",
+          "rot": 3
+        },
+        {
+          "id": "stacks-lamps",
+          "type": "egg",
+          "label": "Floating paper lanterns",
+          "at": {
+            "face": "ceiling",
+            "x": 512,
+            "y": 512
+          },
+          "size": [
+            900,
+            900
+          ],
+          "card": {
+            "meta": "the stacks",
+            "title": "Floating Lamps",
+            "text": "Nobody hung them. They just float, keeping the stacks lit. If you stand still, one drifts over to read with you."
+          }
+        },
+        {
+          "id": "stacks-teacup",
+          "type": "egg",
+          "label": "A teacup on a stack of books",
+          "at": {
+            "face": "back",
+            "x": 205,
+            "y": 570
+          },
+          "size": [
+            120,
+            120
+          ],
+          "card": {
+            "meta": "the stacks",
+            "title": "Still Warm",
+            "text": "A teacup on a stack of books. It's always warm. Nobody has ever seen who refills it."
+          }
+        },
+        {
+          "id": "stacks-stool",
+          "type": "egg",
+          "label": "A low stool with a plum cushion",
+          "at": {
+            "face": "right",
+            "x": 220,
+            "y": 860
+          },
+          "size": [
+            170,
+            160
+          ],
+          "card": {
+            "meta": "the stacks",
+            "title": "Just One More Chapter",
+            "text": "The perfect height for sitting down to check one thing and staying for a whole chapter."
+          },
+          "effect": "puff"
+        },
+        {
+          "id": "stacks-floor-note",
+          "type": "decor",
+          "at": {
+            "face": "floor",
+            "x": 160,
+            "y": 420
+          },
+          "size": [
+            170,
+            60
+          ],
+          "text": "you're doing\nfine :)",
+          "fs": 15,
+          "font": "hand",
+          "cls": "ink",
+          "rot": -6
+        }
+      ]
+    },
+    "corridor": {
+      "name": "The Cool-Off Corridor",
+      "short": "Corridor",
+      "faces": "assets/world/corridor/{face}.webp",
+      "painted": true,
+      "startView": {
+        "yaw": 0,
+        "pitch": -2
+      },
+      "greet": {
+        "who": "grimble",
+        "text": "Take the long way down the corridor. In... and out. There's a bench at the end. Come back when your shoulders drop."
+      },
+      "items": [
+        {
+          "id": "corridor-to-burrow",
+          "type": "portal",
+          "to": "burrow",
+          "label": "Round oak door, back to the Listening Burrow",
+          "at": {
+            "face": "back",
+            "x": 505,
+            "y": 565
+          },
+          "size": [
+            540,
+            640
+          ]
+        },
+        {
+          "id": "corridor-plaque-art",
+          "type": "decor",
+          "at": {
+            "face": "back",
+            "x": 510,
+            "y": 165
+          },
+          "size": [
+            228,
+            126
+          ],
+          "img": "assets/world/props/gremlish-say-it-kindly.svg"
+        },
+        {
+          "id": "corridor-plaque",
+          "type": "egg",
+          "label": "The plaque over the door, in Gremlish",
+          "at": {
+            "face": "back",
+            "x": 510,
+            "y": 165
+          },
+          "size": [
+            228,
+            126
+          ],
+          "card": {
+            "meta": "fine print",
+            "title": "Over the Door, in Gremlish",
+            "text": "Three words in Gremlish, carved a bit wobbly. Grimble did it himself. It's the same plaque as the one in the Burrow, so you see it on the way in and on the way out."
+          }
+        },
+        {
+          "id": "corridor-bench",
+          "type": "game",
+          "game": "breathe",
+          "label": "The bench at the end: breathe a little",
+          "at": {
+            "face": "front",
+            "x": 510,
+            "y": 850
+          },
+          "size": [
+            740,
+            210
+          ],
+          "hover": "Come back when your shoulders drop.",
+          "opts": {
+            "who": "grimble",
+            "title": "The Long Way Round",
+            "pattern": [
+              [
+                "Breathe in",
+                4
+              ],
+              [
+                "Breathe out",
+                6
+              ]
+            ],
+            "rounds": 3,
+            "intro": "Sit for a moment. Follow the circle: in for four, out for six. Breathe at your own pace.",
+            "note": "Breathe at your own pace. Stop whenever you like.",
+            "end": "That's the whole corridor. Come back whenever you need it."
+          },
+          "doneSay": {
+            "who": "grimble",
+            "text": "Shoulders down. Nicely done. No rush getting up."
+          }
+        },
+        {
+          "id": "corridor-shoulders",
+          "type": "decor",
+          "at": {
+            "face": "front",
+            "x": 470,
+            "y": 690
+          },
+          "size": [
+            260,
+            90
+          ],
+          "img": "assets/world/props/gremlish-shoulders-down.svg"
+        },
+        {
+          "id": "corridor-gremlish",
+          "type": "egg",
+          "label": "A little plate over the bench, in Gremlish",
+          "at": {
+            "face": "front",
+            "x": 470,
+            "y": 690
+          },
+          "size": [
+            260,
+            90
+          ],
+          "card": {
+            "meta": "fine print",
+            "title": "Over the Bench, in Gremlish",
+            "text": "Two words, painted carefully. You can feel what they mean even before you read them."
+          }
+        },
+        {
+          "id": "corridor-window",
+          "type": "egg",
+          "label": "The round window at the end of the corridor",
+          "at": {
+            "face": "front",
+            "x": 512,
+            "y": 388
+          },
+          "size": [
+            440,
+            440
+          ],
+          "card": {
+            "meta": "the corridor",
+            "title": "Nothing Much Out There",
+            "text": "A sunny meadow, and one cloud taking its time. It doesn't look like it's in a hurry, so you don't have to be either."
+          }
+        },
+        {
+          "id": "corridor-in-1",
+          "type": "decor",
+          "at": {
+            "face": "floor",
+            "x": 250,
+            "y": 380
+          },
+          "size": [
+            110,
+            40
+          ],
+          "text": "in…",
+          "fs": 26,
+          "font": "hand",
+          "color": "#b9dca2"
+        },
+        {
+          "id": "corridor-out-1",
+          "type": "decor",
+          "at": {
+            "face": "floor",
+            "x": 775,
+            "y": 510
+          },
+          "size": [
+            110,
+            40
+          ],
+          "text": "out…",
+          "fs": 26,
+          "font": "hand",
+          "color": "#f3e6c4"
+        },
+        {
+          "id": "corridor-in-2",
+          "type": "decor",
+          "at": {
+            "face": "floor",
+            "x": 250,
+            "y": 640
+          },
+          "size": [
+            110,
+            40
+          ],
+          "text": "in…",
+          "fs": 26,
+          "font": "hand",
+          "color": "#b9dca2"
+        },
+        {
+          "id": "corridor-out-2",
+          "type": "decor",
+          "at": {
+            "face": "floor",
+            "x": 775,
+            "y": 770
+          },
+          "size": [
+            110,
+            40
+          ],
+          "text": "out…",
+          "fs": 26,
+          "font": "hand",
+          "color": "#f3e6c4"
+        },
+        {
+          "id": "corridor-footprints",
+          "type": "egg",
+          "label": "Painted footprints up the runner: in... out...",
+          "at": {
+            "face": "floor",
+            "x": 512,
+            "y": 510
+          },
+          "size": [
+            280,
+            900
+          ],
+          "card": {
+            "meta": "the corridor",
+            "title": "In... Out...",
+            "text": "Footprints painted down the runner: sage for in, cream for out. In... out... in... out...\n\nGrimble painted them on a day he needed them. He left them for whoever needs them next."
+          }
+        },
+        {
+          "id": "corridor-leaf",
+          "type": "egg",
+          "label": "A framed pressed leaf",
+          "at": {
+            "face": "left",
+            "x": 514,
+            "y": 403
+          },
+          "size": [
+            185,
+            225
+          ],
+          "card": {
+            "meta": "the corridor",
+            "title": "One Good Leaf",
+            "text": "Grimble found it on a walk and liked it so much he framed it. That's the whole story. Not every story needs a twist."
+          }
+        },
+        {
+          "id": "corridor-scarf",
+          "type": "egg",
+          "label": "A soft green scarf on a peg",
+          "at": {
+            "face": "right",
+            "x": 540,
+            "y": 505
+          },
+          "size": [
+            360,
+            360
+          ],
+          "card": {
+            "meta": "the corridor",
+            "title": "The Borrowing Scarf",
+            "text": "A soft green scarf for anyone who gets chilly on the bench. A tag on it says: BORROW ME. BRING ME BACK WHENEVER."
+          },
+          "effect": "wiggle"
+        }
+      ]
     }
   },
   "links": [
@@ -1447,6 +6483,82 @@
     [
       "archive",
       "rooftop"
+    ],
+    [
+      "office",
+      "wing"
+    ],
+    [
+      "wing",
+      "burrow"
+    ],
+    [
+      "wing",
+      "greenhouse"
+    ],
+    [
+      "wing",
+      "lantern"
+    ],
+    [
+      "wing",
+      "press"
+    ],
+    [
+      "wing",
+      "dispatch"
+    ],
+    [
+      "wing",
+      "returns"
+    ],
+    [
+      "burrow",
+      "corridor"
+    ],
+    [
+      "greenhouse",
+      "roots"
+    ],
+    [
+      "roots",
+      "rooftop"
+    ],
+    [
+      "greenhouse",
+      "someday"
+    ],
+    [
+      "lantern",
+      "rooftop"
+    ],
+    [
+      "lantern",
+      "archive"
+    ],
+    [
+      "press",
+      "proof"
+    ],
+    [
+      "dispatch",
+      "press"
+    ],
+    [
+      "dispatch",
+      "lostfound"
+    ],
+    [
+      "returns",
+      "stacks"
+    ],
+    [
+      "stacks",
+      "press"
+    ],
+    [
+      "stacks",
+      "lantern"
     ]
   ],
   "map": {
@@ -1473,12 +6585,64 @@
     "arcade": [
       178,
       62
+    ],
+    "wing": [
+      110,
+      160
+    ],
+    "burrow": [
+      40,
+      205
+    ],
+    "greenhouse": [
+      250,
+      30
+    ],
+    "roots": [
+      178,
+      18
+    ],
+    "someday": [
+      322,
+      30
+    ],
+    "lantern": [
+      35,
+      155
+    ],
+    "press": [
+      250,
+      160
+    ],
+    "proof": [
+      322,
+      160
+    ],
+    "dispatch": [
+      250,
+      110
+    ],
+    "lostfound": [
+      322,
+      110
+    ],
+    "returns": [
+      180,
+      205
+    ],
+    "stacks": [
+      250,
+      205
+    ],
+    "corridor": [
+      40,
+      245
     ]
   },
   "prize": {
     "title": "All five socks are home!",
     "text": "Every gremlin has a warm foot again. They made you a tiny trophy out of the socks (they've since asked for them back).",
-    "note": "Prizes coming soon."
+    "note": "They're very pleased with themselves. Thanks for looking."
   },
   "arcade": {
     "_readme": "Playable cabinets. Each machine: title, tagline, colours, the script that registers its games (games/<id>.js), and a menu of games. A game listed here without code shows as COMING SOON. Each game: id (matches GremlinArcade.register), name, blurb, scoreLabel, best ('high' or 'low' = fewer is better), pad (on-screen buttons), actionLabel, keysHelp, touchHelp, prize (OFF; see README-world.md before touching).",
@@ -1504,8 +6668,8 @@
               "up",
               "down"
             ],
-            "keysHelp": "\u2191 \u2193 or W / S to move. The mouse works too. First to 5.",
-            "touchHelp": "Drag on the screen or use \u25b2 \u25bc. First to 5.",
+            "keysHelp": "↑ ↓ or W / S to move. The mouse works too. First to 5.",
+            "touchHelp": "Drag on the screen or use ▲ ▼. First to 5.",
             "prize": {
               "enabled": false,
               "milestone": {
@@ -1529,7 +6693,7 @@
               "action"
             ],
             "actionLabel": "THROW",
-            "keysHelp": "\u2191 \u2193 aim, \u2190 \u2192 power, Space throws. Or drag back and let go.",
+            "keysHelp": "↑ ↓ aim, ← → power, Space throws. Or drag back and let go.",
             "touchHelp": "Drag back like a slingshot and let go. Six planes a round.",
             "prize": {
               "enabled": false,
@@ -1550,7 +6714,7 @@
               "action"
             ],
             "actionLabel": "DROP",
-            "keysHelp": "Space, \u2193 or click to drop.",
+            "keysHelp": "Space, ↓ or click to drop.",
             "touchHelp": "Tap the screen or DROP.",
             "prize": {
               "enabled": false,
@@ -1634,7 +6798,7 @@
               "action"
             ],
             "actionLabel": "PLANT",
-            "keysHelp": "\u2190 \u2192 or A / D (or the mouse) to move. Space plants the seed.",
+            "keysHelp": "← → or A / D (or the mouse) to move. Space plants the seed.",
             "touchHelp": "Drag along the screen to move, tap to plant.",
             "prize": {
               "enabled": false,
@@ -1657,7 +6821,7 @@
         "accent": "#ffd166",
         "screen": "#1b1030",
         "ranked": true,
-        "foot": "SHORT ROUNDS \u00b7 TOP 10 BOARDS",
+        "foot": "SHORT ROUNDS · TOP 10 BOARDS",
         "hint": "The competitive cabinet: short rounds and shared top-10 boards. Still very polite.",
         "games": [
           {
@@ -1718,7 +6882,7 @@
             "best": "high",
             "ranked": false,
             "pad": [],
-            "keysHelp": "Left player W / S, right player \u2191 / \u2193. First to 7. Just for fun, no board.",
+            "keysHelp": "Left player W / S, right player ↑ / ↓. First to 7. Just for fun, no board.",
             "touchHelp": "Each player drags on their own half of the screen. First to 7.",
             "prize": {
               "enabled": false,
@@ -1738,7 +6902,7 @@
     "list": [
       {
         "id": "first-door",
-        "icon": "\ud83d\udeaa",
+        "icon": "🚪",
         "name": "First Door",
         "desc": "Stepped through your first door.",
         "rule": {
@@ -1748,7 +6912,7 @@
       },
       {
         "id": "all-rooms",
-        "icon": "\ud83d\uddfa\ufe0f",
+        "icon": "🗺️",
         "name": "Cartographer",
         "desc": "Discovered every room.",
         "rule": {
@@ -1757,7 +6921,7 @@
       },
       {
         "id": "sock-hunt",
-        "icon": "\ud83e\udde6",
+        "icon": "🧦",
         "name": "Sock Whisperer",
         "desc": "Brought all five socks home.",
         "rule": {
@@ -1766,7 +6930,7 @@
       },
       {
         "id": "speedy-socks",
-        "icon": "\u23f1\ufe0f",
+        "icon": "⏱️",
         "name": "Speedy Socks",
         "desc": "Finished the sock hunt in under 3 minutes.",
         "rule": {
@@ -1776,7 +6940,7 @@
       },
       {
         "id": "ten-secrets",
-        "icon": "\u2728",
+        "icon": "✨",
         "name": "Nosy Gremlin",
         "desc": "Found 10 secrets.",
         "rule": {
@@ -1786,7 +6950,7 @@
       },
       {
         "id": "all-secrets",
-        "icon": "\ud83d\udd0d",
+        "icon": "🔍",
         "name": "Knows Everything",
         "desc": "Found every secret.",
         "rule": {
@@ -1795,7 +6959,7 @@
       },
       {
         "id": "arcade-tourist",
-        "icon": "\ud83d\udd79\ufe0f",
+        "icon": "🕹️",
         "name": "Arcade Tourist",
         "desc": "Played every arcade game at least once.",
         "rule": {
@@ -1804,7 +6968,7 @@
       },
       {
         "id": "brawl-debut",
-        "icon": "\ud83c\udfc5",
+        "icon": "🏅",
         "name": "On The Board",
         "desc": "Put a first score on a Break Room Brawl board.",
         "rule": {
@@ -1814,7 +6978,7 @@
       },
       {
         "id": "brawl-top10",
-        "icon": "\ud83c\udfc6",
+        "icon": "🏆",
         "name": "Top Ten Gremlin",
         "desc": "Finished in a Break Room Brawl top 10.",
         "rule": {
@@ -1824,7 +6988,7 @@
       },
       {
         "id": "night-owl",
-        "icon": "\ud83e\udd89",
+        "icon": "🦉",
         "name": "Night Owl",
         "desc": "Visited after midnight. Shh, the gremlins are napping.",
         "rule": {
@@ -1922,44 +7086,74 @@
     "stamps": [
       {
         "id": "sock",
-        "emoji": "\ud83e\udde6",
+        "emoji": "🧦",
         "label": "Sock"
       },
       {
         "id": "tea",
-        "emoji": "\u2615",
+        "emoji": "☕",
         "label": "Tea"
       },
       {
         "id": "star",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "label": "Star"
       },
       {
         "id": "sprout",
-        "emoji": "\ud83c\udf31",
+        "emoji": "🌱",
         "label": "Sprout"
       },
       {
         "id": "moon",
-        "emoji": "\ud83c\udf19",
+        "emoji": "🌙",
         "label": "Moon"
       },
       {
         "id": "heart",
-        "emoji": "\ud83d\udc9b",
+        "emoji": "💛",
         "label": "Heart"
       },
       {
         "id": "mushroom",
-        "emoji": "\ud83c\udf44",
+        "emoji": "🍄",
         "label": "Mushroom"
       },
       {
         "id": "paperclip",
-        "emoji": "\ud83d\udcce",
+        "emoji": "📎",
         "label": "Paperclip"
       }
     ]
-  }
+  },
+  "mapView": [
+    0,
+    0,
+    360,
+    262
+  ],
+  "sets": {
+    "moths": {
+      "total": 5,
+      "who": "moth",
+      "line": "A moth doodle! That's {n} of {total}. One lantern wakes up.",
+      "again": "Already found that one. {n} of {total}.",
+      "doneSay": "All five moths! Look at the lanterns."
+    },
+    "crops": {
+      "total": 4,
+      "who": "dot",
+      "line": "A crop mark! {n} of {total}. The room's lining up.",
+      "again": "That one's found. {n} of {total}.",
+      "doneSay": "All four crop marks. We're in register! Check the back wall."
+    },
+    "frogs": {
+      "total": 7,
+      "who": "vesper",
+      "line": "A margin frog. {n} of {total}. It croaks very quietly.",
+      "again": "That frog's already said hello. {n} of {total}.",
+      "doneSay": "All seven frogs! They're gathering on the big chair."
+    }
+  },
+  "_readme_wing": "Gremlin Wing (Oct 25): hallway 'wing' off the Office's GREMLINS ONLY door (officeSkip hides the old locked-door card), six painted personal rooms (burrow, greenhouse, lantern, press, dispatch, returns) and six painted side rooms by Moth (corridor, roots, someday, proof, lostfound, stacks); only the wing hallway is drawn (tools/draw-wing.py). Item types added: decor (non-interactive overlay text/img; cycle, typewriter, cls), game (games/room-games.js: sort, lineup, shelve, caption, net, breathe), setpiece (sets: tap all to reveal showIf items). Egg extras: steps (gentle taps before the card), hover, showIf ('<egg id>' or 'set:<name>')."
 }

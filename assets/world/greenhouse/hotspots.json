@@ -1,0 +1,13 @@
+[
+  {"id": "exit-root-tunnel", "label": "Glowing-mushroom root tunnel under the potting bench, up to the Rooftop Garden", "type": "exit", "face": "back", "x": 515, "y": 828, "w": 300, "h": 220, "leadsTo": "Root tunnel -> Rooftop Garden"},
+  {"id": "exit-someday-shelf", "label": "Little brick burrow: The Someday Shelf (side burrow of ideas saved for later)", "type": "exit", "face": "back", "x": 918, "y": 815, "w": 150, "h": 185, "leadsTo": "The Someday Shelf"},
+  {"id": "the-plant", "label": "The Plant on its tiny armchair (water it 3x: it blushes and a flower pops out)", "type": "egg", "face": "front", "x": 508, "y": 705, "w": 310, "h": 340},
+  {"id": "heart-watering-can", "label": "Heart-shaped watering can", "type": "prop", "face": "front", "x": 770, "y": 862, "w": 225, "h": 150},
+  {"id": "idea-jars", "label": "Floor-to-ceiling shelves of idea jars (open 3 jars: silly ideas float off as bubbles); tags are blank for overlay labels", "type": "egg", "face": "right", "x": 515, "y": 555, "w": 900, "h": 700},
+  {"id": "lightbulb-sprout", "label": "Idea in progress: a lightbulb sprouting leaves", "type": "prop", "face": "back", "x": 515, "y": 440, "w": 160, "h": 360},
+  {"id": "bench-sign", "label": "Blank sign over the bench: overlay 'Not everything has to bloom today. Water it anyway.'", "type": "prop", "face": "back", "x": 520, "y": 148, "w": 455, "h": 128},
+  {"id": "compost-bin", "label": "Compost bin: Ideas Resting (Not Dead) - blank tag for overlay", "type": "prop", "face": "left", "x": 238, "y": 825, "w": 390, "h": 225},
+  {"id": "brainstorm-gauge", "label": "Rain gauge: Brainstorm Level (always at SOME)", "type": "prop", "face": "left", "x": 393, "y": 423, "w": 105, "h": 345},
+  {"id": "sock-pip", "label": "Pip's sock, planted in a pot to see what grows", "type": "egg", "face": "left", "x": 545, "y": 690, "w": 160, "h": 240},
+  {"id": "idea-net", "label": "Butterfly net: start the Idea Net mini-game (untimed, no fail state)", "type": "prop", "face": "left", "x": 848, "y": 693, "w": 195, "h": 450}
+]

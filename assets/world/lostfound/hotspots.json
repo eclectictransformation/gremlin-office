@@ -1,0 +1,14 @@
+[
+  {"id": "exit-to-dispatch", "label": "Open brass porthole: the warm tube crawlspace back up to Noodle's Dispatch Loft", "type": "exit", "face": "back", "x": 460, "y": 440, "w": 440, "h": 500, "leadsTo": "dispatch"},
+  {"id": "step-stool", "label": "Little step-stool for climbing back through the porthole", "type": "prop", "face": "back", "x": 487, "y": 840, "w": 280, "h": 220},
+  {"id": "sock-cubbies", "label": "Wall of cubbies, one lost sock in each (tags blank, for overlay)", "type": "prop", "face": "front", "x": 512, "y": 520, "w": 1000, "h": 780},
+  {"id": "darned-sock", "label": "The sock with the darned patch, still waiting for its pair", "type": "egg", "face": "front", "x": 880, "y": 630, "w": 170, "h": 170},
+  {"id": "sock-line", "label": "Clothesline of wildly mismatched socks", "type": "prop", "face": "left", "x": 470, "y": 420, "w": 900, "h": 420},
+  {"id": "tube-tray", "label": "Pneumatic tube catch-tray: a sock just arrived from dispatch", "type": "egg", "face": "left", "x": 930, "y": 660, "w": 160, "h": 170},
+  {"id": "sock-bench", "label": "Teal cushioned bench", "type": "prop", "face": "left", "x": 460, "y": 840, "w": 780, "h": 200},
+  {"id": "sock-basket", "label": "Overflowing basket of socks to sort", "type": "prop", "face": "right", "x": 150, "y": 820, "w": 280, "h": 260},
+  {"id": "matching-table", "label": "Matching table: two socks that are almost a pair", "type": "prop", "face": "right", "x": 500, "y": 700, "w": 460, "h": 180},
+  {"id": "tag-box", "label": "Box of blank tags", "type": "prop", "face": "right", "x": 645, "y": 665, "w": 160, "h": 110},
+  {"id": "pin-board", "label": "Clear patch of cork with pushpins (space for an overlay notice)", "type": "prop", "face": "right", "x": 860, "y": 490, "w": 220, "h": 180},
+  {"id": "stray-socks", "label": "Stray socks on the floor", "type": "egg", "face": "floor", "x": 140, "y": 185, "w": 130, "h": 200}
+]

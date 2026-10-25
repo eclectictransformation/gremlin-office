@@ -1,0 +1,13 @@
+[
+  {"id": "exit-to-greenhouse", "label": "Sunny root archway and steps back up to Pip's Idea Greenhouse", "type": "exit", "face": "back", "x": 500, "y": 560, "w": 420, "h": 560, "leadsTo": "greenhouse"},
+  {"id": "someday-jars", "label": "The Someday Shelf: jars of ideas saved for later (labels blank, for overlay)", "type": "prop", "face": "front", "x": 512, "y": 560, "w": 900, "h": 620},
+  {"id": "napping-jar", "label": "A jar with a cloth cap on, napping until it's ready", "type": "egg", "face": "front", "x": 515, "y": 355, "w": 110, "h": 150},
+  {"id": "someday-calendar", "label": "Calendar with nothing scheduled except one sprout (blank, for overlay)", "type": "prop", "face": "left", "x": 495, "y": 460, "w": 280, "h": 320},
+  {"id": "think-cushion", "label": "Squashy thinking cushion with a green blanket", "type": "prop", "face": "left", "x": 230, "y": 810, "w": 460, "h": 240},
+  {"id": "cloche-seedling", "label": "Seedling under a glass cloche, taking its time", "type": "egg", "face": "left", "x": 760, "y": 620, "w": 190, "h": 260},
+  {"id": "seed-drawers", "label": "Drawers of blank seed packets", "type": "prop", "face": "right", "x": 505, "y": 760, "w": 770, "h": 330},
+  {"id": "bud-jar", "label": "The special jar: one bud, glowing, not open yet", "type": "egg", "face": "right", "x": 735, "y": 440, "w": 190, "h": 240},
+  {"id": "sun-hat", "label": "Straw sun-hat and trowel on the peg rail", "type": "prop", "face": "right", "x": 500, "y": 305, "w": 380, "h": 260},
+  {"id": "fallen-packet", "label": "A blank seed packet someone dropped", "type": "prop", "face": "floor", "x": 770, "y": 685, "w": 180, "h": 210},
+  {"id": "skylight", "label": "Round skylight up to the sky", "type": "prop", "face": "ceiling", "x": 512, "y": 440, "w": 560, "h": 520}
+]

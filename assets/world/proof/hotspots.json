@@ -1,0 +1,12 @@
+[
+  {"id": "exit-to-press", "label": "Paper-lined tunnel, glowing warm, back to Dot's Print Shop", "type": "exit", "face": "back", "x": 510, "y": 510, "w": 345, "h": 720, "leadsTo": "press"},
+  {"id": "window-seat", "label": "Round window seat with cushions and a stack of blank proofs", "type": "prop", "face": "front", "x": 500, "y": 585, "w": 580, "h": 570},
+  {"id": "teacup-loupe", "label": "Little side table with a teacup and a loupe for checking dots", "type": "prop", "face": "front", "x": 710, "y": 820, "w": 230, "h": 340},
+  {"id": "proof-line", "label": "Proof sheets pegged on a line (blank, for overlay notes)", "type": "prop", "face": "left", "x": 510, "y": 420, "w": 900, "h": 260},
+  {"id": "curved-shelf", "label": "Curved bookshelf of riso-coloured books", "type": "prop", "face": "left", "x": 512, "y": 700, "w": 840, "h": 260},
+  {"id": "reading-chair", "label": "Big magenta reading chair with a yellow throw", "type": "prop", "face": "right", "x": 330, "y": 720, "w": 440, "h": 380},
+  {"id": "seedling-print", "label": "Framed seedling print (a Pip-and-Dot collab)", "type": "egg", "face": "right", "x": 333, "y": 340, "w": 150, "h": 170},
+  {"id": "rolled-prints", "label": "Crate of rolled-up prints", "type": "prop", "face": "right", "x": 845, "y": 830, "w": 250, "h": 230},
+  {"id": "ream-stack", "label": "Ream stack beside the tunnel", "type": "prop", "face": "back", "x": 156, "y": 825, "w": 180, "h": 210},
+  {"id": "rug-book", "label": "Open blank book on the braided CMY rug", "type": "egg", "face": "floor", "x": 455, "y": 590, "w": 220, "h": 190}
+]

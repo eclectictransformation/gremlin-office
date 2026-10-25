@@ -1,0 +1,17 @@
+[
+  {"id": "letterpress", "label": "Hand-crank letterpress (blank sheet: overlay the words it prints by itself, e.g. seed / breathe / later)", "type": "prop", "face": "front", "x": 530, "y": 710, "w": 560, "h": 500},
+  {"id": "radio-jingle", "label": "Low radio (click 3x for the jingle)", "type": "egg", "face": "front", "x": 890, "y": 233, "w": 175, "h": 115},
+  {"id": "crop-mark-1", "label": "Hidden crop mark 1 of 4 (top-left)", "type": "egg", "face": "front", "x": 102, "y": 402, "w": 70, "h": 70},
+  {"id": "misprint-wall", "label": "Wall of framed misprints", "type": "prop", "face": "right", "x": 528, "y": 440, "w": 760, "h": 400},
+  {"id": "first-drafts-sign", "label": "Blank sign board: First drafts welcome here (overlay text)", "type": "prop", "face": "right", "x": 520, "y": 152, "w": 690, "h": 120},
+  {"id": "line-it-up-table", "label": "Light table: Line It Up mini-game (empty glowing top)", "type": "prop", "face": "right", "x": 512, "y": 740, "w": 540, "h": 70},
+  {"id": "crop-mark-2", "label": "Hidden crop mark 2 of 4 (top-right)", "type": "egg", "face": "right", "x": 958, "y": 666, "w": 70, "h": 70},
+  {"id": "exit-proof-room", "label": "Paper-lined tunnel behind the ream stack", "type": "exit", "face": "back", "x": 418, "y": 520, "w": 330, "h": 700, "leadsTo": "The Proof Room"},
+  {"id": "ream-stack", "label": "Tall stack of paper reams (pushed aside)", "type": "prop", "face": "back", "x": 115, "y": 690, "w": 230, "h": 500},
+  {"id": "squeegee-sword", "label": "Squeegee hung like a sword over the screen frame", "type": "prop", "face": "back", "x": 805, "y": 400, "w": 390, "h": 480},
+  {"id": "crop-mark-3", "label": "Hidden crop mark 3 of 4 (bottom-right)", "type": "egg", "face": "back", "x": 203, "y": 353, "w": 70, "h": 70},
+  {"id": "future-flyers", "label": "Clothesline of flyers for future events (blank shapes: overlay text)", "type": "prop", "face": "left", "x": 512, "y": 230, "w": 1000, "h": 320},
+  {"id": "bleed-and-trim-jar", "label": "Glowing Bleed & Trim scrap jar (blank label)", "type": "prop", "face": "left", "x": 178, "y": 600, "w": 260, "h": 400},
+  {"id": "paper-cutter-cat", "label": "Sleepy paper-cutter cat on cardstock", "type": "prop", "face": "left", "x": 840, "y": 640, "w": 310, "h": 230},
+  {"id": "crop-mark-4", "label": "Hidden crop mark 4 of 4 (bottom-left)", "type": "egg", "face": "left", "x": 934, "y": 468, "w": 70, "h": 70}
+]

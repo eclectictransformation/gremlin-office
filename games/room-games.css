@@ -1,0 +1,96 @@
+/* Gremlin World room mini-games. Calm colours, big tap targets, nothing flashes. */
+.rg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(30,26,22,.55);animation:rgfade .3s ease}
+@keyframes rgfade{from{opacity:0}}
+.rg-box{width:min(720px,100%);max-height:calc(100% - 8px);overflow:auto;background:var(--paper,#fbf7ec);color:var(--ink,#2b231d);border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.4);display:flex;flex-direction:column}
+.rg-head{display:flex;gap:12px;align-items:center;padding:14px 16px 8px;position:relative}
+.rg-av{width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid #F3D98B;background:var(--cream,#f4ecd9);flex:none}
+.rg-ht{flex:1;min-width:0}
+.rg-ht h2{margin:0;font:600 21px/1.2 var(--serif,Georgia,serif);color:var(--moss,#3f5a35)}
+.rg-msg{margin:4px 0 0;font:15px/1.35 var(--sans,system-ui,sans-serif);min-height:2.7em}
+.rg-x{position:absolute;right:10px;top:8px;width:40px;height:40px;border-radius:50%;border:0;background:transparent;font-size:28px;line-height:1;cursor:pointer;color:var(--forest,#54664A)}
+.rg-x:hover,.rg-x:focus-visible{background:var(--cream,#f4ecd9)}
+.rg-body{padding:6px 16px 8px;position:relative}
+.rg-foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;padding:8px 16px 16px}
+.rg-btn{font:600 15px var(--sans,system-ui,sans-serif);background:var(--forest,#54664A);color:var(--paper,#fbf7ec);border:2px solid var(--forest,#54664A);border-radius:999px;padding:10px 16px;cursor:pointer;min-height:44px}
+.rg-btn.ghost{background:transparent;color:var(--forest,#54664A)}
+.rg-btn.small{padding:6px 12px;min-width:44px}
+.rg-btn:disabled{opacity:.5;cursor:default}
+.rg-btn:focus-visible,.rg button:focus-visible{outline:3px dashed var(--forest,#54664A);outline-offset:3px}
+.rg-end{margin:10px 0 0;padding:14px;border-radius:14px;background:#fff6d8;border:2px solid #F3D98B;text-align:center;font:600 18px/1.35 var(--serif,Georgia,serif);color:var(--moss,#3f5a35)}
+.rg-end p{margin:0}
+
+/* sort the chaos */
+.sort-area{position:relative;height:250px;border-radius:14px;background:linear-gradient(#d9b06a,#c99a50);overflow:hidden;box-shadow:inset 0 0 0 4px #a87a3a}
+.sort-pile{position:absolute;inset:0}
+.sort-note{position:absolute;left:var(--x);top:0;width:150px;min-height:58px;padding:8px;border:0;border-radius:3px;font:15px/1.2 'Bradley Hand','Segoe Print','Comic Sans MS',cursive;color:#2b231d;box-shadow:0 3px 6px rgba(0,0,0,.2);cursor:pointer;
+  transform:translateY(calc(180px - var(--rest))) rotate(var(--r));animation:drift 6s ease-out}
+.sort-note.c0{background:#fff3a6}.sort-note.c1{background:#ffd2e0}.sort-note.c2{background:#c8f0ff}.sort-note.c3{background:#d7f5c4}.sort-note.c4{background:#ffe0b8}
+@keyframes drift{0%{transform:translateY(-80px) rotate(calc(var(--r) * -2))}35%{transform:translateY(40px) rotate(var(--r))}70%{transform:translateY(120px) rotate(calc(var(--r) * -1))}100%{transform:translateY(calc(180px - var(--rest))) rotate(var(--r))}}
+.sort-note.sel{outline:4px solid var(--forest,#54664A);z-index:3}
+.sort-note.gone{opacity:0;transition:opacity .35s}
+.sort-trays{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px}
+.sort-tray{min-height:64px;border:3px solid #5d4632;border-radius:8px;background:#f0e2c4;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 14px var(--sans,system-ui,sans-serif);color:#2b231d}
+.sort-tray .cnt{font-size:12px;color:#7a6a52;min-height:1em}
+.sort-tray.t-pip{background:#d9efc9}.sort-tray.t-moth{background:#e6def4}.sort-tray.t-dot{background:#fbdbe8}.sort-tray.t-vesper{background:#e7d6ec}.sort-tray.t-grimble{background:#efe1c4}.sort-tray.t-later{background:#e8e8e2}
+.sort-tray.bump{animation:tbump .4s ease}
+@keyframes tbump{40%{transform:translateY(3px)}}
+@media (max-width:560px){.sort-trays{grid-template-columns:repeat(3,1fr)}.sort-note{width:120px;font-size:13px}}
+
+/* line it up */
+.line-wrap{display:flex;justify-content:center}
+.line-svg{width:min(300px,78vw);height:auto;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.18);touch-action:none;cursor:grab;background:#fbf7ec}
+.line-svg.printed{box-shadow:0 0 0 4px #F3D98B,0 4px 14px rgba(0,0,0,.18)}
+.line-meter{text-align:center;margin:8px 0 4px;font:600 15px var(--sans,system-ui,sans-serif);color:var(--moss,#3f5a35);min-height:1.2em}
+.line-ctrl{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center}
+.line-tabs,.line-pad{display:flex;gap:6px}
+.line-tab{width:46px;height:46px;border-radius:50%;border:3px solid var(--c);background:#fff;color:var(--c);font:700 18px var(--sans,system-ui,sans-serif);cursor:pointer}
+.line-tab[aria-pressed=true]{background:var(--c);color:#fff}
+
+/* shelve it */
+.sh-slot{margin:0 auto;width:180px;height:34px;border-radius:6px;background:#c9a45c;box-shadow:inset 0 0 0 4px #8a6a2e;display:flex;align-items:center;justify-content:center;font:700 13px var(--sans,system-ui,sans-serif);letter-spacing:.2em;color:#3b2a14}
+.sh-pile{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:90px;padding:10px 0;position:relative}
+.sh-book{width:150px;min-height:64px;padding:6px 8px;border-radius:4px 8px 8px 4px;border:0;border-left:8px solid rgba(0,0,0,.2);font:600 13px/1.2 Georgia,serif;color:#fff;cursor:pointer;transform:rotate(var(--r));animation:bookin .6s ease-out}
+@keyframes bookin{from{transform:translateY(-30px) rotate(var(--r));opacity:0}}
+.sh-book.c0{background:#6e4a7e}.sh-book.c1{background:#8a3b4a}.sh-book.c2{background:#3d5a80}.sh-book.c3{background:#a07a2c}.sh-book.c4{background:#4f6b4a}.sh-book.c5{background:#a06a8c}
+.sh-book.sel{outline:4px solid #F3D98B;outline-offset:2px}
+.sh-book.flap{animation:flap 1.2s ease-in forwards;background:transparent;border:0;font-size:34px}
+@keyframes flap{to{transform:translate(120px,-140px) rotate(20deg);opacity:0}}
+.sh-book.noodle{background:#e0a930;color:#2b231d;animation:sidle 1.4s ease-in forwards}
+@keyframes sidle{to{transform:translateX(220px);opacity:0}}
+.sh-pile.tumble .sh-book{animation:tumble 1s ease-in forwards}
+.sh-book.fall{width:120px;animation:tumble 1s ease-in var(--d) forwards}
+@keyframes tumble{to{transform:translateY(40px) rotate(80deg);opacity:.6}}
+.sh-shelves{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sh-shelf{min-height:70px;border:0;border-bottom:10px solid #6b4a32;border-radius:6px;background:#f3e6cc;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:6px;font:600 14px var(--sans,system-ui,sans-serif);color:#2b231d}
+.sh-shelf .row{display:flex;gap:2px;align-items:flex-end;min-height:30px}
+.sh-shelf .spine{width:12px;height:30px;border-radius:2px}
+.spine.c0{background:#6e4a7e}.spine.c1{background:#8a3b4a}.spine.c2{background:#3d5a80}.spine.c3{background:#a07a2c}.spine.c4{background:#4f6b4a}.spine.c5{background:#a06a8c}
+
+/* caption this */
+.cap-stage{display:flex;flex-direction:column;gap:10px;align-items:center}
+.cap-panel{width:min(360px,100%);aspect-ratio:4/3;background:#fffdf6;border:3px solid #4a4450;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.cap-img{font-size:64px;filter:grayscale(.35)}
+.cap-desc{font:italic 13px var(--sans,system-ui,sans-serif);color:#6a6070}
+.cap-line{margin:0;padding:4px 10px;font:600 16px 'Bradley Hand','Segoe Print','Comic Sans MS',cursive;color:#2b231d;text-align:center}
+.cap-choices{display:flex;flex-direction:column;gap:6px;width:min(420px,100%)}
+.cap-choices .rg-btn{border-radius:12px;text-align:left}
+.cap-choices .picked{background:#F3D98B;color:#2b231d;border-color:#c9a45c;opacity:1}
+
+/* idea net */
+.net-wrap{display:flex;justify-content:center}
+.net-cv{width:100%;max-width:640px;height:auto;border-radius:14px;touch-action:none;cursor:crosshair;box-shadow:inset 0 0 0 3px #7fb069}
+.net-bar{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:10px;flex-wrap:wrap}
+.net-jars{display:flex;gap:6px}
+.net-jars .jar{width:26px;height:34px;border-radius:6px 6px 8px 8px;border:3px solid #7a9a94;background:rgba(223,242,238,.6)}
+.net-jars .jar.full{background:#fff3a6;box-shadow:0 0 10px #fff3a6}
+.net-compost{font:600 13px var(--sans,system-ui,sans-serif);color:#6b4a32;background:#e7d6b4;border-radius:999px;padding:4px 10px}
+
+/* breathe */
+.br-stage{position:relative;height:260px;border-radius:16px;background:radial-gradient(circle at 50% 45%,#f3e6c8,#d9c09a);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.br-stage.moon{background:radial-gradient(circle at 50% 45%,#4a4166,#2a2540);color:#f4efe0}
+.br-orb{width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,#fff6cf,#ffd27a 60%,rgba(255,210,122,.2));box-shadow:0 0 40px 10px rgba(255,214,130,.45);transform:scale(.7);transition:transform 4s ease-in-out}
+.br-orb.in{transform:scale(1.35)}.br-orb.hold{transform:scale(1.35)}.br-orb.out{transform:scale(.7)}
+.br-word{margin:18px 0 0;font:600 22px var(--serif,Georgia,serif)}
+.br-count{margin:4px 0 0;font:14px var(--sans,system-ui,sans-serif);opacity:.8}
+.br-note{margin:8px 0 0;text-align:center;font:14px/1.4 var(--sans,system-ui,sans-serif);color:#5a4a3a}
+@media (prefers-reduced-motion:reduce){.rg *{animation:none!important}.br-orb{transition:none}.sort-note{transform:translateY(calc(180px - var(--rest))) rotate(var(--r))}}

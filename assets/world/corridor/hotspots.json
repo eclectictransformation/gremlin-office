@@ -1,0 +1,11 @@
+[
+  {"id": "exit-to-burrow", "label": "Round oak door standing open, back to Grimble's Listening Burrow", "type": "exit", "face": "back", "x": 505, "y": 565, "w": 540, "h": 640, "leadsTo": "burrow"},
+  {"id": "door-plaque", "label": "Blank oval plaque over the door (overlay optional, e.g. a Gremlish SAY IT KINDLY)", "type": "prop", "face": "back", "x": 510, "y": 165, "w": 228, "h": 126},
+  {"id": "cool-off-bench", "label": "Bench at the end of the corridor (hover: Come back when your shoulders drop.)", "type": "prop", "face": "front", "x": 510, "y": 850, "w": 740, "h": 210},
+  {"id": "meadow-window", "label": "Round window out to a sunny meadow", "type": "prop", "face": "front", "x": 512, "y": 388, "w": 440, "h": 440},
+  {"id": "breathing-footprints", "label": "Painted footprints up the runner: sage = in..., cream = out... (overlay the words beside them if wanted)", "type": "egg", "face": "floor", "x": 512, "y": 510, "w": 280, "h": 900},
+  {"id": "pressed-leaf", "label": "Framed pressed leaf", "type": "prop", "face": "left", "x": 514, "y": 403, "w": 185, "h": 225},
+  {"id": "hall-shelf", "label": "Little shelf with a fern and a brass teapot", "type": "prop", "face": "left", "x": 512, "y": 650, "w": 490, "h": 330},
+  {"id": "scarf-pegs", "label": "Coat pegs with a soft green scarf", "type": "prop", "face": "right", "x": 540, "y": 505, "w": 360, "h": 360},
+  {"id": "stool-plant", "label": "Round stool with a potted plant", "type": "prop", "face": "right", "x": 288, "y": 775, "w": 240, "h": 360}
+]
