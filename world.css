@@ -56,6 +56,7 @@ body.mood-burrow #mood{opacity:1;background:radial-gradient(ellipse at 50% 45%,r
 
 /* gremlin speech bubble */
 .bubble{position:absolute;left:12px;bottom:60px;z-index:6;display:flex;align-items:flex-end;gap:8px;max-width:min(420px,calc(100% - 24px));animation:pop .3s ease-out;cursor:pointer}
+.bubble[hidden]{display:none}
 .bubble img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid var(--paper);box-shadow:0 3px 10px rgba(0,0,0,.25);flex:none;background:var(--cream)}
 .bubble p{position:relative;margin:0 0 18px;background:var(--paper);color:var(--ink);border-radius:16px;padding:10px 14px;font:15px/1.4 var(--sans);box-shadow:0 6px 18px rgba(26,26,24,.25)}
 .bubble p::before{content:"";position:absolute;left:-8px;bottom:12px;border:8px solid transparent;border-right-color:var(--paper);border-left:0}

@@ -1,5 +1,5 @@
 {
-  "_readme": "Gremlin World sample. Rooms are cube panoramas. Positions are {face, x, y} in face pixels (0-1024; faces: front/right/back/left/floor/ceiling). 'at' = position on the drawn SVG room; 'atArt' = position when painted art (assets/world/<room>/<face>.webp|png) is present. Items with no atArt are hidden in painted-art mode unless they carry their own 'img'. Types: portal, sock, egg. See README-world.md.",
+  "_readme": "Gremlin World sample. Rooms are cube panoramas. Positions are {face, x, y} in face pixels (0-1024; faces: front/right/back/left/floor/ceiling). 'at' = position on the drawn SVG room; 'atArt' = position when painted art (assets/world/<room>/<face>.webp|png) is present. Items with no atArt are hidden in painted-art mode unless they carry their own 'img'. Types: portal, sock, egg, arcade (opens the cabinet named by 'machine'; machines live under 'arcade'). See README-world.md.",
   "version": 1,
   "start": "office",
   "socksTotal": 5,
@@ -1135,7 +1135,7 @@
       },
       "greet": {
         "who": "noodle",
-        "text": "Welcome to the arcade! No timers, no high scores. Every machine says \"nice\" no matter what. Also, somebody lost a sock in here. Not me. Probably."
+        "text": "Welcome to the arcade! The two big cabinets actually work now: OFFICE OLYMPICS and GARDEN GREMLINS. No timers, nobody loses for real, every machine says \"nice\". Also, somebody lost a sock in here. Not me. Probably."
       },
       "items": [
         {
@@ -1175,42 +1175,71 @@
         },
         {
           "id": "cabinet-blue",
-          "type": "egg",
-          "label": "An arcade cabinet with a blank screen",
+          "type": "arcade",
+          "machine": "office-olympics",
+          "label": "Office Olympics arcade cabinet. Tap to play.",
           "at": {
             "face": "front",
-            "x": 375,
-            "y": 495
+            "x": 371,
+            "y": 505
           },
           "size": [
-            160,
-            170
+            220,
+            300
           ],
-          "card": {
-            "meta": "the arcade",
-            "title": "PRESS START (WHENEVER)",
-            "text": "The screen says: PRESS START WHENEVER YOU'RE READY.\n\nThere's no countdown. It will wait. It has been waiting very contentedly since Tuesday."
+          "marquee": {
+            "text": "OFFICE OLYMPICS",
+            "box": [
+              22,
+              16,
+              175,
+              41
+            ]
+          },
+          "screen": {
+            "text": "PRESS START",
+            "sub": "WHENEVER",
+            "box": [
+              33,
+              104,
+              161,
+              134
+            ]
           }
         },
         {
           "id": "cabinet-red",
-          "type": "egg",
-          "label": "A red arcade cabinet",
+          "type": "arcade",
+          "machine": "garden-gremlins",
+          "label": "Garden Gremlins arcade cabinet. Tap to play.",
           "at": {
             "face": "front",
-            "x": 645,
-            "y": 510
+            "x": 648,
+            "y": 505
           },
           "size": [
-            160,
-            170
+            220,
+            300
           ],
-          "card": {
-            "meta": "the arcade",
-            "title": "Breath Racer",
-            "text": "A racing game where the car only moves while you breathe out slowly.\n\nNoodle has never finished a lap. Noodle says that's not the point."
+          "marquee": {
+            "text": "GARDEN GREMLINS",
+            "box": [
+              32,
+              16,
+              157,
+              42
+            ]
           },
-          "effect": "knock"
+          "screen": {
+            "text": "PRESS START",
+            "sub": "WHENEVER",
+            "box": [
+              25,
+              104,
+              150,
+              134
+            ]
+          }
         },
         {
           "id": "swirl-cabinet",
@@ -1384,5 +1413,174 @@
     "title": "All five socks are home!",
     "text": "Every gremlin has a warm foot again. They made you a tiny trophy out of the socks (they've since asked for them back).",
     "note": "Prizes coming soon."
+  },
+  "arcade": {
+    "_readme": "Playable cabinets. Each machine: title, tagline, colours, the script that registers its games (games/<id>.js), and a menu of games. A game listed here without code shows as COMING SOON. Each game: id (matches GremlinArcade.register), name, blurb, scoreLabel, best ('high' or 'low' = fewer is better), pad (on-screen buttons), actionLabel, keysHelp, touchHelp, prize (OFF; see README-world.md before touching).",
+    "machines": {
+      "office-olympics": {
+        "id": "office-olympics",
+        "title": "OFFICE OLYMPICS",
+        "tagline": "Desk sports for very small athletes",
+        "script": "games/office-olympics.js",
+        "color": "#2f6b6b",
+        "colorDark": "#1d4544",
+        "accent": "#f3d98b",
+        "screen": "#12302d",
+        "hint": "Three desk sports. Nobody gets fired.",
+        "games": [
+          {
+            "id": "desk-tennis",
+            "name": "Desk Tennis",
+            "blurb": "Bat a donut past a lazy stapler. It stops for coffee.",
+            "scoreLabel": "HITS",
+            "best": "high",
+            "pad": [
+              "up",
+              "down"
+            ],
+            "keysHelp": "\u2191 \u2193 or W / S to move. The mouse works too. First to 5.",
+            "touchHelp": "Drag on the screen or use \u25b2 \u25bc. First to 5.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 15
+              },
+              "message": ""
+            }
+          },
+          {
+            "id": "paper-plane-toss",
+            "name": "Paper Plane Toss",
+            "blurb": "Flick planes into the recycling. The desk fan has opinions.",
+            "scoreLabel": "IN BIN",
+            "best": "high",
+            "pad": [
+              "up",
+              "down",
+              "left",
+              "right",
+              "action"
+            ],
+            "actionLabel": "THROW",
+            "keysHelp": "\u2191 \u2193 aim, \u2190 \u2192 power, Space throws. Or drag back and let go.",
+            "touchHelp": "Drag back like a slingshot and let go. Six planes a round.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 5
+              },
+              "message": ""
+            }
+          },
+          {
+            "id": "stapler-stack",
+            "name": "Stapler Stack",
+            "blurb": "Stack desk things into a tower. It will wobble.",
+            "scoreLabel": "TALL",
+            "best": "high",
+            "pad": [
+              "action"
+            ],
+            "actionLabel": "DROP",
+            "keysHelp": "Space, \u2193 or click to drop.",
+            "touchHelp": "Tap the screen or DROP.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 15
+              },
+              "message": ""
+            }
+          }
+        ]
+      },
+      "garden-gremlins": {
+        "id": "garden-gremlins",
+        "title": "GARDEN GREMLINS",
+        "tagline": "Very low-stakes gardening (and some laundry)",
+        "script": "games/garden-gremlins.js",
+        "color": "#b23a2c",
+        "colorDark": "#7a2219",
+        "accent": "#a8e07a",
+        "screen": "#16281a",
+        "hint": "Plants, socks and seeds. Nothing here can wilt for long.",
+        "games": [
+          {
+            "id": "hungry-vine",
+            "name": "Hungry Vine",
+            "blurb": "Pip's plant grows toward water drops and sunbeams.",
+            "scoreLabel": "LEAVES",
+            "best": "high",
+            "pad": [
+              "up",
+              "down",
+              "left",
+              "right"
+            ],
+            "keysHelp": "Arrow keys or WASD to steer. Bonk something and it naps.",
+            "touchHelp": "Swipe, tap beside the vine, or use the pad.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 30
+              },
+              "message": ""
+            }
+          },
+          {
+            "id": "sock-pairing",
+            "name": "Sock Pairing",
+            "blurb": "The laundry is out. Find each sock its soulmate.",
+            "scoreLabel": "TRIES",
+            "best": "low",
+            "pad": [
+              "up",
+              "down",
+              "left",
+              "right",
+              "action"
+            ],
+            "actionLabel": "FLIP",
+            "keysHelp": "Click a sock, or arrows + Space. Fewer tries is fancier.",
+            "touchHelp": "Tap two cards to find a matching pair.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 8
+              },
+              "message": ""
+            }
+          },
+          {
+            "id": "seed-packet-bonk",
+            "name": "Seed Packet Bonk",
+            "blurb": "Bounce a seed off a watering can to open every packet.",
+            "scoreLabel": "PACKETS",
+            "best": "high",
+            "pad": [
+              "left",
+              "right",
+              "action"
+            ],
+            "actionLabel": "PLANT",
+            "keysHelp": "\u2190 \u2192 or A / D (or the mouse) to move. Space plants the seed.",
+            "touchHelp": "Drag along the screen to move, tap to plant.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 32
+              },
+              "message": ""
+            }
+          }
+        ]
+      }
+    }
   }
 }
