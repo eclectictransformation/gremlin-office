@@ -17,11 +17,14 @@
     c.fillStyle = "#4a3526"; for (var y = top || 0; y < api.H; y += 12) c.fillRect(0, y, api.W, 1);
   }
 
-  /* ===== DESK TENNIS: you (a gremlin) vs a stapler who keeps stopping for coffee ===== */
+  /* ===== DESK TENNIS: you (a gremlin) vs a stapler who keeps stopping for coffee =====
+     Both paddles sit well in from the screen edges (api.edgeInset: 14% of the court or 48 CSS px), so a thumb
+     dragging in the strip behind your gremlin never hides it. Ball speeds scale with the shorter court. */
   A.register("desk-tennis", function (api) {
-    var W = api.W, H = api.H, TOP = api.top + 2, PH = 38, WIN = 5;
-    var you, cpu, ball, pts, hits, pause, sip, nextSip, target, msgs;
-    function serve(dir) { ball = { x: W / 2, y: (TOP + H) / 2, vx: 95 * dir, vy: api.rnd(-50, 50) }; pause = 0.9; }
+    var W = api.W, H = api.H, TOP = api.top + 2, PH = 38, PW = 10, WIN = 5, SPAN0 = 272;   // SPAN0: the old paddle-to-paddle gap
+    var X, k, you, cpu, ball, pts, hits, pause, sip, nextSip, target, msgs;
+    function layout() { X = api.edgeInset(W); k = (W - 2 * X - 2 * PW) / SPAN0; }   // X: left edge of you / right edge of the stapler
+    function serve(dir) { ball = { x: W / 2, y: (TOP + H) / 2, vx: 95 * k * dir, vy: api.rnd(-50, 50) * k }; pause = 0.9; }
     function point(forYou) {
       if (forYou) { pts[0]++; api.toast(api.pick(["THE STAPLER WAS BUSY.", "POINT! THE STAPLER SIGHS.", "NICE. VERY NICE."])); }
       else { pts[1]++; api.toast(api.pick(["THE DONUT ROLLED AWAY.", "OOPS. CRUMBS EVERYWHERE.", "IT'S FINE. IT'S A DONUT."])); }
@@ -30,10 +33,11 @@
       serve(forYou ? 1 : -1);
     }
     return {
-      start: function () { you = { y: (TOP + H) / 2 }; cpu = { y: (TOP + H) / 2 }; pts = [0, 0]; hits = 0; sip = 0; nextSip = api.rnd(3, 6); target = null; api.score(0); serve(-1); },
+      start: function () { layout(); you = { y: (TOP + H) / 2 }; cpu = { y: (TOP + H) / 2 }; pts = [0, 0]; hits = 0; sip = 0; nextSip = api.rnd(3, 6); target = null; api.score(0); serve(-1); },
       press: function () {},
-      pointer: function (type, x, y) { if (type !== "up") target = y; },
+      pointer: function (type, x, y) { if (type !== "up") target = y; },   // only the height matters: drag anywhere, ideally behind your gremlin
       update: function (dt) {
+        layout();
         // you: keys move, pointer/touch drags
         var mv = (api.held("down") ? 1 : 0) - (api.held("up") ? 1 : 0);
         if (mv) { you.y += mv * 190 * dt; target = null; } else if (target != null) you.y += clamp(target - you.y, -260 * dt, 260 * dt);
@@ -48,35 +52,39 @@
         ball.x += ball.vx * dt; ball.y += ball.vy * dt;
         if (ball.y < TOP + 5) { ball.y = TOP + 5; ball.vy = Math.abs(ball.vy); }
         if (ball.y > H - 5) { ball.y = H - 5; ball.vy = -Math.abs(ball.vy); }
-        // paddles (you at x 14..24, stapler at x 296..306)
-        if (ball.vx < 0 && ball.x - 4 < 24 && ball.x > 10 && Math.abs(ball.y - you.y) < PH / 2 + 4) {
-          var off = (ball.y - you.y) / (PH / 2); var sp = Math.min(240, Math.hypot(ball.vx, ball.vy) * 1.05 + 4);
-          ball.vx = Math.abs(sp * Math.cos(off * 0.9)); ball.vy = sp * Math.sin(off * 0.9); ball.x = 28; hits++; api.score(hits);
+        // paddles (you at x X..X+10, stapler at x W-X-10..W-X)
+        var yf = X + PW, sf = W - X - PW;
+        if (ball.vx < 0 && ball.x - 4 < yf && ball.x > X - 4 && Math.abs(ball.y - you.y) < PH / 2 + 4) {
+          var off = (ball.y - you.y) / (PH / 2); var sp = Math.min(240 * k, Math.hypot(ball.vx, ball.vy) * 1.05 + 4 * k);
+          ball.vx = Math.abs(sp * Math.cos(off * 0.9)); ball.vy = sp * Math.sin(off * 0.9); ball.x = yf + 4; hits++; api.score(hits);
         }
-        if (ball.vx > 0 && ball.x + 4 > 296 && ball.x < 310 && Math.abs(ball.y - cpu.y) < PH / 2 + 4) {
-          var o2 = (ball.y - cpu.y) / (PH / 2), s2 = Math.min(240, Math.hypot(ball.vx, ball.vy) * 1.03);
-          ball.vx = -Math.abs(s2 * Math.cos(o2 * 0.8)); ball.vy = s2 * Math.sin(o2 * 0.8); ball.x = 292;
+        if (ball.vx > 0 && ball.x + 4 > sf && ball.x < W - X + 4 && Math.abs(ball.y - cpu.y) < PH / 2 + 4) {
+          var o2 = (ball.y - cpu.y) / (PH / 2), s2 = Math.min(240 * k, Math.hypot(ball.vx, ball.vy) * 1.03);
+          ball.vx = -Math.abs(s2 * Math.cos(o2 * 0.8)); ball.vy = s2 * Math.sin(o2 * 0.8); ball.x = sf - 4;
         }
+        // a miss rolls on behind the paddle and off the desk edge
         if (ball.x < -10) point(false); else if (ball.x > W + 10) point(true);
       },
       draw: function (c) {
         desk(c, api, TOP);
+        // the thumb strips behind each paddle (a touch darker: "drag here")
+        c.fillStyle = "rgba(0,0,0,.14)"; c.fillRect(0, TOP, X - 3, H - TOP); c.fillRect(W - X + 3, TOP, X - 3, H - TOP);
         c.fillStyle = "#c9b28f"; for (var y = TOP + 4; y < H; y += 14) c.fillRect(W / 2 - 1, y, 2, 7);   // a line of paperclips
         api.text(c, String(pts[0]), W / 2 - 24, TOP + 6, 18, "#9fe07a", "right");
         api.text(c, String(pts[1]), W / 2 + 24, TOP + 6, 18, "#f49ac1", "left");
         // you: a tall green gremlin with eyes that follow the donut
-        var y0 = Math.round(you.y - PH / 2);
-        c.fillStyle = "#3f7d3a"; c.fillRect(14, y0, 10, PH); c.fillStyle = "#5fa356"; c.fillRect(14, y0 + 2, 4, PH - 4);
-        c.fillStyle = "#3f7d3a"; c.fillRect(13, y0 - 3, 3, 4); c.fillRect(22, y0 - 3, 3, 4);
+        var y0 = Math.round(you.y - PH / 2), gx = X;
+        c.fillStyle = "#3f7d3a"; c.fillRect(gx, y0, 10, PH); c.fillStyle = "#5fa356"; c.fillRect(gx, y0 + 2, 4, PH - 4);
+        c.fillStyle = "#3f7d3a"; c.fillRect(gx - 1, y0 - 3, 3, 4); c.fillRect(gx + 8, y0 - 3, 3, 4);
         var look = clamp((ball.y - you.y) / 40, -1, 1);
-        c.fillStyle = "#fff"; c.fillRect(16, y0 + 6, 3, 4); c.fillRect(20, y0 + 6, 3, 4);
-        c.fillStyle = "#111"; c.fillRect(17, y0 + 7 + Math.round(look), 2, 2); c.fillRect(21, y0 + 7 + Math.round(look), 2, 2);
-        c.fillStyle = "#1e3d1b"; c.fillRect(17, y0 + 13, 5, 1);
+        c.fillStyle = "#fff"; c.fillRect(gx + 2, y0 + 6, 3, 4); c.fillRect(gx + 6, y0 + 6, 3, 4);
+        c.fillStyle = "#111"; c.fillRect(gx + 3, y0 + 7 + Math.round(look), 2, 2); c.fillRect(gx + 7, y0 + 7 + Math.round(look), 2, 2);
+        c.fillStyle = "#1e3d1b"; c.fillRect(gx + 3, y0 + 13, 5, 1);
         // the stapler (standing on its end, as one does)
-        var y1 = Math.round(cpu.y - PH / 2);
-        c.fillStyle = "#555b63"; c.fillRect(300, y1, 7, PH); c.fillStyle = "#c0392b"; c.fillRect(296, y1 + 2, 5, PH - 6);
-        c.fillStyle = "#e57368"; c.fillRect(297, y1 + 4, 1, PH - 12); c.fillStyle = "#222"; c.fillRect(298, y1 + PH - 6, 6, 3);
-        if (sip > 0) { c.drawImage(api.sprite(MUG, MUG_PAL), 280, y1 - 4, 14, 14); api.text(c, "sip", 276, y1 - 14, 8, "#fff3a0", "left"); }
+        var y1 = Math.round(cpu.y - PH / 2), sx = W - X - PW;
+        c.fillStyle = "#555b63"; c.fillRect(sx + 4, y1, 7, PH); c.fillStyle = "#c0392b"; c.fillRect(sx, y1 + 2, 5, PH - 6);
+        c.fillStyle = "#e57368"; c.fillRect(sx + 1, y1 + 4, 1, PH - 12); c.fillStyle = "#222"; c.fillRect(sx + 2, y1 + PH - 6, 6, 3);
+        if (sip > 0) { c.drawImage(api.sprite(MUG, MUG_PAL), sx - 16, y1 - 4, 14, 14); api.text(c, "sip", sx - 20, y1 - 14, 8, "#fff3a0", "left"); }
         // the donut
         if (pause <= 0 || Math.floor(api.time() * 6) % 2 || api.reduced) c.drawImage(api.sprite(DONUT, DONUT_PAL), Math.round(ball.x - 6), Math.round(ball.y - 6), 12, 12);
       }

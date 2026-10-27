@@ -13,6 +13,8 @@
   "use strict";
   var GW = 320, GH = 240, HUD = 14;
   var factories = {}, scripts = {}, sprites = {}, held = {}, S = null, root = null, ctx = null, hooks = {};
+  var pxScale = 1;   // CSS px per logical px, refreshed by fit()
+  var EDGE_FRAC = 0.14, EDGE_MIN_CSS = 48, EDGE_MAX_FRAC = 0.2;   // paddle inset: 14% of the court or 48 CSS px, whichever is larger
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
   var coarse = window.matchMedia("(pointer: coarse)").matches;
   var KEYMAP = { ArrowLeft: "left", a: "left", A: "left", ArrowRight: "right", d: "right", D: "right",
@@ -64,7 +66,13 @@
       rnd: function (a, b) { return a + Math.random() * (b - a); },
       pick: function (a) { return a[Math.floor(Math.random() * a.length)]; },
       toast: function (s, ms) { if (S) S.toast = { s: s, until: S.t + (ms || 1400) / 1000 }; },
-      time: function () { return S ? S.t : 0; }
+      time: function () { return S ? S.t : 0; },
+      // how far a paddle sits in from the screen edge (logical px) so a thumb behind it doesn't cover it
+      edgeInset: function (span) {
+        span = span || GW;
+        var v = Math.max(span * EDGE_FRAC, EDGE_MIN_CSS / (pxScale || 1));
+        return Math.ceil(Math.min(v, span * EDGE_MAX_FRAC));
+      }
     };
   }
 
@@ -173,6 +181,7 @@
     var dpr = Math.min(2, window.devicePixelRatio || 1);
     cv.width = Math.round(w * dpr); cv.height = Math.round(w * 0.75 * dpr);
     ctx.setTransform(cv.width / GW, 0, 0, cv.height / GH, 0, 0); ctx.imageSmoothingEnabled = false;
+    pxScale = w / GW;
     root.style.setProperty("--px", (w / GW).toFixed(3));
   }
 

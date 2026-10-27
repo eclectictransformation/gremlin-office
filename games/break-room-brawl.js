@@ -216,15 +216,18 @@
     };
   });
 
-  /* ===== DESK DUEL: two players, one desk, one very fast donut. Local only, no board ===== */
+  /* ===== DESK DUEL: two players, one desk, one very fast donut. Local only, no board =====
+     Paddles sit in from the edges (api.edgeInset: 14% of the court or 48 CSS px) so each thumb drags in the
+     strip behind its own paddle without hiding it. Ball speeds scale with the shorter court. */
   A.register("desk-duel", function (api) {
-    var W = api.W, H = api.H, TOP = api.top + 2, PH = 36, WIN = 7;
-    var L, R, ball, pts, rally, longest, pause, raw = {}, tL = null, tR = null, done;
+    var W = api.W, H = api.H, TOP = api.top + 2, PH = 36, PW = 8, WIN = 7, SPAN0 = 276;   // SPAN0: the old paddle-to-paddle gap
+    var X, k, L, R, ball, pts, rally, longest, pause, raw = {}, tL = null, tR = null, done;
+    function layout() { X = api.edgeInset(W); k = (W - 2 * X - 2 * PW) / SPAN0; }
     function kd(e) {
       var k = e.key; if (k === "w" || k === "W" || k === "s" || k === "S" || k === "ArrowUp" || k === "ArrowDown") { raw[k.length === 1 ? k.toLowerCase() : k] = true; }
     }
     function ku(e) { var k = e.key; delete raw[k.length === 1 ? k.toLowerCase() : k]; }
-    function serve(dir) { ball = { x: W / 2, y: (TOP + H) / 2, vx: 120 * dir, vy: api.rnd(-60, 60) }; pause = 0.8; rally = 0; }
+    function serve(dir) { ball = { x: W / 2, y: (TOP + H) / 2, vx: 120 * k * dir, vy: api.rnd(-60, 60) * k }; pause = 0.8; rally = 0; }
     function point(left) {
       pts[left ? 0 : 1]++;
       api.toast(api.pick(["POINT, " + (left ? "LEFT" : "RIGHT") + "!", "THE DONUT HAS CHOSEN.", "CRUMBS! " + pts[0] + " - " + pts[1]]), 1000);
@@ -236,12 +239,12 @@
       serve(left ? 1 : -1);
     }
     function hit(pad, side) {
-      var off = (ball.y - pad.y) / (PH / 2), sp = Math.min(320, Math.hypot(ball.vx, ball.vy) * 1.06 + 6);
+      var off = (ball.y - pad.y) / (PH / 2), sp = Math.min(320 * k, Math.hypot(ball.vx, ball.vy) * 1.06 + 6 * k);
       ball.vx = side * Math.abs(sp * Math.cos(off * 0.85)); ball.vy = sp * Math.sin(off * 0.85); rally++; longest = Math.max(longest, rally); api.score(longest);
     }
     return {
       start: function () {
-        L = { y: (TOP + H) / 2 }; R = { y: (TOP + H) / 2 }; pts = [0, 0]; longest = 0; done = false; api.score(0); serve(api.pick([-1, 1]));
+        layout(); L = { y: (TOP + H) / 2 }; R = { y: (TOP + H) / 2 }; pts = [0, 0]; longest = 0; done = false; api.score(0); serve(api.pick([-1, 1]));
         window.addEventListener("keydown", kd, true); window.addEventListener("keyup", ku, true);
       },
       stop: function () { window.removeEventListener("keydown", kd, true); window.removeEventListener("keyup", ku, true); raw = {}; },
@@ -249,6 +252,7 @@
       pointer: function (type, x, y) { if (type === "down" || type === "drag") { if (x < W / 2) tL = y; else tR = y; } else if (type === "up") { tL = tR = null; } },
       update: function (dt) {
         if (done) return;
+        layout();
         var sp = 210;
         var ml = (raw.s ? 1 : 0) - (raw.w ? 1 : 0), mr = (raw.ArrowDown ? 1 : 0) - (raw.ArrowUp ? 1 : 0);
         if (ml) { L.y += ml * sp * dt; tL = null; } else if (tL != null) L.y += clamp(tL - L.y, -280 * dt, 280 * dt);
@@ -258,16 +262,18 @@
         ball.x += ball.vx * dt; ball.y += ball.vy * dt;
         if (ball.y < TOP + 5) { ball.y = TOP + 5; ball.vy = Math.abs(ball.vy); }
         if (ball.y > H - 5) { ball.y = H - 5; ball.vy = -Math.abs(ball.vy); }
-        if (ball.vx < 0 && ball.x - 4 < 22 && ball.x > 8 && Math.abs(ball.y - L.y) < PH / 2 + 4) { hit(L, 1); ball.x = 26; }
-        if (ball.vx > 0 && ball.x + 4 > W - 22 && ball.x < W - 8 && Math.abs(ball.y - R.y) < PH / 2 + 4) { hit(R, -1); ball.x = W - 26; }
+        // paddles: left at x X..X+8, right at x W-X-8..W-X; a miss rolls on behind the paddle and off the desk
+        if (ball.vx < 0 && ball.x - 4 < X + PW && ball.x > X - 4 && Math.abs(ball.y - L.y) < PH / 2 + 4) { hit(L, 1); ball.x = X + PW + 4; }
+        if (ball.vx > 0 && ball.x + 4 > W - X - PW && ball.x < W - X + 4 && Math.abs(ball.y - R.y) < PH / 2 + 4) { hit(R, -1); ball.x = W - X - PW - 4; }
         if (ball.x < -10) point(false); else if (ball.x > W + 10) point(true);
       },
       draw: function (c) {
         c.fillStyle = "#3b2a1e"; c.fillRect(0, 0, W, H);
         c.fillStyle = "#4a3526"; for (var y = TOP; y < H; y += 12) c.fillRect(0, y, W, 1);
         c.fillStyle = "rgba(255,255,255,.25)"; for (var y2 = TOP + 4; y2 < H; y2 += 14) c.fillRect(W / 2 - 1, y2, 2, 7);
-        c.fillStyle = "#7fc96b"; c.fillRect(12, L.y - PH / 2, 8, PH); c.fillStyle = "#c99be8"; c.fillRect(W - 20, R.y - PH / 2, 8, PH);
-        c.drawImage(api.sprite(GREM, GREM_PAL), 2, Math.round(L.y - 6), 10, 10); c.drawImage(api.sprite(GREM, GREM2_PAL), W - 12, Math.round(R.y - 6), 10, 10);
+        c.fillStyle = "rgba(0,0,0,.14)"; c.fillRect(0, TOP, X - 12, H - TOP); c.fillRect(W - X + 12, TOP, X - 12, H - TOP);   // thumb strips
+        c.fillStyle = "#7fc96b"; c.fillRect(X, L.y - PH / 2, PW, PH); c.fillStyle = "#c99be8"; c.fillRect(W - X - PW, R.y - PH / 2, PW, PH);
+        c.drawImage(api.sprite(GREM, GREM_PAL), X - 10, Math.round(L.y - 6), 10, 10); c.drawImage(api.sprite(GREM, GREM2_PAL), W - X, Math.round(R.y - 6), 10, 10);
         c.drawImage(api.sprite(DONUT, DONUT_PAL), Math.round(ball.x - 5), Math.round(ball.y - 5), 10, 10);
         api.text(c, String(pts[0]), W / 2 - 24, TOP + 6, 18, "#7fc96b", "center");
         api.text(c, String(pts[1]), W / 2 + 24, TOP + 6, 18, "#c99be8", "center");

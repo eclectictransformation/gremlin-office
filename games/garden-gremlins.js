@@ -11,12 +11,23 @@
 
   function soil(c, W, H) { c.fillStyle = "#2b2116"; c.fillRect(0, 0, W, H); }
 
-  /* ===== HUNGRY VINE: Pip's plant grows toward droplets and sunbeams; a bonk just means nap time ===== */
+  /* ===== HUNGRY VINE: Pip's plant grows toward droplets and sunbeams; a bonk just means nap time =====
+     Tuned to be gentle: chunky cells, a thick vine, a slow start with a soft speed-up, a forgiving
+     "near-miss still counts" sip, and a short WHOA! hesitation before a bonk so there's time to turn. */
   A.register("hungry-vine", function (api) {
-    var CELL = 12, COLS = 26, ROWS = 18, OX = 4, OY = api.top + 4;
-    var body, dir, queue, step, acc, grow, drop, sun, sunWait, points, waiting, napping, sx;
+    var CELL = 15, COLS = 20, ROWS = 14, OX = Math.round((api.W - COLS * CELL) / 2), OY = api.top + 4;
+    var VINE = 11, PAD = (CELL - VINE) / 2, HALF = Math.ceil(CELL / 2);   // vine body 11 px wide (was 6), centred in the cell
+    var STEP0 = 0.26, STEP_MIN = 0.2, STEP_RAMP = 0.001;                    // s per cell: was 0.17 -> 0.11, ramp 0.002/pt
+    var GRACE = 2;                                                           // steps the vine hesitates before a bonk
+    var body, dir, queue, step, acc, grow, drop, sun, sunWait, points, waiting, napping, sx, stall;
     function free(x, y) { return !body.some(function (b) { return b[0] === x && b[1] === y; }); }
     function place() { var x, y, n = 0; do { x = Math.floor(Math.random() * COLS); y = Math.floor(Math.random() * ROWS); } while ((!free(x, y) || (drop && drop[0] === x && drop[1] === y) || (sun && sun[0] === x && sun[1] === y)) && ++n < 500); return [x, y]; }
+    function near(p, x, y) { return !!p && Math.abs(p[0] - x) + Math.abs(p[1] - y) <= 1; }   // on it, or brushing past right beside it
+    function blocked(nx, ny) {
+      if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) return true;
+      var t = body[body.length - 1];
+      return !free(nx, ny) && !(grow === 0 && nx === t[0] && ny === t[1]);
+    }
     function turn(k) {
       var d = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[k]; if (!d) return;
       waiting = false;
@@ -29,7 +40,7 @@
       napping = 1.2; api.toast("PIP'S PLANT NEEDS A NAP. ZZZ", 1200);
     }
     return {
-      start: function () { body = [[8, 9], [7, 9], [6, 9]]; dir = [1, 0]; queue = []; step = 0.17; acc = 0; grow = 0; points = 0; drop = null; sun = null; drop = place(); sunWait = 6; waiting = true; napping = 0; api.score(0); },
+      start: function () { body = [[6, 7], [5, 7], [4, 7]]; dir = [1, 0]; queue = []; step = STEP0; acc = 0; grow = 0; points = 0; drop = null; sun = null; drop = place(); sunWait = 6; waiting = true; napping = 0; stall = 0; api.score(0); },
       press: function (k) { if (napping) return; if (k === "action") { waiting = false; return; } turn(k); },
       pointer: function (type, x, y) {
         if (napping) return;
@@ -37,7 +48,7 @@
         if (type === "drag" && sx) { var dx = x - sx[0], dy = y - sx[1]; if (Math.hypot(dx, dy) > 18) { turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up")); sx = [x, y]; } return; }
         if (type === "up" && sx) {
           if (Math.hypot(x - sx[0], y - sx[1]) < 10) {   // a tap: turn toward the tapped side of the vine's head
-            var h = body[0], hx = OX + h[0] * CELL + 6, hy = OY + h[1] * CELL + 6, ddx = x - hx, ddy = y - hy;
+            var h = body[0], hx = OX + h[0] * CELL + CELL / 2, hy = OY + h[1] * CELL + CELL / 2, ddx = x - hx, ddy = y - hy;
             if (dir[0] !== 0) turn(ddy < 0 ? "up" : "down"); else turn(ddx < 0 ? "left" : "right");
           }
           sx = null;
@@ -50,33 +61,46 @@
         acc += dt; if (acc < step) return; acc -= step;
         if (queue.length) dir = queue.shift();
         var h = body[0], nx = h[0] + dir[0], ny = h[1] + dir[1];
-        if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS || !free(nx, ny) && !(grow === 0 && nx === body[body.length - 1][0] && ny === body[body.length - 1][1])) return nap();
+        if (blocked(nx, ny)) {   // a little hesitation first: turn now and the vine carries on
+          if (stall < GRACE) { if (!stall) api.toast(api.pick(["WHOA! TURN, TURN!", "EEP! A WALL!", "HOLD ON, LEAFY!"]), 700); stall++; return; }
+          return nap();
+        }
+        stall = 0;
         body.unshift([nx, ny]);
-        if (drop && nx === drop[0] && ny === drop[1]) { grow += 1; points += 1; drop = place(); api.toast(api.pick(["SLURP!", "GLUG.", "REFRESHING!", "MMM, WATER."]), 600); }
-        if (sun && nx === sun[0] && ny === sun[1]) { grow += 2; points += 3; sun = null; sunWait = api.rnd(5, 10); api.toast("SUNBEAM! +3", 900); }
+        if (near(drop, nx, ny)) { grow += 1; points += 1; drop = place(); api.toast(api.pick(["SLURP!", "GLUG.", "REFRESHING!", "MMM, WATER."]), 600); }
+        if (near(sun, nx, ny)) { grow += 2; points += 3; sun = null; sunWait = api.rnd(5, 10); api.toast("SUNBEAM! +3", 900); }
         if (grow > 0) grow--; else body.pop();
-        step = Math.max(0.11, 0.17 - points * 0.002);
+        step = Math.max(STEP_MIN, STEP0 - points * STEP_RAMP);
         api.score(points);
       },
       draw: function (c) {
         var W = api.W, H = api.H; soil(c, W, H);
         c.fillStyle = "#3a2c1d"; c.fillRect(OX - 2, OY - 2, COLS * CELL + 4, ROWS * CELL + 4);
         c.fillStyle = "#33271a"; for (var i = 0; i < COLS; i++) for (var j = 0; j < ROWS; j++) if ((i + j) % 2) c.fillRect(OX + i * CELL, OY + j * CELL, CELL, CELL);
-        if (drop) c.drawImage(api.sprite(DROP, DROP_PAL), OX + drop[0] * CELL + 1, OY + drop[1] * CELL + 1 + (api.reduced ? 0 : Math.round(Math.sin(api.time() * 4))), 10, 10);
-        if (sun) c.drawImage(api.sprite(SUN, SUN_PAL), OX + sun[0] * CELL + 1, OY + sun[1] * CELL + 1, 10, 10);
-        // the plant pot at the root, then the vine
-        for (var k = body.length - 1; k >= 0; k--) {
+        if (drop) c.drawImage(api.sprite(DROP, DROP_PAL), OX + drop[0] * CELL + 1, OY + drop[1] * CELL + 1 + (api.reduced ? 0 : Math.round(Math.sin(api.time() * 4))), CELL - 2, CELL - 2);
+        if (sun) c.drawImage(api.sprite(SUN, SUN_PAL), OX + sun[0] * CELL + 1, OY + sun[1] * CELL + 1, CELL - 2, CELL - 2);
+        // the vine: a dark outline pass, then the green stem on top, so the thick body still reads as one plant
+        var pass = function (col, grow2) {
+          c.fillStyle = col;
+          for (var k = body.length - 1; k >= 0; k--) {
+            var b = body[k], x = OX + b[0] * CELL + PAD - grow2, y = OY + b[1] * CELL + PAD - grow2, s = VINE + grow2 * 2;
+            c.fillRect(x, y, s, s);
+            var nb = body[k - 1] || null; if (nb) c.fillRect(x + (nb[0] - b[0]) * HALF, y + (nb[1] - b[1]) * HALF, s, s);
+          }
+        };
+        pass("#1b5e20", 1); pass("#2e7d32", 0);
+        for (var k = 1; k < body.length; k += 2) {   // little leaves along the stem
           var b = body[k], x = OX + b[0] * CELL, y = OY + b[1] * CELL;
-          c.fillStyle = "#2e7d32"; c.fillRect(x + 3, y + 3, 6, 6);
-          var nb = body[k - 1] || null; if (nb) { c.fillRect(x + 3 + (nb[0] - b[0]) * 6, y + 3 + (nb[1] - b[1]) * 6, 6, 6); }
-          if (k % 2 && k) { c.fillStyle = "#66bb6a"; c.fillRect(x + (k % 4 === 1 ? 1 : 8), y + (k % 4 === 1 ? 1 : 8), 3, 3); }
+          c.fillStyle = "#66bb6a"; c.fillRect(x + (k % 4 === 1 ? PAD + 1 : CELL - PAD - 5), y + (k % 4 === 1 ? PAD + 1 : CELL - PAD - 5), 4, 4);
         }
-        var t = body[body.length - 1]; c.fillStyle = "#c0632d"; c.fillRect(OX + t[0] * CELL + 1, OY + t[1] * CELL + 5, 10, 7); c.fillStyle = "#e07b39"; c.fillRect(OX + t[0] * CELL, OY + t[1] * CELL + 4, 12, 2);
+        var t = body[body.length - 1], tx = OX + t[0] * CELL, ty = OY + t[1] * CELL;
+        c.fillStyle = "#c0632d"; c.fillRect(tx + 1, ty + 6, CELL - 2, CELL - 6); c.fillStyle = "#e07b39"; c.fillRect(tx - 1, ty + 4, CELL + 2, 3);
         var h = body[0], hx = OX + h[0] * CELL, hy = OY + h[1] * CELL;
-        c.fillStyle = "#81c784"; c.fillRect(hx + 1, hy + 1, 10, 10);
-        c.fillStyle = "#f8bbd0"; c.fillRect(hx + 4, hy - 1, 4, 3);
-        if (napping) { c.fillStyle = "#1b5e20"; c.fillRect(hx + 3, hy + 5, 2, 1); c.fillRect(hx + 7, hy + 5, 2, 1); api.text(c, "z", hx + 12, hy - 8 - Math.round((1.2 - napping) * 8), 9, "#fff"); }
-        else { c.fillStyle = "#111"; c.fillRect(hx + 3, hy + 4, 2, 2); c.fillRect(hx + 7, hy + 4, 2, 2); c.fillRect(hx + 5, hy + 8, 2, 1); }
+        c.fillStyle = "#1b5e20"; c.fillRect(hx, hy, CELL, CELL);
+        c.fillStyle = stall && !napping ? "#aed581" : "#81c784"; c.fillRect(hx + 1, hy + 1, CELL - 2, CELL - 2);
+        c.fillStyle = "#f8bbd0"; c.fillRect(hx + 5, hy - 2, 5, 3);
+        if (napping) { c.fillStyle = "#1b5e20"; c.fillRect(hx + 3, hy + 6, 3, 1); c.fillRect(hx + 9, hy + 6, 3, 1); api.text(c, "z", hx + 15, hy - 8 - Math.round((1.2 - napping) * 8), 9, "#fff"); }
+        else { c.fillStyle = "#111"; c.fillRect(hx + 3, hy + 4, 3, 3); c.fillRect(hx + 9, hy + 4, 3, 3); c.fillRect(hx + 6, hy + 10, 3, 1); if (stall) c.fillRect(hx + 6, hy + 9, 3, 3); }
         if (waiting) api.text(c, api.coarse ? "SWIPE OR TAP TO GROW" : "PRESS AN ARROW TO GROW", W / 2, OY + 60, 10, "#fff3a0", "center");
       }
     };
@@ -156,16 +180,19 @@
     };
   });
 
-  /* ===== SEED PACKET BONK: bounce a seed off a watering can to open the seed packets ===== */
+  /* ===== SEED PACKET BONK: bounce a seed off a watering can to open the seed packets =====
+     The can sits up off the bottom edge (api.edgeInset of the court height: 14% or 48 CSS px), so a thumb
+     dragging along the strip below it never hides it. */
   A.register("seed-packet-bonk", function (api) {
-    var W = api.W, H = api.H, PY = 222, PW = 46, COLS = 8, ROWS = 4, BW = 34, BH = 16, GAP = 4;
+    var W = api.W, H = api.H, PY = 222, CANH = 9, PW = 46, COLS = 8, ROWS = 4, BW = 34, BH = 16, GAP = 4;
     var COLORS = ["#e74c3c", "#f39c12", "#27ae60", "#8e44ad"], FLOWERS = ["#fdebd0", "#fff3a0", "#f5b7b1", "#d6eaf8"];
     var pad, ball, packets, seeds, opened, stuck, target, bits;
+    function layout() { PY = H - api.edgeInset(H) - CANH; }   // was a fixed 222 (9 px off the bottom)
     function resetBall() { ball = { x: pad, y: PY - 6, vx: 0, vy: 0 }; stuck = true; }
     function launch() { if (!stuck) return; stuck = false; ball.vx = api.rnd(-60, 60); ball.vy = -140; }
     return {
       start: function () {
-        pad = W / 2; seeds = 3; opened = 0; target = null; bits = []; api.score(0);
+        layout(); pad = W / 2; seeds = 3; opened = 0; target = null; bits = []; api.score(0);
         var x0 = Math.round((W - (COLS * BW + (COLS - 1) * GAP)) / 2);
         packets = []; for (var r = 0; r < ROWS; r++) for (var cI = 0; cI < COLS; cI++) packets.push({ x: x0 + cI * (BW + GAP), y: api.top + 14 + r * (BH + GAP), r: r, on: true });
         resetBall();
@@ -173,6 +200,7 @@
       press: function (k) { if (k === "action" || k === "up") launch(); },
       pointer: function (type, x) { if (type === "down" || type === "drag" || type === "hover") target = x; if (type === "up" && stuck) launch(); },
       update: function (dt) {
+        layout();
         var mv = (api.held("right") ? 1 : 0) - (api.held("left") ? 1 : 0);
         if (mv) { pad += mv * 220 * dt; target = null; } else if (target != null) pad += clamp(target - pad, -300 * dt, 300 * dt);
         pad = clamp(pad, PW / 2 + 2, W - PW / 2 - 2);

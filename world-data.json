@@ -6669,7 +6669,7 @@
               "down"
             ],
             "keysHelp": "↑ ↓ or W / S to move. The mouse works too. First to 5.",
-            "touchHelp": "Drag on the screen or use ▲ ▼. First to 5.",
+            "touchHelp": "Drag in the strip behind your gremlin (or use ▲ ▼). First to 5.",
             "prize": {
               "enabled": false,
               "milestone": {
@@ -6799,7 +6799,7 @@
             ],
             "actionLabel": "PLANT",
             "keysHelp": "← → or A / D (or the mouse) to move. Space plants the seed.",
-            "touchHelp": "Drag along the screen to move, tap to plant.",
+            "touchHelp": "Drag along the strip below the can to move, tap to plant.",
             "prize": {
               "enabled": false,
               "milestone": {
@@ -6883,7 +6883,7 @@
             "ranked": false,
             "pad": [],
             "keysHelp": "Left player W / S, right player ↑ / ↓. First to 7. Just for fun, no board.",
-            "touchHelp": "Each player drags on their own half of the screen. First to 7.",
+            "touchHelp": "Each player drags in the strip behind their own paddle. First to 7.",
             "prize": {
               "enabled": false,
               "milestone": {
