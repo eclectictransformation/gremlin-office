@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 330" width="170" height="330"><!-- Quiet Garden cabinet, drawn in code for the Shifting House preview -->
+<defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#27463a"/><stop offset=".5" stop-color="#3f6b5a"/><stop offset="1" stop-color="#27463a"/></linearGradient>
+<radialGradient id="s" cx=".5" cy=".6" r=".7"><stop offset="0" stop-color="#2b4a3f"/><stop offset="1" stop-color="#101d19"/></radialGradient></defs>
+<path d="M18 10h134l8 30v280H10V40z" fill="url(#b)" stroke="#1a2f27" stroke-width="4"/>
+<rect x="22" y="16" width="126" height="34" rx="6" fill="#f6e3a1"/>
+<text x="85" y="39" font-family="Georgia,serif" font-size="15" font-weight="700" text-anchor="middle" fill="#27463a">QUIET GARDEN</text>
+<rect x="24" y="62" width="122" height="104" rx="8" fill="url(#s)" stroke="#1a2f27" stroke-width="4"/>
+<g fill="#f6e3a1"><circle cx="52" cy="92" r="3" opacity=".8"/><circle cx="112" cy="84" r="2.5" opacity=".6"/><circle cx="96" cy="124" r="3" opacity=".9"/><circle cx="66" cy="138" r="2" opacity=".5"/></g>
+<path d="M78 112h14l3 18h-20z" fill="#f2a65a" opacity=".9"/><path d="M80 108h10" stroke="#f6e3a1" stroke-width="2"/>
+<path d="M24 172h122l10 40H14z" fill="#335a4b" stroke="#1a2f27" stroke-width="3"/>
+<circle cx="60" cy="192" r="8" fill="#a8e07a"/><circle cx="110" cy="192" r="8" fill="#f6e3a1"/>
+<path d="M30 240c20-14 40-14 55 0s35 14 55 0" stroke="#a8e07a" stroke-width="4" fill="none" opacity=".7"/>
+<path d="M44 262c6-10 14-10 20 0M106 262c6-10 14-10 20 0" stroke="#f6e3a1" stroke-width="3" fill="none" opacity=".7"/>
+<rect x="60" y="282" width="50" height="10" rx="3" fill="#1a2f27"/></svg>

@@ -1,0 +1,23 @@
+[
+  {"id": "rain-window", "label": "Rainy window - click: rain sound + 'Sit with it a minute.' (overlay)", "type": "egg", "face": "front", "x": 390, "y": 330, "w": 410, "h": 580},
+  {"id": "big-chair", "label": "Oversized reading chair with sticky notes (blank)", "type": "prop", "face": "front", "x": 780, "y": 720, "w": 430, "h": 470},
+  {"id": "margin-frog-1", "label": "Margin frog 1 of 7", "type": "egg", "face": "front", "x": 112, "y": 478, "w": 44, "h": 44},
+  {"id": "return-slot", "label": "Book-return slot: Shelve It mini-game", "type": "prop", "face": "right", "x": 258, "y": 456, "w": 170, "h": 95},
+  {"id": "returns-bin-nest", "label": "Dented returns bin with a blanket nest (nap nook)", "type": "prop", "face": "right", "x": 262, "y": 760, "w": 430, "h": 370},
+  {"id": "giant-textbook", "label": "Giant used textbook on lectern (margin notes: overlay kind notes / ??)", "type": "prop", "face": "right", "x": 765, "y": 580, "w": 430, "h": 230},
+  {"id": "margin-frog-2", "label": "Margin frog 2 of 7", "type": "egg", "face": "right", "x": 538, "y": 250, "w": 44, "h": 44},
+  {"id": "margin-frog-3", "label": "Margin frog 3 of 7", "type": "egg", "face": "right", "x": 372, "y": 512, "w": 44, "h": 44},
+  {"id": "margin-frog-4", "label": "Margin frog 4 of 7 (in the textbook)", "type": "egg", "face": "right", "x": 900, "y": 640, "w": 44, "h": 44},
+  {"id": "margin-frog-5", "label": "Margin frog 5 of 7", "type": "egg", "face": "right", "x": 636, "y": 757, "w": 44, "h": 44},
+  {"id": "exit-stacks-below", "label": "Gap behind the poetry shelf", "type": "exit", "face": "back", "x": 520, "y": 560, "w": 300, "h": 720, "leadsTo": "The Stacks Below (on to Dot's Print Shop, or Moth's studio via the Illustrations hatch)"},
+  {"id": "coat-hook", "label": "Two coats on the hook (editorial days; unlabeled)", "type": "egg", "face": "back", "x": 905, "y": 540, "w": 230, "h": 470},
+  {"id": "margin-frog-6", "label": "Margin frog 6 of 7", "type": "egg", "face": "back", "x": 905, "y": 238, "w": 44, "h": 44},
+  {"id": "sticky-note-books", "label": "Books bristling with sticky notes (blank)", "type": "prop", "face": "left", "x": 315, "y": 200, "w": 610, "h": 180},
+  {"id": "card-catalog", "label": "Card catalog drawers (blank labels)", "type": "prop", "face": "left", "x": 295, "y": 630, "w": 540, "h": 620},
+  {"id": "drawer-teacup", "label": "Drawer: teacup", "type": "prop", "face": "left", "x": 210, "y": 400, "w": 180, "h": 110},
+  {"id": "drawer-moth", "label": "Drawer: moth", "type": "prop", "face": "left", "x": 355, "y": 520, "w": 160, "h": 110},
+  {"id": "drawer-sock", "label": "Drawer: single sock", "type": "prop", "face": "left", "x": 380, "y": 660, "w": 200, "h": 110},
+  {"id": "drawer-trend-globe", "label": "Drawer: spinning trend globe", "type": "prop", "face": "left", "x": 360, "y": 795, "w": 170, "h": 120},
+  {"id": "self-typing-typewriter", "label": "Typewriter that types by itself (blank page: overlay)", "type": "prop", "face": "left", "x": 783, "y": 590, "w": 290, "h": 210},
+  {"id": "margin-frog-7", "label": "Margin frog 7 of 7", "type": "egg", "face": "left", "x": 705, "y": 178, "w": 44, "h": 44}
+]

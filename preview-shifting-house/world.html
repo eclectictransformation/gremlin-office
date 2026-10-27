@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Shifting House · Gremlin World (preview)</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Wander the Gremlin Office, crawl through a cozy burrow, and visit the Gallery of Odd Things.">
+<link rel="icon" href="data:,">
+<script>window.GW_CALM = true;   /* The Shifting House preview: calm mode */</script>
+<script>
+/* Storage check: some browsers block localStorage inside iframes (third-party storage). Then we swap in an
+   in-memory stand-in so the world still works; progress just lasts until the tab closes. */
+(function () {
+  try { var s = window.localStorage, k = "gremlin-world-probe"; s.setItem(k, "1"); s.removeItem(k); window.GW_STORAGE = "local"; return; } catch (e) {}
+  var m = {}, has = function (k) { return Object.prototype.hasOwnProperty.call(m, k); };
+  var mem = { getItem: function (k) { return has(k) ? m[k] : null; }, setItem: function (k, v) { m[k] = String(v); }, removeItem: function (k) { delete m[k]; },
+    clear: function () { m = {}; }, key: function (i) { return Object.keys(m)[i] || null; }, get length() { return Object.keys(m).length; } };
+  try { Object.defineProperty(window, "localStorage", { value: mem, configurable: true }); } catch (e) {}
+  window.GW_STORAGE = "memory"; document.documentElement.classList.add("no-storage");
+})();
+</script>
+<link rel="stylesheet" href="office.css">
+<link rel="stylesheet" href="world.css">
+<link rel="stylesheet" href="games/arcade.css">
+<link rel="stylesheet" href="shifting.css">
+</head>
+<body class="world calm">
+<div id="app">
+  <div id="viewport" tabindex="0" role="application" aria-roledescription="360 degree room"
+       aria-label="Gremlin World. Drag or use the arrow keys to look around. Press Tab to move between things you can click.">
+    <div id="world"></div>
+  </div>
+  <div id="mood" aria-hidden="true"></div>
+
+  <header class="hud hud-top">
+    <div class="hud-left">
+      <button id="btn-back" class="pill btn" hidden aria-label="Go back to the previous room">&#8592; <span>Back</span></button>
+      <h1 class="title"><span class="t-world">The Shifting House</span> <span id="room-name">The Office</span></h1>
+    </div>
+    <div class="hud-right">
+      <button id="socks" class="pill btn" aria-live="polite" aria-label="Sock hunt progress"><img src="assets/world/props/sock-pip.svg" alt=""> <span id="sock-count">0 / 5</span></button>
+      <button id="btn-map" class="pill btn" aria-haspopup="dialog" aria-controls="map">Map</button>
+      <button id="btn-help" class="pill btn" aria-label="How to explore">?</button>
+      <a id="btn-popout" class="pill btn" href="world.html" target="_blank" rel="noopener" hidden aria-label="Open Gremlin World in a new window">&#8599;</a>
+    </div>
+  </header>
+
+  <div class="hud hud-bottom">
+    <p id="hint" class="hint">Drag to look around. Glowing things want to be tapped. Doors and tunnels take you places.</p>
+    <div class="look-btns">
+      <button class="pill btn" data-look="up" aria-label="Look up">&#9650;</button>
+      <button class="pill btn" data-look="down" aria-label="Look down">&#9660;</button>
+    </div>
+  </div>
+
+  <div id="bubble" class="bubble" role="status" hidden>
+    <img alt="">
+    <p></p>
+  </div>
+
+  <div id="warp" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  <div id="loading" class="loading" role="status">Opening Gremlin World&hellip;</div>
+  <div id="debug" class="debug" hidden></div>
+
+  <div id="card" class="card" role="dialog" aria-modal="true" aria-labelledby="card-title" hidden>
+    <button class="card-close" aria-label="Close">&times;</button>
+    <div class="card-body"></div>
+  </div>
+
+  <aside id="map" class="explore mapbox" role="dialog" aria-modal="true" aria-labelledby="map-title" hidden>
+    <div class="explore-head"><h2 id="map-title">Map</h2><button class="card-close" aria-label="Close">&times;</button></div>
+    <p class="explore-sub">Rooms you've visited can be jumped to. The rest are still a mystery.</p>
+    <svg id="map-svg" viewBox="0 0 210 128" role="img" aria-label="Map of the rooms"></svg>
+    <ul id="map-list"></ul>
+  </aside>
+
+  <div id="prize" class="prize" role="dialog" aria-modal="true" aria-labelledby="prize-title" hidden>
+    <div class="prize-card">
+      <img src="assets/world/props/sock-bundle.svg" alt="Five socks tied up with a red ribbon">
+      <h2 id="prize-title"></h2>
+      <p id="prize-text"></p>
+      <p class="prize-note" id="prize-note"></p>
+      <div class="btn-row">
+        <button id="prize-close">Keep exploring</button>
+        <button id="prize-reset" class="ghost">Hide the socks again</button>
+      </div>
+    </div>
+  </div>
+</div>
+<noscript><p style="padding:1rem">Gremlin World needs JavaScript. You can still <a href="office-classic.html">visit the classic office</a>.</p></noscript>
+<script src="games/arcade.js" defer></script>
+<script src="world-player.js" defer></script>
+<script src="shifting.js" defer></script>
+<script src="world.js" defer></script>
+</body>
+</html>

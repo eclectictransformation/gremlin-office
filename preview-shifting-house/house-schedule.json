@@ -1,0 +1,20 @@
+{
+  "_readme": "The Shifting House arrangement. alwaysOpen rooms never rest. openCount rooms (besides those) are open at a time. Each new visit (a new browser session) quietly swaps swapsPerVisit [min, max] pairs: one open room from swapPool rests and one resting room from swapPool wakes, never closing the room the visitor is standing in. The newest issue whose 'from' date has arrived is used; when the active issue changes, the house resets to that issue's 'open' list. An issue may set its own open list, swapPool, swapsPerVisit, and 'unlocks' (rooms that stay open all issue long). Room ids are the keys in world-data.json -> rooms.",
+  "version": 1,
+  "alwaysOpen": ["office", "wing"],
+  "openCount": 7,
+  "base": {
+    "open": ["returns", "corridor", "lantern", "rooftop", "arcade", "burrow", "greenhouse"]
+  },
+  "swapPool": ["returns", "corridor", "lantern", "rooftop", "arcade", "burrow", "greenhouse", "tunnel", "gallery", "archive", "roots", "someday", "press", "proof", "dispatch", "lostfound", "stacks"],
+  "swapsPerVisit": [1, 2],
+  "issues": [
+    {
+      "issue": 0,
+      "label": "Issue 0: the house wakes up",
+      "from": "2026-10-01",
+      "open": ["returns", "corridor", "lantern", "rooftop", "arcade", "burrow", "greenhouse"],
+      "unlocks": []
+    }
+  ]
+}

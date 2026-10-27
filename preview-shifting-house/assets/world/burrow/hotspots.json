@@ -1,0 +1,14 @@
+[
+  {"id": "exit-cool-off-corridor", "label": "Round door to the Cool-Off Corridor", "type": "exit", "face": "back", "x": 508, "y": 555, "w": 500, "h": 610, "leadsTo": "Cool-Off Corridor"},
+  {"id": "sit-and-talk", "label": "Two mismatched armchairs and two teacups (hover: Sit. Talk. Nobody's in trouble.)", "type": "prop", "face": "front", "x": 515, "y": 775, "w": 940, "h": 400},
+  {"id": "porthole-window", "label": "Round window up to the meadow", "type": "prop", "face": "front", "x": 517, "y": 290, "w": 340, "h": 340},
+  {"id": "complaints-cabinet", "label": "COMPLAINTS cabinet (one tiny folder) - blank label holders, overlay text", "type": "egg", "face": "right", "x": 205, "y": 795, "w": 225, "h": 285},
+  {"id": "nice-things-cabinet", "label": "NICE THINGS PEOPLE SAID cabinet (won't close) - blank label holders, overlay text", "type": "egg", "face": "right", "x": 511, "y": 640, "w": 325, "h": 625},
+  {"id": "sock-grimble", "label": "Grimble's sock, folded neatly in the inbox tray", "type": "egg", "face": "right", "x": 835, "y": 600, "w": 250, "h": 230},
+  {"id": "slow-clock", "label": "Clock, a few minutes slow on purpose", "type": "egg", "face": "right", "x": 512, "y": 207, "w": 195, "h": 195},
+  {"id": "say-it-kindly-plaque", "label": "Blank oval plaque over the door: place the Gremlish SAY IT KINDLY plaque here", "type": "egg", "face": "back", "x": 510, "y": 163, "w": 228, "h": 126},
+  {"id": "ear-trumpet", "label": "Ear trumpet: Listening Equipment", "type": "egg", "face": "left", "x": 575, "y": 322, "w": 160, "h": 200},
+  {"id": "hold-my-calls-sign", "label": "Blank hanging sign: overlay an upside-down HOLD MY CALLS", "type": "egg", "face": "left", "x": 412, "y": 404, "w": 165, "h": 115},
+  {"id": "nameplate", "label": "Blank desk nameplate: overlay HEAD GREMLIN, PROBABLY", "type": "egg", "face": "left", "x": 500, "y": 681, "w": 150, "h": 46},
+  {"id": "pip-and-plant-file", "label": "Pip & Plant file: very thick folder, one blank sheet", "type": "egg", "face": "left", "x": 693, "y": 651, "w": 280, "h": 135}
+]

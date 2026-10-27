@@ -1,0 +1,10 @@
+[
+  {"id": "exit-to-rooftop", "label": "Root steps up to the round opening: up to the Rooftop Garden", "type": "exit", "face": "front", "x": 500, "y": 520, "w": 460, "h": 800, "leadsTo": "rooftop"},
+  {"id": "exit-to-greenhouse", "label": "Sunny archway back under the potting bench to Pip's Idea Greenhouse", "type": "exit", "face": "back", "x": 512, "y": 540, "w": 760, "h": 660, "leadsTo": "greenhouse"},
+  {"id": "glow-mushrooms-steps", "label": "Friendly glowing mushrooms beside the steps (tap to glow brighter)", "type": "prop", "face": "front", "x": 870, "y": 790, "w": 230, "h": 330},
+  {"id": "mushroom-trio", "label": "Three glowing mushrooms on a root", "type": "prop", "face": "left", "x": 488, "y": 570, "w": 260, "h": 170},
+  {"id": "acorn-hollow", "label": "Little hollow full of acorns", "type": "prop", "face": "left", "x": 492, "y": 255, "w": 210, "h": 170},
+  {"id": "seedling-shelf", "label": "Root shelf with three seedling pots", "type": "prop", "face": "right", "x": 515, "y": 560, "w": 330, "h": 200},
+  {"id": "mushroom-ladder", "label": "Column of glowing orange mushrooms climbing a root", "type": "prop", "face": "right", "x": 175, "y": 420, "w": 180, "h": 560},
+  {"id": "ceiling-glow", "label": "Glowing mushroom caps and light motes on the root ceiling", "type": "prop", "face": "ceiling", "x": 512, "y": 512, "w": 900, "h": 900}
+]

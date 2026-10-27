@@ -1,0 +1,12 @@
+[
+  {"id": "exit-to-returns", "label": "Lamp-lit stair curving back up to Vesper's Returns Bin", "type": "exit", "face": "back", "x": 512, "y": 560, "w": 300, "h": 700, "leadsTo": "returns"},
+  {"id": "exit-to-press", "label": "Book archway: the tunnel winds on to Dot's Print Shop (prints on the line)", "type": "exit", "face": "front", "x": 515, "y": 585, "w": 380, "h": 720, "leadsTo": "press"},
+  {"id": "exit-illustrations-hatch", "label": "Little hatch with a ladder, up to Moth's Lantern Loft", "type": "exit", "face": "left", "x": 520, "y": 640, "w": 240, "h": 560, "leadsTo": "lantern"},
+  {"id": "illustrations-label", "label": "Blank brass plate on the hatch: overlay ILLUSTRATIONS", "type": "prop", "face": "left", "x": 560, "y": 505, "w": 56, "h": 44},
+  {"id": "margin-notes-wall", "label": "Clear cream wall: space for Vesper's kind margin notes (overlay text)", "type": "prop", "face": "right", "x": 512, "y": 270, "w": 820, "h": 380},
+  {"id": "floating-lamps-wall", "label": "Three floating amber lamps", "type": "prop", "face": "right", "x": 335, "y": 560, "w": 380, "h": 160},
+  {"id": "reading-stool", "label": "Low stool with a plum cushion", "type": "prop", "face": "right", "x": 220, "y": 860, "w": 170, "h": 160},
+  {"id": "teacup-shelf", "label": "Teacup on a stack of books", "type": "prop", "face": "back", "x": 205, "y": 570, "w": 120, "h": 120},
+  {"id": "floor-sticky-notes", "label": "Two blank sticky notes by a book stack (overlay a kind note)", "type": "prop", "face": "floor", "x": 160, "y": 420, "w": 200, "h": 180},
+  {"id": "ceiling-lanterns", "label": "Floating paper lanterns and drifting blank pages", "type": "prop", "face": "ceiling", "x": 512, "y": 512, "w": 900, "h": 900}
+]

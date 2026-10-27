@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Gremlin Office (classic)</title>
+<!-- The original single-room office, kept as-is. The live site sends index.html visitors to world.html. -->
+<meta name="description" content="A small explorable office where the Grateful Gremlins work. Look around; some things want to be found.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="office.css">
+</head>
+<body>
+<div id="app">
+  <div id="viewport" tabindex="0" role="application" aria-roledescription="360 degree room"
+       aria-label="The Gremlin Office. Drag or use the arrow keys to look around. Press Tab to move between things you can click." >
+    <div id="world"></div>
+  </div>
+
+  <header class="hud hud-top">
+    <h1 class="title">The Gremlin Office</h1>
+    <div class="hud-right">
+      <span id="found" class="pill" aria-live="polite">0 / 0 found</span>
+      <button id="btn-explore" class="pill btn" aria-haspopup="dialog" aria-controls="explore">Explore</button>
+      <button id="btn-help" class="pill btn" aria-label="How to explore">?</button>
+    </div>
+  </header>
+
+  <div class="hud hud-bottom">
+    <p id="hint" class="hint">Drag to look around. Things that glow want to be clicked.</p>
+    <div class="look-btns" aria-hidden="false">
+      <button class="pill btn" data-look="up" aria-label="Look up">&#9650;</button>
+      <button class="pill btn" data-look="down" aria-label="Look down">&#9660;</button>
+    </div>
+    <button id="btn-secrets" class="pill btn secrets" hidden>Show me the secrets</button>
+  </div>
+
+  <div id="loading" class="loading" role="status">Opening the office&hellip;</div>
+  <div id="debug" class="debug" hidden></div>
+
+  <div id="card" class="card" role="dialog" aria-modal="true" aria-labelledby="card-title" hidden>
+    <button class="card-close" aria-label="Close">&times;</button>
+    <div class="card-body"></div>
+  </div>
+
+  <aside id="explore" class="explore" role="dialog" aria-modal="true" aria-labelledby="explore-title" hidden>
+    <div class="explore-head">
+      <h2 id="explore-title">Explore the office</h2>
+      <button class="card-close" aria-label="Close">&times;</button>
+    </div>
+    <p class="explore-sub">Tap anything to go there. Things you haven't found yet stay a little mysterious.</p>
+    <div class="explore-list"></div>
+  </aside>
+</div>
+<noscript><p style="padding:1rem">The Gremlin Office needs JavaScript to look around. You can still <a href="comics.html">read the comics</a>.</p></noscript>
+<script src="office.js" defer></script>
+</body>
+</html>

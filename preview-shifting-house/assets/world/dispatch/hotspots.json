@@ -1,0 +1,14 @@
+[
+  {"id": "departures-board", "label": "Departures board (blank flaps: overlay the joke departures)", "type": "prop", "face": "front", "x": 485, "y": 322, "w": 610, "h": 400},
+  {"id": "wonky-schedule", "label": "Hand-drawn wonky schedule taped up (colour blocks only)", "type": "prop", "face": "front", "x": 905, "y": 378, "w": 210, "h": 260},
+  {"id": "noodle-bowl", "label": "Never-cold noodle bowl on a stack of clipboards", "type": "prop", "face": "front", "x": 495, "y": 660, "w": 260, "h": 210},
+  {"id": "noodle-1-chair", "label": "Racing-stripe chair NOODLE 1 (blank oval patch) - spin it 3x", "type": "egg", "face": "front", "x": 672, "y": 800, "w": 300, "h": 380},
+  {"id": "pneumatic-tube-wall", "label": "Pneumatic tube wall with capsules", "type": "prop", "face": "right", "x": 520, "y": 470, "w": 920, "h": 720},
+  {"id": "capsule-tray", "label": "Capsule tray - click for a capsule note", "type": "egg", "face": "right", "x": 483, "y": 915, "w": 470, "h": 120},
+  {"id": "snack-corkboard", "label": "Red-string corkboard: who's bringing snacks (blank cards)", "type": "prop", "face": "back", "x": 380, "y": 515, "w": 560, "h": 760},
+  {"id": "exit-tube-crawlspace", "label": "Tube crawlspace behind the corkboard", "type": "exit", "face": "back", "x": 780, "y": 485, "w": 220, "h": 590, "leadsTo": "Tube crawlspace -> Dot's Back-Room Press"},
+  {"id": "exit-lost-and-found", "label": "Little hatch with a sock poking out", "type": "exit", "face": "back", "x": 918, "y": 815, "w": 175, "h": 210, "leadsTo": "Lost & Found sock closet"},
+  {"id": "night-window", "label": "Round window: 2 AM sky and a tiny night train", "type": "prop", "face": "left", "x": 510, "y": 320, "w": 400, "h": 400},
+  {"id": "one-thing-note", "label": "Blank note card: One thing at a time. The rest will wait. (overlay)", "type": "prop", "face": "left", "x": 813, "y": 425, "w": 150, "h": 160},
+  {"id": "sort-the-chaos-trays", "label": "Six inbox trays (blank labels): Sort the Chaos mini-game", "type": "prop", "face": "left", "x": 515, "y": 735, "w": 950, "h": 150}
+]
