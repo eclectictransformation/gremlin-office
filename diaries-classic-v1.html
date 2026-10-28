@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gremlin Diaries</title>
+<meta name="description" content="Gremlin Diaries: daily comic strips from the Grateful Gremlins' office. Newest strip first; swipe back through every strip.">
+<link rel="icon" href="data:,">
+<style>
+:root{--cream:#E8E4D8;--paper:#F1EDE2;--sage:#A6B89A;--forest:#54664A;--moss:#3A4A33;--ink:#1A1A18;--sun:#F3D98B;
+  --serif:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  /* carousel sizing: fixed px (never vh) so the height we report to the host page can't feed back on itself */
+  --slide-w:430px;--img-h:432px;--gap:18px;
+  /* the reader sits this far below the top of the frame so a host page's sticky header can't cover its title */
+  --reader-top:56px;--reader-max:none}
+html.embedded{--reader-top:96px;--reader-max:640px}
+*{box-sizing:border-box}
+html{background:var(--cream)}
+body{margin:0;color:var(--ink);font-family:var(--sans);line-height:1.45;background:var(--cream)}
+a{color:var(--forest)}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--forest);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:8px;background:var(--paper);padding:8px 12px;border-radius:8px;z-index:30}
+.skip:focus{left:8px}
+#page{max-width:1080px;margin:0 auto;padding:12px 16px 10px}
+/* header: title on the left, month pills + count on the right */
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:6px 18px;margin-bottom:6px}
+header.top h1{margin:0;font:600 clamp(26px,4vw,34px)/1.1 var(--serif);color:var(--moss)}
+header.top h1 small{font:italic 400 15px var(--serif);color:var(--forest);margin-left:8px}
+header.top p{margin:3px 0 0;color:var(--forest);font-size:14px;max-width:520px}
+.nav{display:flex;align-items:center;gap:10px;min-width:0}
+.pills{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:3px}
+.pills::-webkit-scrollbar{display:none}
+.pill{flex:0 0 auto;font:600 13px/1 var(--sans);color:var(--moss);background:var(--paper);border:1px solid rgba(84,102,74,.35);border-radius:999px;padding:9px 14px;min-height:36px;cursor:pointer;white-space:nowrap}
+.pill:hover{border-color:var(--forest);background:#fff}
+.pill[aria-current="true"]{background:var(--forest);color:var(--paper);border-color:var(--forest)}
+.count{font-size:13px;color:var(--forest);white-space:nowrap}
+.kicker{font:600 11px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--forest);margin:0}
+.new-tag{display:inline-block;font:700 10px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;background:var(--sun);color:var(--ink);padding:4px 6px;border-radius:4px;margin-left:6px;vertical-align:2px}
+.empty{text-align:center;font:italic 16px var(--serif);color:var(--forest);padding:30px}
+/* ---------- carousel ---------- */
+.carousel{position:relative}
+.track{display:flex;gap:var(--gap);overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none;
+  padding:6px calc(50% - var(--slide-w) / 2) 10px;position:relative;border-radius:18px}
+.track::-webkit-scrollbar{display:none}
+.track:focus-visible{outline-offset:-3px}
+.slide{flex:0 0 var(--slide-w);scroll-snap-align:center;scroll-snap-stop:always;background:var(--paper);border:1px solid rgba(84,102,74,.25);
+  border-radius:18px;box-shadow:0 6px 18px rgba(26,26,24,.10);padding:12px 14px 14px;display:flex;flex-direction:column;
+  opacity:.5;transform:scale(.94);transition:opacity .25s,transform .25s}
+.slide.is-current{opacity:1;transform:none}
+.slide.is-new{border-color:var(--forest)}
+.slide-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--forest);margin:0}
+.slide h2{margin:4px 0 8px;font:600 clamp(19px,2.4vw,23px)/1.2 var(--serif);color:var(--moss);min-height:1.2em}
+.strip-btn{display:flex;justify-content:center;align-items:flex-start;width:100%;padding:0;border:0;background:transparent;cursor:zoom-in;border-radius:8px}
+.strip-btn img{display:block;height:var(--img-h);width:auto;max-width:100%;object-fit:contain;border-radius:6px;background:var(--cream);box-shadow:0 1px 4px rgba(26,26,24,.12)}
+.strip-btn img.wide{width:100%;height:auto;max-height:var(--img-h)}
+.slide:not(.is-current) .strip-btn{cursor:pointer}
+.arrow{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:700 15px/1 var(--sans);color:var(--paper);background:var(--forest);
+  border:0;border-radius:999px;min-height:52px;min-width:52px;padding:0 18px;cursor:pointer;box-shadow:0 4px 12px rgba(26,26,24,.22)}
+.arrow:hover{background:var(--moss)}
+.arrow[disabled]{opacity:.35;cursor:default;box-shadow:none}
+.arrow .chev{font-size:24px;line-height:0;margin-top:-3px}
+.side{position:absolute;top:calc(50% - 26px);z-index:3}
+.side.prev{right:calc(50% + var(--slide-w) / 2 + 14px)}
+.side.next{left:calc(50% + var(--slide-w) / 2 + 14px)}
+.controls{display:none}
+.hint{font-size:12px;color:var(--forest);text-align:center;margin:0}
+/* filmstrip */
+.film{display:flex;gap:8px;overflow-x:auto;scrollbar-width:thin;padding:6px 4px 4px;margin-top:2px}
+.film>:first-child{margin-left:auto}.film>:last-child{margin-right:auto}
+.thumb{flex:0 0 auto;position:relative;width:58px;height:70px;padding:0;border:2px solid transparent;border-radius:9px;overflow:hidden;background:var(--paper);cursor:pointer;opacity:.7}
+.thumb img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.thumb span{position:absolute;left:0;right:0;bottom:0;font:700 10px/1 var(--sans);color:var(--paper);background:rgba(26,26,24,.62);padding:3px 0}
+.thumb.is-new span{background:var(--sun);color:var(--ink)}
+.thumb:hover{opacity:1}
+.thumb[aria-current="true"]{border-color:var(--forest);opacity:1}
+/* ---------- office teaser (compact) ---------- */
+.office{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;align-items:center;background:var(--moss);color:var(--paper);border-radius:18px;padding:12px;margin-top:10px}
+.office .peek{position:relative;display:block;border-radius:12px;overflow:hidden;border:3px solid var(--forest);background:var(--forest);padding:0;cursor:pointer}
+.office .peek img{display:block;width:100%;height:auto}
+.office .peek::after{content:"\2726  psst";position:absolute;right:8px;bottom:8px;font:600 11px var(--sans);background:rgba(26,26,24,.7);color:var(--paper);padding:5px 8px;border-radius:999px}
+.office h2{margin:4px 0 4px;font:600 22px/1.2 var(--serif);color:var(--paper)}
+.office p{margin:0 0 10px;color:#DCE3D3;font-size:14px}
+.office .kicker{color:var(--sage)}
+.btn{display:inline-flex;align-items:center;gap:6px;font:600 14px/1 var(--sans);background:var(--forest);color:var(--paper);border:0;border-radius:999px;padding:10px 15px;min-height:40px;cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--moss)}
+.office .btn{background:var(--sage);color:var(--ink)}
+.office .btn:hover{background:var(--paper)}
+.office .btn.ghost{background:transparent;color:var(--paper);border:1px solid rgba(241,237,226,.5)}
+.office .btn.ghost:hover{background:rgba(241,237,226,.12)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+footer{text-align:center;font-size:12px;color:var(--forest);margin-top:8px}
+/* ---------- phone ---------- */
+@media (max-width:719px){
+  :root{--slide-w:calc(100vw - 72px);--img-h:400px;--gap:12px}
+  #page{padding:12px 12px 10px}
+  header.top{display:block}
+  header.top h1 small{display:none}
+  header.top p{font-size:13px}
+  .office p{font-size:13px;margin-bottom:8px}
+  .nav{margin-top:8px;justify-content:space-between}
+  .slide{padding:10px 10px 12px}
+  .side{display:none}
+  .controls{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 0}
+  .controls .arrow{min-height:48px;padding:0 14px}
+  .controls .pos{font:600 13px var(--sans);color:var(--moss);text-align:center}
+  .hint.desk{display:none}
+  .office{grid-template-columns:1fr;gap:10px}
+  .office .peek{aspect-ratio:3/1}
+  .office .peek img{height:100%;object-fit:cover}
+  .office h2{font-size:20px}
+}
+@media (min-width:720px){.hint.phone{display:none}}
+@media (max-width:360px){:root{--img-h:380px}.controls .arrow .lbl{display:none}}
+/* ---------- overlays: strip reader + office popup ---------- */
+.overlay{position:fixed;left:0;top:0;width:100%;height:100%;z-index:50;background:rgba(26,26,24,.97);display:flex;flex-direction:column;align-items:center;
+  padding:var(--reader-top) 12px 12px}
+.overlay[hidden]{display:none}
+.panel{width:min(100%,1000px);flex:1 1 auto;min-height:0;max-height:var(--reader-max);display:flex;flex-direction:column;color:var(--paper)}
+#office-pop .panel{max-height:none}
+#office-pop .bar .head{flex-basis:120px}   /* phones: title + New window + Close on one row */
+.bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding:0 0 10px}
+.bar .head{flex:1 1 260px;min-width:0}
+.bar .head p{margin:0;font-size:13px;color:var(--sage)}
+.bar h2{margin:2px 0 0;font:600 clamp(18px,2.6vw,24px)/1.2 var(--serif);color:var(--paper)}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.ob{display:inline-flex;align-items:center;gap:5px;font:600 14px/1 var(--sans);background:rgba(241,237,226,.14);color:var(--paper);border:1px solid rgba(241,237,226,.38);
+  border-radius:999px;min-height:40px;min-width:40px;padding:0 13px;cursor:pointer;text-decoration:none;justify-content:center}
+.ob:hover{background:rgba(241,237,226,.26)}
+.ob[disabled]{opacity:.35;cursor:default}
+.ob.close{background:var(--paper);color:var(--moss);border-color:var(--paper)}
+.stage{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center;align-items:flex-start;border-radius:10px}
+.stage img{display:block;width:100%;height:100%;object-fit:contain;cursor:zoom-in}
+.stage.zoomed img{width:min(100%,900px);height:auto;object-fit:initial;cursor:zoom-out;border-radius:6px}
+.office-frame{flex:1;min-height:0}
+.office-frame iframe{display:block;width:100%;height:100%;border:0;border-radius:12px;background:var(--cream)}
+@media (max-width:719px){.overlay{padding-left:8px;padding-right:8px}.ob .lbl{display:none}.ob{padding:0 11px}}
+@media (prefers-reduced-motion:no-preference){.overlay{animation:fade .2s ease-out}@keyframes fade{from{opacity:0}}}
+@media (prefers-reduced-motion:reduce){.slide{transition:none}}
+</style>
+</head>
+<body>
+<a class="skip" href="#track">Skip to the strips</a>
+<div id="page">
+  <header class="top">
+    <div>
+      <h1>Gremlin Diaries <small>from the Gremlin Office</small></h1>
+      <p>Daily strips from the office where Bryan's AI helpers work, argue gently about fonts, and occasionally ride office chairs.</p>
+    </div>
+    <div class="nav">
+      <nav class="pills" id="pills" aria-label="Jump to a month"></nav>
+      <span class="count" id="count"></span>
+    </div>
+  </header>
+
+  <section class="carousel" id="carousel" aria-roledescription="carousel" aria-label="Gremlin Diaries strips, newest first">
+    <button class="arrow side prev" id="prev" aria-controls="track" aria-label="Newer strip" disabled><span class="chev" aria-hidden="true">&lsaquo;</span> Newer</button>
+    <div class="track" id="track" tabindex="0" aria-label="Strips, newest first. Use the left and right arrow keys to move between strips." aria-describedby="hint"></div>
+    <button class="arrow side next" id="next" aria-controls="track" aria-label="Older strip" disabled>Older <span class="chev" aria-hidden="true">&rsaquo;</span></button>
+    <div class="controls">
+      <button class="arrow" id="prev2" aria-controls="track" aria-label="Newer strip" disabled><span class="chev" aria-hidden="true">&lsaquo;</span> <span class="lbl">Newer</span></button>
+      <span class="pos" id="pos" aria-hidden="true"></span>
+      <button class="arrow" id="next2" aria-controls="track" aria-label="Older strip" disabled><span class="lbl">Older</span> <span class="chev" aria-hidden="true">&rsaquo;</span></button>
+    </div>
+    <p class="sr" id="live" aria-live="polite"></p>
+  </section>
+  <nav class="film" id="film" aria-label="All strips"></nav>
+  <p class="hint desk" id="hint">Scroll, swipe or use &larr; &rarr; for older strips. Click a strip to read it bigger.</p>
+  <p class="hint phone">Swipe for older strips. Tap a strip to read it bigger.</p>
+
+  <section class="office" aria-labelledby="office-title">
+    <button class="peek" id="peek" aria-label="Pop Gremlin World up here"><img src="assets/office-teaser.webp" width="720" height="360" alt="A peek into the Gremlin Office: two desks with monitors, a wall clock, an orange office chair and a framed comic strip." loading="lazy"></button>
+    <div>
+      <p class="kicker">Psst. The supply closet door is open.</p>
+      <h2 id="office-title">Step into Gremlin World</h2>
+      <p>Start in the office where the gremlins work, then crawl through the tunnels to the burrow, the gallery and beyond. Five socks are hiding somewhere. Nobody will tell you where. (Noodle might.)</p>
+      <div class="row">
+        <a class="btn" href="world.html" target="_blank" rel="noopener">Open in a new window &#8599;</a>
+        <button class="btn ghost" id="open-office" aria-haspopup="dialog">Pop through the closet door</button>
+      </div>
+    </div>
+  </section>
+  <footer>Drawn by Moth, checked by Grimble, printed by Dot. New strips appear here as soon as they're approved.</footer>
+</div>
+
+<div class="overlay" id="reader" role="dialog" aria-modal="true" aria-labelledby="reader-title" hidden>
+  <div class="panel" id="reader-panel">
+    <div class="bar">
+      <div class="head"><p id="reader-meta"></p><h2 id="reader-title" tabindex="-1"></h2></div>
+      <div class="tools">
+        <button class="ob" id="r-prev" aria-label="Newer strip"><span aria-hidden="true">&lsaquo;</span> <span class="lbl">Newer</span></button>
+        <button class="ob" id="r-next" aria-label="Older strip"><span class="lbl">Older</span> <span aria-hidden="true">&rsaquo;</span></button>
+        <button class="ob" id="r-zoom" aria-pressed="false">Zoom in</button>
+        <a class="ob" id="r-full" target="_blank" rel="noopener">Full size <span aria-hidden="true">&#8599;</span><span class="sr"> (opens the image in a new tab)</span></a>
+        <button class="ob close" data-close aria-label="Close strip">&times; <span class="lbl">Close</span></button>
+      </div>
+    </div>
+    <div class="stage" id="stage"><img id="reader-img" alt=""></div>
+  </div>
+</div>
+<div class="overlay" id="office-pop" role="dialog" aria-modal="true" aria-label="Gremlin World" hidden>
+  <div class="panel">
+    <div class="bar"><div class="head"><h2>Gremlin World</h2></div>
+      <div class="tools"><a class="ob" href="world.html" target="_blank" rel="noopener">New window <span aria-hidden="true">&#8599;</span></a><button class="ob close" data-close aria-label="Close Gremlin World">&times; <span class="lbl">Close</span></button></div></div>
+    <div class="office-frame"><iframe id="office-iframe" title="Gremlin World, explorable 360 degree rooms joined by doors and tunnels" allow="fullscreen"></iframe></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s) { return document.querySelector(s); };
+  var LOCALE = "en-US", EMBEDDED = window.self !== window.top;
+  if (EMBEDDED) document.documentElement.classList.add("embedded");
+  var reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function parse(d) { var p = d.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function dateLabel(d) { return parse(d).toLocaleDateString(LOCALE, { month: "short", day: "numeric", year: "numeric" }); }
+  function monthKey(d) { return d.slice(0, 7); }
+  function epTitle(s) { return (s.episode ? "Episode " + s.episode + ": " : "") + s.title; }
+  function epDate(s) { return (s.episode ? "Ep " + s.episode + " \u00b7 " : "") + dateLabel(s.date); }
+  function el(t, c, txt) { var e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; }
+
+  var strips = [], slides = [], thumbs = [], pills = [], cur = 0;
+  var track = $("#track"), film = $("#film");
+
+  /* ---------- height reporting for auto-resizing hosts (debounced) ---------- */
+  var lastH = 0, postT = 0;
+  function postNow() {
+    if (!EMBEDDED) return;
+    var h = Math.ceil($("#page").getBoundingClientRect().height);
+    if (h && h !== lastH) { lastH = h; window.parent.postMessage({ type: "gremlin-diaries-height", height: h }, "*"); }
+  }
+  function post() { clearTimeout(postT); postT = setTimeout(postNow, 120); }
+  if ("ResizeObserver" in window) new ResizeObserver(post).observe($("#page"));
+  window.addEventListener("resize", post);
+  window.addEventListener("load", post);
+
+  /* ---------- overlays (reader + office popup): focus trap, Esc, restore focus ---------- */
+  var openOverlay = null, lastFocus = null, io = null;
+  function show(ov, from) {
+    lastFocus = from || document.activeElement; openOverlay = ov; ov.hidden = false; fitToVisible(ov);
+    var c = ov.querySelector("[data-close]"); if (c) c.focus({ preventScroll: true });
+    // Bring the reader into the middle of the visitor's screen (no-op if the host blocks it).
+    requestAnimationFrame(function () { try { ov.querySelector(".panel").scrollIntoView({ block: "center", inline: "nearest" }); } catch (e) {} });
+  }
+  function hide() {
+    if (!openOverlay) return; var ov = openOverlay; openOverlay = null; ov.hidden = true;
+    if (ov.id === "office-pop") $("#office-iframe").removeAttribute("src");
+    if (ov.id === "reader") { $("#reader-img").removeAttribute("src"); lastFocus = slides[cur] && slides[cur].querySelector(".strip-btn"); }
+    if (io) { io.disconnect(); io = null; }
+    if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+  }
+  document.querySelectorAll("[data-close]").forEach(function (b) { b.addEventListener("click", hide); });
+  window.addEventListener("message", function (e) {   // Esc pressed inside the office iframe arrives as a message
+    if (e.source === $("#office-iframe").contentWindow && e.data && e.data.type === "gremlin-office-escape") hide();
+  });
+  /* If the host page makes this frame taller than the screen, "position:fixed" would cover the whole frame,
+     partly off-screen. So we pin overlays to the part of the frame the visitor can actually see. */
+  var probe = el("div"); probe.style.cssText = "position:absolute;left:0;top:0;width:1px;pointer-events:none;visibility:hidden"; document.body.appendChild(probe);
+  function fitToVisible(ov) {
+    ov.style.position = "fixed"; ov.style.top = "0"; ov.style.height = "100%";
+    if (!EMBEDDED || !("IntersectionObserver" in window)) return;
+    probe.style.height = document.documentElement.scrollHeight + "px";
+    var th = []; for (var i = 0; i <= 50; i++) th.push(i / 50);
+    io = new IntersectionObserver(function (entries) {
+      var r = entries[entries.length - 1].intersectionRect, vh = window.innerHeight;
+      if (!r || r.height <= 0 || r.height >= vh - 2) { ov.style.position = "fixed"; ov.style.top = "0"; ov.style.height = "100%"; return; }
+      ov.style.position = "absolute"; ov.style.top = (r.top + window.scrollY) + "px"; ov.style.height = Math.max(360, r.height) + "px";
+    }, { threshold: th });
+    io.observe(probe);
+  }
+
+  /* ---------- carousel ---------- */
+  function slideLeft(i) { var s = slides[i]; return s.offsetLeft - (track.clientWidth - s.offsetWidth) / 2; }
+  function goTo(i, smooth) {
+    i = Math.max(0, Math.min(strips.length - 1, i));
+    // scroll only the track (never scrollIntoView here: that would also scroll the host page)
+    track.scrollTo({ left: slideLeft(i), behavior: smooth && !reduceMotion ? "smooth" : "auto" });
+    setCurrent(i);
+  }
+  function setCurrent(i) {
+    if (i === cur && slides[i] && slides[i].classList.contains("is-current")) return;
+    cur = i; var s = strips[i];
+    slides.forEach(function (sl, j) { sl.classList.toggle("is-current", j === i); sl.setAttribute("aria-hidden", j === i ? "false" : "true");
+      sl.querySelector(".strip-btn").tabIndex = j === i ? 0 : -1; });
+    thumbs.forEach(function (t, j) { t.setAttribute("aria-current", j === i ? "true" : "false"); });
+    pills.forEach(function (p) { p.setAttribute("aria-current", p.dataset.k === monthKey(s.date) ? "true" : "false"); });
+    ["#prev", "#prev2"].forEach(function (q) { $(q).disabled = i === 0; });
+    ["#next", "#next2"].forEach(function (q) { $(q).disabled = i === strips.length - 1; });
+    $("#pos").textContent = (i + 1) + " of " + strips.length;
+    $("#count").textContent = "Strip " + (i + 1) + " of " + strips.length;
+    $("#live").textContent = epTitle(s) + ", " + dateLabel(s.date) + ". Strip " + (i + 1) + " of " + strips.length + ".";
+    var t = thumbs[i]; if (t) film.scrollTo({ left: t.offsetLeft - (film.clientWidth - t.offsetWidth) / 2, behavior: "auto" });
+  }
+  var raf = 0;
+  track.addEventListener("scroll", function () {
+    if (raf) return;
+    raf = requestAnimationFrame(function () {
+      raf = 0; var mid = track.scrollLeft + track.clientWidth / 2, best = 0, bd = Infinity;
+      slides.forEach(function (s, j) { var d = Math.abs(s.offsetLeft + s.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = j; } });
+      setCurrent(best);
+    });
+  }, { passive: true });
+  function older() { goTo(cur + 1, true); } function newer() { goTo(cur - 1, true); }
+  $("#prev").addEventListener("click", newer); $("#prev2").addEventListener("click", newer);
+  $("#next").addEventListener("click", older); $("#next2").addEventListener("click", older);
+  window.addEventListener("resize", function () { if (slides.length) track.scrollTo({ left: slideLeft(cur) }); });
+
+  document.addEventListener("keydown", function (e) {
+    if (openOverlay) {
+      if (e.key === "Escape") { e.preventDefault(); hide(); return; }
+      if (openOverlay.id === "reader" && (e.key === "ArrowLeft" || e.key === "ArrowRight")) { e.preventDefault(); readerStep(e.key === "ArrowRight" ? 1 : -1); return; }
+      if (e.key !== "Tab") return;
+      var f = Array.prototype.filter.call(openOverlay.querySelectorAll("button:not([disabled]), a[href], iframe"), function (x) { return x.offsetParent !== null; });
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+      else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+      else if (!openOverlay.contains(document.activeElement)) { first.focus(); e.preventDefault(); }
+      return;
+    }
+    if (!strips.length || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.target.closest && e.target.closest(".film, .pills") && e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    var map = { ArrowRight: cur + 1, ArrowLeft: cur - 1, Home: 0, End: strips.length - 1 };
+    if (!(e.key in map)) return;
+    if ((e.key === "Home" || e.key === "End") && document.activeElement !== track) return;
+    e.preventDefault(); goTo(map[e.key], true);
+    if (track.contains(document.activeElement) && document.activeElement !== track) slides[cur].querySelector(".strip-btn").focus({ preventScroll: true });
+  });
+
+  /* ---------- reader ---------- */
+  var rIdx = 0;
+  function fillReader(i) {
+    rIdx = i; var s = strips[i];
+    $("#reader-meta").textContent = epDate(s) + " \u00b7 " + (i + 1) + " of " + strips.length;
+    var t = $("#reader-title"); t.textContent = s.title; if (i === 0) t.appendChild(el("span", "new-tag", "New"));
+    var img = $("#reader-img"); img.src = s.filename; img.alt = s.alt || epTitle(s);
+    $("#r-full").href = s.filename;
+    $("#r-prev").disabled = i === 0; $("#r-next").disabled = i === strips.length - 1;
+    $("#stage").scrollTop = 0;
+  }
+  function setZoom(on) { $("#stage").classList.toggle("zoomed", on); $("#r-zoom").setAttribute("aria-pressed", on ? "true" : "false"); $("#r-zoom").textContent = on ? "Fit strip" : "Zoom in"; }
+  function openReader(i, from) { setZoom(false); fillReader(i); show($("#reader"), from); }
+  function readerStep(d) { var i = rIdx + d; if (i < 0 || i >= strips.length) return; fillReader(i); goTo(i, false); }
+  $("#r-prev").addEventListener("click", function () { readerStep(-1); });
+  $("#r-next").addEventListener("click", function () { readerStep(1); });
+  $("#r-zoom").addEventListener("click", function () { setZoom(!$("#stage").classList.contains("zoomed")); });
+  $("#reader-img").addEventListener("click", function () { setZoom(!$("#stage").classList.contains("zoomed")); });
+  $("#reader").addEventListener("click", function (e) { if (e.target === this) hide(); });   // click the dark backdrop to close
+  function openOffice(from) { $("#office-iframe").src = "world.html?embed"; show($("#office-pop"), from); }
+  $("#open-office").addEventListener("click", function () { openOffice(this); });
+  $("#peek").addEventListener("click", function () { openOffice(this); });
+
+  /* ---------- build from strips.json ---------- */
+  function build(list) {
+    strips = list;
+    if (!strips.length) { track.appendChild(el("p", "empty", "No strips yet. The gremlins are still drawing.")); post(); return; }
+    var years = {}; strips.forEach(function (s) { years[s.date.slice(0, 4)] = 1; });
+    var multiYear = Object.keys(years).length > 1, seen = {};
+    strips.forEach(function (s, i) {
+      var isNew = i === 0;
+      var sl = el("article", "slide" + (isNew ? " is-new" : "")); sl.setAttribute("role", "group"); sl.setAttribute("aria-roledescription", "slide");
+      sl.setAttribute("aria-label", (i + 1) + " of " + strips.length + ": " + epTitle(s)); sl.id = "strip-" + s.date;
+      var meta = el("p", "slide-meta"); meta.appendChild(el("span", "", epDate(s)));
+      var k = el("span", "kicker", isNew ? "Newest strip" : (i + 1) + " / " + strips.length); meta.appendChild(k); sl.appendChild(meta);
+      var h = el("h2", "", s.title); if (isNew) h.appendChild(el("span", "new-tag", "New")); sl.appendChild(h);
+      var b = el("button", "strip-btn"); b.setAttribute("aria-label", "Read " + epTitle(s) + " bigger");
+      var img = el("img"); img.alt = s.alt || epTitle(s); img.decoding = "async"; if (i > 2) img.loading = "lazy";
+      if (s.width && s.height) { img.width = s.width; img.height = s.height; if (s.width / s.height > 0.9) img.className = "wide"; }
+      img.src = s.filename; b.appendChild(img);
+      b.addEventListener("click", function () { if (i !== cur) { goTo(i, true); return; } openReader(i, b); });
+      sl.appendChild(b); track.appendChild(sl); slides.push(sl);
+
+      var t = el("button", "thumb" + (isNew ? " is-new" : "")); t.setAttribute("aria-label", "Show " + epTitle(s) + ", " + dateLabel(s.date) + (isNew ? " (newest)" : ""));
+      var ti = el("img"); ti.alt = ""; ti.loading = "lazy"; ti.src = s.thumb || s.filename; t.appendChild(ti);
+      t.appendChild(el("span", "", isNew ? "New" : (s.episode ? "Ep " + s.episode : dateLabel(s.date).replace(/,.*/, ""))));
+      t.addEventListener("click", function () { goTo(i, true); }); film.appendChild(t); thumbs.push(t);
+
+      var mk = monthKey(s.date);
+      if (!seen[mk]) {   // month pill jumps to that month's first (newest) strip
+        seen[mk] = 1; var d = parse(mk + "-01");
+        var p = el("button", "pill", d.toLocaleDateString(LOCALE, multiYear ? { month: "long", year: "numeric" } : { month: "long" }));
+        p.dataset.k = mk; p.setAttribute("aria-controls", "track");
+        p.setAttribute("aria-label", "Jump to " + d.toLocaleDateString(LOCALE, { month: "long", year: "numeric" }));
+        p.addEventListener("click", function () { goTo(i, true); }); $("#pills").appendChild(p); pills.push(p);
+      }
+    });
+    if (strips.length < 2) film.hidden = true;
+    cur = -1; goTo(0, false);
+    post();
+  }
+  fetch("strips.json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
+    build((d.strips || []).filter(function (s) { return s.active !== false && s.date && s.filename; })
+      .sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : (b.episode || 0) - (a.episode || 0); }));
+  }).catch(function () { track.appendChild(el("p", "empty", "Couldn't load the strips right now. Please try again in a moment.")); post(); });
+})();
+</script>
+</body>
+</html>
