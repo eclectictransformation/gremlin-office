@@ -333,16 +333,16 @@
     w.innerHTML = '<svg viewBox="0 0 120 60" aria-hidden="true" class="sd-art">' + ["#e8574a", "#3f6b5a", "#c9a45c", "#7a4b6a", "#3d5a80"].map(function (c, i) { return '<path d="M' + (8 + i * 22) + ' 6h12v26c0 4 3 6 7 6h1a5 5 0 0 1 0 10h-6c-9 0-14-6-14-15z" fill="' + c + '"/>'; }).join("") + '<path d="M4 30q56 22 112 0" stroke="#a0523d" stroke-width="3" fill="none"/></svg>';
     w.appendChild(el("p", "rc-meta", "the sock hunt"));
     w.appendChild(el("h2", "", "You found every sock!"));
-    w.appendChild(el("p", "reward-line", "Here's $5 off a class:"));
+    w.appendChild(el("p", "reward-line", "Here's $5 off the One Hour Workshop:"));
     var slot = el("div", "reward-slot"); slot.setAttribute("data-reward-slot", "socks");
     var code = el("code", "reward-code", "\u2026"); code.id = "sock-code";
     var copy = el("button", "reward-copy", "Copy"); copy.type = "button"; copy.id = "sock-copy";
     var mail = el("a", "reward-mail", "Email it to myself"); mail.id = "sock-mail"; mail.href = "mailto:";   // opens the visitor's own mail app; we collect and send nothing
     slot.appendChild(code); slot.appendChild(copy); slot.appendChild(mail); w.appendChild(slot);
-    w.appendChild(el("p", "reward-how", "Save this code! Write it on a piece of paper and hand it in at an in-person class, or go online and enter it when you pay for a workshop."));
+    w.appendChild(el("p", "reward-how", "Save this code! Enter it when you book the One Hour Workshop online."));
     getSockReward().then(function (r) {
       code.textContent = r.code;
-      mail.href = "mailto:?subject=" + encodeURIComponent("My Gremlin World sock reward") + "&body=" + encodeURIComponent("I found every sock! My code for $5 off a class at Eclectic Transformation: " + r.code + "\n\nSave this code! Write it on a piece of paper and hand it in at an in-person class, or go online and enter it when you pay for a workshop.");
+      mail.href = "mailto:?subject=" + encodeURIComponent("My Gremlin World sock reward") + "&body=" + encodeURIComponent("I found every sock! My code for $5 off the One Hour Workshop at Eclectic Transformation: " + r.code + "\n\nSave this code! Enter it when you book the One Hour Workshop online.");
       if (r.placeholder) { slot.classList.add("placeholder"); code.title = "Preview placeholder, not a real code"; }
     });
     copy.addEventListener("click", function () {

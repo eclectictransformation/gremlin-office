@@ -322,3 +322,42 @@ New item types and fields:
 Server note: new room and egg ids are ignored by the server until `tools/make-gw-seed.py` is re-run and its migration applied (not done yet).
 
 Test: `python3 tools/screenshots-rooms.py` (1280x800 + 390x844, every exit clicked, every egg/set/game opened; writes `screenshots/rooms-*.png`; fails on console errors or any 4xx/5xx).
+
+## The Shifting House (calm preview)
+
+`world.html` here runs in calm mode (`window.GW_CALM = true`) with `shifting.js` + `shifting.css`.
+
+- **house-schedule.json**: Office and Wing are always open. 7 more rooms are awake at a time (`base.open`). On each new browser session, 1 or 2 of them swap with rooms from `swapPool`, but never the room you are standing in. `issues` lists dated editions; issue 0 is the default. A resting room's doors glow with a zzz, and a direct `#room` link shows "this room is napping" (Go back / Drift home). Any sock in a napping room waits in the Wing instead, so the sock hunt can always be finished.
+- **Sock hunt**: on the first visit, a sock pokes out from under the Office door. When all 5 are found, a card shows the reward from `getSockReward()` in shifting.js, which returns the shared code in **`SOCK_REWARD_CODE`** (top of shifting.js, currently `SOCKS5`). It's the one free promotion anyone can do, and it is public on purpose. **To rotate it** (about monthly): edit that one line, redeploy, and retire the old code in the booking system. Guests can always finish the hunt (no sock sits in a Gremlin-Key room). The "Email it to myself" link is a plain `mailto:` that opens the visitor's own mail app.
+- **Cloud guide**: the moods and their lines live in `MOODS` in shifting.js. If the matching room is napping, the next-best open room is used.
+
+### How Vesper adds books (reading-shelf.json)
+
+Add an entry to `books`:
+
+```json
+{ "title": "The Kettle That Hummed", "teaser": "One line shown on hover.", "type": "finished", "date": "2026-10-25",
+  "text": "The reading card text (optional).", "link": "https://... (optional, https only)" }
+```
+
+- `type` is `"finished"` or `"wip"` (a wip book gets a ribbon).
+- Books dated within the last 14 days glow as new.
+- Books are sorted newest first, and the shelf holds 10. Older ones move to the Stacks Below archive.
+- With no books, the shelf says Vesper is still choosing.
+
+### Gremlin Keys in the Shifting House (Oct 27 2026, build copy)
+
+- **Welcome guide**: three short cards on the first visit per device (`gremlin-world-guide-seen`; skip with `?noprompt`). Each has Next and "Skip, just let me wander"; the last ends in "Get my Gremlin Key" / "Just look around for now" / "I already have a Gremlin Key". It replaces the old first-visit "Who's visiting?" card. Reopen it from Help ("Why make a Gremlin Key?"), the Stamps page, or the journal (non-calm). `GremlinPlayer.openGuide()`.
+- **Rooms are all open** (round 2): `KEY_ROOMS = []` at the top of shifting.js. The lock code (`isLocked`, `lockedDoor`, the "not yet" card) is kept dormant for future hidden areas: add a room id to switch it on. A Gremlin Key now means the gremlins remember you (journal and scores on any device, guestbook, Brawl boards).
+- **Gremlish**: a letter-substitution cipher defined in ONE file, `gremlish.json` (`key`: letter -> glyph name; `glyphs`: the shapes). To change the key, re-point letters in `key` and redeploy; every note re-renders as inline SVG. The static plaques (gremlish-*.svg in the Burrow/Corridor) use the current key and would need redrawing after a swap. Gremlish cards show an open hint, "Little notes around the house might help you read this." The key-holder decoder placeholder was removed.
+- **Gremlins' notes**: `house-notes.json` holds six "still putting my room together" notes (one per personal room) and six Gremlish notes around the house; shifting.js injects them as quiet `note` hotspots (not eggs, so no tracking) and opens them in the calm reading card. **Future "collect the pieces" quest**: hook into `openNote()` in shifting.js (record the note id, check progress). Not built yet.
+- **Key card**: Copy, Download .txt and "Email it to myself" (a plain `mailto:` with no address; opens the visitor's own mail app, nothing is sent to us).
+- Tests: `python3 tools/screenshots-shifting.py` (fakes the server, never registers) also covers the guide, locks, lift after sign-in, guest sock hunt, SOCKS5 and the key mailto; writes `screenshots/key-*.png`.
+
+### The Break Room (round 3, Oct 27 2026, build copy)
+
+- **Room choice**: the Break Room *is* the old arcade room (id stays `arcade`, renamed "The Break Room"), so saves, links, badges, the sock and the server whitelist keep working and no new painted art was needed. It's `alwaysOpen` in house-schedule.json (removed from `swapPool`; the Tunnel took its place in the open lists), so the shifting house can never put it to sleep.
+- **Office door**: `office-to-breakroom` (world-data.json, Office front wall, between the two monitors, the first view). Art: `assets/world/props/break-room-door.svg` (hand-lettered sign, slow steam wisps that stop for reduced motion, steady soft glow in world.css `.it.breakdoor`). Door back: `breakroom-to-office`. The Tunnel's bead curtain still works.
+- **Future side rooms**: `comingSoon` in house-notes.json holds two "still being set up" notes (Noodle, Dot). To add a side room, add a portal item to `rooms.arcade.items` and delete the matching note.
+- **Games**: machine `break-room-sports` (games/break-room-sports.js): Skee-Ball (9 balls) and Hoops (10 shots). Opened from the painted Skee-Ball lane, the new Skee-Ball machine and the Hoops machine (arcade items may set `game` to open straight into one game). Bests use the normal arcade keys; to sync them, apply `supabase/migrations/20261027220000_gw_break_room_games.sql` (not applied).
+- **playedAll**: the "Arcade Tourist" badge now also needs Skee-Ball and Hoops. Badges already earned stay earned.

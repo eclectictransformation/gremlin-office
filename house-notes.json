@@ -1,0 +1,233 @@
+{
+ "_readme": "Notes the gremlins leave around the house. Edit freely; ids must stay unique. roomNotes: one 'still putting my room together' note per personal room, in that gremlin's voice. gremlishNotes: little notes mixing English with Gremlish; write Gremlish as {g:WORDS} and it is drawn with the cipher in gremlish.json. 'meaning' is for editors only (never shown). at = face + x/y on that wall (0-1024). FUTURE: a 'collect the pieces' quest would hook in where shifting.js opens a note (openNote): record the note id there and check progress. Not built yet. comingSoon: gentle 'still being set up' notes for future side rooms (same look as roomNotes).",
+ "roomNotes": [
+  {
+   "id": "note-greenhouse",
+   "room": "greenhouse",
+   "who": "pip",
+   "title": "Pip's note",
+   "text": "Oh, hello! I'm still putting my room together. I'm working out where the comfiest spot for you is, somewhere between the idea jars and the ferns. One day I'd like to show you how a tiny idea grows if you water it a little every day.",
+   "at": {
+    "face": "back",
+    "x": 170,
+    "y": 450
+   },
+   "size": [
+    90,
+    105
+   ]
+  },
+  {
+   "id": "note-lantern",
+   "room": "lantern",
+   "who": "moth",
+   "title": "Moth's note",
+   "text": "I'm still putting my room together, so please excuse the paint smudges. I'm trying to get the light just soft enough for you. Someday I'd like to teach you to draw a moon with one slow line. There are no wrong lines.",
+   "at": {
+    "face": "left",
+    "x": 170,
+    "y": 720
+   },
+   "size": [
+    90,
+    105
+   ]
+  },
+  {
+   "id": "note-press",
+   "room": "press",
+   "who": "dot",
+   "title": "Dot's note",
+   "text": "Mind the ink, I'm still putting my room together. I'm finding a stool that fits you and asking the cat to scoot over (slowly, with permission). One day I'd love to help you print a little card that says something kind.",
+   "at": {
+    "face": "left",
+    "x": 500,
+    "y": 600
+   },
+   "size": [
+    90,
+    105
+   ]
+  },
+  {
+   "id": "note-dispatch",
+   "room": "dispatch",
+   "who": "noodle",
+   "title": "Noodle's note",
+   "text": "Hiya! I'm still putting my room together, mostly out of boxes. I want it to feel like a good snack and a good laugh at the same time. Someday I'll teach you my very silly way of sending a hello to someone who needs one.",
+   "at": {
+    "face": "front",
+    "x": 170,
+    "y": 700
+   },
+   "size": [
+    90,
+    105
+   ]
+  },
+  {
+   "id": "note-returns",
+   "room": "returns",
+   "who": "vesper",
+   "title": "Vesper's note",
+   "text": "Welcome. I'm still putting my room together, one shelf at a time. I'd like it to be the kind of quiet where a good book finds you. Someday I'll share the stories that came back to me, and what they taught me.",
+   "at": {
+    "face": "back",
+    "x": 170,
+    "y": 440
+   },
+   "size": [
+    90,
+    105
+   ]
+  },
+  {
+   "id": "note-burrow",
+   "room": "burrow",
+   "who": "grimble",
+   "title": "Grimble's note",
+   "text": "Come in, come in. I'm still putting the burrow together so it feels right for you, cushions and all. One day I'd like to show you how good it feels to be properly listened to, and how to do it for someone else.",
+   "at": {
+    "face": "left",
+    "x": 170,
+    "y": 700
+   },
+   "size": [
+    90,
+    105
+   ]
+  }
+ ],
+ "gremlishNotes": [
+  {
+   "id": "gnote-office",
+   "room": "office",
+   "who": "grimble",
+   "text": "Psst. If you need a rest, the {g:ROOFTOP} has a hammock and an early moon.",
+   "meaning": "rooftop",
+   "at": {
+    "face": "back",
+    "x": 170,
+    "y": 440
+   },
+   "size": [
+    90,
+    74
+   ]
+  },
+  {
+   "id": "gnote-tunnel",
+   "room": "tunnel",
+   "who": "noodle",
+   "text": "The games are this way. Please {g:HAVE FUN}, and say hello to the hungry vine.",
+   "meaning": "have fun",
+   "at": {
+    "face": "front",
+    "x": 170,
+    "y": 440
+   },
+   "size": [
+    90,
+    74
+   ]
+  },
+  {
+   "id": "gnote-gallery",
+   "room": "gallery",
+   "who": "dot",
+   "text": "Like comics? They live next door in the {g:ARCHIVE}. The red armchair is free.",
+   "meaning": "archive",
+   "at": {
+    "face": "back",
+    "x": 170,
+    "y": 440
+   },
+   "size": [
+    90,
+    74
+   ]
+  },
+  {
+   "id": "gnote-archive",
+   "room": "archive",
+   "who": "moth",
+   "text": "Up through the crawlspace, a {g:MOON LAMP} glows in my loft. Come and sit with it a while.",
+   "meaning": "moon lamp",
+   "at": {
+    "face": "left",
+    "x": 830,
+    "y": 440
+   },
+   "size": [
+    90,
+    74
+   ]
+  },
+  {
+   "id": "gnote-rooftop",
+   "room": "rooftop",
+   "who": "pip",
+   "text": "Dear visitor, please {g:BE KIND} to the plants. They are a little shy.",
+   "meaning": "be kind",
+   "at": {
+    "face": "right",
+    "x": 170,
+    "y": 440
+   },
+   "size": [
+    90,
+    74
+   ]
+  },
+  {
+   "id": "gnote-wing",
+   "room": "wing",
+   "who": "vesper",
+   "text": "Every door in this hallway has a way {g:BACK}. Take your time.",
+   "meaning": "back",
+   "at": {
+    "face": "back",
+    "x": 170,
+    "y": 440
+   },
+   "size": [
+    90,
+    74
+   ]
+  }
+ ],
+ "comingSoon": [
+  {
+   "id": "soon-breakroom-1",
+   "room": "arcade",
+   "who": "noodle",
+   "title": "Still being set up",
+   "text": "Another door goes right here, someday. I'm still setting up this side room. I think it wants to be a snack nook with a very long couch.",
+   "at": {
+    "face": "front",
+    "x": 880,
+    "y": 330
+   },
+   "size": [
+    90,
+    105
+   ]
+  },
+  {
+   "id": "soon-breakroom-2",
+   "room": "arcade",
+   "who": "dot",
+   "title": "Still being set up",
+   "text": "I'm measuring this wall for a little door. Behind it, maybe a craft corner where we make silly prizes for each other. Not yet. For now, the games are right here.",
+   "at": {
+    "face": "right",
+    "x": 150,
+    "y": 330
+   },
+   "size": [
+    90,
+    105
+   ]
+  }
+ ]
+}

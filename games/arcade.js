@@ -58,7 +58,7 @@
   }
   function makeApi(cfg) {
     return {
-      W: GW, H: GH, top: HUD + 2, reduced: reduce.matches, coarse: coarse, id: cfg.id,
+      W: GW, H: GH, top: HUD + 2, reduced: reduce.matches, calm: !!(S && S.opts && S.opts.calm), coarse: coarse, id: cfg.id,
       held: function (k) { return !!held[k]; },
       score: function (n) { if (S) S.score = n; },
       end: end, sprite: sprite, text: text,
@@ -200,7 +200,12 @@
     root.hidden = false; root.classList.remove("in"); void root.offsetWidth; root.classList.add("in");
     renderMenu(true);
     S.raf = requestAnimationFrame(frame);
-    loadScript(machine.script).then(function () { if (S && S.m === machine && S.mode === "menu") renderMenu(); })
+    loadScript(machine.script).then(function () {
+      if (!S || S.m !== machine || S.mode !== "menu") return;
+      // opts.game: a world prop (e.g. the Skee-Ball lane) can open its own game straight away; OTHER GAMES still shows the menu
+      var g0 = S.opts.game && (machine.games || []).filter(function (g) { return g.id === S.opts.game; })[0];
+      if (g0 && factories[g0.id]) startGame(g0); else renderMenu();
+    })
       .catch(function () { if (S && S.m === machine) { $(".scr-head").textContent = "THIS MACHINE IS NAPPING. TRY AGAIN LATER."; } });
   }
   function renderMenu(loading) {
@@ -216,7 +221,7 @@
       b.appendChild(el("span", "mi-name", g.name));
       b.appendChild(el("span", "mi-blurb", g.blurb || ""));
       var best = getBest(g.id);
-      b.appendChild(el("span", "mi-best", !ready ? (loading ? "" : "COMING SOON") : best != null ? "BEST " + (g.scoreLabel || "SCORE") + " " + best : "NEW!"));
+      b.appendChild(el("span", "mi-best", !ready ? (loading ? "" : "COMING SOON") : S.opts.calm ? "" : best != null ? "BEST " + (g.scoreLabel || "SCORE") + " " + best : "NEW!"));
       b.disabled = !ready;
       b.addEventListener("click", function () { startGame(g); });
       li.appendChild(b); ul.appendChild(li);
@@ -310,6 +315,7 @@
     S.mode = "over";
     $(".over-title").textContent = o.title || "NICE.";
     $(".over-msg").textContent = o.msg || "";
+    $(".over-score").hidden = !!(S.opts.calm || g.scoreless);
     $(".over-score").textContent = (g.scoreLabel || "SCORE") + " " + score + "  \u00b7  BEST " + (best == null ? "-" : best) + (isNew ? "  \u2605 NEW PERSONAL BEST" : "");
     $(".scr-over").hidden = false;
     $(".scr-live").textContent = (o.title || "") + " " + (o.msg || "");
@@ -393,7 +399,7 @@
     var g = S.cfg; c.fillStyle = "rgba(0,0,0,.45)"; c.fillRect(0, 0, GW, HUD);
     text(c, g.name.toUpperCase(), 4, 3, 8, S.m.accent || "#f3d98b", "left", false);
     var b = getBest(g.id);
-    text(c, (g.scoreLabel || "SCORE") + " " + S.score + "   BEST " + (b == null ? "-" : b), GW - 4, 3, 8, "#fff", "right", false);
+    if (!S.opts.calm && !g.scoreless) text(c, (g.scoreLabel || "SCORE") + " " + S.score + "   BEST " + (b == null ? "-" : b), GW - 4, 3, 8, "#fff", "right", false);
     if (S.toast && S.t < S.toast.until) {
       c.font = "bold 9px " + FONT; var w = c.measureText(S.toast.s).width + 12;
       c.fillStyle = "rgba(0,0,0,.6)"; c.fillRect((GW - w) / 2 | 0, HUD + 4, w | 0, 14);

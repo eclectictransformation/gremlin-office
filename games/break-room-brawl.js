@@ -17,6 +17,7 @@
   var DONUT_PAL = { p: "#f49ac1", s: "#fff3a0", b: "#7fd3f0", d: "#d99a52" };
   function mmss(s) { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
   function clock(c, api, left, warn) {
+    if (api.calm) return;   // the Shifting House hides the round clocks
     var s = mmss(left), w = 40;
     c.fillStyle = warn ? "rgba(192,57,43,.85)" : "rgba(0,0,0,.55)"; c.fillRect(api.W / 2 - w / 2, api.top + 1, w, 13);
     api.text(c, s, api.W / 2, api.top + 3, 9, "#fff", "center", false);

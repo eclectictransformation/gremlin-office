@@ -1,0 +1,152 @@
+/* The Shifting House: calm, slow, soft. Everything respects prefers-reduced-motion. */
+.reader[hidden],.nap-screen[hidden],.nap-dim[hidden],.reading-shelf[hidden],.cloud-panel[hidden],.cloud-say[hidden],.stand-up[hidden],.shelf-tip[hidden],.shelf-empty[hidden]{display:none!important}
+body.calm #socks,body.calm #btn-journal,body.calm .gw-toasts{display:none!important}
+body.calm #warp.squish i{animation:none!important}
+body.calm .it.portal .tag{transition:opacity .8s}
+
+/* resting doors: a soft glow and sleepy eyes, never an error */
+.it.portal.resting{cursor:default}
+.it.portal.resting::after{content:"";position:absolute;inset:8%;border-radius:inherit;background:radial-gradient(closest-side,rgba(243,217,139,.35),rgba(243,217,139,0));animation:doze 7s ease-in-out infinite;pointer-events:none}
+@keyframes doze{50%{opacity:.35}}
+.it.portal.resting .tag{background:rgba(90,80,110,.85)}
+.it.portal .zzz{position:absolute;left:50%;top:38%;transform:translateX(-50%);width:90px;pointer-events:none}
+.it.portal .zzz svg{width:90px;height:60px;display:block;filter:drop-shadow(0 0 6px rgba(0,0,0,.4))}
+.it.portal .zzz i{position:absolute;right:-6px;top:-10px;font:italic 700 26px var(--serif);color:#fdf6e6;opacity:0;animation:zz 9s ease-in-out infinite;text-shadow:0 0 6px rgba(0,0,0,.5)}
+.it.portal .zzz i:nth-child(3){animation-delay:3s;right:-24px}.it.portal .zzz i:nth-child(4){animation-delay:6s;right:-40px}
+@keyframes zz{0%{opacity:0;transform:translateY(0)}30%{opacity:.85}100%{opacity:0;transform:translateY(-60px)}}
+.it.portal.hush{animation:hush 1.6s ease}
+@keyframes hush{50%{filter:brightness(1.15)}}
+.it.portal.shifted{animation:shiftin 5s ease both}
+@keyframes shiftin{0%{opacity:.1;filter:blur(3px)}100%{opacity:1;filter:none}}
+
+/* oddities (drawn in code) */
+.odd-art{position:absolute;inset:0;pointer-events:none}.odd-art svg{width:100%;height:100%;display:block}
+.it.oddity{border-radius:12px}
+.odd-portrait .pt-eyes{transform-origin:62px 76px;animation:blink 7s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.odd-portrait.yawn .pt-mouth{transform-origin:62px 94px;animation:yawn 3s ease}
+@keyframes yawn{40%,60%{transform:scale(1.4,6)}}
+.odd-portrait.yawn .pt-eyes{animation:none;transform:scaleY(.15)}
+.stairs .odd-art{animation:turn 24s ease-in-out infinite;transform-origin:50% 50%}
+@keyframes turn{0%,100%{transform:scaleX(1)}25%{transform:scaleX(.45)}50%{transform:scaleX(-1)}75%{transform:scaleX(-.45)}}
+.stairs.mind .odd-art{opacity:.4;transition:opacity 1.6s}
+.odd-knock .kn-door{transform-origin:10px 50%;transition:transform 2.5s ease}
+.odd-knock.open .kn-door{transform:scaleX(.08)}
+.odd-cat .cat-eye{animation:blink 9s infinite;transform-origin:30px 40px}
+.odd-cat .cat-tail{transform-origin:112px 58px;animation:tail 8s ease-in-out infinite}
+@keyframes tail{50%{transform:rotate(12deg)}}
+.odd-cat.stretch .odd-art{animation:stretch 2.4s ease}
+@keyframes stretch{40%{transform:scaleX(1.12)}}
+.odd-mirror .m-clouds{animation:drift 60s linear infinite}
+@keyframes drift{to{transform:translateX(-160px)}}
+.odd-sockintro .odd-art{animation:peek 6s ease-in-out infinite}
+@keyframes peek{50%{transform:translateX(6px)}}
+.odd-sockintro.tug .odd-art{transition:transform 1.4s ease,opacity 1.4s;transform:translateX(30px);opacity:0}
+
+/* the cloud guide */
+.cloud-guide{position:absolute;left:12px;bottom:58px;z-index:12;display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:min(340px,calc(100% - 24px))}
+.cloud-btn{width:84px;height:56px;border:0;background:transparent;padding:0;cursor:pointer;animation:float 9s ease-in-out infinite;filter:drop-shadow(0 4px 8px rgba(0,0,0,.25))}
+.cloud-btn svg{width:100%;height:100%}
+.cloud-btn:focus-visible,.cloud-hide:focus-visible{outline:3px dashed #F3D98B;outline-offset:3px;border-radius:12px}
+@keyframes float{50%{transform:translateY(-6px)}}
+.cloud-hide{position:absolute;left:74px;bottom:38px;width:22px;height:22px;border-radius:50%;border:1px solid #c9bfa8;background:#fdfaf2;color:#5a4a3a;font:14px/1 var(--sans);cursor:pointer;padding:0}
+.cloud-guide.tucked .cloud-btn{opacity:.35;transform:scale(.6);transform-origin:left bottom;animation:none}
+.cloud-guide.tucked .cloud-hide{left:42px;bottom:22px}
+.cloud-panel,.cloud-say{background:#fdfaf2;color:#2b231d;border-radius:20px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);border:2px solid #e9dfc6}
+.cloud-say{position:relative;font:15px/1.45 var(--serif);padding-right:30px}
+.cloud-say p{margin:0}.cloud-say.in,.cloud-panel:not([hidden]){animation:softin 1.2s ease}
+@keyframes softin{from{opacity:0;transform:translateY(6px)}}
+.cs-x,.cp-x{position:absolute;right:8px;top:6px;border:0;background:transparent;font:20px var(--sans);color:#7a6a58;cursor:pointer}
+.cloud-panel{position:relative;width:min(320px,calc(100vw - 24px));box-sizing:border-box}
+.cp-head b{font:600 13px var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--forest)}
+.cp-q{font:600 18px var(--serif);margin:6px 0 8px}
+.cp-moods{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.mood-btn,.cp-home{font:14px var(--sans);border-radius:999px;padding:8px 12px;cursor:pointer;border:1px solid #c9bfa8;background:#fff8e8;color:#2b231d}
+.mood-btn:hover,.mood-btn:focus-visible{background:#f3e7c4}
+.cp-home{background:var(--forest);color:var(--paper);border-color:var(--forest);width:100%}
+
+/* stamps row */
+.stamp-row{position:absolute;right:12px;bottom:58px;z-index:11;max-width:min(46vw,420px)}
+.stamp-btn{display:flex;align-items:center;gap:4px;background:rgba(253,250,242,.88);border:1px solid #e3d6b8;border-radius:999px;padding:4px 10px;cursor:pointer;max-width:100%;overflow:hidden}
+.stamp-label{font:600 12px var(--sans);color:var(--forest);text-transform:uppercase;letter-spacing:.05em;margin-right:4px}
+.stamp-list{display:flex;gap:2px;overflow:hidden}.stamp svg{width:26px;height:26px;display:block}
+.stamp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin-top:10px}
+.stamp-cell{display:flex;flex-direction:column;align-items:center;gap:4px;font:13px/1.2 var(--sans);text-align:center;color:#8a7f6e}
+.stamp-cell svg{width:46px;height:46px}.stamp-cell.got{color:#2b231d}
+
+/* napping screen */
+.nap-screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(40,36,56,.55)}
+.nap-screen.in{animation:softin 1.4s ease}
+.nap-card{background:#fdfaf2;border-radius:22px;padding:22px;max-width:380px;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.35)}
+.nap-card h2{font:600 24px var(--serif);color:var(--moss);margin:4px 0 8px}
+.nap-door{width:90px;height:128px}
+.nap-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.nap-btns button{font:600 15px var(--sans);background:var(--forest);color:var(--paper);border:2px solid var(--forest);border-radius:999px;padding:10px 16px;cursor:pointer}
+.nap-btns button.ghost{background:transparent;color:var(--forest)}
+
+/* reading corner */
+body.seated .decor .tw{opacity:0;transition:opacity 1.5s}
+body.seated .decor.rain{opacity:.5;transition:opacity 2s}
+.reading-shelf{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);z-index:9;width:min(560px,calc(100% - 24px));padding:12px 16px 0;box-sizing:border-box;animation:softin 1.6s ease}
+.shelf-label{margin:0 0 6px;font:italic 15px var(--serif);color:#fdf6e6;text-shadow:0 1px 3px rgba(0,0,0,.6);text-align:center}
+.spines{display:flex;align-items:flex-end;justify-content:center;gap:6px;height:170px}
+.spine{position:relative;width:40px;height:var(--h,85%);border:0;border-radius:4px 4px 2px 2px;background:linear-gradient(90deg,rgba(0,0,0,.2),rgba(255,255,255,.12) 40%,rgba(0,0,0,.15)),var(--c);cursor:pointer;padding:6px 0;box-shadow:inset 0 0 0 2px rgba(0,0,0,.15)}
+.spine-title{writing-mode:vertical-rl;transform:rotate(180deg);font:600 13px var(--serif);color:#fdf6e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:100%}
+.spine.wip::after{content:"";position:absolute;left:14px;bottom:-14px;width:10px;height:22px;background:#c0392b;clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%)}
+.spine.new{box-shadow:0 0 14px 4px rgba(243,217,139,.55),inset 0 0 0 2px rgba(0,0,0,.15)}
+.spine:focus-visible{outline:3px dashed #F3D98B;outline-offset:3px}
+.plank{height:14px;border-radius:3px;background:linear-gradient(#a77a4c,#6b4a2e);box-shadow:0 6px 14px rgba(0,0,0,.35)}
+.shelf-empty{margin:0 auto 10px;max-width:340px;text-align:center;font:italic 18px/1.4 var(--serif);color:#fdf6e6;background:rgba(43,35,29,.55);border-radius:14px;padding:12px 16px;position:relative;top:-90px}
+.shelf-tip{position:absolute;bottom:100%;width:240px;background:#fdfaf2;color:#2b231d;border-radius:12px;padding:8px 10px;font:14px/1.35 var(--serif);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.shelf-tip b{display:block;font-size:15px}
+.stand-up{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);z-index:12;font-size:16px!important;padding:10px 20px!important}
+.nap-dim{position:absolute;inset:0;z-index:10;background:rgba(20,18,34,.5);display:flex;align-items:flex-end;justify-content:center;padding-bottom:70px;animation:dim 3s ease both}
+@keyframes dim{from{background:rgba(20,18,34,0)}}
+
+/* the calm reading card */
+.reader{position:absolute;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(30,26,22,.45)}
+.reader.in .rc-page{animation:softin 1s ease}
+.rc-page{position:relative;background:#fbf4e2;color:#2b231d;border-radius:14px;max-width:620px;width:100%;max-height:calc(100% - 20px);overflow:auto;padding:30px 30px 24px;box-sizing:border-box;box-shadow:0 16px 50px rgba(0,0,0,.35);font:19px/1.6 Georgia,"Times New Roman",serif}
+.rc-page h2{font:600 26px/1.25 Georgia,serif;margin:0 0 10px;color:#3a2f24}
+.rc-meta{font:12px var(--sans);text-transform:uppercase;letter-spacing:.08em;color:#7a6a58;margin:0 0 4px}
+.rc-teaser{font-style:italic;color:#5a4a3a}
+.rc-close{position:absolute;right:12px;top:10px;border:1px solid #d9ccb0;background:#fffaf0;border-radius:999px;padding:4px 12px;font:14px var(--sans);color:#5a4a3a;cursor:pointer}
+.rc-link{display:inline-block;margin-top:8px;color:#3f6b35;font-weight:600}
+.rc-list{list-style:none;padding:0}.rc-list li{margin:0 0 10px}.rc-book{font:600 18px Georgia,serif;background:none;border:0;padding:0;color:#3f6b35;cursor:pointer;text-align:left}
+.rc-list small{display:block;font-size:15px;color:#5a4a3a}
+.socks-done{text-align:center}.sd-art{width:180px;height:90px}
+.reward-slot{display:flex;gap:8px;justify-content:center;align-items:center;margin:6px 0 10px}
+.reward-code{font:700 30px ui-monospace,monospace;letter-spacing:.08em;background:#fff;border:2px dashed #3f6b35;border-radius:10px;padding:8px 14px}
+.reward-slot.placeholder .reward-code{color:#8a7f6e;border-color:#c9bfa8}
+.reward-copy{font:600 15px var(--sans);background:var(--forest);color:var(--paper);border:0;border-radius:999px;padding:10px 16px;cursor:pointer}
+.reward-slot{flex-wrap:wrap}.reward-mail{font:600 15px var(--sans);color:var(--forest);border:2px solid var(--forest);border-radius:999px;padding:8px 14px;text-decoration:none}
+.reward-how{font-size:15px;line-height:1.45;color:#6a5444;font-style:italic}.reward-line{font-size:20px;margin:6px 0 4px}
+
+/* speaker */
+.speaker .sw{display:none}.speaker.on .sw{display:inline}.speaker.on .sx{display:none}
+
+@media (max-width:560px){
+  .cloud-guide{bottom:64px;left:8px}.stamp-row{bottom:64px;right:8px;max-width:44vw}
+  .stamp-label{display:none}.spines{height:130px;gap:4px}.spine{width:30px}
+  .rc-page{padding:26px 18px 20px;font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  .cloud-btn,.stairs .odd-art,.odd-portrait .pt-eyes,.odd-cat .cat-eye,.odd-cat .cat-tail,.odd-mirror .m-clouds,.it.portal .zzz i,.it.portal.resting::after,.odd-sockintro .odd-art{animation:none!important}
+  .it.portal .zzz i{opacity:.6}
+  .cloud-say.in,.cloud-panel,.nap-screen.in,.reader.in .rc-page,.reading-shelf,.nap-dim,.it.portal.shifted{animation:none!important}
+}
+
+/* ---------- calm polish, round 4 ---------- */
+.nap-screen{background:rgba(40,36,56,.65);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.reader{background:rgba(30,26,22,.6);-webkit-backdrop-filter:blur(3px) saturate(.8);backdrop-filter:blur(3px) saturate(.8)}
+/* 3. whispers: an opaque cream panel, always stacked above the cloud, never over it */
+.cloud-say{background:#fdfaf2;opacity:1;font-size:17px;line-height:1.5;border-color:#e2d3ae;box-shadow:0 10px 30px rgba(0,0,0,.3);order:-2}
+.cloud-panel{order:-1}
+.cloud-say.in{animation-name:softin-solid}
+@keyframes softin-solid{from{transform:translateY(6px)}to{transform:none}}
+@media (max-width:560px){
+  .cloud-say{width:calc(100vw - 16px);box-sizing:border-box;max-height:42vh;overflow:auto}
+  /* while a whisper shows, the gremlin's speech bubble steps aside so nothing stacks on the cloud */
+  body:has(#cloud-say:not([hidden])) #bubble{display:none}
+  .bubble{bottom:132px}
+}

@@ -1,0 +1,4 @@
+{
+  "_readme": "Vesper's Guest Reading Corner shelf (the Returns Bin). Add one object per book to 'books'. Fields: title (required), teaser (one line), type ('finished' or 'wip'), date (YYYY-MM-DD; books from the last 14 days glow as new arrivals), and either link (https URL to the full piece) or text (short text shown on the reading card; blank lines make paragraphs). Newest books sit at eye level; only 10 fit, and older ones move down to the Stacks Below by themselves. Only real, published pieces, please.",
+  "books": []
+}

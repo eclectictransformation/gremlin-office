@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Gremlin World</title>
+<title>The Shifting House · Gremlin World (preview)</title>
 <meta name="description" content="Wander the Gremlin Office, crawl through a cozy burrow, and visit the Gallery of Odd Things.">
 <link rel="icon" href="data:,">
+<script>window.GW_CALM = true;   /* The Shifting House preview: calm mode */</script>
 <script>
 /* Storage check: some browsers block localStorage inside iframes (third-party storage). Then we swap in an
    in-memory stand-in so the world still works; progress just lasts until the tab closes. */
@@ -21,8 +22,9 @@
 <link rel="stylesheet" href="office.css">
 <link rel="stylesheet" href="world.css">
 <link rel="stylesheet" href="games/arcade.css">
+<link rel="stylesheet" href="shifting.css">
 </head>
-<body class="world">
+<body class="world calm">
 <div id="app">
   <div id="viewport" tabindex="0" role="application" aria-roledescription="360 degree room"
        aria-label="Gremlin World. Drag or use the arrow keys to look around. Press Tab to move between things you can click.">
@@ -33,13 +35,13 @@
   <header class="hud hud-top">
     <div class="hud-left">
       <button id="btn-back" class="pill btn" hidden aria-label="Go back to the previous room">&#8592; <span>Back</span></button>
-      <h1 class="title"><span class="t-world">Gremlin World</span> <span id="room-name">The Office</span></h1>
+      <h1 class="title"><span class="t-world">The Shifting House</span> <span id="room-name">The Office</span></h1>
     </div>
     <div class="hud-right">
       <button id="socks" class="pill btn" aria-live="polite" aria-label="Sock hunt progress"><img src="assets/world/props/sock-pip.svg" alt=""> <span id="sock-count">0 / 5</span></button>
       <button id="btn-map" class="pill btn" aria-haspopup="dialog" aria-controls="map">Map</button>
-      <button id="btn-help" class="pill btn" aria-label="How to explore">?</button>
-      <a id="btn-popout" class="pill btn" href="world.html" target="_blank" rel="noopener" hidden aria-label="Open Gremlin World in a new window">&#8599;</a>
+      <button id="btn-help" class="pill btn" aria-label="Help: how to explore">? <span>Help</span></button>
+      <a id="btn-popout" class="pill btn" href="world.html" target="_blank" rel="noopener" hidden aria-label="Open Gremlin World full screen in a new window">&#8599; <span>Open full screen</span></a>
     </div>
   </header>
 
@@ -88,6 +90,7 @@
 <noscript><p style="padding:1rem">Gremlin World needs JavaScript. You can still <a href="office-classic.html">visit the classic office</a>.</p></noscript>
 <script src="games/arcade.js" defer></script>
 <script src="world-player.js" defer></script>
+<script src="shifting.js" defer></script>
 <script src="world.js" defer></script>
 </body>
 </html>
