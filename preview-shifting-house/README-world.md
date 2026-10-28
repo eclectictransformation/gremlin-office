@@ -353,3 +353,11 @@ Add an entry to `books`:
 - **Gremlins' notes**: `house-notes.json` holds six "still putting my room together" notes (one per personal room) and six Gremlish notes around the house; shifting.js injects them as quiet `note` hotspots (not eggs, so no tracking) and opens them in the calm reading card. **Future "collect the pieces" quest**: hook into `openNote()` in shifting.js (record the note id, check progress). Not built yet.
 - **Key card**: Copy, Download .txt and "Email it to myself" (a plain `mailto:` with no address; opens the visitor's own mail app, nothing is sent to us).
 - Tests: `python3 tools/screenshots-shifting.py` (fakes the server, never registers) also covers the guide, locks, lift after sign-in, guest sock hunt, SOCKS5 and the key mailto; writes `screenshots/key-*.png`.
+
+### The Break Room (round 3, Oct 27 2026, build copy)
+
+- **Room choice**: the Break Room *is* the old arcade room (id stays `arcade`, renamed "The Break Room"), so saves, links, badges, the sock and the server whitelist keep working and no new painted art was needed. It's `alwaysOpen` in house-schedule.json (removed from `swapPool`; the Tunnel took its place in the open lists), so the shifting house can never put it to sleep.
+- **Office door**: `office-to-breakroom` (world-data.json, Office front wall, between the two monitors, the first view). Art: `assets/world/props/break-room-door.svg` (hand-lettered sign, slow steam wisps that stop for reduced motion, steady soft glow in world.css `.it.breakdoor`). Door back: `breakroom-to-office`. The Tunnel's bead curtain still works.
+- **Future side rooms**: `comingSoon` in house-notes.json holds two "still being set up" notes (Noodle, Dot). To add a side room, add a portal item to `rooms.arcade.items` and delete the matching note.
+- **Games**: machine `break-room-sports` (games/break-room-sports.js): Skee-Ball (9 balls) and Hoops (10 shots). Opened from the painted Skee-Ball lane, the new Skee-Ball machine and the Hoops machine (arcade items may set `game` to open straight into one game). Bests use the normal arcade keys; to sync them, apply `supabase/migrations/20261027220000_gw_break_room_games.sql` (not applied).
+- **playedAll**: the "Arcade Tourist" badge now also needs Skee-Ball and Hoops. Badges already earned stay earned.

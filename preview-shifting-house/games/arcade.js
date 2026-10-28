@@ -200,7 +200,12 @@
     root.hidden = false; root.classList.remove("in"); void root.offsetWidth; root.classList.add("in");
     renderMenu(true);
     S.raf = requestAnimationFrame(frame);
-    loadScript(machine.script).then(function () { if (S && S.m === machine && S.mode === "menu") renderMenu(); })
+    loadScript(machine.script).then(function () {
+      if (!S || S.m !== machine || S.mode !== "menu") return;
+      // opts.game: a world prop (e.g. the Skee-Ball lane) can open its own game straight away; OTHER GAMES still shows the menu
+      var g0 = S.opts.game && (machine.games || []).filter(function (g) { return g.id === S.opts.game; })[0];
+      if (g0 && factories[g0.id]) startGame(g0); else renderMenu();
+    })
       .catch(function () { if (S && S.m === machine) { $(".scr-head").textContent = "THIS MACHINE IS NAPPING. TRY AGAIN LATER."; } });
   }
   function renderMenu(loading) {

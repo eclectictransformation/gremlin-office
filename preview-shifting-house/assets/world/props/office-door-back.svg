@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 270" width="150" height="270">
+<g transform="rotate(3 75 30)"><rect x="20" y="10" width="110" height="34" rx="5" fill="#f6efe0" stroke="#3d5a40" stroke-width="3"/><text x="75" y="34" text-anchor="middle" font-family="'Comic Sans MS','Chalkboard SE',cursive" font-size="18" font-weight="700" fill="#3d5a40">&#8592; OFFICE</text></g>
+<rect x="24" y="56" width="102" height="212" rx="4" fill="#6b4a2c"/><rect x="32" y="64" width="86" height="204" fill="#3d5a40"/>
+<rect x="42" y="78" width="66" height="76" fill="none" stroke="#2b4030" stroke-width="3"/><rect x="42" y="166" width="66" height="84" fill="none" stroke="#2b4030" stroke-width="3"/>
+<circle cx="104" cy="160" r="6" fill="#d9b25a"/>
+</svg>

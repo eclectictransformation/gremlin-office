@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 330" width="170" height="330">
+<rect x="22" y="8" width="126" height="40" rx="6" fill="#f3d98b" stroke="#5a2d4a" stroke-width="4"/>
+<text x="85" y="35" text-anchor="middle" font-family="ui-monospace,monospace" font-weight="700" font-size="17" fill="#5a2d4a">SKEE-BALL</text>
+<rect x="30" y="48" width="110" height="96" rx="8" fill="#4a2d1a"/>
+<circle cx="85" cy="100" r="38" fill="#c9a0dc"/><circle cx="85" cy="100" r="29" fill="#6fa8dc"/><circle cx="85" cy="100" r="20" fill="#7fc8a9"/><circle cx="85" cy="100" r="12" fill="#f3d98b"/><circle cx="85" cy="100" r="5" fill="#f2a65a"/>
+<circle cx="44" cy="62" r="6" fill="#2b1a10" stroke="#f3d98b" stroke-width="2"/><circle cx="126" cy="62" r="6" fill="#2b1a10" stroke="#f3d98b" stroke-width="2"/>
+<path d="M30 144h110l22 176H8z" fill="#b07a4a" stroke="#7a4f2c" stroke-width="4"/><path d="M60 150l-10 166M110 150l10 166" stroke="#7a4f2c" stroke-width="2" opacity=".6"/>
+<path d="M70 210q15-14 30 0" fill="none" stroke="#7a4f2c" stroke-width="5" stroke-linecap="round"/>
+<circle cx="66" cy="296" r="10" fill="#e8e2f4" stroke="#5a2d4a" stroke-width="2"/><circle cx="90" cy="300" r="10" fill="#e8e2f4" stroke="#5a2d4a" stroke-width="2"/><circle cx="112" cy="294" r="10" fill="#e8e2f4" stroke="#5a2d4a" stroke-width="2"/>
+</svg>

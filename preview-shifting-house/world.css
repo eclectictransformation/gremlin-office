@@ -306,3 +306,6 @@ body.mood-burrow #mood{opacity:1;background:radial-gradient(ellipse at 50% 45%,r
 .house-note .hn-sign { font-style: italic; text-align: right; margin-top: 10px; }
 .gremlish-run { display: inline-block; vertical-align: middle; color: #23466e; margin: 0 6px; padding: 2px 6px; background: rgba(61,90,128,.08); border-radius: 6px; }
 .gremlish-run svg { display: block; height: 1.7em; width: auto; }
+/* the Office -> Break Room door: a soft, steady warm glow (no pulsing) so it is easy to spot without competing */
+.it.breakdoor{filter:drop-shadow(0 0 10px rgba(255,214,150,.55))}
+.it.breakdoor:hover,.it.breakdoor:focus-visible{filter:drop-shadow(0 0 14px rgba(255,214,150,.8))}

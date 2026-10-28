@@ -341,7 +341,7 @@
     if (x.office) { turnTo(x.yaw, x.pitch, 1.3, function () { showCard(x.card, x.type); }); return; }
     if (it.type === "portal") { var dest = hook("portalTarget", it) || it.to; if (hook("isResting", dest)) { hook("restingDoor", dest, b, x); return; } if (hook("isLocked", dest)) { hook("lockedDoor", dest, b, x); return; } travel(dest, b); return; }
     if (it.type === "sock") { grabSock(b, it); return; }
-    if (it.type === "arcade") { turnTo(x.yaw, x.pitch, 1.35, function () { openArcade(it.machine, b); }); return; }
+    if (it.type === "arcade") { turnTo(x.yaw, x.pitch, 1.35, function () { openArcade(it.machine, b, it.game); }); return; }
     if (it.type === "scoreboard") { turnTo(x.yaw, x.pitch, 1.3, function () { openArcade(it.machine, b); if (window.GremlinArcade && GremlinArcade.isOpen()) GremlinArcade.showBoards(); }); return; }
     if (it.type === "guestbook") { turnTo(x.yaw, x.pitch, 1.4, function () { if (window.GremlinPlayer) GremlinPlayer.openGuestbook(b); else showCard({ meta: "the archive", title: "The Gremlin Guestbook", text: "The ink is still drying. Try again in a moment." }); }); return; }
     if (it.type === "strip") { var st = x.strip; turnTo(x.yaw, x.pitch, 1.3, function () { showCard({ image: st.thumb || st.filename, alt: st.alt, meta: "the archive" + (st.episode ? " \u00b7 episode " + st.episode : ""), title: st.title, text: st.alt, link: { href: "comics.html", label: "Read it in the comics archive" } }); }); return; }
@@ -416,11 +416,11 @@
 
   /* ---------- playable arcade cabinets (games/arcade.js + games/<machine>.js, menus in world-data.json "arcade") ---------- */
   function arcadeOpen() { return !!(window.GremlinArcade && window.GremlinArcade.isOpen()); }
-  function openArcade(id, btn) {
+  function openArcade(id, btn, game) {
     var m = W.arcade && W.arcade.machines && W.arcade.machines[id];
     if (!m || !window.GremlinArcade) return;
     hideBubble(); keys = {}; vel.yaw = vel.pitch = 0; anim = null; dragging = false; down = null; vp.classList.remove("dragging");   // the world holds still while you play
-    window.GremlinArcade.open(m, { machines: W.arcade.machines, calm: !!(SH() && SH().calm), onClose: function () {
+    window.GremlinArcade.open(m, { game: game, machines: W.arcade.machines, calm: !!(SH() && SH().calm), onClose: function () {
       turnTo(view.yaw, view.pitch, 1);
       var f = btn || returnFocus; if (f && document.contains(f)) try { f.focus({ preventScroll: true }); } catch (e) {}
     } });
@@ -611,7 +611,7 @@
     if (/[?&]debug/.test(location.search)) { debugOn = true; $("#debug").hidden = false; }
     window.GremlinWorld = { view: view, turnTo: turnTo, travel: travel, lookOf: lookOf, get room() { return current; }, get busy() { return busy; }, data: W,
       look: function (id) { var b = itemEls[id]; if (b) turnTo(b._item.yaw, b._item.pitch, 1); }, click: function (id) { var b = itemEls[id]; if (b) activate(b); },
-      openArcade: function (id) { var cab = null; for (var k in itemEls) if (itemEls[k]._item.it && itemEls[k]._item.it.type === "arcade" && itemEls[k]._item.it.machine === id) cab = itemEls[k]; openArcade(id, cab); },
+      openArcade: function (id, game) { var cab = null; for (var k in itemEls) if (itemEls[k]._item.it && itemEls[k]._item.it.type === "arcade" && itemEls[k]._item.it.machine === id) cab = itemEls[k]; openArcade(id, cab, game); },
       reloadProgress: reloadProgress, secrets: secretList, say: say, showCard: showCard, closeCard: closeCard, hideBubble: hideBubble,
       get artMode() { return artMode; }, item: function (id) { return itemEls[id]; },
       enter: enter, history: history, openMap: openMap, closeMap: closeMap, effect: effect, rebuild: function () { if (current && !busy) { buildRoom(current); render(); } },

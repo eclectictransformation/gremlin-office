@@ -28,7 +28,7 @@
   var KEY_ROOMS = [];
   /* =========================================================== */
 
-  var W = null, SCHED = null, SHELF = { shelf: [], overflow: [] }, OPEN = [], ALWAYS = ["office", "wing"], lastSwap = [], justShifted = false, issue = null;
+  var W = null, SCHED = null, SHELF = { shelf: [], overflow: [] }, OPEN = [], ALWAYS = ["office", "wing", "arcade"], lastSwap = [], justShifted = false, issue = null;
   var stairsTargets = [], stairsIdx = 0, stairsTimer = null, catHere = false;
 
   /* ---------- the mood guide (exact lines from world-guide.md) ---------- */
@@ -42,7 +42,7 @@
     { id: "tired", label: "Tired", room: "rooftop", next: ["returns", "lantern", "burrow", "proof"],
       line: "Tired bones? The Rooftop Garden has a hammock between the planters and the moon coming up early. Nobody needs anything from you up there." },
     { id: "bored", label: "Bored or restless", room: "arcade", next: ["greenhouse", "gallery", "press", "dispatch"],
-      line: "Got the wiggles? The Calm Arcade is just past the Supply Closet. Try Garden Gremlins and see how hungry the vine is today." },
+      line: "Got the wiggles? The Break Room door is right there in the Office. Try a slow game of Skee-Ball, or see how hungry the vine is today." },
     { id: "sad", label: "Sad", room: "burrow", next: ["returns", "rooftop", "lantern", "stacks"],
       line: "Heavy heart today? Grimble's Listening Burrow has two armchairs, two teacups, and a cabinet of nice things people said that's so full it won't close. Sit a while." },
     { id: "curious", label: "Curious", room: "greenhouse", next: ["someday", "gallery", "archive", "press"],
@@ -53,7 +53,7 @@
     office: "Home again. The kettle's still warm.", wing: "The hallway. Every door here has a way back.",
     tunnel: "The Supply Closet Tunnel is lit all the way through. Wander slowly.", gallery: "The Gallery of Odd Things. Nobody minds if you just look.",
     archive: "The Comics Archive. The big red armchair is free.", rooftop: "The Rooftop Garden. The hammock is free and the moon is early.",
-    arcade: "The Calm Arcade. Nothing in here keeps score unless you want it to.", burrow: "Grimble's Listening Burrow. Two armchairs, two teacups. Sit a while.",
+    arcade: "The Break Room, where the arcade lives. Skee-Ball, Hoops and the cabinets. Nothing keeps score unless you want it to.", burrow: "Grimble's Listening Burrow. Two armchairs, two teacups. Sit a while.",
     corridor: "The Cool-Off Corridor. Follow the footprints: in... out...", greenhouse: "Pip's Idea Greenhouse. Something is always sprouting.",
     roots: "The Root Tunnel glows softly. The mushrooms light the way.", someday: "The Someday Shelf. Nothing here is due.",
     lantern: "Moth's Lantern Loft. The moon lamp is glowing.", press: "Dot's Back-Room Press. The radio is low and the cat is asleep.",
@@ -124,7 +124,7 @@
     var get = function (u) { return fetch(u, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); };
     return Promise.all([get("house-schedule.json"), get("reading-shelf.json"), get("gremlish.json"), get("house-notes.json")]).then(function (res) {
       GREMLISH = res[2]; addNotes(res[3]);
-      SCHED = res[0] || { alwaysOpen: ["office", "wing"], openCount: 7, base: { open: ["returns", "corridor", "lantern", "rooftop", "arcade", "burrow", "greenhouse"] }, swapPool: [], issues: [] };
+      SCHED = res[0] || { alwaysOpen: ["office", "wing", "arcade"], openCount: 7, base: { open: ["returns", "corridor", "lantern", "rooftop", "arcade", "burrow", "greenhouse"] }, swapPool: [], issues: [] };
       arrange(SCHED, W.rooms);
       SHELF = readShelf(res[1]);
       // Socks wander too: a sock whose room is napping today waits in the always-open Wing, so the hunt can always be finished.
@@ -571,6 +571,7 @@
     };
     (n.roomNotes || []).forEach(function (x) { add(x, "room"); });
     (n.gremlishNotes || []).forEach(function (x) { add(x, "gremlish"); });
+    (n.comingSoon || []).forEach(function (x) { add(x, "room"); });
   }
   // draw one run of text in Gremlish as inline SVG (letters without a glyph are skipped)
   function gremlishSvg(text, h) {
@@ -656,7 +657,8 @@
   }
 
   window.GremlinShift = {
-    isLocked: isLocked, _setKeyRooms: function (a) { KEY_ROOMS = a.slice(); }, gremlishSvg: gremlishSvg, notes: function () { return NOTES; }, lockedDoor: lockedDoor, cardExtra: cardExtra, get keyRooms() { return KEY_ROOMS.slice(); }, sockRewardCode: SOCK_REWARD_CODE, lockLines: LOCK_LINES,
+    isLocked: isLocked, _setKeyRooms: function (a) { KEY_ROOMS = a.slice(); }, _setOpen: function (a) { OPEN = a.slice(); var G = GW(); if (G) G.rebuild(); },
+    gremlishSvg: gremlishSvg, notes: function () { return NOTES; }, lockedDoor: lockedDoor, cardExtra: cardExtra, get keyRooms() { return KEY_ROOMS.slice(); }, sockRewardCode: SOCK_REWARD_CODE, lockLines: LOCK_LINES,
     calm: true, prepare: prepare, isResting: isResting, napping: napping, skipItem: skipItem, decorate: decorate, intercept: intercept,
     restingDoor: restingDoor, socksDone: socksDone, getSockReward: getSockReward, portalTarget: portalTarget, roomBuilt: roomBuilt, openStamps: openStamps,
     get open() { return OPEN.slice(); }, get alwaysOpen() { return ALWAYS.slice(); }, get lastSwap() { return lastSwap.slice(); }, get justShifted() { return justShifted; },

@@ -19,6 +19,24 @@
       },
       "items": [
         {
+          "id": "office-to-breakroom",
+          "type": "portal",
+          "to": "arcade",
+          "label": "The Break Room door: snacks, Skee-Ball, Hoops and the arcade",
+          "hover": "Break Room",
+          "cls": "breakdoor",
+          "img": "assets/world/props/break-room-door.svg",
+          "at": {
+            "face": "front",
+            "x": 512,
+            "y": 455
+          },
+          "size": [
+            128,
+            240
+          ]
+        },
+        {
           "id": "to-tunnel",
           "type": "portal",
           "to": "tunnel",
@@ -1249,8 +1267,8 @@
       "painted": true
     },
     "arcade": {
-      "name": "The Calm Arcade",
-      "short": "Arcade",
+      "name": "The Break Room",
+      "short": "Break Room",
       "faces": "assets/world/arcade/{face}.webp",
       "startView": {
         "yaw": 0,
@@ -1258,7 +1276,7 @@
       },
       "greet": {
         "who": "noodle",
-        "text": "Welcome to the arcade! Three cabinets work now: OFFICE OLYMPICS and GARDEN GREMLINS are the calm ones. The purple one, BREAK ROOM BRAWL, is for friendly rivals: short rounds and real top-10 boards. Also, somebody lost a sock in here. Not me. Probably."
+        "text": "Welcome to the Break Room! This is where the arcade lives. Skee-Ball and Hoops are new, and the cabinets all work. The purple one, BREAK ROOM BRAWL, has friendly top-10 boards if you like that sort of thing. Also, somebody lost a sock in here. Not me. Probably."
       },
       "items": [
         {
@@ -1430,8 +1448,11 @@
         },
         {
           "id": "skee-ball",
-          "type": "egg",
-          "label": "A skee-ball lane",
+          "type": "arcade",
+          "machine": "break-room-sports",
+          "game": "skee-ball",
+          "label": "The Skee-Ball lane. Tap to play.",
+          "hover": "Skee-Ball",
           "at": {
             "face": "left",
             "x": 817,
@@ -1440,12 +1461,7 @@
           "size": [
             265,
             630
-          ],
-          "card": {
-            "meta": "the arcade",
-            "title": "Skee-Ball",
-            "text": "Every ball you roll scores the same: NICE.\n\nThe tickets that come out are blank. Noodle uses them as bookmarks."
-          }
+          ]
         },
         {
           "id": "tv-console",
@@ -1538,9 +1554,62 @@
           ],
           "img": "assets/world/props/cabinet-quiet.svg",
           "hover": "Quiet Garden"
+        },
+        {
+          "id": "breakroom-to-office",
+          "type": "portal",
+          "to": "office",
+          "label": "The door back to the Office",
+          "img": "assets/world/props/office-door-back.svg",
+          "at": {
+            "face": "left",
+            "x": 110,
+            "y": 640
+          },
+          "size": [
+            140,
+            252
+          ]
+        },
+        {
+          "id": "skee-ball-machine",
+          "type": "arcade",
+          "machine": "break-room-sports",
+          "game": "skee-ball",
+          "label": "A Skee-Ball machine. Tap to play.",
+          "hover": "Skee-Ball",
+          "img": "assets/world/props/skee-ball-machine.svg",
+          "at": {
+            "face": "right",
+            "x": 880,
+            "y": 640
+          },
+          "size": [
+            150,
+            291
+          ]
+        },
+        {
+          "id": "hoops-machine",
+          "type": "arcade",
+          "machine": "break-room-sports",
+          "game": "hoops",
+          "label": "A little hoop-shooting machine. Tap to play.",
+          "hover": "Hoops",
+          "img": "assets/world/props/hoops-machine.svg",
+          "at": {
+            "face": "front",
+            "x": 890,
+            "y": 640
+          },
+          "size": [
+            160,
+            293
+          ]
         }
       ],
-      "painted": true
+      "painted": true,
+      "_readme": "The Break Room (room id stays 'arcade' so saves, links, badges and the server whitelist keep working). It is the hub where the arcade lives: always open (house-schedule.json alwaysOpen), reached from the Office's BREAK ROOM door and from the Tunnel. Future side rooms: add a portal item here and remove the matching 'comingSoon' note in house-notes.json."
     },
     "wing": {
       "name": "The Gremlin Wing",
@@ -2275,7 +2344,7 @@
             60,
             60
           ],
-          "text": "✿",
+          "text": "\u273f",
           "fs": 52,
           "color": "#e2468c",
           "showIf": "greenhouse-plant"
@@ -3113,7 +3182,7 @@
             240,
             30
           ],
-          "text": "SOMEDAY · any month",
+          "text": "SOMEDAY \u00b7 any month",
           "fs": 14,
           "font": "hand",
           "cls": "ink"
@@ -3898,7 +3967,7 @@
           "card": {
             "meta": "the press",
             "title": "The Press Jingle",
-            "text": "♪ Ink it, print it, pin it up,\nwonky's fine and so's a smudge,\nfirst drafts welcome, come on in,\nevery print's a place to begin ♪\n\n(Dot hums it all day. Nobody minds.)"
+            "text": "\u266a Ink it, print it, pin it up,\nwonky's fine and so's a smudge,\nfirst drafts welcome, come on in,\nevery print's a place to begin \u266a\n\n(Dot hums it all day. Nobody minds.)"
           },
           "steps": {
             "who": "dot",
@@ -3920,7 +3989,7 @@
             120,
             60
           ],
-          "text": "♪ ♫",
+          "text": "\u266a \u266b",
           "cls": "notes",
           "showIf": "press-radio"
         },
@@ -4049,7 +4118,7 @@
             170,
             30
           ],
-          "text": "SOCK SWAP · someday",
+          "text": "SOCK SWAP \u00b7 someday",
           "fs": 13,
           "font": "sans",
           "cls": "ink"
@@ -4066,7 +4135,7 @@
             170,
             30
           ],
-          "text": "QUIET HOUR · soon",
+          "text": "QUIET HOUR \u00b7 soon",
           "fs": 13,
           "font": "sans",
           "cls": "ink"
@@ -4083,7 +4152,7 @@
             170,
             30
           ],
-          "text": "KITE DAY? · maybe",
+          "text": "KITE DAY? \u00b7 maybe",
           "fs": 13,
           "font": "sans",
           "cls": "ink"
@@ -4100,7 +4169,7 @@
             170,
             30
           ],
-          "text": "PLANT SHOW · when ready",
+          "text": "PLANT SHOW \u00b7 when ready",
           "fs": 12,
           "font": "sans",
           "cls": "ink"
@@ -4117,7 +4186,7 @@
             170,
             30
           ],
-          "text": "NAP CLUB · whenever",
+          "text": "NAP CLUB \u00b7 whenever",
           "fs": 13,
           "font": "sans",
           "cls": "ink"
@@ -4209,7 +4278,7 @@
             100,
             100
           ],
-          "text": "⊕",
+          "text": "\u2295",
           "fs": 80,
           "color": "#e2468c",
           "showIf": "set:crops"
@@ -5694,7 +5763,7 @@
             "title": "Two Coats",
             "text": "Two coats, hung neatly. They turn up on editorial days. Vesper keeps the hook clear for them."
           },
-          "hover": "Steve's coat · Sarah's coat"
+          "hover": "Steve's coat \u00b7 Sarah's coat"
         },
         {
           "id": "returns-sticky-books",
@@ -5879,7 +5948,7 @@
             160,
             90
           ],
-          "text": "🐸🐸🐸",
+          "text": "\ud83d\udc38\ud83d\udc38\ud83d\udc38",
           "fs": 40,
           "showIf": "set:frogs"
         },
@@ -6466,7 +6535,7 @@
             110,
             40
           ],
-          "text": "in…",
+          "text": "in\u2026",
           "fs": 26,
           "font": "hand",
           "color": "#b9dca2"
@@ -6483,7 +6552,7 @@
             110,
             40
           ],
-          "text": "out…",
+          "text": "out\u2026",
           "fs": 26,
           "font": "hand",
           "color": "#f3e6c4"
@@ -6500,7 +6569,7 @@
             110,
             40
           ],
-          "text": "in…",
+          "text": "in\u2026",
           "fs": 26,
           "font": "hand",
           "color": "#b9dca2"
@@ -6517,7 +6586,7 @@
             110,
             40
           ],
-          "text": "out…",
+          "text": "out\u2026",
           "fs": 26,
           "font": "hand",
           "color": "#f3e6c4"
@@ -6807,8 +6876,8 @@
               "up",
               "down"
             ],
-            "keysHelp": "↑ ↓ or W / S to move. The mouse works too. First to 5.",
-            "touchHelp": "Drag in the strip behind your gremlin (or use ▲ ▼). First to 5.",
+            "keysHelp": "\u2191 \u2193 or W / S to move. The mouse works too. First to 5.",
+            "touchHelp": "Drag in the strip behind your gremlin (or use \u25b2 \u25bc). First to 5.",
             "prize": {
               "enabled": false,
               "milestone": {
@@ -6832,7 +6901,7 @@
               "action"
             ],
             "actionLabel": "THROW",
-            "keysHelp": "↑ ↓ aim, ← → power, Space throws. Or drag back and let go.",
+            "keysHelp": "\u2191 \u2193 aim, \u2190 \u2192 power, Space throws. Or drag back and let go.",
             "touchHelp": "Drag back like a slingshot and let go. Six planes a round.",
             "prize": {
               "enabled": false,
@@ -6853,7 +6922,7 @@
               "action"
             ],
             "actionLabel": "DROP",
-            "keysHelp": "Space, ↓ or click to drop.",
+            "keysHelp": "Space, \u2193 or click to drop.",
             "touchHelp": "Tap the screen or DROP.",
             "prize": {
               "enabled": false,
@@ -6937,7 +7006,7 @@
               "action"
             ],
             "actionLabel": "PLANT",
-            "keysHelp": "← → or A / D (or the mouse) to move. Space plants the seed.",
+            "keysHelp": "\u2190 \u2192 or A / D (or the mouse) to move. Space plants the seed.",
             "touchHelp": "Drag along the strip below the can to move, tap to plant.",
             "prize": {
               "enabled": false,
@@ -6960,7 +7029,7 @@
         "accent": "#ffd166",
         "screen": "#1b1030",
         "ranked": true,
-        "foot": "SHORT ROUNDS · TOP 10 BOARDS",
+        "foot": "SHORT ROUNDS \u00b7 TOP 10 BOARDS",
         "hint": "The competitive cabinet: short rounds and shared top-10 boards. Still very polite.",
         "games": [
           {
@@ -7021,7 +7090,7 @@
             "best": "high",
             "ranked": false,
             "pad": [],
-            "keysHelp": "Left player W / S, right player ↑ / ↓. First to 7. Just for fun, no board.",
+            "keysHelp": "Left player W / S, right player \u2191 / \u2193. First to 7. Just for fun, no board.",
             "touchHelp": "Each player drags in the strip behind their own paddle. First to 7.",
             "prize": {
               "enabled": false,
@@ -7043,7 +7112,7 @@
         "colorDark": "#27463a",
         "accent": "#f6e3a1",
         "screen": "#14231f",
-        "foot": "NO SCORES · NO RUSH · NO WAY TO LOSE",
+        "foot": "NO SCORES \u00b7 NO RUSH \u00b7 NO WAY TO LOSE",
         "hint": "Two slow games. Nothing to win, nothing to lose. Stay as long as you like.",
         "games": [
           {
@@ -7059,7 +7128,7 @@
               "action"
             ],
             "actionLabel": "LET GO",
-            "keysHelp": "← → to choose a spot, Space to let a lantern go. Or just click anywhere.",
+            "keysHelp": "\u2190 \u2192 to choose a spot, Space to let a lantern go. Or just click anywhere.",
             "touchHelp": "Tap anywhere to let a lantern go.",
             "prize": {
               "enabled": false,
@@ -7083,8 +7152,68 @@
               "action"
             ],
             "actionLabel": "OPEN",
-            "keysHelp": "← → move the jar. Space lets the fireflies out again. The mouse works too.",
+            "keysHelp": "\u2190 \u2192 move the jar. Space lets the fireflies out again. The mouse works too.",
             "touchHelp": "Drag the jar. Tap it to let the fireflies out.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 0
+              },
+              "message": ""
+            }
+          }
+        ]
+      },
+      "break-room-sports": {
+        "id": "break-room-sports",
+        "title": "BREAK ROOM SPORTS",
+        "tagline": "Snack-break games with a ball",
+        "script": "games/break-room-sports.js",
+        "color": "#a8456b",
+        "colorDark": "#5a2d4a",
+        "accent": "#f3d98b",
+        "screen": "#2a1a2e",
+        "foot": "NO TIMERS \u00b7 TAKE YOUR TIME",
+        "hint": "Skee-Ball and Hoops. A fixed number of balls, no clock.",
+        "games": [
+          {
+            "id": "skee-ball",
+            "name": "Skee-Ball",
+            "blurb": "Nine balls up the ramp. Rings score 10 to 50; the little cups score 100.",
+            "scoreLabel": "POINTS",
+            "best": "high",
+            "pad": [
+              "left",
+              "right",
+              "action"
+            ],
+            "actionLabel": "ROLL",
+            "keysHelp": "\u2190 \u2192 to aim. Hold Space (or ROLL) and let go to roll. The meter moves slowly.",
+            "touchHelp": "Touch and hold to fill the power meter; slide to aim; let go to roll.",
+            "prize": {
+              "enabled": false,
+              "milestone": {
+                "type": "score",
+                "value": 0
+              },
+              "message": ""
+            }
+          },
+          {
+            "id": "hoops",
+            "name": "Hoops",
+            "blurb": "Ten soft shots at a friendly hoop. Bonks are allowed.",
+            "scoreLabel": "BASKETS",
+            "best": "high",
+            "pad": [
+              "up",
+              "down",
+              "action"
+            ],
+            "actionLabel": "SHOOT",
+            "keysHelp": "\u2191 \u2193 to aim. Hold Space (or SHOOT) and let go to shoot.",
+            "touchHelp": "Touch and hold to fill the power meter; slide to aim; let go to shoot.",
             "prize": {
               "enabled": false,
               "milestone": {
@@ -7103,7 +7232,7 @@
     "list": [
       {
         "id": "first-door",
-        "icon": "🚪",
+        "icon": "\ud83d\udeaa",
         "name": "First Door",
         "desc": "Stepped through your first door.",
         "rule": {
@@ -7113,7 +7242,7 @@
       },
       {
         "id": "all-rooms",
-        "icon": "🗺️",
+        "icon": "\ud83d\uddfa\ufe0f",
         "name": "Cartographer",
         "desc": "Discovered every room.",
         "rule": {
@@ -7122,7 +7251,7 @@
       },
       {
         "id": "sock-hunt",
-        "icon": "🧦",
+        "icon": "\ud83e\udde6",
         "name": "Sock Whisperer",
         "desc": "Brought all five socks home.",
         "rule": {
@@ -7131,7 +7260,7 @@
       },
       {
         "id": "speedy-socks",
-        "icon": "⏱️",
+        "icon": "\u23f1\ufe0f",
         "name": "Speedy Socks",
         "desc": "Finished the sock hunt in under 3 minutes.",
         "rule": {
@@ -7141,7 +7270,7 @@
       },
       {
         "id": "ten-secrets",
-        "icon": "✨",
+        "icon": "\u2728",
         "name": "Nosy Gremlin",
         "desc": "Found 10 secrets.",
         "rule": {
@@ -7151,7 +7280,7 @@
       },
       {
         "id": "all-secrets",
-        "icon": "🔍",
+        "icon": "\ud83d\udd0d",
         "name": "Knows Everything",
         "desc": "Found every secret.",
         "rule": {
@@ -7160,7 +7289,7 @@
       },
       {
         "id": "arcade-tourist",
-        "icon": "🕹️",
+        "icon": "\ud83d\udd79\ufe0f",
         "name": "Arcade Tourist",
         "desc": "Played every arcade game at least once.",
         "rule": {
@@ -7169,7 +7298,7 @@
       },
       {
         "id": "brawl-debut",
-        "icon": "🏅",
+        "icon": "\ud83c\udfc5",
         "name": "On The Board",
         "desc": "Put a first score on a Break Room Brawl board.",
         "rule": {
@@ -7179,7 +7308,7 @@
       },
       {
         "id": "brawl-top10",
-        "icon": "🏆",
+        "icon": "\ud83c\udfc6",
         "name": "Top Ten Gremlin",
         "desc": "Finished in a Break Room Brawl top 10.",
         "rule": {
@@ -7189,7 +7318,7 @@
       },
       {
         "id": "night-owl",
-        "icon": "🦉",
+        "icon": "\ud83e\udd89",
         "name": "Night Owl",
         "desc": "Visited after midnight. Shh, the gremlins are napping.",
         "rule": {
@@ -7287,42 +7416,42 @@
     "stamps": [
       {
         "id": "sock",
-        "emoji": "🧦",
+        "emoji": "\ud83e\udde6",
         "label": "Sock"
       },
       {
         "id": "tea",
-        "emoji": "☕",
+        "emoji": "\u2615",
         "label": "Tea"
       },
       {
         "id": "star",
-        "emoji": "⭐",
+        "emoji": "\u2b50",
         "label": "Star"
       },
       {
         "id": "sprout",
-        "emoji": "🌱",
+        "emoji": "\ud83c\udf31",
         "label": "Sprout"
       },
       {
         "id": "moon",
-        "emoji": "🌙",
+        "emoji": "\ud83c\udf19",
         "label": "Moon"
       },
       {
         "id": "heart",
-        "emoji": "💛",
+        "emoji": "\ud83d\udc9b",
         "label": "Heart"
       },
       {
         "id": "mushroom",
-        "emoji": "🍄",
+        "emoji": "\ud83c\udf44",
         "label": "Mushroom"
       },
       {
         "id": "paperclip",
-        "emoji": "📎",
+        "emoji": "\ud83d\udcce",
         "label": "Paperclip"
       }
     ]

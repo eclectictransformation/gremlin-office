@@ -1,5 +1,5 @@
 {
- "_readme": "Notes the gremlins leave around the house. Edit freely; ids must stay unique. roomNotes: one 'still putting my room together' note per personal room, in that gremlin's voice. gremlishNotes: little notes mixing English with Gremlish; write Gremlish as {g:WORDS} and it is drawn with the cipher in gremlish.json. 'meaning' is for editors only (never shown). at = face + x/y on that wall (0-1024). FUTURE: a 'collect the pieces' quest would hook in where shifting.js opens a note (openNote): record the note id there and check progress. Not built yet.",
+ "_readme": "Notes the gremlins leave around the house. Edit freely; ids must stay unique. roomNotes: one 'still putting my room together' note per personal room, in that gremlin's voice. gremlishNotes: little notes mixing English with Gremlish; write Gremlish as {g:WORDS} and it is drawn with the cipher in gremlish.json. 'meaning' is for editors only (never shown). at = face + x/y on that wall (0-1024). FUTURE: a 'collect the pieces' quest would hook in where shifting.js opens a note (openNote): record the note id there and check progress. Not built yet. comingSoon: gentle 'still being set up' notes for future side rooms (same look as roomNotes).",
  "roomNotes": [
   {
    "id": "note-greenhouse",
@@ -193,6 +193,40 @@
    "size": [
     90,
     74
+   ]
+  }
+ ],
+ "comingSoon": [
+  {
+   "id": "soon-breakroom-1",
+   "room": "arcade",
+   "who": "noodle",
+   "title": "Still being set up",
+   "text": "Another door goes right here, someday. I'm still setting up this side room. I think it wants to be a snack nook with a very long couch.",
+   "at": {
+    "face": "front",
+    "x": 880,
+    "y": 330
+   },
+   "size": [
+    90,
+    105
+   ]
+  },
+  {
+   "id": "soon-breakroom-2",
+   "room": "arcade",
+   "who": "dot",
+   "title": "Still being set up",
+   "text": "I'm measuring this wall for a little door. Behind it, maybe a craft corner where we make silly prizes for each other. Not yet. For now, the games are right here.",
+   "at": {
+    "face": "right",
+    "x": 150,
+    "y": 330
+   },
+   "size": [
+    90,
+    105
    ]
   }
  ]
