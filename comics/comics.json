@@ -1,0 +1,18 @@
+{
+  "books": [
+    {
+      "id": "knock-knock-01",
+      "series": "Knock Knock",
+      "subtitle": "Life in the Gremlin Office",
+      "issue": 1,
+      "title": "Knock Knock, Issue 1",
+      "spine": "#2F4A3A",
+      "cover": "comics/knock-knock/issue-01-page-01-web.jpg",
+      "pages": [
+        { "src": "comics/knock-knock/issue-01-page-01-web.jpg", "width": 1500, "height": 2368,
+          "title": "The Great Sock Situation",
+          "alt": "Knock Knock, Issue 1, Page 1: The Great Sock Situation. A comic page set in the Gremlin Office." }
+      ]
+    }
+  ]
+}

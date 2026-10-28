@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Gremlin Comics</title>
+<meta name="description" content="Comics from the Gremlin Office. Pick a book from the shelf and turn the pages.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{--linen:#F6F1E7;--surface:#FBF8F2;--divider:#ECE4D4;--text:#2F3A2F;--muted:#5C6B5A;--primary:#2F4A3A;
+  --w1:#E4CCAD;--w2:#C9A27C;--w3:#8E6A4C;--serif:"Fraunces",Georgia,serif;--sans:"DM Sans",system-ui,sans-serif;
+  /* fixed px, never vh: the height we report to the host can't feed back on itself */
+  --page-h:560px;--reader-top:56px}
+html.embedded{--reader-top:96px}
+*{box-sizing:border-box}
+html,body{background:var(--linen)}
+body{margin:0;color:var(--text);font:400 18px/1.5 var(--sans)}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#page{max-width:1000px;margin:0 auto;padding:14px 16px 12px}
+h1{margin:0;font:600 clamp(26px,4vw,34px)/1.15 var(--serif);color:var(--primary)}
+.lede{margin:4px 0 12px;color:var(--muted)}
+/* ---------- shelf ---------- */
+.shelf{position:relative;padding:14px 18px 0;background:linear-gradient(var(--surface),var(--linen));border:1px solid var(--divider);border-radius:18px 18px 8px 8px}
+.books{display:flex;align-items:flex-end;gap:14px;min-height:150px;list-style:none;margin:0;padding:0}
+.book{display:flex;align-items:flex-end;gap:10px;min-height:48px;padding:0;border:0;background:none;cursor:pointer;border-radius:8px;text-align:left;color:var(--text)}
+.book .cov{width:92px;height:140px;border-radius:3px 8px 8px 3px;background:var(--primary) center top/cover no-repeat;box-shadow:inset 6px 0 0 rgba(0,0,0,.18),0 4px 10px rgba(47,58,47,.25);transition:transform .25s}
+.book:hover .cov,.book[aria-pressed="true"] .cov{transform:translateY(-6px)}
+.book .lab{padding-bottom:6px;max-width:170px}
+.book .lab b{display:block;font:600 18px/1.2 var(--serif);color:var(--primary)}
+.book .lab span{font-size:15px;color:var(--muted)}
+.soon{width:92px;height:140px;border:2px dashed var(--w2);border-radius:3px 8px 8px 3px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;color:var(--w3);padding:6px;opacity:.85}
+.plank{height:16px;margin:0 -18px;background:linear-gradient(var(--w1),var(--w2) 60%,var(--w3));border-radius:0 0 8px 8px;box-shadow:0 4px 8px rgba(142,106,76,.25)}
+/* ---------- reader ---------- */
+.reader{margin-top:16px;background:var(--surface);border:1px solid var(--divider);border-radius:18px;padding:14px}
+.rhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;margin-bottom:10px}
+.rhead h2{margin:0;font:600 22px/1.2 var(--serif);color:var(--primary)}
+.rhead p{margin:0;color:var(--muted);font-size:16px}
+.stage{position:relative;height:var(--page-h);perspective:1800px;display:flex;justify-content:center;align-items:center;touch-action:pan-y;user-select:none}
+.leaf{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;backface-visibility:hidden}
+.leaf img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;border-radius:4px;box-shadow:0 6px 18px rgba(47,58,47,.22);background:var(--linen)}
+.cover{height:100%;aspect-ratio:1500/2368;max-width:100%;position:relative;border-radius:4px 10px 10px 4px;overflow:hidden;box-shadow:inset 10px 0 0 rgba(0,0,0,.15),0 8px 22px rgba(47,58,47,.3)}
+.cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0;box-shadow:none}
+.cover .ttl{position:absolute;left:0;right:0;bottom:0;padding:18px 16px 16px;background:linear-gradient(transparent,rgba(47,74,58,.92) 35%);color:var(--surface)}
+.cover .ttl small{display:block;font-size:15px;opacity:.9}
+.cover .ttl strong{display:block;font:600 26px/1.15 var(--serif)}
+.edge{position:absolute;top:0;bottom:0;width:30%;min-width:48px;border:0;background:transparent;cursor:pointer;z-index:3;border-radius:10px}
+.edge.l{left:0}.edge.r{right:0}
+.edge[disabled]{cursor:default}
+/* page-turn animations */
+.turn-next-out{transform-origin:left center;animation:flipOut .6s ease-in forwards}
+.turn-prev-out{transform-origin:right center;animation:flipOutB .6s ease-in forwards}
+@keyframes flipOut{to{transform:rotateY(-95deg);opacity:.4}}
+@keyframes flipOutB{to{transform:rotateY(95deg);opacity:.4}}
+.turn-in{animation:fadeIn .6s ease-out}
+@keyframes fadeIn{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.turn-next-out,.turn-prev-out{animation:fadeOut .3s forwards}.turn-in{animation:fadeIn .3s}@keyframes fadeOut{to{opacity:0}}.book .cov{transition:none}}
+.controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:48px;min-width:48px;padding:0 20px;border-radius:999px;border:1px solid var(--primary);background:var(--primary);color:var(--surface);font:600 17px/1 var(--sans);cursor:pointer;text-decoration:none}
+.pill.ghost{background:transparent;color:var(--primary)}
+.pill[disabled]{opacity:.35;cursor:default}
+.pos{font-weight:600;color:var(--muted);font-size:17px;text-align:center}
+.hint{text-align:center;color:var(--muted);font-size:15px;margin:8px 0 0}
+/* ---------- Gremlin World teaser (kept from the previous viewer) ---------- */
+.office{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;align-items:center;background:var(--primary);color:var(--surface);border-radius:18px;padding:12px;margin-top:16px}
+.office .peek{position:relative;display:block;border-radius:12px;overflow:hidden;border:3px solid #3d5c49;background:#3d5c49;padding:0;cursor:pointer;color:inherit;text-decoration:none}
+.office .peek img{display:block;width:100%;height:auto}
+.office .peek::after{content:"\2726  psst";position:absolute;right:8px;bottom:8px;font:600 12px var(--sans);background:rgba(26,26,24,.7);color:#fff;padding:5px 8px;border-radius:999px}
+.office h2{margin:4px 0;font:600 22px/1.2 var(--serif);color:var(--surface)}
+.office p{margin:0 0 10px;color:#DCE3D3;font-size:16px}
+.office .kicker{color:var(--w1)}
+.office .pill{background:var(--w1);color:var(--text);border-color:var(--w1)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+footer{text-align:center;font-size:15px;color:var(--muted);margin-top:10px}
+@media (max-width:719px){
+  :root{--page-h:500px}
+  #page{padding:12px}
+  .books{min-height:130px}.book .cov,.soon{width:78px;height:120px}
+  .office{grid-template-columns:1fr;gap:10px}.office .peek{aspect-ratio:3/1}.office .peek img{height:100%;object-fit:cover}
+  .pill .lbl{display:none}
+}
+@media (max-height:500px) and (orientation:landscape){:root{--page-h:340px}}
+</style>
+</head>
+<body>
+<div id="page">
+  <h1>Gremlin Comics</h1>
+  <p class="lede">Pick a book from the shelf, then turn the pages.</p>
+  <section class="shelf" aria-labelledby="shelf-title">
+    <h2 id="shelf-title" class="sr">Bookshelf</h2>
+    <ul class="books" id="books"></ul>
+    <div class="plank" aria-hidden="true"></div>
+  </section>
+
+  <section class="reader" id="reader" aria-labelledby="book-title" aria-roledescription="book">
+    <div class="rhead"><h2 id="book-title" tabindex="-1">Loading…</h2><p id="book-sub"></p></div>
+    <div class="stage" id="stage" tabindex="0" aria-label="Book pages. Use the left and right arrow keys to turn pages.">
+      <button class="edge l" id="edge-l" aria-label="Previous page"></button>
+      <button class="edge r" id="edge-r" aria-label="Next page"></button>
+    </div>
+    <div class="controls">
+      <button class="pill ghost" id="prev" aria-label="Previous page"><span aria-hidden="true">&lsaquo;</span> <span class="lbl">Back</span></button>
+      <span class="pos" id="pos"></span>
+      <button class="pill" id="next" aria-label="Next page"><span class="lbl">Next</span> <span aria-hidden="true">&rsaquo;</span></button>
+    </div>
+    <p class="sr" id="live" aria-live="polite"></p>
+    <p class="hint">Tap the edges, swipe, or use &larr; &rarr; to turn the page.</p>
+  </section>
+
+  <section class="office" aria-labelledby="office-title">
+    <a class="peek" href="../world.html" target="_blank" rel="noopener" aria-label="Open Gremlin World in a new tab"><img src="../assets/office-teaser.webp" width="720" height="360" alt="A peek into the Gremlin Office: two desks with monitors, a wall clock, an orange office chair and a framed comic strip." loading="lazy"></a>
+    <div>
+      <p class="kicker">Psst. The supply closet door is open.</p>
+      <h2 id="office-title">Step into Gremlin World</h2>
+      <p>Start in the office where the gremlins work, then crawl through the tunnels to the burrow, the gallery and beyond. Five socks are hiding somewhere. Nobody will tell you where. (Noodle might.)</p>
+      <div class="row">
+        <a class="pill" href="../world.html" target="_blank" rel="noopener">Visit Gremlin World <span aria-hidden="true">&#8599;</span><span class="sr"> (opens in a new tab)</span></a>
+      </div>
+    </div>
+  </section>
+  <footer>Drawn in the Gremlin Office. New pages appear here as soon as they're ready.</footer>
+</div>
+<script>
+(function () {
+  "use strict";
+  var BASE = "../", MANIFEST = "comics/comics.json"; /*BASE*/
+  var $ = function (s) { return document.querySelector(s); };
+  var EMBEDDED = window.self !== window.top;
+  if (EMBEDDED) document.documentElement.classList.add("embedded");
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function el(t, c, txt) { var e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; }
+
+  /* height reporting for the auto-resizing host (same message the site already listens for) */
+  var lastH = 0, postT = 0;
+  function postNow() { if (!EMBEDDED) return; var h = Math.ceil($("#page").getBoundingClientRect().height);
+    if (h && h !== lastH) { lastH = h; window.parent.postMessage({ type: "gremlin-diaries-height", height: h }, "*"); } }
+  function post() { clearTimeout(postT); postT = setTimeout(postNow, 120); }
+  if ("ResizeObserver" in window) new ResizeObserver(post).observe($("#page"));
+  addEventListener("resize", post); addEventListener("load", post);
+
+  var books = [], book = null, leaves = [], idx = 0, busy = false, shelfBtns = [];
+  var stage = $("#stage");
+
+  function leafFor(b, i) {
+    var leaf = el("div", "leaf");
+    if (i === 0) { // cover
+      var c = el("div", "cover"), im = el("img"); im.src = BASE + b.cover; im.alt = "";
+      var t = el("div", "ttl"); t.appendChild(el("small", null, b.subtitle ? b.series + " (" + b.subtitle + ")" : b.series));
+      t.appendChild(el("strong", null, "Issue " + b.issue)); c.appendChild(im); c.appendChild(t);
+      c.setAttribute("role", "img"); c.setAttribute("aria-label", "Cover: " + b.series + ", Issue " + b.issue); leaf.appendChild(c);
+    } else { var p = b.pages[i - 1], img = el("img"); img.src = BASE + p.src; img.alt = p.alt || p.title || ""; if (p.width) { img.width = p.width; img.height = p.height; } leaf.appendChild(img); }
+    return leaf;
+  }
+  function label(i) { return i === 0 ? "Cover" : "Page " + i + " of " + book.pages.length; }
+  function update() {
+    $("#pos").textContent = label(idx);
+    var sub = idx === 0 ? (book.subtitle || "") : (book.pages[idx - 1].title || "");
+    $("#book-sub").textContent = sub;
+    $("#live").textContent = label(idx) + (sub ? ": " + sub : "");
+    var atS = idx === 0, atE = idx === leaves.length - 1;
+    $("#prev").disabled = $("#edge-l").disabled = atS; $("#next").disabled = $("#edge-r").disabled = atE;
+  }
+  function openBook(i, focus) {
+    book = books[i]; idx = 0; busy = false;
+    shelfBtns.forEach(function (b, j) { b.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+    stage.querySelectorAll(".leaf").forEach(function (l) { l.remove(); });
+    leaves = [book]; book.pages.forEach(function () { leaves.push(1); });
+    $("#book-title").textContent = book.series + ", Issue " + book.issue;
+    stage.appendChild(leafFor(book, 0)); update(); post();
+    if (focus) $("#book-title").focus({ preventScroll: false });
+  }
+  function turn(d) {
+    var n = idx + d; if (!book || busy || n < 0 || n >= leaves.length) return;
+    var old = stage.querySelector(".leaf"), nu = leafFor(book, n);
+    idx = n; update(); busy = true;
+    stage.insertBefore(nu, old); nu.classList.add("turn-in"); old.style.zIndex = 2;
+    old.classList.add(d > 0 ? "turn-next-out" : "turn-prev-out");
+    var done = function () { if (old.parentNode) old.remove(); nu.classList.remove("turn-in"); busy = false; };
+    old.addEventListener("animationend", done, { once: true }); setTimeout(done, 900); // safety if animations are off
+  }
+  $("#prev").onclick = $("#edge-l").onclick = function () { turn(-1); };
+  $("#next").onclick = $("#edge-r").onclick = function () { turn(1); };
+  document.addEventListener("keydown", function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); turn(1); } else if (e.key === "ArrowLeft") { e.preventDefault(); turn(-1); }
+  });
+  var sx = null, sy = 0;
+  stage.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  stage.addEventListener("touchend", function (e) { if (sx == null) return; var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) turn(dx < 0 ? 1 : -1); }, { passive: true });
+
+  function buildShelf() {
+    var ul = $("#books");
+    books.forEach(function (b, i) {
+      var li = el("li"), btn = el("button", "book"); btn.type = "button";
+      btn.setAttribute("aria-label", "Open " + b.series + (b.subtitle ? " (" + b.subtitle + ")" : "") + ", Issue " + b.issue);
+      var cov = el("span", "cov"); cov.style.backgroundImage = "url('" + BASE + b.cover + "')"; if (b.spine) cov.style.backgroundColor = b.spine;
+      var lab = el("span", "lab"); lab.appendChild(el("b", null, b.series)); lab.appendChild(el("span", null, "Issue " + b.issue + " \u00b7 " + b.pages.length + (b.pages.length === 1 ? " page" : " pages")));
+      btn.appendChild(cov); btn.appendChild(lab); btn.onclick = function () { openBook(i, true); };
+      li.appendChild(btn); ul.appendChild(li); shelfBtns.push(btn);
+    });
+    var s = el("li"); s.appendChild(el("div", "soon", "More books coming soon")); s.setAttribute("aria-label", "More books coming soon"); ul.appendChild(s);
+  }
+  fetch(BASE + MANIFEST, { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
+    books = (d.books || []).filter(function (b) { return b.active !== false && b.pages && b.pages.length; });
+    if (!books.length) throw new Error("empty"); buildShelf(); openBook(0, false);
+  }).catch(function () { $("#book-title").textContent = "The comics couldn't load right now. Please try again in a moment."; post(); });
+})();
+</script>
+</body>
+</html>
