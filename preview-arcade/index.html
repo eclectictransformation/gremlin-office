@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Gremlin Arcade (preview)</title>
+<link rel="icon" href="data:,">
+<!-- Everything below resolves from the repo root, so the real game modules + assets load unchanged. -->
+<base href="../">
+<link rel="stylesheet" href="games/arcade.css">
+<link rel="stylesheet" href="games/room-games.css">
+<link rel="stylesheet" href="preview-arcade/arcade-home.css">
+</head>
+<body>
+<main id="app" class="ga">
+  <!-- 1. the door: Gremlin Name + Gremlin Key -->
+  <section id="ga-login" class="ga-card ga-door" hidden aria-labelledby="ga-login-h">
+    <svg class="ga-doodle" viewBox="0 0 120 70" aria-hidden="true"><path d="M10 60c6-30 20-46 50-46s44 16 50 46" fill="none" stroke="#54664A" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/><circle cx="44" cy="34" r="5" fill="#1A1A18"/><circle cx="76" cy="34" r="5" fill="#1A1A18"/><path d="M50 50q10 7 20 0" fill="none" stroke="#1A1A18" stroke-width="3" stroke-linecap="round"/></svg>
+    <p class="ga-meta">the gremlin arcade</p>
+    <h1 id="ga-login-h">Log in to your arcade</h1>
+    <p class="ga-sub">Type your Gremlin Name and your three-word Gremlin Key (like soggy-teacup-waltz). Capitals and spaces don't matter.</p>
+    <form id="ga-form" novalidate>
+      <label class="ga-label">Gremlin Name <input id="ga-name" type="text" maxlength="20" autocomplete="username" spellcheck="false" autocapitalize="off"></label>
+      <label class="ga-label">Gremlin Key <input id="ga-key" type="text" maxlength="40" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="word-word-word"></label>
+      <p id="ga-err" class="ga-err" role="alert" aria-live="polite"></p>
+      <button id="ga-go" class="ga-btn" type="submit">Let me in</button>
+    </form>
+    <p class="ga-fine">No Gremlin Name yet? Pick one up inside Gremlin World (the little badge up top), then come back.
+      <br>You can also just play the starter games below as a guest.</p>
+    <button id="ga-guest" class="ga-btn ghost" type="button">Play the starter games</button>
+    <a class="ga-world-link" href="https://eclectictransformation.github.io/gremlin-office/world.html" target="_blank" rel="noopener">Visit the full Gremlin World &#8599;</a>
+  </section>
+
+  <!-- 2. the machine -->
+  <section id="ga-machine" class="ga-cabinet" hidden aria-labelledby="ga-title">
+    <div class="ga-marquee"><h1 id="ga-title">GREMLIN ARCADE</h1><p id="ga-hello" class="ga-hello"></p></div>
+    <div class="ga-screen">
+      <p class="ga-screen-head" id="ga-count"></p>
+      <ul id="ga-games" class="ga-games"></ul>
+    </div>
+    <div class="ga-cta">
+      <p><strong>Want to collect more games?</strong> Explore the whole Gremlin World to find them. They're tucked into rooms all over the house.</p>
+      <a class="ga-btn" href="https://eclectictransformation.github.io/gremlin-office/world.html" target="_blank" rel="noopener">Explore Gremlin World &#8599;</a>
+    </div>
+    <div class="ga-panel-btns">
+      <button class="ga-big" type="button" data-open="stats"><span aria-hidden="true">&#128211;</span> My stats</button>
+      <button class="ga-big" type="button" data-open="coupons"><span aria-hidden="true">&#127903;&#65039;</span> My coupons</button>
+    </div>
+    <div class="ga-foot"><span id="ga-who"></span> <button id="ga-out" class="ga-link" type="button">Log out</button></div>
+  </section>
+
+  <!-- 3. drawers that slide out of the machine -->
+  <div id="ga-drawer" class="ga-drawer" hidden role="dialog" aria-modal="true" aria-labelledby="ga-drawer-h">
+    <div class="ga-card">
+      <button class="ga-x" type="button" aria-label="Close">&times;</button>
+      <div id="ga-drawer-body"></div>
+    </div>
+  </div>
+  <div id="ga-toast" class="ga-toast" role="status" aria-live="polite" hidden></div>
+</main>
+<script src="games/arcade.js" defer></script>
+<script src="preview-arcade/arcade-home.js" defer></script>
+</body>
+</html>
