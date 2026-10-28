@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice"><style>@keyframes b{0%,100%{transform:translateY(0);opacity:.85}50%{transform:translateY(-6px);opacity:1}}.br{animation:b 5.5s ease-in-out infinite}.br2{animation:b 5.5s ease-in-out -2.75s infinite}@media (prefers-reduced-motion:reduce){.br,.br2{animation:none}}</style>
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCE5E6"/><stop offset=".55" stop-color="#EEF0EA"/><stop offset="1" stop-color="#F6F1E7"/></linearGradient>
+<radialGradient id="c" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FBF8F2" stop-opacity=".95"/><stop offset="1" stop-color="#FBF8F2" stop-opacity="0"/></radialGradient>
+<radialGradient id="g" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#C9D6D3" stop-opacity=".7"/><stop offset="1" stop-color="#C9D6D3" stop-opacity="0"/></radialGradient>
+<radialGradient id="sun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#F3E6D6" stop-opacity=".8"/><stop offset="1" stop-color="#F3E6D6" stop-opacity="0"/></radialGradient><linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6F1E7" stop-opacity="0"/><stop offset="1" stop-color="#F6F1E7" stop-opacity=".9"/></linearGradient></defs>
+<rect width="1200" height="800" fill="url(#s)"/>
+<circle cx="860" cy="230" r="320" fill="url(#sun)"/>
+<g class="br"><ellipse cx="300" cy="230" rx="380" ry="110" fill="url(#c)"/><ellipse cx="950" cy="330" rx="420" ry="120" fill="url(#c)"/></g>
+<path d="M0 560 C200 500 380 540 600 520 S1000 480 1200 530 V800 H0Z" fill="#C9D6D3" opacity=".45"/>
+<path d="M0 630 C240 590 460 640 700 610 S1050 590 1200 620 V800 H0Z" fill="#B9C8C1" opacity=".35"/>
+<g class="br2"><ellipse cx="600" cy="600" rx="700" ry="90" fill="url(#c)"/><ellipse cx="200" cy="700" rx="400" ry="80" fill="url(#g)"/></g>
+<rect y="560" width="1200" height="240" fill="url(#fade)"/>
+</svg>

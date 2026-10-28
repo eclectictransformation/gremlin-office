@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Eclectic Transformation · preview</title>
+<meta name="theme-color" content="#E8E4D8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1D201B" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+</head>
+<body>
+<div class="ribbon" aria-label="Mock-up notice">Mock-up: sample content</div>
+<header class="top">
+  <button class="brand" data-go="home" aria-label="Home"><span class="logo" id="logo"></span><span id="brandName"></span></button>
+  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu">Menu</button>
+</header>
+<nav id="menu" class="menu" hidden>
+  <button data-go="home">Home</button>
+  <button data-go="meditations">Meditations</button>
+  <button data-go="music">Music &amp; playlists</button>
+  <button data-go="sauna">Sauna room</button>
+  <button data-go="board">Community board</button>
+  <button data-go="rules">Community rules</button>
+  <button data-go="pay">Pay for a service</button>
+  <button id="resetBtn">Reset demo</button>
+  <p class="small">If you're in crisis, call or text 988 anytime.</p>
+</nav>
+<main id="view" tabindex="-1"></main>
+<button class="unwell" id="unwellBtn" data-go="unwell">I'm not feeling well</button>
+<footer class="foot">
+  <p>If you're in crisis, call or text <a href="tel:988">988</a> anytime.</p>
+  <p class="small" id="wlNote"></p>
+</footer>
+<div class="sheet-wrap" id="sheet" hidden><div class="sheet" role="dialog" aria-modal="true" id="sheetBody"></div></div>
+<div class="player" id="player" hidden>
+  <div class="p-info"><span class="p-title" id="pTitle"></span><span class="small" id="pMeta"></span></div>
+  <button class="p-btn" id="pBtn" aria-label="Play">▶</button>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

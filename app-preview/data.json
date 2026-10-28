@@ -1,0 +1,45 @@
+{
+  "moods": ["stressed","angry","anxious","tired","curious"],
+  "meditations": [
+    {"id":"calm","title":"Coming Back to Calm","length":"6 min","mood":"stressed","src":"audio/calm.wav","preloaded":true},
+    {"id":"rage","title":"Let the Fire Settle","length":"5 min","mood":"angry","src":"audio/rage.wav","preloaded":true},
+    {"id":"sleep","title":"Heavy Eyes, Soft Body","length":"10 min","mood":"tired","src":"audio/sleep.wav","preloaded":true},
+    {"id":"ground","title":"The Ground of Being","length":"12 min","mood":"anxious","src":"audio/ground.wav","preloaded":true},
+    {"id":"wonder","title":"Open Curiosity","length":"8 min","mood":"curious","src":"audio/music2.wav","preloaded":false},
+    {"id":"anx2","title":"Two Hands on the Heart","length":"4 min","mood":"anxious","src":"audio/calm.wav","preloaded":false}
+  ],
+  "music": [
+    {"id":"m1","title":"Cedar Morning","length":"4 min","src":"audio/music1.wav"},
+    {"id":"m2","title":"Slow River","length":"5 min","src":"audio/music2.wav"},
+    {"id":"m3","title":"Low Lantern","length":"6 min","src":"audio/sleep.wav"},
+    {"id":"m4","title":"Open Field","length":"3 min","src":"audio/ground.wav"}
+  ],
+  "sauna": [
+    {"id":"s10","title":"First Heat","length":"10 min","note":"A gentle warm-up round.","src":"audio/sauna.wav"},
+    {"id":"s15","title":"Deep Cedar","length":"15 min","note":"Low drones for settling in.","src":"audio/sauna.wav"},
+    {"id":"s20","title":"Long Steam","length":"20 min","note":"Slow and spacious. Leave whenever you like.","src":"audio/sauna.wav"}
+  ],
+  "posts": [
+    {"id":"p1","author":"Bryan","role":"Host","date":"Oct 25","title":"Welcome in","body":"Glad you're here. This board is where I'll share what's coming up and what I'm working on. Take what helps.","likes":12,
+     "comments":[{"who":"Maya","text":"Thank you for making this space."},{"who":"Jordan","text":"Looking forward to the next workshop."}]},
+    {"id":"p2","author":"Sam","role":"Moderator","date":"Oct 23","title":"Saturday breathwork, in person","body":"We'll meet at the studio at 10am. Bring water and something warm to wear afterward.","likes":7,
+     "comments":[{"who":"Ana","text":"Is it okay for beginners?"},{"who":"Sam","text":"Absolutely. Come as you are."}]},
+    {"id":"p3","author":"Northwoods Sauna Co.","role":"Sponsor","sponsor":true,"date":"Oct 20","title":"Cedar for the community","body":"We're donating cedar benches to the studio sauna this winter.","likes":5,"comments":[]}
+  ],
+  "services": [
+    {"name":"Functional Massage","options":[
+      {"label":"30 min","price":"$60","url":"https://buy.stripe.com/dRm28qbbXg2ier7feF1ZS00"},
+      {"label":"60 min","price":"$100","url":"https://buy.stripe.com/9B6aEWfsd3fwaaR7Md1ZS01"},
+      {"label":"90 min","price":"$140","url":"https://buy.stripe.com/28E28q6VH7vM5UBc2t1ZS02"}]},
+    {"name":"Ooey Gooey Massage","options":[
+      {"label":"90 min","price":"$150","url":"https://buy.stripe.com/28E28qa7TeYe6YF2rT1ZS03"},
+      {"label":"120 min","price":"$190","url":"https://buy.stripe.com/3cI5kCfsdg2ibeVfeF1ZS04"}]},
+    {"name":"Blend Massage","options":[
+      {"label":"75 min","price":"$125","url":"https://buy.stripe.com/7sY7sK6VH2bs82Jd6x1ZS05"},
+      {"label":"150 min","price":"$225","url":"https://buy.stripe.com/dRm14ma7T6rI0Ahd6x1ZS06"}]}
+  ],
+  "booking": [
+    {"label":"Free consultation","url":"https://calendly.com/eclectictransformation/eclecticconsultations"},
+    {"label":"Book a functional massage","url":"https://calendly.com/eclectictransformation/functional-massage"}
+  ]
+}
