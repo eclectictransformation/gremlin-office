@@ -309,3 +309,21 @@ body.mood-burrow #mood{opacity:1;background:radial-gradient(ellipse at 50% 45%,r
 /* the Office -> Break Room door: a soft, steady warm glow (no pulsing) so it is easy to spot without competing */
 .it.breakdoor{filter:drop-shadow(0 0 10px rgba(255,214,150,.55))}
 .it.breakdoor:hover,.it.breakdoor:focus-visible{filter:drop-shadow(0 0 14px rgba(255,214,150,.8))}
+
+/* ---------- calm polish, round 4 (Meditation Guide review) ---------- */
+/* 1. every calm card/modal dims and softens the room behind it a bit more */
+.gw-panel,.prize{background:rgba(26,26,24,.6);-webkit-backdrop-filter:blur(3px) saturate(.8);backdrop-filter:blur(3px) saturate(.8)}
+/* 2. key card: soft cream key panel, dark text, two main buttons, a high-contrast enabled confirm */
+.gw-key{background:#fbf3dc;color:#2b231d;border:2px solid #e2d3ae}
+.gw-key-label{color:#6a5444}
+.gw-key-code{color:#2b231d}
+.gw-keyrow .gw-btn{flex:1 1 180px}
+.gw-dl{margin:4px auto 0;font-size:16px}
+.gw-signin [data-view=key-shown] > .gw-done{width:100%;margin-top:10px}
+.gw-done[disabled]{opacity:1;background:#e9e4d6;border-color:#cfc6b0;color:#6f6656}
+.gw-done:not([disabled]){background:#2f4a2a;border-color:#1d3019;color:#fff;box-shadow:0 3px 0 #1d3019}
+.gw-note:empty{display:none}
+/* 4. the hint bar: folded into welcome card 1; kept only for ?noprompt, at 16px+ with strong contrast */
+#hint{display:none}
+body.noprompt #hint{display:block;font:500 17px/1.4 var(--sans);background:rgba(26,26,24,.92);color:#fdfaf2;padding:10px 14px}
+@media (max-width:560px){body.noprompt #hint{position:fixed;top:58px;left:8px;right:8px;max-width:none;font-size:16px;z-index:5}}

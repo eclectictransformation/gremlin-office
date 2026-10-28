@@ -262,6 +262,8 @@
   /* ---------- input (drag / swipe / keys), same feel as the office ---------- */
   var dragging = false, down = null, suppressClick = false, lastPointer = null;
   function poke() { var hint = $("#hint"); if (hint && !hint._timer) hint._timer = setTimeout(function () { hint.classList.add("gone"); try { localStorage.setItem("gremlin-world-hint-seen", "1"); } catch (e) {} }, 7000); }
+  // round 4: the hint bar now lives in welcome guide card 1; it only shows on the no-guide ?noprompt path
+  try { if (new URLSearchParams(location.search).has("noprompt")) document.body.classList.add("noprompt"); } catch (e) {}
   try { if (localStorage.getItem("gremlin-world-hint-seen")) $("#hint").classList.add("gone"); } catch (e) {}   // the hint line shows once per device, then fades
   function unproject(sx, sy) {
     var rect = vp.getBoundingClientRect(), pz = P * view.zoom, x = sx - rect.width / 2, y = sy - rect.height / 2, z = -pz;

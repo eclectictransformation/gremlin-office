@@ -101,3 +101,10 @@
   .scr-over.has-board .over-msg{display:none}
   .board-status{font-size:10px}
 }
+
+/* calm polish, round 4: end cards (incl. the Brawl board card) at 16px or more */
+.over-title{font-size:18px}.over-score,.prize-soon{font-size:16px}.over-btns .ab,.scr-over .ab{font-size:16px;padding:9px 14px}
+.scr-over.has-board .over-msg{font-size:16px;line-height:1.35}
+.scr-over.has-board .ab,.scr-boards .ab{font-size:16px;padding:7px 12px}
+.board-list{font-size:16px}.board-status{font-size:16px}.board-tabs .tab{font-size:16px}
+@media (max-width:560px){.board-list,.board-status{font-size:16px}.scr-over.has-board .over-msg{display:block}}

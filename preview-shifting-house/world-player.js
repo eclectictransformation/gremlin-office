@@ -228,7 +228,7 @@
   }
   // The first-visit welcome guide: three short cards, once per device; reopen from Help or the stamps page.
   var GUIDE = [
-    { title: "Welcome in", lines: ["Wander, play games and hunt for socks. All of it is free, no key needed."] },
+    { title: "Welcome in", lines: ["Wander, play games and hunt for socks. All of it is free, no key needed.", "Drag to look around. Glowing things want to be tapped. Doors and tunnels take you places."] },
     { title: "The gremlins are very friendly", lines: ["With a Gremlin Key, the gremlins remember you. Your journal and scores follow you to any device.", "You can also sign the guestbook and join the Brawl boards."] },
     { title: "Something hidden", lines: ["With a Gremlin Key, you may find other offers hidden inside, some that even Bryan doesn't know about.", "It's just a nickname and three silly words. No email."] }
   ];
@@ -290,35 +290,40 @@
     b.appendChild(f); showPanel(signin, "input");
   }
   function keyText(r) {
-    return "Gremlin World\r\n\r\nGremlin Name: " + r.name + "\r\nGremlin Key:  " + r.key + "\r\n\r\nKeep this somewhere safe. It's the only way back into your Gremlin Name on another device.\r\nNobody (not even the gremlins) can look it up for you.\r\n" + location.href.split("#")[0] + "\r\n";
+    return "Gremlin World\r\n\r\nGremlin Name: " + r.name + "\r\nGremlin Key:  " + r.key + "\r\n\r\nKeep this somewhere safe. Writing it down works too.\r\nThe gremlins can't look it up later, so keep it handy.\r\n" + location.href.split("#")[0] + "\r\n";
   }
   function viewKey(r) {
+    // calm pass (round 4): two main actions, a cream key panel, no pressure lines, no exclamation marks
     var b = view("key-shown");
-    head(b, "your gremlin key", "Hello, " + r.name + "!", "Here's your Gremlin Key. You'll only see it this once.");
+    head(b, "your gremlin key", "Hello, " + r.name, "This is your Gremlin Key. It's how the gremlins recognise you on any device.");
     var k = el("div", "gw-key"); k.appendChild(el("span", "gw-key-label", "Gremlin Key")); var code = el("code", "gw-key-code", r.key); k.appendChild(code); b.appendChild(k);
-    var row = el("div", "gw-row"), done = btn("I saved it. Into the world!", "", function () { closePanel(); afterSignIn(true); });
+    b.appendChild(el("p", "gw-text gw-save", "Keep this somewhere safe. Writing it down works too."));
+    var done = btn("I saved it. Into the world", "gw-done", function () { closePanel(); afterSignIn(true); });
     done.disabled = true;
-    var note = el("p", "gw-fine", "");
+    var note = el("p", "gw-fine gw-note", "");
     var ok = function (msg) { done.disabled = false; note.textContent = msg; };
-    row.appendChild(btn("Copy key", "ghost", function () {
-      var txt = r.key, fin = function () { ok("Copied! Paste it somewhere safe."); };
+    var row = el("div", "gw-row gw-keyrow");
+    row.appendChild(btn("Copy key", "", function () {
+      var txt = r.key, fin = function () { ok("Copied. Paste it somewhere safe."); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(fin, function () { selectCode(code); ok("Selected. Press Ctrl+C (or Cmd+C) to copy."); });
       else { selectCode(code); try { document.execCommand("copy"); fin(); } catch (e) { ok("Selected. Press Ctrl+C (or Cmd+C) to copy."); } }
     }));
-    row.appendChild(btn("Download .txt", "ghost", function () {
-      var a = el("a"); a.href = URL.createObjectURL(new Blob([keyText(r)], { type: "text/plain" }));
-      a.download = "gremlin-key-" + r.name.replace(/[^A-Za-z0-9_-]+/g, "-") + ".txt"; document.body.appendChild(a); a.click();
-      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000); ok("Downloaded. Keep the file somewhere safe.");
-    }));
-    b.appendChild(row);
-    var mail = el("a", "gw-btn ghost gw-mail", "Email it to myself"); mail.id = "gw-key-mail";
+    var mail = el("a", "gw-btn gw-mail", "Email it to myself"); mail.id = "gw-key-mail";
     // no address prefilled: it opens the visitor's own email app and we collect and send nothing
     mail.href = "mailto:?subject=" + encodeURIComponent("My Gremlin Key") + "&body=" + encodeURIComponent("My Gremlin World name and key\n\nGremlin Name: " + r.name + "\nGremlin Key: " + r.key + "\n\nHow to use it: open Gremlin World, tap Guest at the top, choose \"I have a Gremlin Key\", and type the name and key (capitals and spaces don't matter). It works on any device.\n\n" + location.href.split("#")[0].split("?")[0]);
     mail.addEventListener("click", function () { ok("Your email app should open. Send it to yourself."); });
-    row.appendChild(mail);
-    b.appendChild(el("p", "gw-text gw-save", "Save this key! Write it on a piece of paper or email it to yourself. It's how the gremlins recognise you on any device."));
+    row.appendChild(mail); b.appendChild(row);
     b.appendChild(el("p", "gw-fine", "The email button opens your own email app. Nothing is sent to us."));
-    var wrote = el("label", "gw-check"), cb = el("input"); cb.type = "checkbox"; cb.addEventListener("change", function () { if (cb.checked) ok("Good. Gremlins love a written note."); }); wrote.appendChild(cb); wrote.appendChild(document.createTextNode(" I wrote it down instead")); b.appendChild(wrote);
+    b.appendChild(el("p", "gw-fine", "The gremlins can't look it up later, so keep it handy."));
+    var dl = el("button", "gw-textlink gw-dl", "Download it as a small text file"); dl.type = "button";
+    dl.addEventListener("click", function () {
+      var a = el("a"); a.href = URL.createObjectURL(new Blob([keyText(r)], { type: "text/plain" }));
+      a.download = "gremlin-key-" + r.name.replace(/[^A-Za-z0-9_-]+/g, "-") + ".txt"; document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000); ok("Downloaded. Keep the file somewhere safe.");
+    });
+    b.appendChild(dl);
+    var wrote = el("label", "gw-check"), cb = el("input"); cb.type = "checkbox"; cb.addEventListener("change", function () { if (cb.checked) ok("Good. Gremlins love a written note."); else if (!note.dataset.saved) { done.disabled = true; note.textContent = ""; } }); wrote.appendChild(cb); wrote.appendChild(document.createTextNode(" I wrote it down")); b.appendChild(wrote);
+    var ok0 = ok; ok = function (msg) { if (msg.indexOf("Gremlins love") < 0) note.dataset.saved = "1"; ok0(msg); };
     b.appendChild(note); b.appendChild(done);
     showPanel(signin);
   }
