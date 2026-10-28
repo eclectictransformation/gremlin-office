@@ -98,6 +98,28 @@
             70,
             44
           ]
+        },
+        {
+          "id": "knock-knock-p1",
+          "type": "frame",
+          "cls": "hs framed",
+          "label": "Framed comic: Knock Knock, Issue 1, Page 1, The Great Sock Situation",
+          "hover": "Knock Knock",
+          "img": "comics/knock-knock/issue-01-page-01-web.jpg",
+          "at": {
+            "face": "right",
+            "x": 385,
+            "y": 118
+          },
+          "size": [
+            100,
+            150
+          ],
+          "card": {
+            "title": "Knock Knock (Life in the Gremlin Office) · Issue 1, Page 1: The Great Sock Situation",
+            "image": "comics/knock-knock/issue-01-page-01-web.jpg",
+            "alt": "Knock Knock (Life in the Gremlin Office) · Issue 1, Page 1: The Great Sock Situation"
+          }
         }
       ],
       "officeSkip": [

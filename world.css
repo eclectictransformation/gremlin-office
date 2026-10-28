@@ -96,6 +96,9 @@ body.mood-burrow #mood{opacity:1;background:radial-gradient(ellipse at 50% 45%,r
   .mapbox{left:8px;right:8px;width:auto}
 }
 .it.strip>img.prop{object-fit:cover;border-radius:2px}
+.card.frame-page h2{font-size:18px;line-height:1.35;margin-bottom:10px}
+.card.frame-page img.card-img{max-height:min(58vh,540px);width:auto;max-width:100%;object-fit:contain}
+@media (max-width:560px){.card.frame-page img.card-img{max-height:46vh}}
 .it.sock.bare{border-radius:50%}
 /* items are flat on their wall: flattening each face makes taps land on the item, not the wall behind it */
 #world .face{transform-style:flat}

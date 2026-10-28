@@ -132,7 +132,7 @@
       var b = el("button", "it " + it.type + (img ? " hasimg" : "") + (it.cls ? " " + it.cls : ""), { "aria-label": it.label || it.id, "data-id": it.id });
       place(b, at, size);
       if (it.rot) b.style.transform = "rotate(" + it.rot + "deg)";
-      if (img) { var im = el("img", "prop", { alt: "", draggable: "false" }); im.dataset.src = img; b.appendChild(im); }
+      if (img) { var im = el("img", "prop", { alt: (it.type === "frame" && it.card && it.card.alt) || "", draggable: "false" }); im.dataset.src = img; b.appendChild(im); }
       if (it.type === "sock" && !(painted && it.artBare)) { var si = el("img", "", { alt: "", draggable: "false" }); si.dataset.src = "assets/world/props/sock-" + it.gremlin + ".svg"; b.appendChild(si); }
       if (it.type === "portal") { var tg = el("span", "tag"); tg.textContent = W.rooms[it.to].short + " \u2192"; b.appendChild(tg); }
       if (it.type === "egg" && found.indexOf(it.id) >= 0) b.classList.add("found");
@@ -347,6 +347,7 @@
     if (it.type === "scoreboard") { turnTo(x.yaw, x.pitch, 1.3, function () { openArcade(it.machine, b); if (window.GremlinArcade && GremlinArcade.isOpen()) GremlinArcade.showBoards(); }); return; }
     if (it.type === "guestbook") { turnTo(x.yaw, x.pitch, 1.4, function () { if (window.GremlinPlayer) GremlinPlayer.openGuestbook(b); else showCard({ meta: "the archive", title: "The Gremlin Guestbook", text: "The ink is still drying. Try again in a moment." }); }); return; }
     if (it.type === "strip") { var st = x.strip; turnTo(x.yaw, x.pitch, 1.3, function () { showCard({ image: st.thumb || st.filename, alt: st.alt, meta: "the archive" + (st.episode ? " \u00b7 episode " + st.episode : ""), title: st.title, text: st.alt, link: { href: "comics.html", label: "Read it in the comics archive" } }); }); return; }
+    if (it.type === "frame") { turnTo(x.yaw, x.pitch, 1.3, function () { showCard(it.card, "frame"); }); return; }
     if (it.type === "game") { turnTo(x.yaw, x.pitch, 1.3, function () { openRoomGame(it, b); }); return; }
     if (it.type === "setpiece") { tapSetPiece(b, it, x); return; }
     // eggs
@@ -400,9 +401,11 @@
   }
   function showCard(c, type) {
     c = c || {}; var frag = document.createDocumentFragment();
-    if (c.image) frag.appendChild(el("img", "card-img" + (type === "character" ? " portrait" : ""), { src: c.image, alt: c.alt || "" }));
-    var meta = el("p", "meta"); meta.textContent = c.meta || ({ poem: "a hidden poem", "bryan-note": "a Bryan note", prank: "gremlin business", art: "the art collection", helper: "a small helpful thing", character: "the team" })[type] || ""; frag.appendChild(meta);
-    var t = el("h2", "", { id: "card-title" }); t.textContent = c.title || ""; frag.appendChild(t);
+    var img = c.image ? el("img", "card-img" + (type === "character" ? " portrait" : ""), { src: c.image, alt: c.alt || "" }) : null;
+    var meta = el("p", "meta"); meta.textContent = c.meta || ({ poem: "a hidden poem", "bryan-note": "a Bryan note", prank: "gremlin business", art: "the art collection", helper: "a small helpful thing", character: "the team" })[type] || "";
+    var t = el("h2", "", { id: "card-title" }); t.textContent = c.title || "";
+    if (type === "frame") { frag.appendChild(t); if (img) frag.appendChild(img); }
+    else { if (img) frag.appendChild(img); frag.appendChild(meta); frag.appendChild(t); }
     textNodes(frag, c.text);
     hook("cardExtra", c, frag);   // e.g. the Gremlish hint line, or the help card's "Why a Gremlin Key?"
     if (c.widget === "breathe") { var w = el("div", "breathe"); w.appendChild(el("div", "orb")); var sp = el("span"); sp.textContent = "in 4 \u00b7 hold 4 \u00b7 out 6"; w.appendChild(sp); frag.appendChild(w); }
@@ -411,7 +414,7 @@
       else { var a = el("a", "", { href: c.link.href }); a.textContent = (c.link.label || "Open") + " \u2192"; if (/^https?:/i.test(c.link.href)) { a.target = "_blank"; a.rel = "noopener"; } frag.appendChild(a); }
     }
     var card = $("#card"), cb = $(".card-body", card); cb.innerHTML = ""; cb.appendChild(frag);
-    card.classList.toggle("wide", !!(c.image && type !== "character")); card.hidden = false; $(".card-close", card).focus({ preventScroll: true });
+    card.classList.toggle("wide", !!(c.image && type !== "character")); card.classList.toggle("frame-page", type === "frame"); card.hidden = false; $(".card-close", card).focus({ preventScroll: true });
   }
   function closeCard() { var card = $("#card"); if (card.hidden) return; card.hidden = true; turnTo(view.yaw, view.pitch, 1); if (returnFocus && document.contains(returnFocus)) try { returnFocus.focus({ preventScroll: true }); } catch (e) {} }
   $("#card .card-close").addEventListener("click", closeCard);
