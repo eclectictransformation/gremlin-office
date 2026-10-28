@@ -1,4 +1,4 @@
-const CACHE = "et-preview-v2";
+const CACHE = "et-preview-v3";
 const FONTS = "et-fonts-v1";
 const SHELL = ["./","index.html","styles.css","app.js","config.js","data.json","manifest.json","icons/icon-192.png","icons/icon-512.png",
   "assets/mist-background.svg","assets/sauna-scene.svg","assets/meditation-room.svg","assets/mist-background-portrait.svg","assets/sauna-scene-portrait.svg","assets/meditation-room-portrait.svg","audio/calm.wav","audio/music1.wav","audio/sauna.wav","audio/rage.wav","audio/sleep.wav","audio/ground.wav"];

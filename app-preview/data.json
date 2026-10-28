@@ -1,45 +1,585 @@
 {
-  "moods": ["stressed","angry","anxious","tired","curious"],
-  "meditations": [
-    {"id":"calm","title":"Coming Back to Calm","length":"6 min","mood":"stressed","src":"audio/calm.wav","preloaded":true},
-    {"id":"rage","title":"Let the Fire Settle","length":"5 min","mood":"angry","src":"audio/rage.wav","preloaded":true},
-    {"id":"sleep","title":"Heavy Eyes, Soft Body","length":"10 min","mood":"tired","src":"audio/sleep.wav","preloaded":true},
-    {"id":"ground","title":"The Ground of Being","length":"12 min","mood":"anxious","src":"audio/ground.wav","preloaded":true},
-    {"id":"wonder","title":"Open Curiosity","length":"8 min","mood":"curious","src":"audio/music2.wav","preloaded":false},
-    {"id":"anx2","title":"Two Hands on the Heart","length":"4 min","mood":"anxious","src":"audio/calm.wav","preloaded":false}
+ "_howto": [
+  "HOW TO ADD A BOOK: copy any entry in 'library' and change it. Give it a new short 'id' (like b9).",
+  "'shelf' is one of the shelf ids in 'shelves'. 'spine' is the book color (try #8E6A4C, #C9A27C, #6F8A6A).",
+  "'url' is the link to the full piece (leave \"\" if none). For other writers' work add 'author' and 'source' (site name); the app shows 'From <source>, read the original'.",
+  "HOW TO ADD A PATH: in 'paths', list book ids in the order to read them. Each book opens after the one before it. That's all.",
+  "Meditations and the 'I'm not feeling well' area are never locked.",
+  "READ TIME: set 'readMinutes' on each book. 3 or less = Quick read, up to 7 = 5-minute read, more = Sit with it. Books with 'chapters' sit under Books.",
+  "LEAVES: finishing a piece earns leaves (see 'leaves'). They only unlock cosmetic gifts in 'corner.gifts' at the listed amount. Nothing is random, nothing costs money, nothing is ever lost.",
+  "CORNER: the choices in 'corner' are what members can pick for their reading corner."
+ ],
+ "moods": [
+  "stressed",
+  "angry",
+  "anxious",
+  "tired",
+  "curious"
+ ],
+ "meditations": [
+  {
+   "id": "calm",
+   "title": "Coming Back to Calm",
+   "length": "6 min",
+   "mood": "stressed",
+   "src": "audio/calm.wav",
+   "preloaded": true
+  },
+  {
+   "id": "rage",
+   "title": "Let the Fire Settle",
+   "length": "5 min",
+   "mood": "angry",
+   "src": "audio/rage.wav",
+   "preloaded": true
+  },
+  {
+   "id": "sleep",
+   "title": "Heavy Eyes, Soft Body",
+   "length": "10 min",
+   "mood": "tired",
+   "src": "audio/sleep.wav",
+   "preloaded": true
+  },
+  {
+   "id": "ground",
+   "title": "The Ground of Being",
+   "length": "12 min",
+   "mood": "anxious",
+   "src": "audio/ground.wav",
+   "preloaded": true
+  },
+  {
+   "id": "wonder",
+   "title": "Open Curiosity",
+   "length": "8 min",
+   "mood": "curious",
+   "src": "audio/music2.wav",
+   "preloaded": false
+  },
+  {
+   "id": "anx2",
+   "title": "Two Hands on the Heart",
+   "length": "4 min",
+   "mood": "anxious",
+   "src": "audio/calm.wav",
+   "preloaded": false
+  }
+ ],
+ "music": [
+  {
+   "id": "m1",
+   "title": "Cedar Morning",
+   "length": "4 min",
+   "src": "audio/music1.wav"
+  },
+  {
+   "id": "m2",
+   "title": "Slow River",
+   "length": "5 min",
+   "src": "audio/music2.wav"
+  },
+  {
+   "id": "m3",
+   "title": "Low Lantern",
+   "length": "6 min",
+   "src": "audio/sleep.wav"
+  },
+  {
+   "id": "m4",
+   "title": "Open Field",
+   "length": "3 min",
+   "src": "audio/ground.wav"
+  }
+ ],
+ "sauna": [
+  {
+   "id": "s10",
+   "title": "First Heat",
+   "length": "10 min",
+   "note": "A gentle warm-up round.",
+   "src": "audio/sauna.wav"
+  },
+  {
+   "id": "s15",
+   "title": "Deep Cedar",
+   "length": "15 min",
+   "note": "Low drones for settling in.",
+   "src": "audio/sauna.wav"
+  },
+  {
+   "id": "s20",
+   "title": "Long Steam",
+   "length": "20 min",
+   "note": "Slow and spacious. Leave whenever you like.",
+   "src": "audio/sauna.wav"
+  }
+ ],
+ "posts": [
+  {
+   "id": "p1",
+   "author": "Bryan",
+   "role": "Host",
+   "date": "Oct 25",
+   "title": "Welcome in",
+   "body": "Glad you're here. This board is where I'll share what's coming up and what I'm working on. Take what helps.",
+   "likes": 12,
+   "comments": [
+    {
+     "who": "Maya",
+     "text": "Thank you for making this space."
+    },
+    {
+     "who": "Jordan",
+     "text": "Looking forward to the next workshop."
+    }
+   ]
+  },
+  {
+   "id": "p2",
+   "author": "Sam",
+   "role": "Moderator",
+   "date": "Oct 23",
+   "title": "Saturday breathwork, in person",
+   "body": "We'll meet at the studio at 10am. Bring water and something warm to wear afterward.",
+   "likes": 7,
+   "comments": [
+    {
+     "who": "Ana",
+     "text": "Is it okay for beginners?"
+    },
+    {
+     "who": "Sam",
+     "text": "Absolutely. Come as you are."
+    }
+   ]
+  },
+  {
+   "id": "p3",
+   "author": "Northwoods Sauna Co.",
+   "role": "Sponsor",
+   "sponsor": true,
+   "date": "Oct 20",
+   "title": "Cedar for the community",
+   "body": "We're donating cedar benches to the studio sauna this winter.",
+   "likes": 5,
+   "comments": []
+  }
+ ],
+ "services": [
+  {
+   "name": "Functional Massage",
+   "options": [
+    {
+     "label": "30 min",
+     "price": "$60",
+     "url": "https://buy.stripe.com/dRm28qbbXg2ier7feF1ZS00"
+    },
+    {
+     "label": "60 min",
+     "price": "$100",
+     "url": "https://buy.stripe.com/9B6aEWfsd3fwaaR7Md1ZS01"
+    },
+    {
+     "label": "90 min",
+     "price": "$140",
+     "url": "https://buy.stripe.com/28E28q6VH7vM5UBc2t1ZS02"
+    }
+   ],
+   "type": "Functional",
+   "desc": "Focused work on what hurts and how you move. Sample copy: Bryan to edit."
+  },
+  {
+   "name": "Ooey Gooey Massage",
+   "options": [
+    {
+     "label": "90 min",
+     "price": "$150",
+     "url": "https://buy.stripe.com/28E28qa7TeYe6YF2rT1ZS03"
+    },
+    {
+     "label": "120 min",
+     "price": "$190",
+     "url": "https://buy.stripe.com/3cI5kCfsdg2ibeVfeF1ZS04"
+    }
+   ],
+   "type": "Ooey Gooey",
+   "desc": "Slow, melting, full-body rest. Sample copy: Bryan to edit."
+  },
+  {
+   "name": "Blend Massage",
+   "options": [
+    {
+     "label": "75 min",
+     "price": "$125",
+     "url": "https://buy.stripe.com/7sY7sK6VH2bs82Jd6x1ZS05"
+    },
+    {
+     "label": "150 min",
+     "price": "$225",
+     "url": "https://buy.stripe.com/dRm14ma7T6rI0Ahd6x1ZS06"
+    }
+   ],
+   "type": "Blend",
+   "desc": "A mix of both: targeted work, then deep rest. Sample copy: Bryan to edit."
+  }
+ ],
+ "booking": [
+  {
+   "label": "Free consultation",
+   "url": "https://calendly.com/eclectictransformation/eclecticconsultations"
+  },
+  {
+   "label": "Book a functional massage",
+   "url": "https://calendly.com/eclectictransformation/functional-massage"
+  }
+ ],
+ "comingSoon": [
+  "Eclectic Coaching",
+  "More services"
+ ],
+ "workshops": [
+  {
+   "title": "One Hour Workshop",
+   "price": "$25",
+   "length": "60 min",
+   "desc": "A gentle group session. Sample description: Bryan to edit."
+  },
+  {
+   "title": "One Hour Vocal Workshop",
+   "price": "$20",
+   "length": "60 min",
+   "desc": "Find your voice with breath and sound. Sample description: Bryan to edit."
+  },
+  {
+   "title": "90 Min Immersive Workshop",
+   "price": "$45",
+   "length": "90 min",
+   "desc": "A longer, deeper practice. Sample description: Bryan to edit."
+  }
+ ],
+ "care": {
+  "before": [
+   "Eat lightly and drink some water beforehand.",
+   "Arrive a few minutes early so you don't rush.",
+   "Tell Bryan about any pain, injuries, or areas to avoid.",
+   "You can ask for more or less pressure at any time."
   ],
-  "music": [
-    {"id":"m1","title":"Cedar Morning","length":"4 min","src":"audio/music1.wav"},
-    {"id":"m2","title":"Slow River","length":"5 min","src":"audio/music2.wav"},
-    {"id":"m3","title":"Low Lantern","length":"6 min","src":"audio/sleep.wav"},
-    {"id":"m4","title":"Open Field","length":"3 min","src":"audio/ground.wav"}
-  ],
-  "sauna": [
-    {"id":"s10","title":"First Heat","length":"10 min","note":"A gentle warm-up round.","src":"audio/sauna.wav"},
-    {"id":"s15","title":"Deep Cedar","length":"15 min","note":"Low drones for settling in.","src":"audio/sauna.wav"},
-    {"id":"s20","title":"Long Steam","length":"20 min","note":"Slow and spacious. Leave whenever you like.","src":"audio/sauna.wav"}
-  ],
-  "posts": [
-    {"id":"p1","author":"Bryan","role":"Host","date":"Oct 25","title":"Welcome in","body":"Glad you're here. This board is where I'll share what's coming up and what I'm working on. Take what helps.","likes":12,
-     "comments":[{"who":"Maya","text":"Thank you for making this space."},{"who":"Jordan","text":"Looking forward to the next workshop."}]},
-    {"id":"p2","author":"Sam","role":"Moderator","date":"Oct 23","title":"Saturday breathwork, in person","body":"We'll meet at the studio at 10am. Bring water and something warm to wear afterward.","likes":7,
-     "comments":[{"who":"Ana","text":"Is it okay for beginners?"},{"who":"Sam","text":"Absolutely. Come as you are."}]},
-    {"id":"p3","author":"Northwoods Sauna Co.","role":"Sponsor","sponsor":true,"date":"Oct 20","title":"Cedar for the community","body":"We're donating cedar benches to the studio sauna this winter.","likes":5,"comments":[]}
-  ],
-  "services": [
-    {"name":"Functional Massage","options":[
-      {"label":"30 min","price":"$60","url":"https://buy.stripe.com/dRm28qbbXg2ier7feF1ZS00"},
-      {"label":"60 min","price":"$100","url":"https://buy.stripe.com/9B6aEWfsd3fwaaR7Md1ZS01"},
-      {"label":"90 min","price":"$140","url":"https://buy.stripe.com/28E28q6VH7vM5UBc2t1ZS02"}]},
-    {"name":"Ooey Gooey Massage","options":[
-      {"label":"90 min","price":"$150","url":"https://buy.stripe.com/28E28qa7TeYe6YF2rT1ZS03"},
-      {"label":"120 min","price":"$190","url":"https://buy.stripe.com/3cI5kCfsdg2ibeVfeF1ZS04"}]},
-    {"name":"Blend Massage","options":[
-      {"label":"75 min","price":"$125","url":"https://buy.stripe.com/7sY7sK6VH2bs82Jd6x1ZS05"},
-      {"label":"150 min","price":"$225","url":"https://buy.stripe.com/dRm14ma7T6rI0Ahd6x1ZS06"}]}
-  ],
-  "booking": [
-    {"label":"Free consultation","url":"https://calendly.com/eclectictransformation/eclecticconsultations"},
-    {"label":"Book a functional massage","url":"https://calendly.com/eclectictransformation/functional-massage"}
+  "after": [
+   "Drink water through the rest of the day.",
+   "Rest if you can. Skip hard workouts today.",
+   "A warm shower or bath helps.",
+   "Some soreness for a day or two is normal. Gentle stretching helps."
   ]
+ },
+ "shelves": [
+  {
+   "id": "books",
+   "name": "Bryan's Books",
+   "note": "Longer works, chapter by chapter"
+  },
+  {
+   "id": "musings",
+   "name": "Bryan's Musings",
+   "note": "From the Substack journal"
+  },
+  {
+   "id": "blog",
+   "name": "Blog",
+   "note": "From the website"
+  },
+  {
+   "id": "community",
+   "name": "Musings from the Community",
+   "note": "Shared by Bryan or a moderator"
+  },
+  {
+   "id": "path",
+   "name": "A gentle path (sample)",
+   "note": "Read in order. Each one opens the next."
+  },
+  {
+   "id": "future",
+   "name": "Coming later",
+   "note": "Meditation transcripts, Gremlin Diaries comics"
+  }
+ ],
+ "library": [
+  {
+   "shelf": "musings",
+   "title": "Rooted Perspectives, Episode 1: A Dip into Addiction",
+   "author": "Bryan",
+   "date": "Oct 10, 2026",
+   "excerpt": "Let's dip our toes into a different way of thinking.",
+   "url": "https://woowooman.substack.com/p/rooted-perspectives-episode-1-a-dip",
+   "spine": "#8E6A4C",
+   "id": "b1",
+   "readMinutes": 6
+  },
+  {
+   "shelf": "musings",
+   "title": "Rooted Perspectives: Pilot",
+   "author": "Bryan",
+   "date": "Sep 14, 2026",
+   "excerpt": "Just a perspective that might be different, on topics that might be uncomfortable, along with some funny faces.",
+   "url": "https://woowooman.substack.com/p/rooted-perspectives-pilot",
+   "spine": "#6F8A6A",
+   "id": "b2",
+   "readMinutes": 4
+  },
+  {
+   "shelf": "musings",
+   "title": "There is more than one way to grow.",
+   "author": "Bryan",
+   "date": "May 23, 2026",
+   "excerpt": "Perhaps you'll find something here that resonates.",
+   "url": "https://woowooman.substack.com/p/there-is-more-than-one-way-to-grow",
+   "spine": "#C9A27C",
+   "id": "b3",
+   "readMinutes": 5
+  },
+  {
+   "shelf": "blog",
+   "title": "On Cognitive Dissonance (sample card)",
+   "author": "Bryan",
+   "date": "Sample",
+   "excerpt": "Sample excerpt: Bryan to paste the opening lines and link of his cognitive dissonance post here.",
+   "url": "https://eclectictransformation.com/musings",
+   "spine": "#2F4A3A",
+   "sample": true,
+   "id": "b4",
+   "readMinutes": 5
+  },
+  {
+   "shelf": "community",
+   "title": "What the sauna taught me (sample)",
+   "author": "A member",
+   "date": "Sample",
+   "excerpt": "Sample community musing. Only Bryan or a moderator can add pieces to this shelf.",
+   "url": "",
+   "spine": "#B7795A",
+   "sample": true,
+   "id": "b5",
+   "readMinutes": 3
+  },
+  {
+   "shelf": "community",
+   "title": "Slow mornings (sample)",
+   "author": "A member",
+   "date": "Sample",
+   "excerpt": "Another sample musing, shared with permission.",
+   "url": "",
+   "spine": "#5C6B5A",
+   "sample": true,
+   "id": "b6",
+   "readMinutes": 2
+  },
+  {
+   "id": "p1",
+   "shelf": "path",
+   "title": "Arriving (sample)",
+   "author": "Bryan",
+   "date": "Sample",
+   "excerpt": "Sample text. Step one of a learning path: noticing how you arrive in your body today. Bryan to write.",
+   "url": "",
+   "spine": "#C9D6D3",
+   "sample": true,
+   "readMinutes": 3
+  },
+  {
+   "id": "p2",
+   "shelf": "path",
+   "title": "Softening (sample)",
+   "author": "Bryan",
+   "date": "Sample",
+   "excerpt": "Sample text. Step two: letting the shoulders and jaw go. Bryan to write.",
+   "url": "",
+   "spine": "#C9A27C",
+   "sample": true,
+   "readMinutes": 3
+  },
+  {
+   "id": "p3",
+   "shelf": "path",
+   "title": "Staying (sample)",
+   "author": "Bryan",
+   "date": "Sample",
+   "excerpt": "Sample text. Step three: staying with what you feel, without fixing it. Bryan to write.",
+   "url": "",
+   "spine": "#8E6A4C",
+   "sample": true,
+   "readMinutes": 5
+  },
+  {
+   "id": "x1",
+   "shelf": "blog",
+   "title": "A public article Bryan likes (sample)",
+   "author": "Another writer",
+   "source": "Example Journal",
+   "date": "Sample",
+   "excerpt": "Sample of a free-to-share article from another site. The card credits the author and links to the original.",
+   "url": "https://eclectictransformation.com/reading-corner",
+   "spine": "#4F6B52",
+   "sample": true,
+   "readMinutes": 15
+  },
+  {
+   "id": "bk1",
+   "shelf": "books",
+   "title": "A Sample Book (placeholder)",
+   "author": "Bryan",
+   "date": "Sample",
+   "excerpt": "A placeholder book to show how chapters work. No real text yet.",
+   "url": "",
+   "spine": "#2F4A3A",
+   "sample": true,
+   "readMinutes": 40,
+   "chapters": [
+    {
+     "title": "Chapter 1: Beginning",
+     "text": "Placeholder chapter text. Bryan will add the real words here."
+    },
+    {
+     "title": "Chapter 2: Middle",
+     "text": "Placeholder chapter text. Your place is remembered on this phone."
+    },
+    {
+     "title": "Chapter 3: Rest",
+     "text": "Placeholder chapter text. Take your time. The book waits for you."
+    }
+   ]
+  },
+  {
+   "id": "bk2",
+   "shelf": "books",
+   "title": "Patterns of Behavior",
+   "author": "Bryan",
+   "date": "Coming soon",
+   "excerpt": "Coming soon.",
+   "url": "",
+   "spine": "#8E6A4C",
+   "comingSoon": true,
+   "readMinutes": 120
+  }
+ ],
+ "browse": [
+  {
+   "label": "Browse all Musings",
+   "url": "https://eclectictransformation.com/musings"
+  },
+  {
+   "label": "Substack journal",
+   "url": "https://woowooman.substack.com/"
+  },
+  {
+   "label": "Reading Corner",
+   "url": "https://eclectictransformation.com/reading-corner"
+  }
+ ],
+ "paths": [
+  {
+   "name": "A gentle path (sample)",
+   "books": [
+    "p1",
+    "p2",
+    "p3"
+   ]
+  }
+ ],
+ "lengths": [
+  {
+   "id": "quick",
+   "label": "Quick read (about 3 min)",
+   "max": 3
+  },
+  {
+   "id": "five",
+   "label": "5-minute read",
+   "max": 7
+  },
+  {
+   "id": "sit",
+   "label": "Sit with it (15+ min)",
+   "max": 999
+  },
+  {
+   "id": "books",
+   "label": "Books"
+  }
+ ],
+ "leaves": {
+  "quick": 2,
+  "five": 3,
+  "sit": 5,
+  "chapter": 3
+ },
+ "corner": {
+  "chairs": [
+   "armchair",
+   "floor cushion",
+   "rocking chair",
+   "window seat"
+  ],
+  "rugs": [
+   "#C9A27C",
+   "#6F8A6A",
+   "#DCE5E6",
+   "#B7795A"
+  ],
+  "lamps": [
+   "floor lamp",
+   "table lamp",
+   "paper lantern"
+  ],
+  "plants": [
+   "fern",
+   "snake plant",
+   "none"
+  ],
+  "blankets": [
+   "#B7795A",
+   "#C9D6D3",
+   "#E4CCAD",
+   "none"
+  ],
+  "walls": [
+   "#F6F1E7",
+   "#DCE5E6",
+   "#E4CCAD",
+   "#C9D6D3"
+  ],
+  "views": [
+   "forest",
+   "snow",
+   "rain",
+   "stars"
+  ],
+  "gifts": [
+   {
+    "id": "tea",
+    "name": "A teacup",
+    "leaves": 5
+   },
+   {
+    "id": "cat",
+    "name": "A cat curled on the chair",
+    "leaves": 15
+   },
+   {
+    "id": "lights",
+    "name": "Fairy lights",
+    "leaves": 30
+   },
+   {
+    "id": "sock",
+    "name": "A sock on the lamp",
+    "leaves": 45
+   },
+   {
+    "id": "gremlin",
+    "name": "A tiny gremlin bookend",
+    "leaves": 60
+   }
+  ]
+ }
 }
