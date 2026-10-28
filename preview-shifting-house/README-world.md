@@ -328,7 +328,7 @@ Test: `python3 tools/screenshots-rooms.py` (1280x800 + 390x844, every exit click
 `world.html` here runs in calm mode (`window.GW_CALM = true`) with `shifting.js` + `shifting.css`.
 
 - **house-schedule.json**: Office and Wing are always open. 7 more rooms are awake at a time (`base.open`). On each new browser session, 1 or 2 of them swap with rooms from `swapPool`, but never the room you are standing in. `issues` lists dated editions; issue 0 is the default. A resting room's doors glow with a zzz, and a direct `#room` link shows "this room is napping" (Go back / Drift home). Any sock in a napping room waits in the Wing instead, so the sock hunt can always be finished.
-- **Sock hunt**: on the first visit, a sock pokes out from under the Office door. When all 5 are found, a card shows the reward from `getSockReward()` in shifting.js. **In the preview this returns the placeholder `SOCKS-PENDING`**. Point it at a backend RPC later. No real code is stored in the site. The "Email it to myself" link is a plain `mailto:` that opens the visitor's own mail app.
+- **Sock hunt**: on the first visit, a sock pokes out from under the Office door. When all 5 are found, a card shows the reward from `getSockReward()` in shifting.js, which returns the shared code in **`SOCK_REWARD_CODE`** (top of shifting.js, currently `SOCKS5`). It's the one free promotion anyone can do, and it is public on purpose. **To rotate it** (about monthly): edit that one line, redeploy, and retire the old code in the booking system. Guests can always finish the hunt (no sock sits in a Gremlin-Key room). The "Email it to myself" link is a plain `mailto:` that opens the visitor's own mail app.
 - **Cloud guide**: the moods and their lines live in `MOODS` in shifting.js. If the matching room is napping, the next-best open room is used.
 
 ### How Vesper adds books (reading-shelf.json)
@@ -344,3 +344,12 @@ Add an entry to `books`:
 - Books dated within the last 14 days glow as new.
 - Books are sorted newest first, and the shelf holds 10. Older ones move to the Stacks Below archive.
 - With no books, the shelf says Vesper is still choosing.
+
+### Gremlin Keys in the Shifting House (Oct 27 2026, build copy)
+
+- **Welcome guide**: three short cards on the first visit per device (`gremlin-world-guide-seen`; skip with `?noprompt`). Each has Next and "Skip, just let me wander"; the last ends in "Get my Gremlin Key" / "Just look around for now" / "I already have a Gremlin Key". It replaces the old first-visit "Who's visiting?" card. Reopen it from Help ("Why make a Gremlin Key?"), the Stamps page, or the journal (non-calm). `GremlinPlayer.openGuide()`.
+- **Rooms are all open** (round 2): `KEY_ROOMS = []` at the top of shifting.js. The lock code (`isLocked`, `lockedDoor`, the "not yet" card) is kept dormant for future hidden areas: add a room id to switch it on. A Gremlin Key now means the gremlins remember you (journal and scores on any device, guestbook, Brawl boards).
+- **Gremlish**: a letter-substitution cipher defined in ONE file, `gremlish.json` (`key`: letter -> glyph name; `glyphs`: the shapes). To change the key, re-point letters in `key` and redeploy; every note re-renders as inline SVG. The static plaques (gremlish-*.svg in the Burrow/Corridor) use the current key and would need redrawing after a swap. Gremlish cards show an open hint, "Little notes around the house might help you read this." The key-holder decoder placeholder was removed.
+- **Gremlins' notes**: `house-notes.json` holds six "still putting my room together" notes (one per personal room) and six Gremlish notes around the house; shifting.js injects them as quiet `note` hotspots (not eggs, so no tracking) and opens them in the calm reading card. **Future "collect the pieces" quest**: hook into `openNote()` in shifting.js (record the note id, check progress). Not built yet.
+- **Key card**: Copy, Download .txt and "Email it to myself" (a plain `mailto:` with no address; opens the visitor's own mail app, nothing is sent to us).
+- Tests: `python3 tools/screenshots-shifting.py` (fakes the server, never registers) also covers the guide, locks, lift after sign-in, guest sock hunt, SOCKS5 and the key mailto; writes `screenshots/key-*.png`.

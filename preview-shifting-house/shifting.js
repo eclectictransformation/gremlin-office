@@ -16,6 +16,18 @@
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function slow(ms) { return reduce.matches ? 0 : ms; }
 
+  /* ================= SETTINGS BRYAN CHANGES ================= */
+  // The sock hunt reward: ONE shared promo code anyone who finds all 5 socks sees (the one free promotion).
+  // It is public on purpose (anyone can read it with View Source). TO ROTATE IT (about monthly): change the text
+  // between the quotes below, save, and redeploy. Nothing else needs to change; the card, Copy and the
+  // "Email it to myself" link all read from here. Remember to retire the old code in the booking system too.
+  var SOCK_REWARD_CODE = "SOCKS5";
+  // Rooms that need a Gremlin Key: EMPTY on purpose. Every gremlin room is open to everyone.
+  // The lock mechanism below (isLocked / lockedDoor, the friendly "not yet" card) stays dormant FOR FUTURE HIDDEN
+  // AREAS: put a room id here (keys in world-data.json -> rooms) to switch it on. Soft lock: lore, not security.
+  var KEY_ROOMS = [];
+  /* =========================================================== */
+
   var W = null, SCHED = null, SHELF = { shelf: [], overflow: [] }, OPEN = [], ALWAYS = ["office", "wing"], lastSwap = [], justShifted = false, issue = null;
   var stairsTargets = [], stairsIdx = 0, stairsTimer = null, catHere = false;
 
@@ -110,7 +122,8 @@
   function prepare(w) {
     W = w;
     var get = function (u) { return fetch(u, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); };
-    return Promise.all([get("house-schedule.json"), get("reading-shelf.json")]).then(function (res) {
+    return Promise.all([get("house-schedule.json"), get("reading-shelf.json"), get("gremlish.json"), get("house-notes.json")]).then(function (res) {
+      GREMLISH = res[2]; addNotes(res[3]);
       SCHED = res[0] || { alwaysOpen: ["office", "wing"], openCount: 7, base: { open: ["returns", "corridor", "lantern", "rooftop", "arcade", "burrow", "greenhouse"] }, swapPool: [], issues: [] };
       arrange(SCHED, W.rooms);
       SHELF = readShelf(res[1]);
@@ -203,13 +216,21 @@
   function whisper(text, ms) {
     var w = $("#cloud-say"); if (!w) return;
     $("p", w).textContent = text; w.hidden = false; w.classList.remove("in"); void w.offsetWidth; w.classList.add("in");
-    clearTimeout(wTimer); wTimer = setTimeout(function () { w.hidden = true; }, ms || Math.max(6000, text.length * 75));
+    wMs = Math.max(8000, ms || 0, text.length * 85); clearTimeout(wTimer); wTimer = setTimeout(function () { w.hidden = true; }, wMs);
+    if (!w._calm) {   // hovering pauses a whisper, a tap puts it away
+      w._calm = true;
+      w.addEventListener("mouseenter", function () { clearTimeout(wTimer); });
+      w.addEventListener("mouseleave", function () { if (!w.hidden) { clearTimeout(wTimer); wTimer = setTimeout(function () { w.hidden = true; }, wMs); } });
+      w.addEventListener("click", function (e) { if (!e.target.closest("button, a")) { clearTimeout(wTimer); w.hidden = true; } });
+    }
   }
+  var wMs = 8000;
 
   /* ---------- clicks the Shifting House handles itself ---------- */
   var knocks = 0;
   function intercept(it, b, x) {
     var G = GW();
+    if (it.type === "note" && NOTES[it.id]) { openNote(NOTES[it.id], b, x); return true; }
     if (it.id === "returns-big-chair") { sit(); return true; }
     if (it.id === "returns-bin-nest") { nap(); return true; }
     if (it.type !== "oddity") return false;
@@ -264,9 +285,9 @@
   var pendingLine = null;
   function chooseMood(m) {
     var target = m.room, line = m.line;
-    if (isResting(target)) {
-      var alt = m.next.filter(function (r) { return !isResting(r); })[0] || OPEN[0] || "office";
-      line = roomName(target) + " is napping today, so I'll float you to " + roomName(alt) + " instead. " + ROOM_LINES[alt];
+    if (isResting(target) || isLocked(target)) {
+      var alt = m.next.filter(function (r) { return !isResting(r) && !isLocked(r); })[0] || OPEN.filter(function (r) { return !isLocked(r); })[0] || "office";
+      line = roomName(target) + (isLocked(target) ? " likes to meet you properly first, so I'll float you to " : " is napping today, so I'll float you to ") + roomName(alt) + " instead. " + ROOM_LINES[alt];
       target = alt;
     }
     floatTo(target, line);
@@ -299,13 +320,14 @@
       c.innerHTML = got ? stampSvg(id, i) : '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="#bdb2a0" stroke-width="2" stroke-dasharray="2 4"/></svg>';
       c.appendChild(el("span", "", got ? roomName(id) : "not yet")); g.appendChild(c);
     });
-    wrap.appendChild(g); openReader(wrap, "stamps");
+    wrap.appendChild(g);
+    if (window.GremlinPlayer && GremlinPlayer.openGuide) { var wg = el("button", "calm-link", "Why make a Gremlin Key?"); wg.type = "button"; wg.addEventListener("click", function () { closeReader(); GremlinPlayer.openGuide(); }); wrap.appendChild(wg); }
+    openReader(wrap, "stamps");
   }
 
   /* ---------- the sock hunt, finished: a warm card with a placeholder for a future reward ---------- */
-  // The ONE place the sock reward comes from. Preview: an obvious placeholder, no real code.
-  // Later: point this at a backend RPC (e.g. Supabase rpc("gw_sock_reward")) that returns { code }.
-  function getSockReward() { return Promise.resolve({ code: "SOCKS-PENDING", placeholder: true }); }
+  // The ONE place the sock reward comes from: the shared, rotating code in SOCK_REWARD_CODE (top of file).
+  function getSockReward() { return Promise.resolve({ code: SOCK_REWARD_CODE }); }   // the code lives in SOCK_REWARD_CODE at the top of this file
   function socksDone() {
     var w = el("div", "socks-done");
     w.innerHTML = '<svg viewBox="0 0 120 60" aria-hidden="true" class="sd-art">' + ["#e8574a", "#3f6b5a", "#c9a45c", "#7a4b6a", "#3d5a80"].map(function (c, i) { return '<path d="M' + (8 + i * 22) + ' 6h12v26c0 4 3 6 7 6h1a5 5 0 0 1 0 10h-6c-9 0-14-6-14-15z" fill="' + c + '"/>'; }).join("") + '<path d="M4 30q56 22 112 0" stroke="#a0523d" stroke-width="3" fill="none"/></svg>';
@@ -536,7 +558,105 @@
     }, true);
   }
 
+  /* ---------- the gremlins' notes (house-notes.json) and Gremlish (gremlish.json: one swappable letter -> glyph key) ---------- */
+  var GREMLISH = null, NOTES = {};
+  function addNotes(n) {
+    if (!n) return;
+    var add = function (x, kind) {
+      var room = W.rooms[x.room]; if (!room) return;
+      NOTES[x.id] = Object.assign({ kind: kind }, x);
+      room.items = room.items || [];
+      room.items.push({ id: x.id, type: "note", label: kind === "room" ? (x.title || "A pinned note") : "A little note, partly in Gremlish", hover: kind === "room" ? "A pinned note" : "A little note",
+        at: x.at, size: x.size || [90, 100], img: "assets/world/props/" + (kind === "room" ? "note-pinned.svg" : "note-gremlish.svg") });
+    };
+    (n.roomNotes || []).forEach(function (x) { add(x, "room"); });
+    (n.gremlishNotes || []).forEach(function (x) { add(x, "gremlish"); });
+  }
+  // draw one run of text in Gremlish as inline SVG (letters without a glyph are skipped)
+  function gremlishSvg(text, h) {
+    var G = GREMLISH; if (!G || !G.key) return null; h = h || 34;
+    var m = G.metrics || { width: .72, gap: .32, space: .55, stroke: .11 }, w = m.width * h, x = 4, parts = [];
+    var f = function (v) { return (+v).toFixed(1); };
+    text.toUpperCase().split("").forEach(function (ch) {
+      if (ch === " ") { x += (m.space + m.gap) * h; return; }
+      var prims = G.glyphs[G.key[ch]]; if (!prims) return;
+      var P = function (px, py) { return [x + px * w, 4 + py * h]; };
+      prims.forEach(function (p) {
+        if (p[0] === "l") { var a = P(p[1], p[2]), b = P(p[3], p[4]); parts.push('<path d="M' + f(a[0]) + " " + f(a[1]) + "L" + f(b[0]) + " " + f(b[1]) + '"/>'); }
+        else if (p[0] === "p") { parts.push('<path d="M' + p[1].map(function (q) { var c = P(q[0], q[1]); return f(c[0]) + " " + f(c[1]); }).join("L") + (p[2] ? "Z" : "") + '"/>'); }
+        else if (p[0] === "c") { var c = P(p[1], p[2]); parts.push('<circle cx="' + f(c[0]) + '" cy="' + f(c[1]) + '" r="' + f(Math.min(p[3] * h, .48 * w)) + '"/>'); }
+        else if (p[0] === "a") {
+          var cc = P(p[1], p[2]), rr = Math.min(p[3] * h * .95, .49 * w), s0 = p[4] * Math.PI / 180, e0 = p[5] * Math.PI / 180, span = ((p[5] - p[4]) % 360 + 360) % 360 || 360;
+          parts.push('<path d="M' + f(cc[0] + rr * Math.cos(s0)) + " " + f(cc[1] + rr * Math.sin(s0)) + "A" + f(rr) + " " + f(rr) + " 0 " + (span > 180 ? 1 : 0) + " 1 " + f(cc[0] + rr * Math.cos(e0)) + " " + f(cc[1] + rr * Math.sin(e0)) + '"/>');
+        } else if (p[0] === "d") { var d = P(p[1], p[2]); parts.push('<circle cx="' + f(d[0]) + '" cy="' + f(d[1]) + '" r="' + f(Math.max(.75, m.stroke * h * .85)) + '" fill="currentColor" stroke="none"/>'); }
+      });
+      x += (m.width + m.gap) * h;
+    });
+    var span = el("span", "gremlish-run"); span.setAttribute("role", "img"); span.setAttribute("aria-label", "a few words in Gremlish");
+    span.innerHTML = '<svg viewBox="0 0 ' + f(x + 4) + " " + f(h + 8) + '" width="' + f(x + 4) + '" height="' + f(h + 8) + '" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="' + f(m.stroke * h) + '" stroke-linecap="round" stroke-linejoin="round">' + parts.join("") + "</g></svg>";
+    return span;
+  }
+  // FUTURE "collect the pieces" quest hooks in here: record n.id as read and check progress. Not built yet.
+  function openNote(n, b, x) {
+    var G = GW(), w = el("div", "house-note " + (n.kind === "room" ? "room-note" : "g-note"));
+    var img = el("img", "hn-face"); img.src = "assets/gremlins/" + n.who + ".webp"; img.alt = ""; w.appendChild(img);
+    w.appendChild(el("p", "rc-meta", n.kind === "room" ? "a pinned note" : "a little note"));
+    if (n.title) w.appendChild(el("h2", "", n.title));
+    var p = el("p", "hn-text");
+    String(n.text).split(/(\{g:[^}]*\})/).forEach(function (bit) {
+      var m = /^\{g:([^}]*)\}$/.exec(bit);
+      if (m) { var g = gremlishSvg(m[1]); if (g) p.appendChild(g); } else if (bit) p.appendChild(document.createTextNode(bit));
+    });
+    w.appendChild(p);
+    w.appendChild(el("p", "hn-sign", "\u2014 " + (GNAME[n.who] || n.who)));
+    G.turnTo(x.yaw, x.pitch, 1.3, function () { openReader(w, "note"); }, slow(900));
+  }
+
+  /* ---------- Gremlin-Key rooms: a friendly "not yet" (checked in the browser; it's lore, not security) ---------- */
+  var OWNERS = { greenhouse: "pip", lantern: "moth", press: "dot", dispatch: "noodle", returns: "vesper", burrow: "grimble" };
+  var GNAME = { pip: "Pip", moth: "Moth", dot: "Dot", noodle: "Noodle", vesper: "Vesper", grimble: "Grimble" };
+  function named() { return !!(window.GremlinPlayer && GremlinPlayer.player); }
+  function isLocked(id) { return KEY_ROOMS.indexOf(id) >= 0 && !named(); }
+  var LOCK_LINES = [
+    "Ooh, we haven't met yet. Make a Gremlin Key and come right in.",
+    "{who} likes to know who's visiting before you come in. A Gremlin Key is just a nickname and three words.",
+    "Not yet, friend. {who} is tidying up for a proper hello. Make a Gremlin Key whenever you like.",
+    "{who} peeks out and waves. \u201cCome back with a Gremlin Key and I'll put the kettle on.\u201d"
+  ], lockN = 0, pendingRoom = null;
+  // somewhere open and welcoming to suggest instead
+  function suggestRoom() { return ["rooftop", "returns", "arcade", "burrow", "office"].filter(function (r) { var G = GW(); return !isResting(r) && !isLocked(r) && (!G || r !== G.room); })[0] || "office"; }
+  function lockedDoor(id) {
+    var who = OWNERS[id] || "noodle", sug = suggestRoom();
+    var line = LOCK_LINES[(lockN++) % LOCK_LINES.length].replace("{who}", GNAME[who] || "A gremlin");
+    if (!window.GremlinPlayer || !GremlinPlayer.openGentle) { whisper(line); return; }
+    GremlinPlayer.openGentle({ view: "lock", img: "assets/gremlins/" + who + ".webp", kicker: roomName(id), title: line,
+      lines: ["Or keep wandering. " + roomName(sug) + " is open right now."],
+      primary: { label: "Get my Gremlin Key", fn: function () { pendingRoom = id; GremlinPlayer.openSignin("new"); } },
+      secondary: { label: "Keep wandering", fn: function () {
+        GremlinPlayer.close(); var G = GW(); if (!G) return;
+        // a dead end (every way on is a key room or napping): float somewhere open instead of leaving them stuck
+        var ways = (G.data.rooms[G.room].items || []).filter(function (it) { return it.type === "portal" && !isResting(it.to) && !isLocked(it.to); });
+        if (!ways.length) floatTo(sug, ROOM_LINES[sug]);
+      } } });
+  }
+  window.addEventListener("gremlin-signed-in", function () {   // the locks lift at once; if a door sent them here, walk them in
+    var r = pendingRoom; pendingRoom = null; var G = GW();
+    if (r && G && G.room !== r && !isResting(r)) setTimeout(function () { G.travel(r, null, false, true); }, slow(600));
+  });
+  // Help card gets a quiet Gremlin Key link; Gremlish cards get an open hint (same for everyone)
+  function cardExtra(c, frag) {
+    if (c && c.meta === "a small helpful thing" && c.title === "The Shifting House" && window.GremlinPlayer && GremlinPlayer.openGuide) {
+      var hb = el("button", "calm-link", "Why make a Gremlin Key?"); hb.type = "button"; hb.addEventListener("click", function () { GremlinPlayer.openGuide(); }); frag.appendChild(hb); return;
+    }
+    if (!c || !/Gremlish/.test((c.title || "") + " " + (c.text || ""))) return;
+    // An open hint for everyone. (The key-holder decoder card was removed: Gremlish is now learned from the notes.)
+    var box = el("div", "gremlish-note");
+    box.appendChild(el("p", "", "Little notes around the house might help you read this."));
+    frag.appendChild(box);
+  }
+
   window.GremlinShift = {
+    isLocked: isLocked, _setKeyRooms: function (a) { KEY_ROOMS = a.slice(); }, gremlishSvg: gremlishSvg, notes: function () { return NOTES; }, lockedDoor: lockedDoor, cardExtra: cardExtra, get keyRooms() { return KEY_ROOMS.slice(); }, sockRewardCode: SOCK_REWARD_CODE, lockLines: LOCK_LINES,
     calm: true, prepare: prepare, isResting: isResting, napping: napping, skipItem: skipItem, decorate: decorate, intercept: intercept,
     restingDoor: restingDoor, socksDone: socksDone, getSockReward: getSockReward, portalTarget: portalTarget, roomBuilt: roomBuilt, openStamps: openStamps,
     get open() { return OPEN.slice(); }, get alwaysOpen() { return ALWAYS.slice(); }, get lastSwap() { return lastSwap.slice(); }, get justShifted() { return justShifted; },

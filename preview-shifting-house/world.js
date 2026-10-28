@@ -261,7 +261,8 @@
 
   /* ---------- input (drag / swipe / keys), same feel as the office ---------- */
   var dragging = false, down = null, suppressClick = false, lastPointer = null;
-  function poke() { var hint = $("#hint"); if (hint && !hint._timer) hint._timer = setTimeout(function () { hint.classList.add("gone"); }, 7000); }
+  function poke() { var hint = $("#hint"); if (hint && !hint._timer) hint._timer = setTimeout(function () { hint.classList.add("gone"); try { localStorage.setItem("gremlin-world-hint-seen", "1"); } catch (e) {} }, 7000); }
+  try { if (localStorage.getItem("gremlin-world-hint-seen")) $("#hint").classList.add("gone"); } catch (e) {}   // the hint line shows once per device, then fades
   function unproject(sx, sy) {
     var rect = vp.getBoundingClientRect(), pz = P * view.zoom, x = sx - rect.width / 2, y = sy - rect.height / 2, z = -pz;
     var b = -view.pitch * D2R, a = -view.yaw * D2R;
@@ -338,7 +339,7 @@
     var x = b._item, it = x.it; returnFocus = b; hideBubble();
     if (it && hook("intercept", it, b, x)) return;
     if (x.office) { turnTo(x.yaw, x.pitch, 1.3, function () { showCard(x.card, x.type); }); return; }
-    if (it.type === "portal") { var dest = hook("portalTarget", it) || it.to; if (hook("isResting", dest)) { hook("restingDoor", dest, b, x); return; } travel(dest, b); return; }
+    if (it.type === "portal") { var dest = hook("portalTarget", it) || it.to; if (hook("isResting", dest)) { hook("restingDoor", dest, b, x); return; } if (hook("isLocked", dest)) { hook("lockedDoor", dest, b, x); return; } travel(dest, b); return; }
     if (it.type === "sock") { grabSock(b, it); return; }
     if (it.type === "arcade") { turnTo(x.yaw, x.pitch, 1.35, function () { openArcade(it.machine, b); }); return; }
     if (it.type === "scoreboard") { turnTo(x.yaw, x.pitch, 1.3, function () { openArcade(it.machine, b); if (window.GremlinArcade && GremlinArcade.isOpen()) GremlinArcade.showBoards(); }); return; }
@@ -401,6 +402,7 @@
     var meta = el("p", "meta"); meta.textContent = c.meta || ({ poem: "a hidden poem", "bryan-note": "a Bryan note", prank: "gremlin business", art: "the art collection", helper: "a small helpful thing", character: "the team" })[type] || ""; frag.appendChild(meta);
     var t = el("h2", "", { id: "card-title" }); t.textContent = c.title || ""; frag.appendChild(t);
     textNodes(frag, c.text);
+    hook("cardExtra", c, frag);   // e.g. the Gremlish hint line, or the help card's "Why a Gremlin Key?"
     if (c.widget === "breathe") { var w = el("div", "breathe"); w.appendChild(el("div", "orb")); var sp = el("span"); sp.textContent = "in 4 \u00b7 hold 4 \u00b7 out 6"; w.appendChild(sp); frag.appendChild(w); }
     if (c.link) {
       if (!c.link.href) { var s = el("span", "linkish placeholder"); s.textContent = c.link.label; frag.appendChild(s); }
@@ -468,10 +470,13 @@
     var bub = $("#bubble"); $("img", bub).src = "assets/gremlins/" + who + ".webp";
     var p = $("p", bub); p.innerHTML = ""; var bn = el("b"); bn.textContent = NAMES[who] || who; p.appendChild(bn); p.appendChild(document.createTextNode(text));
     bub.hidden = false; bub.style.animation = "none"; void bub.offsetWidth; bub.style.animation = "";
-    clearTimeout(bubbleTimer); bubbleTimer = setTimeout(hideBubble, ms || Math.max(5000, text.length * 70));
+    bubbleMs = Math.max(8000, ms || 0, text.length * 85); clearTimeout(bubbleTimer); bubbleTimer = setTimeout(hideBubble, bubbleMs);
   }
   function hideBubble() { $("#bubble").hidden = true; clearTimeout(bubbleTimer); }
-  $("#bubble").addEventListener("click", hideBubble);
+  $("#bubble").addEventListener("click", hideBubble);   // tap to dismiss
+  var bubbleMs = 8000;   // hovering pauses the bubble; leaving gives it its full time again
+  $("#bubble").addEventListener("mouseenter", function () { clearTimeout(bubbleTimer); });
+  $("#bubble").addEventListener("mouseleave", function () { if (!$("#bubble").hidden) { clearTimeout(bubbleTimer); bubbleTimer = setTimeout(hideBubble, bubbleMs); } });
 
   /* ---------- the sock hunt (no timer, progress saved on this device) ---------- */
   function updateSocks() { $("#sock-count").textContent = socks.length + " / " + W.socksTotal; $("#socks").setAttribute("aria-label", "Sock hunt: " + socks.length + " of " + W.socksTotal + " socks found"); }
@@ -527,6 +532,7 @@
   function travel(to, fromBtn, isBack, force) {
     if (busy || to === current) return;
     if (!force && hook("isResting", to)) { hook("napping", to); return; }
+    if (hook("isLocked", to)) { hook("lockedDoor", to); return; }   // a Gremlin-Key room: a friendly "not yet" (soft lock, lore not security)
     if (arcadeOpen()) window.GremlinArcade.close(true);
     if (roomGameOpen()) window.GremlinRoomGames.close(true);
     busy = true; hideBubble(); closeCard(); closeMap();
@@ -593,8 +599,9 @@
     // comic strips, newest first, for the archive's empty frames
     STRIPS = ((res[2] && res[2].strips) || []).filter(function (x) { return x.active !== false; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
     var startId = W.rooms[location.hash.slice(1)] ? location.hash.slice(1) : W.start, napStart = null;
-    if (startId !== W.start && hook("isResting", startId)) { napStart = startId; startId = W.start; }   // a link to a napping room: open the Office underneath, then say so softly
-    return enter(startId).then(function () { if (napStart) hook("napping", napStart, true); });
+    if (startId !== W.start && hook("isResting", startId)) { napStart = startId; startId = W.start; }
+    var lockStart = null; if (startId !== W.start && hook("isLocked", startId)) { lockStart = startId; startId = W.start; }   // a link to a napping room: open the Office underneath, then say so softly
+    return enter(startId).then(function () { if (napStart) hook("napping", napStart, true); if (lockStart) setTimeout(function () { hook("lockedDoor", lockStart); }, 1200); });
   }).then(function () {
     var done = function () { $("#loading").classList.add("done"); };
     var front = $(".face-front img.face-art");

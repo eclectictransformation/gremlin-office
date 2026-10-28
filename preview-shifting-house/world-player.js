@@ -201,13 +201,45 @@
   var signin = null;
   function view(name) {
     if (!signin) signin = makePanel("gw-signin", "gw-signin", "Gremlin Name");
-    var b = $(".gw-body", signin); b.innerHTML = ""; b.dataset.view = name; return b;
+    var b = $(".gw-body", signin); b.innerHTML = ""; b.dataset.view = name;
+    signin.classList.toggle("gw-calm", /^(guide|lock|key-shown)/.test(name));   // big-text, one-main-action cards
+    return b;
   }
   function btn(text, cls, fn) { var x = el("button", "gw-btn " + (cls || ""), text); x.type = "button"; if (fn) x.addEventListener("click", fn); return x; }
   function errLine() { var p = el("p", "gw-err"); p.setAttribute("role", "alert"); return p; }
   function head(b, kicker, title, text) {
     var img = el("img", "gw-noodle"); img.src = "assets/gremlins/noodle.webp"; img.alt = ""; b.appendChild(img);
     b.appendChild(el("p", "meta", kicker)); var h = el("h2", "", title); b.appendChild(h); if (text) b.appendChild(el("p", "gw-text", text));
+  }
+  /* ---------- gentle cards: the welcome guide and the "not yet" door (same panel, focus and Esc as sign-in) ---------- */
+  // o: {view, img, kicker, title, lines[], primary:{label,fn}, secondary:{label,fn}, extra:{label,fn}}
+  function openGentle(o) {
+    var b = view(o.view || "gentle");
+    if (o.img !== false) { var img = el("img", "gw-noodle"); img.src = o.img || "assets/gremlins/noodle.webp"; img.alt = ""; b.appendChild(img); }
+    if (o.kicker) b.appendChild(el("p", "meta", o.kicker));
+    b.appendChild(el("h2", "", o.title));
+    (o.lines || []).forEach(function (t) { b.appendChild(el("p", "gw-text", t)); });
+    var g = el("div", "gw-choices");
+    if (o.primary) g.appendChild(btn(o.primary.label, "gw-primary", o.primary.fn));
+    if (o.secondary) g.appendChild(btn(o.secondary.label, "ghost gw-secondary", o.secondary.fn));
+    b.appendChild(g);
+    if (o.extra) { var x = el("button", "gw-textlink", o.extra.label); x.type = "button"; x.addEventListener("click", o.extra.fn); b.appendChild(x); }
+    showPanel(signin, ".gw-primary");
+  }
+  // The first-visit welcome guide: three short cards, once per device; reopen from Help or the stamps page.
+  var GUIDE = [
+    { title: "Welcome in", lines: ["Wander, play games and hunt for socks. All of it is free, no key needed."] },
+    { title: "The gremlins are very friendly", lines: ["With a Gremlin Key, the gremlins remember you. Your journal and scores follow you to any device.", "You can also sign the guestbook and join the Brawl boards."] },
+    { title: "Something hidden", lines: ["With a Gremlin Key, you may find other offers hidden inside, some that even Bryan doesn't know about.", "It's just a nickname and three silly words. No email."] }
+  ];
+  function lookAround() { save("guide-seen", Date.now()); if (!player && !load("player-choice", null)) save("player-choice", "guest"); closePanel(); }
+  function openGuide(step) {
+    step = step || 0; var c = GUIDE[step], last = step === GUIDE.length - 1;
+    save("guide-seen", Date.now());
+    openGentle({ view: "guide-" + (step + 1), kicker: "welcome \u00b7 " + (step + 1) + " of " + GUIDE.length, title: c.title, lines: c.lines,
+      primary: last ? { label: player ? "Back to wandering" : "Get my Gremlin Key", fn: function () { if (player) closePanel(); else viewNew(); } } : { label: "Next", fn: function () { openGuide(step + 1); } },
+      secondary: last ? (player ? null : { label: "Just look around for now", fn: lookAround }) : { label: "Skip, just let me wander", fn: lookAround },
+      extra: last && !player ? { label: "I already have a Gremlin Key", fn: viewLogin } : null });
   }
   function openSignin(which, pending) {
     if (pending) pendingScore = pending;
@@ -221,7 +253,7 @@
     g.appendChild(btn(hasLocalProgress() ? "Save my progress (new Gremlin Name)" : "New Gremlin Name", "", viewNew));
     g.appendChild(btn("I have a Gremlin Key", "ghost", viewLogin));
     b.appendChild(g);
-    b.appendChild(el("p", "gw-fine", "Guests can play everything. Only named gremlins can join the Break Room Brawl boards and sign the guestbook."));
+    b.appendChild(el("p", "gw-fine", "Guests can visit every room, play every game and hunt every sock. With a Gremlin Name, the gremlins remember you: your journal and scores follow you to any device, and you can sign the guestbook and join the Break Room Brawl boards."));
     if (window.GW_STORAGE === "memory") memoryNote(b);
     showPanel(signin);
   }
@@ -262,7 +294,7 @@
   }
   function viewKey(r) {
     var b = view("key-shown");
-    head(b, "your gremlin key", "Hello, " + r.name + "!", "Here's your Gremlin Key. You'll only see it this once, so copy it or download it now. You need it (with your name) to log in on another device.");
+    head(b, "your gremlin key", "Hello, " + r.name + "!", "Here's your Gremlin Key. You'll only see it this once.");
     var k = el("div", "gw-key"); k.appendChild(el("span", "gw-key-label", "Gremlin Key")); var code = el("code", "gw-key-code", r.key); k.appendChild(code); b.appendChild(k);
     var row = el("div", "gw-row"), done = btn("I saved it. Into the world!", "", function () { closePanel(); afterSignIn(true); });
     done.disabled = true;
@@ -279,6 +311,13 @@
       setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000); ok("Downloaded. Keep the file somewhere safe.");
     }));
     b.appendChild(row);
+    var mail = el("a", "gw-btn ghost gw-mail", "Email it to myself"); mail.id = "gw-key-mail";
+    // no address prefilled: it opens the visitor's own email app and we collect and send nothing
+    mail.href = "mailto:?subject=" + encodeURIComponent("My Gremlin Key") + "&body=" + encodeURIComponent("My Gremlin World name and key\n\nGremlin Name: " + r.name + "\nGremlin Key: " + r.key + "\n\nHow to use it: open Gremlin World, tap Guest at the top, choose \"I have a Gremlin Key\", and type the name and key (capitals and spaces don't matter). It works on any device.\n\n" + location.href.split("#")[0].split("?")[0]);
+    mail.addEventListener("click", function () { ok("Your email app should open. Send it to yourself."); });
+    row.appendChild(mail);
+    b.appendChild(el("p", "gw-text gw-save", "Save this key! Write it on a piece of paper or email it to yourself. It's how the gremlins recognise you on any device."));
+    b.appendChild(el("p", "gw-fine", "The email button opens your own email app. Nothing is sent to us."));
     var wrote = el("label", "gw-check"), cb = el("input"); cb.type = "checkbox"; cb.addEventListener("change", function () { if (cb.checked) ok("Good. Gremlins love a written note."); }); wrote.appendChild(cb); wrote.appendChild(document.createTextNode(" I wrote it down instead")); b.appendChild(wrote);
     b.appendChild(note); b.appendChild(done);
     showPanel(signin);
@@ -335,6 +374,7 @@
     sync.state = "idle"; lb = {}; updateButton();
   }
   function afterSignIn(isNew) {
+    try { window.dispatchEvent(new CustomEvent("gremlin-signed-in", { detail: { isNew: isNew } })); } catch (e) {}   // key rooms and Gremlish lift at once
     toast(isNew ? "\uD83C\uDF89" : "\uD83D\uDC4B", isNew ? "Welcome, " + player.name + "!" : "Welcome back, " + player.name + "!", isNew ? "Your progress is saved under your new name." : "Fetching your quest journal\u2026");
     var tok = player.token;
     rpc("gw_load_progress", { p_token: tok }).then(function (r) { if (r && r.ok) signedToday = !!r.signed_today; }).catch(function () {});
@@ -407,7 +447,7 @@
     hd.appendChild(el("h2", "", player ? player.name + "'s Quest Journal" : "Your Quest Journal"));
     var who = el("p", "gw-text");
     if (player) who.textContent = syncText();
-    else { who.textContent = "Exploring as a guest. Progress is saved on this device. "; var sv = btn("Save my progress", "small", function () { openSignin("new"); }); who.appendChild(sv); }
+    else { who.textContent = "Exploring as a guest. Progress is saved on this device. "; var sv = btn("Save my progress", "small", function () { openSignin("new"); }); who.appendChild(sv); who.appendChild(btn("Why a Gremlin Key?", "ghost small", function () { openGuide(0); })); }
     hd.appendChild(who); b.appendChild(hd);
 
     // sock hunt
@@ -628,12 +668,13 @@
     setInterval(function () { if (player && document.visibilityState === "visible") doSync(); }, 60000);
     window.addEventListener("focus", function () { if (player && Date.now() - sync.at > 10000) doSync(); });
     document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden" && player) doSync({ keepalive: true }); });
-    if (!player && !load("player-choice", null) && !params.has("noprompt")) setTimeout(function () { if (!panel && !(window.GremlinArcade && GremlinArcade.isOpen())) openSignin(); }, 900);
+    // first visit on this device: the welcome guide (it ends in the sign-in choices, so there's never two cards back to back)
+    if (!player && !load("guide-seen", null) && !params.has("noprompt")) setTimeout(function () { if (!panel && !(window.GremlinArcade && GremlinArcade.isOpen())) openGuide(0); }, 900);
   }
 
   window.GremlinPlayer = {
     onEvent: onEvent, isOpen: function () { return !!panel; },
-    openSignin: openSignin, openJournal: openJournal, openGuestbook: function (b) { openGuestbook(); },
+    openSignin: openSignin, openJournal: openJournal, openGuide: openGuide, openGentle: openGentle, openGuestbook: function (b) { openGuestbook(); },
     sync: doSync, evalBadges: evalBadges, close: closePanel,
     get player() { return player ? { name: player.name } : null; },
     get syncState() { return sync.state; },
