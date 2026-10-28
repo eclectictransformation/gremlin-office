@@ -339,10 +339,10 @@
     var copy = el("button", "reward-copy", "Copy"); copy.type = "button"; copy.id = "sock-copy";
     var mail = el("a", "reward-mail", "Email it to myself"); mail.id = "sock-mail"; mail.href = "mailto:";   // opens the visitor's own mail app; we collect and send nothing
     slot.appendChild(code); slot.appendChild(copy); slot.appendChild(mail); w.appendChild(slot);
-    w.appendChild(el("p", "reward-how", "Save this code! Enter it when you book the One Hour Workshop online."));
+    w.appendChild(el("p", "reward-how", "Save this code! Enter it when you book the One Hour Workshop online, or scribble it on a scrap of paper and hand it to Bryan in person. (Printing it works too, but scrap paper is funnier.)"));
     getSockReward().then(function (r) {
       code.textContent = r.code;
-      mail.href = "mailto:?subject=" + encodeURIComponent("My Gremlin World sock reward") + "&body=" + encodeURIComponent("I found every sock! My code for $5 off the One Hour Workshop at Eclectic Transformation: " + r.code + "\n\nSave this code! Enter it when you book the One Hour Workshop online.");
+      mail.href = "mailto:?subject=" + encodeURIComponent("My Gremlin World sock reward") + "&body=" + encodeURIComponent("I found every sock! My code for $5 off the One Hour Workshop at Eclectic Transformation: " + r.code + "\n\nSave this code! Enter it when you book the One Hour Workshop online, or scribble it on a scrap of paper and hand it to Bryan in person. (Printing it works too, but scrap paper is funnier.)");
       if (r.placeholder) { slot.classList.add("placeholder"); code.title = "Preview placeholder, not a real code"; }
     });
     copy.addEventListener("click", function () {
@@ -488,11 +488,38 @@
   // the cat picks a new mood each time a room is built (about half the time it's there)
   var origBuild = null;
 
+
+  /* ---------- Still mode (WCAG 2.2.2): one pill pauses every ambient loop; remembered; on by default with reduced motion ---------- */
+  function setupStill() {
+    var btn = $("#btn-still"), wrap = btn && btn.parentNode, root = document.documentElement, KEY = "gw-still-mode", tipTimer = null;
+    if (!btn) return;
+    function saved() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+    function paint() {
+      var on = root.classList.contains("gw-still");
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.setAttribute("aria-label", on ? "Still mode is on: the moving lights and glows are paused. Press to bring the motion back." : "Still mode: pauses the moving lights and glows so the house holds still");
+    }
+    function set(on, remember) { root.classList.toggle("gw-still", on); if (remember) { try { localStorage.setItem(KEY, on ? "1" : "0"); } catch (e) {} } paint(); }
+    function showTip(ms) { wrap.classList.add("tip-on"); clearTimeout(tipTimer); tipTimer = setTimeout(function () { wrap.classList.remove("tip-on"); }, ms || 3200); }
+    btn.addEventListener("click", function () { set(!root.classList.contains("gw-still"), true); });
+    // touch: a tap or long-press shows the explanation for a few seconds
+    var pressT = null;
+    btn.addEventListener("touchstart", function () { showTip(3600); pressT = setTimeout(function () { showTip(5000); }, 500); }, { passive: true });
+    btn.addEventListener("touchend", function () { clearTimeout(pressT); }, { passive: true });
+    btn.addEventListener("contextmenu", function (e) { if (wrap.classList.contains("tip-on")) e.preventDefault(); });
+    btn.addEventListener("keydown", function (e) { if (e.key === "Escape") wrap.classList.remove("tip-on"); });
+    // follow the system setting live, unless the visitor has made their own choice
+    var follow = function () { if (saved() === null) set(reduce.matches, false); };
+    if (reduce.addEventListener) reduce.addEventListener("change", follow); else if (reduce.addListener) reduce.addListener(follow);
+    paint();
+  }
+
   /* ---------- page chrome (cloud, napping screen, reading corner, stamps, speaker) ---------- */
   function buildChrome() {
     var app = $("#app");
+    setupStill();
     stairsTargets = unreachable().concat(OPEN.filter(function (r) { return unreachable().indexOf(r) < 0; }));
-    if (!reduce.matches) stairsTimer = setInterval(changeStairs, 45000);
+    if (!reduce.matches) stairsTimer = setInterval(function () { if (!document.documentElement.classList.contains("gw-still")) changeStairs(); }, 45000);
     catHere = Math.random() < 0.5;
     setInterval(function () { catHere = Math.random() < 0.5; }, 120000);
 

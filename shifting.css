@@ -150,3 +150,21 @@ body.seated .decor.rain{opacity:.5;transition:opacity 2s}
   body:has(#cloud-say:not([hidden])) #bubble{display:none}
   .bubble{bottom:132px}
 }
+
+/* ---------- Still mode (WCAG 2.2.2): a pill in the top bar that holds every ambient loop still ---------- */
+html.gw-still *,html.gw-still *::before,html.gw-still *::after{animation-play-state:paused!important}
+/* the mini-games keep playing */
+html.gw-still .arcade-overlay,html.gw-still .arcade-overlay *,html.gw-still .arcade-overlay *::before,html.gw-still .arcade-overlay *::after{animation-play-state:running!important}
+.still-wrap{position:relative;display:inline-flex}
+.still-btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:"DM Sans",var(--sans)}
+.still-ico{flex:none}
+.still-btn[aria-pressed="true"]{background:var(--forest);color:var(--paper);border-color:var(--forest)}
+.still-btn:focus-visible{outline:3px solid var(--forest);outline-offset:2px}
+.still-tip{position:absolute;top:calc(100% + 10px);right:0;z-index:40;width:max-content;max-width:min(260px,80vw);padding:10px 12px;border-radius:12px;
+  background:var(--paper);color:var(--moss);border:1px solid rgba(84,102,74,.35);box-shadow:0 8px 24px rgba(0,0,0,.25);
+  font:400 14px/1.45 "DM Sans",var(--sans);white-space:normal;text-align:left;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .15s,transform .15s,visibility .15s;pointer-events:none}
+.still-tip::before{content:"";position:absolute;top:-6px;right:22px;width:10px;height:10px;background:var(--paper);border-left:1px solid rgba(84,102,74,.35);border-top:1px solid rgba(84,102,74,.35);transform:rotate(45deg)}
+.still-tip b{font-family:"Fraunces",var(--serif);font-weight:600}
+.still-wrap:hover .still-tip,.still-btn:focus-visible+.still-tip,.still-wrap.tip-on .still-tip{opacity:1;visibility:visible;transform:none}
+@media (max-width:560px){.still-label{display:none}.still-tip{right:-60px}.still-tip::before{right:82px}}
+@media (prefers-reduced-motion:reduce){.still-tip{transition:none}}

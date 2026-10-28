@@ -160,13 +160,13 @@
     if (it.cycle) {   // words that print themselves one at a time (reduced motion: all of them, still)
       if (mqReduce.matches) { d.textContent = it.cycle.join(" / "); }
       else { var n = 0, w = el("span", "cyc"); w.textContent = it.cycle[0]; d.appendChild(w);
-        decorTimers.push(setInterval(function () { n = (n + 1) % it.cycle.length; w.classList.remove("in"); void w.offsetWidth; w.textContent = it.cycle[n]; w.classList.add("in"); }, it.every || 3200)); }
+        decorTimers.push(setInterval(function () { if (document.documentElement.classList.contains("gw-still")) return; n = (n + 1) % it.cycle.length; w.classList.remove("in"); void w.offsetWidth; w.textContent = it.cycle[n]; w.classList.add("in"); }, it.every || 3200)); }
     }
     if (it.typewriter) {
       var full = it.typewriter;
       if (mqReduce.matches) d.textContent = full;
       else { var k = 0, tw = el("span", "tw"); d.appendChild(tw);
-        decorTimers.push(setInterval(function () { k = k > full.length + 14 ? 0 : k + 1; tw.textContent = full.slice(0, Math.min(k, full.length)); }, it.every || 260)); }
+        decorTimers.push(setInterval(function () { if (document.documentElement.classList.contains("gw-still")) return; k = k > full.length + 14 ? 0 : k + 1; tw.textContent = full.slice(0, Math.min(k, full.length)); }, it.every || 260)); }
     }
     if (it.showIf) { d.dataset.showIf = it.showIf; if (!condMet(it.showIf)) d.classList.add("is-hidden"); }
     faceEls[at.face].appendChild(d);

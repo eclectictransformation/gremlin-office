@@ -18,6 +18,12 @@
   try { Object.defineProperty(window, "localStorage", { value: mem, configurable: true }); } catch (e) {}
   window.GW_STORAGE = "memory"; document.documentElement.classList.add("no-storage");
 })();
+/* Still mode (WCAG 2.2.2): set before first paint. Saved choice wins; otherwise follow prefers-reduced-motion. */
+(function () {
+  var v = null; try { v = localStorage.getItem("gw-still-mode"); } catch (e) {}
+  var on = v === "1" || (v === null && window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  if (on) document.documentElement.classList.add("gw-still");
+})();
 </script>
 <link rel="stylesheet" href="office.css">
 <link rel="stylesheet" href="world.css">
@@ -38,6 +44,11 @@
       <h1 class="title"><span class="t-world">The Shifting House</span> <span id="room-name">The Office</span></h1>
     </div>
     <div class="hud-right">
+      <span class="still-wrap">
+        <button id="btn-still" class="pill btn still-btn" type="button" aria-pressed="false" aria-describedby="still-tip"
+                aria-label="Still mode: pauses the moving lights and glows"><svg class="still-ico" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path class="ico-leaf" d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14zm0 0l7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span class="still-label">Still mode</span></button>
+        <span id="still-tip" class="still-tip" role="tooltip">Still mode: pauses the moving lights and glows so the house holds still. Tap again to bring the motion back.</span>
+      </span>
       <button id="socks" class="pill btn" aria-live="polite" aria-label="Sock hunt progress"><img src="assets/world/props/sock-pip.svg" alt=""> <span id="sock-count">0 / 5</span></button>
       <button id="btn-map" class="pill btn" aria-haspopup="dialog" aria-controls="map">Map</button>
       <button id="btn-help" class="pill btn" aria-label="Help: how to explore">? <span>Help</span></button>

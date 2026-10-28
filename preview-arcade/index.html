@@ -15,7 +15,10 @@
 <body>
 <div class="ga-fsbar">
   <button id="ga-back" class="ga-fsbtn" type="button" hidden><span aria-hidden="true">&#8592;</span> Back to my account</button>
-  <button id="ga-fs" class="ga-fsbtn" type="button"><span aria-hidden="true">&#x26F6;</span> <span class="ga-fs-t">Full screen</span></button>
+  <div class="ga-fswrap">
+    <button id="ga-fs" class="ga-fsbtn" type="button" aria-describedby="ga-fsnote"><span aria-hidden="true">&#x26F6;</span> <span class="ga-fs-t">Full screen</span></button>
+    <p id="ga-fsnote" class="ga-fsnote">Heads up: when you open full screen, you may need to log in again.</p>
+  </div>
 </div>
 <main id="app" class="ga">
   <!-- 1. the door: Gremlin Name + Gremlin Key -->
