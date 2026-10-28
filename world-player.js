@@ -2,7 +2,7 @@
    No libraries. Talks to the Gremlin World Supabase project with plain fetch() calls to
    /rest/v1/rpc/gw_* using the PUBLISHABLE key (public by design; every write goes through locked-down
    SECURITY DEFINER functions, see README-world.md + supabase/). No email, no passwords: a Gremlin Name is
-   a nickname, and the server hands out a random three-word Gremlin Key once.
+   a nickname, and the server hands out a short random Gremlin Key once (two little words and a number, like moss-sock-7; older three-word keys still work).
    If the server can't be reached the world keeps working as a guest, progress saved on this device. */
 (function () {
   "use strict";
@@ -230,7 +230,7 @@
   var GUIDE = [
     { title: "Welcome in", lines: ["Wander, play games and hunt for socks. All of it is free, no key needed.", "Drag to look around. Glowing things want to be tapped. Doors and tunnels take you places."] },
     { title: "The gremlins are very friendly", lines: ["With a Gremlin Key, the gremlins remember you. Your journal and scores follow you to any device.", "You can also sign the guestbook and join the Brawl boards."] },
-    { title: "Something hidden", lines: ["With a Gremlin Key, you may find other offers hidden inside, some that even Bryan doesn't know about.", "It's just a nickname and three silly words. No email."] }
+    { title: "Something hidden", lines: ["With a Gremlin Key, you may find other offers hidden inside, some that even Bryan doesn't know about.", "It's just a nickname and a short key, like moss-sock-7. No email."] }
   ];
   function lookAround() { save("guide-seen", Date.now()); if (!player && !load("player-choice", null)) save("player-choice", "guest"); closePanel(); }
   function openGuide(step) {
@@ -247,7 +247,7 @@
     if (which === "key") return viewLogin();
     if (player) return viewAccount();
     var b = view("choose");
-    head(b, "welcome to gremlin world", "Who's visiting?", "No email, no passwords. A Gremlin Name is a nickname plus a silly three-word key, so your quest journal and arcade scores follow you to any device.");
+    head(b, "welcome to gremlin world", "Who's visiting?", "No email, no passwords. A Gremlin Name is a nickname plus a short key like moss-sock-7, so your quest journal and arcade scores follow you to any device.");
     var g = el("div", "gw-choices");
     g.appendChild(btn("Play as a guest", "ghost", function () { save("player-choice", "guest"); closePanel(); toast("\uD83C\uDF3F", "Exploring as a guest", window.GW_STORAGE === "memory" ? "Progress lasts until you close this window. Tap the badge up top any time to save it with a Gremlin Name." : "Progress stays on this device. Tap the badge up top any time to save it."); }));
     g.appendChild(btn(hasLocalProgress() ? "Save my progress (new Gremlin Name)" : "New Gremlin Name", "", viewNew));
@@ -310,9 +310,19 @@
     }));
     var mail = el("a", "gw-btn gw-mail", "Email it to myself"); mail.id = "gw-key-mail";
     // no address prefilled: it opens the visitor's own email app and we collect and send nothing
-    mail.href = "mailto:?subject=" + encodeURIComponent("My Gremlin Key") + "&body=" + encodeURIComponent("My Gremlin World name and key\n\nGremlin Name: " + r.name + "\nGremlin Key: " + r.key + "\n\nHow to use it: open Gremlin World, tap Guest at the top, choose \"I have a Gremlin Key\", and type the name and key (capitals and spaces don't matter). It works on any device.\n\n" + location.href.split("#")[0].split("?")[0]);
+    var mailHref = function () { return "mailto:?subject=" + encodeURIComponent("My Gremlin Key") + "&body=" + encodeURIComponent("My Gremlin World name and key\n\nGremlin Name: " + r.name + "\nGremlin Key: " + r.key + "\n\nHow to use it: open Gremlin World, tap Guest at the top, choose \"I have a Gremlin Key\", and type the name and key (capitals and spaces don't matter). It works on any device.\n\n" + location.href.split("#")[0].split("?")[0]); }; mail.href = mailHref();
     mail.addEventListener("click", function () { ok("Your email app should open. Send it to yourself."); });
     row.appendChild(mail); b.appendChild(row);
+    // "Give me another": brand-new players can swap the key for a fresh one (server: gw_reroll_key)
+    var again = btn("Give me another", "ghost small", function () {
+      again.disabled = true; again.textContent = "Shaking the key jar\u2026";
+      rpc("gw_reroll_key", { p_token: player && player.token }).then(function (x) {
+        again.disabled = false; again.textContent = "Give me another";
+        if (x && x.ok && x.key) { r.key = x.key; code.textContent = x.key; mail.href = mailHref(); done.disabled = true; note.textContent = ""; delete note.dataset.saved; cb.checked = false; }
+        else note.textContent = "That's the key the gremlins picked for you. Keep this one.";
+      }, function () { again.disabled = false; again.textContent = "Give me another"; note.textContent = OFFLINE_MSG; });
+    });
+    b.appendChild(again);
     b.appendChild(el("p", "gw-fine", "The email button opens your own email app. Nothing is sent to us."));
     b.appendChild(el("p", "gw-fine", "The gremlins can't look it up later, so keep it handy."));
     var dl = el("button", "gw-textlink gw-dl", "Download it as a small text file"); dl.type = "button";
@@ -327,14 +337,16 @@
     b.appendChild(note); b.appendChild(done);
     showPanel(signin);
   }
+  // standing rule: every key field shows the format, visible while typing
+  function keyHelp() { return el("p", "gw-fine gw-keyhelp", "Your key is two little words and a number, like moss-sock-7. (Older three-word keys still work.)"); }
   function selectCode(code) { try { var r = document.createRange(); r.selectNodeContents(code); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) {} }
   function viewLogin() {
     var b = view("login");
-    head(b, "welcome back", "I have a Gremlin Key", "Type your Gremlin Name and your three-word key (like soggy-teacup-waltz). Capitals and spaces don't matter.");
+    head(b, "welcome back", "I have a Gremlin Key", "Type your Gremlin Name and your Gremlin Key. Capitals and spaces don't matter.");
     var f = el("form", "gw-form"); f.noValidate = true;
     var l1 = el("label", "gw-label", "Gremlin Name"), n = el("input"); n.type = "text"; n.maxLength = 20; n.autocomplete = "username"; n.spellcheck = false; n.name = "gremlin-name"; l1.appendChild(n);
-    var l2 = el("label", "gw-label", "Gremlin Key"), k = el("input"); k.type = "text"; k.maxLength = 40; k.autocomplete = "off"; k.spellcheck = false; k.name = "gremlin-key"; k.placeholder = "word-word-word"; l2.appendChild(k);
-    f.appendChild(l1); f.appendChild(l2); var er = errLine(); f.appendChild(er);
+    var l2 = el("label", "gw-label", "Gremlin Key"), k = el("input"); k.type = "text"; k.maxLength = 40; k.autocomplete = "off"; k.spellcheck = false; k.name = "gremlin-key"; k.placeholder = "moss-sock-7"; l2.appendChild(k);
+    f.appendChild(l1); f.appendChild(l2); f.appendChild(keyHelp()); var er = errLine(); f.appendChild(er);
     var go = btn("Let me in", ""); go.type = "submit"; f.appendChild(go);
     f.appendChild(btn("Back", "ghost small", function () { openSignin(); }));
     f.addEventListener("submit", function (e) {
@@ -363,7 +375,7 @@
     b.appendChild(g);
     var d = el("details", "gw-forget"); d.appendChild(el("summary", "", "Delete my Gremlin Name"));
     d.appendChild(el("p", "gw-fine", "This removes your name, progress, scores and guestbook lines from the server for good. Type your Gremlin Key to confirm."));
-    var k = el("input"); k.type = "text"; k.placeholder = "word-word-word"; k.autocomplete = "off"; k.setAttribute("aria-label", "Gremlin Key"); d.appendChild(k);
+    var k = el("input"); k.type = "text"; k.placeholder = "moss-sock-7"; k.autocomplete = "off"; k.setAttribute("aria-label", "Gremlin Key"); d.appendChild(k); d.appendChild(keyHelp());
     var er = errLine(); d.appendChild(er);
     d.appendChild(btn("Delete it", "danger small", function () {
       rpc("gw_forget_me", { p_token: player.token, p_key: k.value }).then(function (r) {

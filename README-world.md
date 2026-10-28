@@ -129,8 +129,10 @@ Optional and fun-sized. **No email, no passwords, no personal info.** A visitor 
    automatic fallback whenever the server can't be reached).
 2. **Get a new Gremlin Name.** They pick a nickname (3–20 characters: letters, numbers, spaces, `-`, `_`;
    unique, case-insensitive; rude words and reserved names refused). The **server** makes a random
-   three-word **Gremlin Key** (e.g. `soggy-teacup-waltz`, 187 words → ~237,000 combinations) and shows it
-   **once**. The card has *Copy key*, *Download .txt* and "I wrote it down"; the continue button unlocks only
+   short **Gremlin Key**: two little words and a number, e.g. `moss-sock-7` (85 friendly 3–5 letter words in
+   `gw.short_key_words()`, numbers 2–99 with no 0 or 1 → ~515,000 combinations; migration
+   `20261028233000_gw_short_keys.sql`). It shows it **once**, with *Give me another* (`gw_reroll_key`, only
+   within 30 minutes of signing up). Older three-word keys keep working. The card has *Copy key*, *Download .txt* and "I wrote it down"; the continue button unlocks only
    after one of those. Whatever the guest had already found is saved under the new name ("Save my progress").
 3. **"I have a Gremlin Key".** Name + key (capitals and spaces don't matter) on any device pulls the progress
    down. A wrong key gets a rotating Noodle/Grimble joke and a "Play as a guest instead" button.

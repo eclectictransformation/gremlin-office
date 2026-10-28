@@ -1,5 +1,5 @@
-/* Gremlin Arcade (hidden preview). Log in with a Gremlin Name + Gremlin Key, land on a cozy arcade machine
-   with every game you've discovered in Gremlin World. Uses the SAME server calls as world-player.js
+/* Gremlin Arcade (hidden preview). One calm card: the starter games play right away; "Log in" or "Get a Gremlin Key"
+   opens a small pop-up over the same spot, and every game you've discovered in Gremlin World appears in place. Uses the SAME server calls as world-player.js
    (plain fetch to /rest/v1/rpc/gw_* with the publishable key) and the SAME session storage key
    (localStorage "gremlin-world-player" = { name, token, expires_at }). No service keys, no personal info. */
 (function () {
@@ -34,26 +34,18 @@
       body: JSON.stringify(body || {}), signal: ctl ? ctl.signal : undefined, keepalive: !!(opts && opts.keepalive) })
       .then(function (r) { clearTimeout(t); if (!r.ok) throw new Error("http " + r.status); return r.json(); }, function (e) { clearTimeout(t); throw e; });
   }
-  // the same jokes world-player.js tells when a login doesn't match
-  var JOKES = [
-    "Hmm. The gremlins may have filed you under 'snacks.' Try again?",
-    "Noodle looked under every cushion. No luck. Check the key and try again.",
-    "That key opened the snack drawer instead. One more try?",
-    "Grimble sneezed on the paperwork. Try again while he tidies up.",
-    "Noodle says the filing cabinet is being shy. Give it another go?"
-  ], jokeN = Math.floor(Math.random() * JOKES.length);
+  var NOMATCH = "Hmm, that key didn't match. Try again or get a new one.";
   // same messages + client checks as world-player.js viewNew(); the server (gw_register) does the real name rules + family-safe filter
   var REG_ERR = { length: "Gremlin Names are 3 to 20 characters.", chars: "Letters, numbers, spaces, - and _ only, please.",
-    rude: "Let's pick something a bit friendlier. The gremlins blush easily.", reserved: "That name belongs to someone in the office already. Try another!",
+    rude: "Let's pick something a bit friendlier. The gremlins blush easily.", reserved: "That name belongs to someone in the office already. Try another one.",
     taken: "Someone already has that name. Add a number, or a tiny twist?" };
   var ERR = { busy: "Lots of gremlins at the door right now. Try again in a minute.", slow_down: "Lots of tries in a row. Noodle is making tea; give it ten minutes." };
   var OFFLINE_MSG = "Noodle can't reach the gremlin filing cabinet right now. Try again in a little while.";
 
-  var W = null, player = load("player", null), prog = {}, scores = {}, games = [], guest = false;
+  var W = null, player = load("player", null), prog = {}, scores = {}, games = [];
   if (player && (!player.token || (player.expires_at && Date.parse(player.expires_at) < Date.now()))) { player = null; del("player"); }
 
   function toast(t) { var x = $("#ga-toast"); x.textContent = t; x.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { x.hidden = true; }, 3800); }
-  function show(id) { ["#ga-login", "#ga-new", "#ga-reveal", "#ga-machine"].forEach(function (s) { $(s).hidden = s !== id; }); }
 
   /* ---------- the catalogue of every game in the world ---------- */
   function catalogue() {
@@ -77,11 +69,11 @@
 
   /* ---------- the machine ---------- */
   function renderMachine() {
-    show("#ga-machine");
-    $("#ga-hello").textContent = player ? "Welcome, " + player.name + "!" : "Hello, guest gremlin!";
-    $("#ga-who").textContent = player ? "Signed in as " + player.name + "." : "Playing as a guest.";
-    $("#ga-out").textContent = player ? "Log out" : "Log in";
-    $("#ga-guest-note").hidden = !!player;
+    // only the bits inside the card change; the card itself never redraws or moves
+    $("#ga-hello").textContent = player ? "Welcome back, " + player.name : "Hello, guest gremlin";
+    $("#ga-save").hidden = !!player; $("#ga-me").hidden = !player; $("#ga-playnow").hidden = !!player;
+    if (player) $("#ga-welcome").textContent = "Welcome back, " + player.name + ". Your progress saves as you play.";
+    if (!W) return;
     var ul = $("#ga-games"); ul.innerHTML = "";
     var open = games.filter(discovered), locked = games.filter(function (g) { return !discovered(g); });
     $("#ga-count").textContent = open.length + " of " + games.length + " games found";
@@ -155,7 +147,7 @@
       var bd = W.badges.list, got = prog.badges || {}, box = el("div", "ga-stats");
       statRow(box, "\uD83D\uDDFA\uFE0F", "Rooms found", (prog.visited || []).length + " of " + rooms.length);
       statRow(box, "\u2728", "Secrets found", (prog.found || []).length + " of " + eggs);
-      statRow(box, "\uD83E\uDDE6", "Socks found", (prog.socks || []).length + " of " + W.socksTotal + (((prog.sock || {}).done || 0) > 0 ? " (hunt done!)" : ""));
+      statRow(box, "\uD83E\uDDE6", "Socks found", (prog.socks || []).length + " of " + W.socksTotal + (((prog.sock || {}).done || 0) > 0 ? " (hunt done)" : ""));
       statRow(box, "\uD83C\uDFC5", "Badges", Object.keys(got).length + " of " + bd.length);
       statRow(box, "\uD83D\uDD79\uFE0F", "Games found", games.filter(discovered).length + " of " + games.length);
       b.appendChild(box);
@@ -176,74 +168,106 @@
         var card = el("div", "ga-coupon"); card.appendChild(el("p", "gc-t", c.title)); var code = el("code", "", c.code); card.appendChild(code);
         card.appendChild(el("p", "gc-n", c.how + ". " + c.note));
         var cp = el("button", "ga-btn ghost small", "Copy code"); cp.type = "button";
-        cp.addEventListener("click", function () { (navigator.clipboard ? navigator.clipboard.writeText(c.code) : Promise.reject()).then(function () { cp.textContent = "Copied!"; }, function () { var r = document.createRange(); r.selectNodeContents(code); var s = getSelection(); s.removeAllRanges(); s.addRange(r); cp.textContent = "Selected"; }); });
+        cp.addEventListener("click", function () { (navigator.clipboard ? navigator.clipboard.writeText(c.code) : Promise.reject()).then(function () { cp.textContent = "Copied"; }, function () { var r = document.createRange(); r.selectNodeContents(code); var s = getSelection(); s.removeAllRanges(); s.addRange(r); cp.textContent = "Selected"; }); });
         card.appendChild(cp); b.appendChild(card);
       });
       var n = COUPONS.length - have.length; if (player && n > 0 && have.length) b.appendChild(el("p", "ga-fine", "There may be more out there."));
     });
   }
 
-  // exactly gw.normalize_key on the server: lowercase, trim, any run of non-letters -> one dash, no dashes at the ends
-  function normKey(k) { return String(k || "").trim().toLowerCase().replace(/[^a-z]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, ""); }
-  function showKey(box, key) {   // dashes drawn bold + coloured so they're easy to see
-    box.textContent = ""; String(key).split("-").forEach(function (w, i) { if (i) box.appendChild(el("span", "ga-dash", "-")); box.appendChild(document.createTextNode(w)); });
+
+  // same as gw.normalize_key on the server: lowercase, trim, a dash between words and numbers, any run of other characters -> one dash
+  function normKey(k) { return String(k || "").trim().toLowerCase().replace(/([a-z])([0-9])/g, "$1-$2").replace(/([0-9])([a-z])/g, "$1-$2").replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, ""); }
+
+  /* ---------- the little pop-up (modal) ---------- */
+  var modal, pop, back = null, fadeT = null;
+  function busy(b, on, label) { b.disabled = on; b.classList.toggle("is-busy", on); $(".ga-bt", b).textContent = label; }
+  function pane(id) { ["#ga-login", "#ga-new", "#ga-reveal"].forEach(function (s) { $(s).hidden = s !== id; }); pop.setAttribute("aria-labelledby", $(id + " .ga-pop-h").id); }
+  function openModal(id, focusSel) {
+    clearTimeout(fadeT); back = document.activeElement; pane(id);
+    modal.hidden = false; modal.classList.remove("out"); void modal.offsetWidth; modal.classList.add("in");
+    setTimeout(function () { var f = $(focusSel); if (f) f.focus(); }, 30);
   }
-  function reveal(r) {
-    $("#ga-rv-name").textContent = r.name; $("#ga-rv-name2").textContent = r.name; showKey($("#ga-rv-key"), r.key);
-    $("#ga-rv-note").textContent = ""; $("#ga-rv-wrote").checked = false; $("#ga-rv-go").disabled = true; $("#ga-new-name").value = "";
-    show("#ga-reveal"); setTimeout(function () { $("#ga-rv-copy").focus(); }, 30);
+  function closeModal(soft) {
+    if (modal.hidden) return;
+    modal.classList.remove("in"); modal.classList.add("out");
+    fadeT = setTimeout(function () { modal.hidden = true; modal.classList.remove("out"); }, soft ? 420 : 180);
+    var to = player ? $("#ga-out") : back; if (to && to.focus) try { to.focus({ preventScroll: true }); } catch (e) {}
   }
-  /* ---------- login, same path as world-player.js ---------- */
-  function sessionLost() { player = null; del("player"); prog = {}; scores = {}; toast("Your Gremlin Name nodded off. Log in again with your key."); show("#ga-login"); }
+  function focusables() { return Array.prototype.filter.call(pop.querySelectorAll("button, input, a[href]"), function (x) { return !x.disabled && x.offsetParent !== null; }); }
+  function trap(e) {
+    if (modal.hidden) return;
+    if (e.key === "Escape") { e.preventDefault(); closeModal(); return; }
+    if (e.key !== "Tab") return;
+    var f = focusables(); if (!f.length) return; var a = f[0], z = f[f.length - 1];
+    if (e.shiftKey && (document.activeElement === a || !pop.contains(document.activeElement))) { e.preventDefault(); z.focus(); }
+    else if (!e.shiftKey && (document.activeElement === z || !pop.contains(document.activeElement))) { e.preventDefault(); a.focus(); }
+  }
+
+  /* ---------- log in / get a key, same server calls as world-player.js ---------- */
+  function signedIn(r) { player = { name: r.name, token: r.token, expires_at: r.expires_at }; save("player", player); save("player-choice", "named"); }
+  function sessionLost() { player = null; del("player"); prog = {}; scores = {}; renderMachine(); toast("Your Gremlin Name nodded off. Log in again with your key."); }
   function loadMine() {
+    if (!player) return Promise.resolve(false);
     return rpc("gw_load_progress", { p_token: player.token }).then(function (r) {
       if (!r || !r.ok) { if (r && r.error === "session") sessionLost(); return false; }
       prog = r.progress || {}; scores = r.scores || {};
       if (r.name && r.name !== player.name) { player.name = r.name; save("player", player); }
       seedBests(); renderMachine(); return true;
-    }, function () { toast(OFFLINE_MSG); show("#ga-login"); return false; });
+    }, function () { toast(OFFLINE_MSG); return false; });
   }
-  function bindLogin() {
-    $("#ga-form").addEventListener("submit", function (e) {
+  function bind() {
+    modal = $("#ga-modal"); pop = $(".ga-pop", modal);
+    $("#ga-open-login").addEventListener("click", function () { $("#ga-err").textContent = ""; openModal("#ga-login", "#ga-name"); });
+    $("#ga-open-new").addEventListener("click", function () { $("#ga-new-err").textContent = ""; openModal("#ga-new", "#ga-new-name"); });
+    $(".ga-x", modal).addEventListener("click", function () { closeModal(); });
+    modal.addEventListener("mousedown", function (e) { if (e.target === modal) closeModal(); });
+    document.addEventListener("keydown", trap);
+
+    $("#ga-login").addEventListener("submit", function (e) {
       e.preventDefault(); var n = $("#ga-name"), k = $("#ga-key"), er = $("#ga-err"), go = $("#ga-go");
       if (!n.value.trim() || !k.value.trim()) { er.textContent = "Both boxes, please: your Gremlin Name and your key."; return; }
-      go.disabled = true; er.textContent = ""; go.textContent = "Checking the filing cabinet\u2026";
-      var nk = normKey(k.value); k.value = nk;
-      rpc("gw_login", { p_name: n.value, p_key: nk }).then(function (r) {
-        go.disabled = false; go.textContent = "Let me in";
-        if (!r || !r.ok) { er.textContent = (r && ERR[r.error]) || JOKES[(jokeN++) % JOKES.length]; return; }
-        player = { name: r.name, token: r.token, expires_at: r.expires_at }; save("player", player); save("player-choice", "named");
-        k.value = ""; guest = false; loadMine();
-      }, function () { go.disabled = false; go.textContent = "Let me in"; er.textContent = OFFLINE_MSG; });
+      busy(go, true, "Opening your door\u2026"); er.textContent = "";
+      rpc("gw_login", { p_name: n.value, p_key: normKey(k.value) }).then(function (r) {
+        if (!r || !r.ok) { busy(go, false, "Let me in"); er.textContent = (r && ERR[r.error]) || NOMATCH; return; }
+        signedIn(r);
+        loadMine().then(function () { busy(go, false, "Let me in"); k.value = ""; renderMachine(); closeModal(true); });
+      }, function () { busy(go, false, "Let me in"); er.textContent = OFFLINE_MSG; });
     });
-    /* sign up: the exact gw_register call world-player.js makes */
-    $("#ga-signup").addEventListener("click", function () { $("#ga-new-err").textContent = ""; show("#ga-new"); setTimeout(function () { $("#ga-new-name").focus(); }, 30); });
-    $("#ga-guest-get").addEventListener("click", function () { $("#ga-signup").click(); });
-    $("#ga-new-back").addEventListener("click", function () { show("#ga-login"); });
-    $("#ga-new-form").addEventListener("submit", function (e) {
+
+    $("#ga-new").addEventListener("submit", function (e) {
       e.preventDefault(); var er = $("#ga-new-err"), go = $("#ga-new-go"), n = $("#ga-new-name").value.replace(/\s+/g, " ").trim();
       if (n.length < 3 || n.length > 20) { er.textContent = REG_ERR.length; return; }
       if (!/^[A-Za-z0-9 _-]+$/.test(n)) { er.textContent = REG_ERR.chars; return; }
-      go.disabled = true; er.textContent = ""; go.textContent = "Asking the gremlins\u2026";
+      busy(go, true, "Opening your door\u2026"); er.textContent = "";
       rpc("gw_register", { p_name: n }).then(function (r) {
-        go.disabled = false; go.textContent = "Make my Gremlin";
-        if (!r || !r.ok) { er.textContent = (r && (REG_ERR[r.error] || ERR[r.error])) || JOKES[(jokeN++) % JOKES.length]; return; }
-        player = { name: r.name, token: r.token, expires_at: r.expires_at }; save("player", player); save("player-choice", "named"); guest = false;
-        reveal(r);
-      }, function () { go.disabled = false; go.textContent = "Make my Gremlin"; er.textContent = OFFLINE_MSG; });
+        busy(go, false, "Get my key");
+        if (!r || !r.ok) { er.textContent = (r && (REG_ERR[r.error] || ERR[r.error])) || OFFLINE_MSG; return; }
+        signedIn(r); loadMine();   // logged in already: the card behind fills in while they read their key
+        $("#ga-rv-name").textContent = r.name; $("#ga-rv-key").textContent = r.key; $("#ga-rv-note").textContent = ""; $("#ga-new-name").value = "";
+        pane("#ga-reveal"); setTimeout(function () { $("#ga-rv-copy").focus(); }, 30);
+      }, function () { busy(go, false, "Get my key"); er.textContent = OFFLINE_MSG; });
     });
     $("#ga-rv-copy").addEventListener("click", function () {
-      var txt = "Gremlin Name: " + $("#ga-rv-name2").textContent + "\nGremlin Key: " + $("#ga-rv-key").textContent, note = $("#ga-rv-note");
-      var fin = function (m) { note.textContent = m; $("#ga-rv-go").disabled = false; };
-      (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function () { fin("Copied. Paste it somewhere safe."); },
-        function () { var r = document.createRange(); r.selectNodeContents($("#ga-rv-key")); var s = getSelection(); s.removeAllRanges(); s.addRange(r); fin("Selected. Press Ctrl+C (or Cmd+C) to copy."); });
+      var key = $("#ga-rv-key"), note = $("#ga-rv-note");
+      (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(key.textContent) : Promise.reject()).then(function () { note.textContent = "Copied. Paste it somewhere safe."; },
+        function () { var r = document.createRange(); r.selectNodeContents(key); var s = getSelection(); s.removeAllRanges(); s.addRange(r); note.textContent = "Selected. Press Ctrl+C (or Cmd+C) to copy."; });
     });
-    $("#ga-rv-wrote").addEventListener("change", function (e) { if (e.target.checked) { $("#ga-rv-note").textContent = "Good. Gremlins love a written note."; $("#ga-rv-go").disabled = false; } });
-    $("#ga-rv-go").addEventListener("click", function () { $("#ga-rv-key").textContent = ""; loadMine().then(function () { toast("Welcome, " + (player ? player.name : "gremlin") + "! Your progress saves under your new name."); }); });
-    $("#ga-guest").addEventListener("click", function () { guest = true; prog = {}; scores = {}; renderMachine(); });
+    $("#ga-rv-again").addEventListener("click", function () {
+      var b = $("#ga-rv-again"), note = $("#ga-rv-note"); if (!player) return;
+      busy(b, true, "Shaking the key jar\u2026");
+      rpc("gw_reroll_key", { p_token: player.token }).then(function (r) {
+        busy(b, false, "Give me another");
+        if (r && r.ok && r.key) { $("#ga-rv-key").textContent = r.key; note.textContent = "A fresh one. The old one won't work now."; }
+        else note.textContent = (r && ERR[r.error]) || "That's the key the gremlins picked for you. Keep this one.";
+      }, function () { busy(b, false, "Give me another"); note.textContent = OFFLINE_MSG; });
+    });
+    $("#ga-rv-go").addEventListener("click", function () { renderMachine(); closeModal(true); });
+
     $("#ga-out").addEventListener("click", function () {
-      if (player) { rpc("gw_logout", { p_token: player.token }).catch(function () {}); player = null; del("player"); prog = {}; scores = {}; toast("Logged out. Your progress is safe under your Gremlin Name."); }
-      show("#ga-login"); setTimeout(function () { $("#ga-name").focus(); }, 30);
+      if (player) rpc("gw_logout", { p_token: player.token }).catch(function () {});
+      player = null; del("player"); prog = {}; scores = {}; renderMachine();
+      toast("Logged out. Your progress is safe under your Gremlin Name."); $("#ga-open-login").focus();
     });
     document.querySelectorAll("[data-open]").forEach(function (b) { b.addEventListener("click", function () { b.dataset.open === "stats" ? openStats() : openCoupons(); }); });
     $("#ga-drawer .ga-x").addEventListener("click", closeDrawer);
@@ -251,47 +275,12 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("#ga-drawer").hidden) closeDrawer(); });
   }
 
-  /* ---------- full screen: the Fullscreen API where allowed, else a new tab with ?full=1 ---------- */
-  var ACCOUNT = "https://eclectictransformation.com/account", FULL = new URLSearchParams(location.search).get("full") === "1";
-  var D = document, R = D.documentElement;
-  function fsEl() { return D.fullscreenElement || D.webkitFullscreenElement || null; }
-  function fsOK() { return !!((D.fullscreenEnabled || D.webkitFullscreenEnabled) && (R.requestFullscreen || R.webkitRequestFullscreen)); }
-  function fsUI() {
-    var on = !!fsEl(), b = $("#ga-fs");
-    $(".ga-fs-t", b).textContent = on ? "Exit full screen" : "Full screen";
-    b.setAttribute("aria-pressed", on ? "true" : "false"); D.body.classList.toggle("ga-is-full", on || FULL);
-  }
-  function openTab() {
-    var u = new URL(location.href); u.searchParams.set("full", "1");
-    var w = window.open(u.toString(), "_blank");
-    if (!w) toast("Your browser blocked the new tab. Open Gremlin Arcade from the link in a new tab instead.");
-  }
-  function goFull() {
-    if (fsEl()) { (D.exitFullscreen || D.webkitExitFullscreen).call(D); return; }
-    if (fsOK()) {
-      try { var p = (R.requestFullscreen || R.webkitRequestFullscreen).call(R); if (p && p.catch) p.catch(openTab); } catch (e) { openTab(); }
-    } else openTab();
-  }
-  function backToAccount() {
-    try { window.close(); } catch (e) {}
-    setTimeout(function () { if (!window.closed) location.href = ACCOUNT; }, 250);   // tab wasn't opened by script: just go home
-  }
-  function bindFull() {
-    $("#ga-fs").addEventListener("click", goFull);
-    $("#ga-back").addEventListener("click", backToAccount);
-    D.addEventListener("fullscreenchange", fsUI); D.addEventListener("webkitfullscreenchange", fsUI);   // Esc exits real fullscreen natively
-    D.addEventListener("keydown", function (e) { if (e.key === "Escape" && fsEl() && !(window.GremlinArcade && GremlinArcade.isOpen()) && $("#ga-drawer").hidden) (D.exitFullscreen || D.webkitExitFullscreen).call(D); });   // backup; browsers also exit on Esc themselves
-    if (FULL) { $("#ga-back").hidden = false; $("#ga-fs").hidden = true; }
-    fsUI();
-  }
-
   function boot() {
-    bindLogin(); bindFull();
+    bind(); renderMachine();
     fetch("world-data.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (d) {
-      W = d; games = catalogue(); hooks();
-      if (player) { renderMachine(); loadMine(); } else show("#ga-login");
-    }).catch(function () { show("#ga-login"); $("#ga-err").textContent = OFFLINE_MSG; });
+      W = d; games = catalogue(); hooks(); renderMachine(); if (player) loadMine();
+    }).catch(function () { $("#ga-count").textContent = "The machine is still warming up"; toast(OFFLINE_MSG); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
-  window.__GA = { fsOK: fsOK, goFull: goFull, get prog() { return prog; }, get games() { return games; }, discovered: function (id) { return discovered(games.filter(function (g) { return g.id === id; })[0]); } };   // for tests
+  window.__GA = { normKey: normKey, get player() { return player; }, get prog() { return prog; }, get games() { return games; }, discovered: function (id) { return discovered(games.filter(function (g) { return g.id === id; })[0]); } };   // for tests
 })();

@@ -8,94 +8,84 @@
 <link rel="icon" href="data:,">
 <!-- Everything below resolves from the repo root, so the real game modules + assets load unchanged. -->
 <base href="../">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap">
 <link rel="stylesheet" href="games/arcade.css">
 <link rel="stylesheet" href="games/room-games.css">
 <link rel="stylesheet" href="preview-arcade/arcade-home.css">
 </head>
 <body>
-<div class="ga-fsbar">
-  <button id="ga-back" class="ga-fsbtn" type="button" hidden><span aria-hidden="true">&#8592;</span> Back to my account</button>
-  <div class="ga-fswrap">
-    <button id="ga-fs" class="ga-fsbtn" type="button" aria-describedby="ga-fsnote"><span aria-hidden="true">&#x26F6;</span> <span class="ga-fs-t">Full screen</span></button>
-    <p id="ga-fsnote" class="ga-fsnote">Heads up: when you open full screen, you may need to log in again.</p>
-  </div>
-</div>
 <main id="app" class="ga">
-  <!-- 1. the door: Gremlin Name + Gremlin Key -->
-  <section id="ga-login" class="ga-card ga-door" hidden aria-labelledby="ga-login-h">
-    <svg class="ga-doodle" viewBox="0 0 120 70" aria-hidden="true"><path d="M10 60c6-30 20-46 50-46s44 16 50 46" fill="none" stroke="#54664A" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/><circle cx="44" cy="34" r="5" fill="#1A1A18"/><circle cx="76" cy="34" r="5" fill="#1A1A18"/><path d="M50 50q10 7 20 0" fill="none" stroke="#1A1A18" stroke-width="3" stroke-linecap="round"/></svg>
-    <p class="ga-meta">the gremlin arcade</p>
-    <h1 id="ga-login-h">Log in to your arcade</h1>
-    <p class="ga-sub">Type your Gremlin Name and your three-word Gremlin Key (like soggy-teacup-waltz). Capitals and spaces don't matter.</p>
-    <form id="ga-form" novalidate>
-      <label class="ga-label">Gremlin Name <input id="ga-name" type="text" maxlength="20" autocomplete="username" spellcheck="false" autocapitalize="off"></label>
-      <label class="ga-label">Gremlin Key <input id="ga-key" type="text" maxlength="40" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="word-word-word" aria-describedby="ga-key-help"></label>
-      <p id="ga-key-help" class="ga-keyhelp">Your Gremlin Key is three words separated by dashes, like: <code>sleepy-teapot-wiggle</code>. It's the only way the gremlins understand it.</p>
-      <p id="ga-err" class="ga-err" role="alert" aria-live="polite"></p>
-      <button id="ga-go" class="ga-btn" type="submit">Let me in</button>
-    </form>
-    <div class="ga-newkey">
-      <p><strong>Don't have a Gremlin Key?</strong> Get one right here. It takes ten seconds, and all we need is a silly name.</p>
-      <button id="ga-signup" class="ga-btn" type="button">Get my Gremlin Key</button>
-    </div>
-    <div class="ga-guestbox">
-      <button id="ga-guest" class="ga-btn ghost" type="button">Play without a key</button>
-      <p class="ga-fine">You can play without a key, but you'll need a Gremlin Key to save your progress, scores and coupons.</p>
-    </div>
-    <a class="ga-world-link" href="https://eclectictransformation.github.io/gremlin-office/world.html" target="_blank" rel="noopener">Visit the full Gremlin World &#8599;</a>
-  </section>
-
-  <!-- 1b. sign up: same gw_register flow as world-player.js -->
-  <section id="ga-new" class="ga-card ga-door" hidden aria-labelledby="ga-new-h">
-    <p class="ga-meta">a new gremlin name</p>
-    <h1 id="ga-new-h">Pick a Gremlin Name</h1>
-    <p class="ga-sub">3 to 20 characters: letters, numbers, spaces, - or _. It shows on the scoreboards, so keep it friendly (and not your real name, if you like). No email, no password, nothing else.</p>
-    <form id="ga-new-form" novalidate>
-      <label class="ga-label">Gremlin Name <input id="ga-new-name" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="e.g. Captain Crumbs"></label>
-      <p id="ga-new-err" class="ga-err" role="alert" aria-live="polite"></p>
-      <button id="ga-new-go" class="ga-btn" type="submit">Make my Gremlin</button>
-    </form>
-    <button id="ga-new-back" class="ga-btn ghost small" type="button">Back to log in</button>
-  </section>
-
-  <!-- 1c. the key reveal -->
-  <section id="ga-reveal" class="ga-card ga-door" hidden aria-labelledby="ga-reveal-h">
-    <p class="ga-meta">your gremlin key</p>
-    <h1 id="ga-reveal-h">Hello, <span id="ga-rv-name"></span></h1>
-    <div class="ga-keybox">
-      <span class="ga-kl">Gremlin Name</span><code id="ga-rv-name2" class="ga-kv"></code>
-      <span class="ga-kl">Gremlin Key</span><code id="ga-rv-key" class="ga-kv big"></code>
-    </div>
-    <p id="ga-rv-help" class="ga-keyhelp">Your Gremlin Key is three words separated by dashes, like: <code>sleepy-teapot-wiggle</code>. It's the only way the gremlins understand it.</p>
-    <p class="ga-sub"><strong>Write this down, the gremlins are forgetful.</strong> They can't look your key up later, and it's how you get back into your arcade on any device.</p>
-    <div class="ga-row">
-      <button id="ga-rv-copy" class="ga-btn ghost" type="button">Copy name + key</button>
-      <label class="ga-check"><input id="ga-rv-wrote" type="checkbox"> I wrote it down</label>
-    </div>
-    <p id="ga-rv-note" class="ga-fine" aria-live="polite"></p>
-    <button id="ga-rv-go" class="ga-btn" type="button" disabled>Into my arcade</button>
-  </section>
-
-  <!-- 2. the machine -->
-  <section id="ga-machine" class="ga-cabinet" hidden aria-labelledby="ga-title">
-    <div class="ga-marquee"><h1 id="ga-title">GREMLIN ARCADE</h1><p id="ga-hello" class="ga-hello"></p></div>
+  <!-- one calm card: the machine is always here; logging in happens in a small pop-up on top of it -->
+  <section id="ga-machine" class="ga-cabinet" aria-labelledby="ga-title">
+    <div class="ga-marquee"><h1 id="ga-title">GREMLIN ARCADE</h1><p id="ga-hello" class="ga-hello" aria-live="polite">Hello, guest gremlin</p></div>
     <div class="ga-screen">
-      <p class="ga-screen-head" id="ga-count"></p>
+      <p class="ga-screen-head" id="ga-count">Warming up the machine&#8230;</p>
       <ul id="ga-games" class="ga-games"></ul>
     </div>
-    <div class="ga-cta">
-      <p><strong>Want to collect more games?</strong> Explore the whole Gremlin World to find them. They're tucked into rooms all over the house.</p>
-      <a class="ga-btn" href="https://eclectictransformation.github.io/gremlin-office/world.html" target="_blank" rel="noopener">Explore Gremlin World &#8599;</a>
+    <p id="ga-playnow" class="ga-playnow">Play now, no key needed.</p>
+
+    <!-- the account line: same slot, same height, guest or signed in -->
+    <div id="ga-acct" class="ga-acct">
+      <div id="ga-save" class="ga-save">
+        <p class="ga-save-q">Save your progress?</p>
+        <div class="ga-save-btns">
+          <button id="ga-open-login" class="ga-btn ghost" type="button" aria-haspopup="dialog">Log in</button>
+          <button id="ga-open-new" class="ga-btn" type="button" aria-haspopup="dialog">Get a Gremlin Key</button>
+        </div>
+      </div>
+      <div id="ga-me" class="ga-me" hidden>
+        <p id="ga-welcome" class="ga-welcome"></p>
+        <button id="ga-out" class="ga-link" type="button">Log out</button>
+      </div>
     </div>
+
     <div class="ga-panel-btns">
       <button class="ga-big" type="button" data-open="stats"><span aria-hidden="true">&#128211;</span> My stats</button>
       <button class="ga-big" type="button" data-open="coupons"><span aria-hidden="true">&#127903;&#65039;</span> My coupons</button>
     </div>
-    <p id="ga-guest-note" class="ga-guest-note" hidden>Playing as a guest, so progress won't be saved. <button id="ga-guest-get" class="ga-link" type="button">Get a Gremlin Key</button></p>
-    <div class="ga-foot"><span id="ga-who"></span> <button id="ga-out" class="ga-link" type="button">Log out</button></div>
+    <p class="ga-worldline"><a class="ga-world-link" href="https://eclectictransformation.github.io/gremlin-office/world.html" target="_blank" rel="noopener">Want to see the whole Gremlin World and find more games?</a></p>
   </section>
 
-  <!-- 3. drawers that slide out of the machine -->
+  <!-- the small pop-up: log in, or get a key. Opens over the same spot; nothing behind it moves. -->
+  <div id="ga-modal" class="ga-modal" hidden>
+    <div class="ga-pop ga-card" role="dialog" aria-modal="true" aria-labelledby="ga-pop-h">
+      <button class="ga-x" type="button" aria-label="Close">&times;</button>
+
+      <form id="ga-login" class="ga-pane" novalidate>
+        <h2 id="ga-login-h" class="ga-pop-h">Log in</h2>
+        <label class="ga-label">Gremlin Name <input id="ga-name" type="text" maxlength="20" autocomplete="username" spellcheck="false" autocapitalize="off"></label>
+        <label class="ga-label">Gremlin Key <input id="ga-key" type="text" maxlength="40" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="moss-sock-7" aria-describedby="ga-key-help"></label>
+        <p id="ga-key-help" class="ga-keyhelp">Your key is two little words and a number, like <code>moss-sock-7</code>. Spaces and capitals are fine.</p>
+        <p id="ga-err" class="ga-msg" role="status" aria-live="polite"></p>
+        <button id="ga-go" class="ga-btn wide" type="submit"><span class="ga-spin" aria-hidden="true"></span><span class="ga-bt">Let me in</span></button>
+      </form>
+
+      <form id="ga-new" class="ga-pane" novalidate hidden>
+        <h2 id="ga-new-h" class="ga-pop-h">Get a Gremlin Key</h2>
+        <label class="ga-label">Gremlin Name <input id="ga-new-name" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="e.g. Captain Crumbs" aria-describedby="ga-new-help"></label>
+        <p id="ga-new-help" class="ga-keyhelp">A friendly nickname, 3 to 20 letters or numbers. No email, no password.</p>
+        <p id="ga-new-err" class="ga-msg" role="status" aria-live="polite"></p>
+        <button id="ga-new-go" class="ga-btn wide" type="submit"><span class="ga-spin" aria-hidden="true"></span><span class="ga-bt">Get my key</span></button>
+      </form>
+
+      <div id="ga-reveal" class="ga-pane" hidden>
+        <h2 id="ga-reveal-h" class="ga-pop-h">Hello, <span id="ga-rv-name"></span></h2>
+        <p class="ga-kl">Your Gremlin Key</p>
+        <p id="ga-rv-key" class="ga-bigkey" aria-live="polite"></p>
+        <p class="ga-keyhelp">Your key is two little words and a number, like <code>moss-sock-7</code>.</p>
+        <div class="ga-row">
+          <button id="ga-rv-copy" class="ga-btn ghost" type="button">Copy</button>
+          <button id="ga-rv-again" class="ga-btn ghost" type="button"><span class="ga-spin" aria-hidden="true"></span><span class="ga-bt">Give me another</span></button>
+        </div>
+        <p class="ga-sub"><strong>Write this down, the gremlins are forgetful.</strong></p>
+        <p id="ga-rv-note" class="ga-msg" aria-live="polite"></p>
+        <button id="ga-rv-go" class="ga-btn wide" type="button">All set, I'm in</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- drawers that slide out of the machine -->
   <div id="ga-drawer" class="ga-drawer" hidden role="dialog" aria-modal="true" aria-labelledby="ga-drawer-h">
     <div class="ga-card">
       <button class="ga-x" type="button" aria-label="Close">&times;</button>

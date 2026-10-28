@@ -647,7 +647,7 @@
   function isLocked(id) { return KEY_ROOMS.indexOf(id) >= 0 && !named(); }
   var LOCK_LINES = [
     "Ooh, we haven't met yet. Make a Gremlin Key and come right in.",
-    "{who} likes to know who's visiting before you come in. A Gremlin Key is just a nickname and three words.",
+    "{who} likes to know who's visiting before you come in. A Gremlin Key is just a nickname and a short key, like moss-sock-7.",
     "Not yet, friend. {who} is tidying up for a proper hello. Make a Gremlin Key whenever you like.",
     "{who} peeks out and waves. \u201cCome back with a Gremlin Key and I'll put the kettle on.\u201d"
   ], lockN = 0, pendingRoom = null;
