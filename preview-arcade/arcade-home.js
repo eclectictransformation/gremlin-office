@@ -42,6 +42,10 @@
     "Grimble sneezed on the paperwork. Try again while he tidies up.",
     "Noodle says the filing cabinet is being shy. Give it another go?"
   ], jokeN = Math.floor(Math.random() * JOKES.length);
+  // same messages + client checks as world-player.js viewNew(); the server (gw_register) does the real name rules + family-safe filter
+  var REG_ERR = { length: "Gremlin Names are 3 to 20 characters.", chars: "Letters, numbers, spaces, - and _ only, please.",
+    rude: "Let's pick something a bit friendlier. The gremlins blush easily.", reserved: "That name belongs to someone in the office already. Try another!",
+    taken: "Someone already has that name. Add a number, or a tiny twist?" };
   var ERR = { busy: "Lots of gremlins at the door right now. Try again in a minute.", slow_down: "Lots of tries in a row. Noodle is making tea; give it ten minutes." };
   var OFFLINE_MSG = "Noodle can't reach the gremlin filing cabinet right now. Try again in a little while.";
 
@@ -49,7 +53,7 @@
   if (player && (!player.token || (player.expires_at && Date.parse(player.expires_at) < Date.now()))) { player = null; del("player"); }
 
   function toast(t) { var x = $("#ga-toast"); x.textContent = t; x.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { x.hidden = true; }, 3800); }
-  function show(id) { ["#ga-login", "#ga-machine"].forEach(function (s) { $(s).hidden = s !== id; }); }
+  function show(id) { ["#ga-login", "#ga-new", "#ga-reveal", "#ga-machine"].forEach(function (s) { $(s).hidden = s !== id; }); }
 
   /* ---------- the catalogue of every game in the world ---------- */
   function catalogue() {
@@ -74,9 +78,10 @@
   /* ---------- the machine ---------- */
   function renderMachine() {
     show("#ga-machine");
-    $("#ga-hello").textContent = player ? "Welcome back, " + player.name + "!" : "Hello, guest gremlin!";
+    $("#ga-hello").textContent = player ? "Welcome, " + player.name + "!" : "Hello, guest gremlin!";
     $("#ga-who").textContent = player ? "Signed in as " + player.name + "." : "Playing as a guest.";
     $("#ga-out").textContent = player ? "Log out" : "Log in";
+    $("#ga-guest-note").hidden = !!player;
     var ul = $("#ga-games"); ul.innerHTML = "";
     var open = games.filter(discovered), locked = games.filter(function (g) { return !discovered(g); });
     $("#ga-count").textContent = open.length + " of " + games.length + " games found";
@@ -178,6 +183,16 @@
     });
   }
 
+  // exactly gw.normalize_key on the server: lowercase, trim, any run of non-letters -> one dash, no dashes at the ends
+  function normKey(k) { return String(k || "").trim().toLowerCase().replace(/[^a-z]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, ""); }
+  function showKey(box, key) {   // dashes drawn bold + coloured so they're easy to see
+    box.textContent = ""; String(key).split("-").forEach(function (w, i) { if (i) box.appendChild(el("span", "ga-dash", "-")); box.appendChild(document.createTextNode(w)); });
+  }
+  function reveal(r) {
+    $("#ga-rv-name").textContent = r.name; $("#ga-rv-name2").textContent = r.name; showKey($("#ga-rv-key"), r.key);
+    $("#ga-rv-note").textContent = ""; $("#ga-rv-wrote").checked = false; $("#ga-rv-go").disabled = true; $("#ga-new-name").value = "";
+    show("#ga-reveal"); setTimeout(function () { $("#ga-rv-copy").focus(); }, 30);
+  }
   /* ---------- login, same path as world-player.js ---------- */
   function sessionLost() { player = null; del("player"); prog = {}; scores = {}; toast("Your Gremlin Name nodded off. Log in again with your key."); show("#ga-login"); }
   function loadMine() {
@@ -193,13 +208,38 @@
       e.preventDefault(); var n = $("#ga-name"), k = $("#ga-key"), er = $("#ga-err"), go = $("#ga-go");
       if (!n.value.trim() || !k.value.trim()) { er.textContent = "Both boxes, please: your Gremlin Name and your key."; return; }
       go.disabled = true; er.textContent = ""; go.textContent = "Checking the filing cabinet\u2026";
-      rpc("gw_login", { p_name: n.value, p_key: k.value }).then(function (r) {
+      var nk = normKey(k.value); k.value = nk;
+      rpc("gw_login", { p_name: n.value, p_key: nk }).then(function (r) {
         go.disabled = false; go.textContent = "Let me in";
         if (!r || !r.ok) { er.textContent = (r && ERR[r.error]) || JOKES[(jokeN++) % JOKES.length]; return; }
         player = { name: r.name, token: r.token, expires_at: r.expires_at }; save("player", player); save("player-choice", "named");
         k.value = ""; guest = false; loadMine();
       }, function () { go.disabled = false; go.textContent = "Let me in"; er.textContent = OFFLINE_MSG; });
     });
+    /* sign up: the exact gw_register call world-player.js makes */
+    $("#ga-signup").addEventListener("click", function () { $("#ga-new-err").textContent = ""; show("#ga-new"); setTimeout(function () { $("#ga-new-name").focus(); }, 30); });
+    $("#ga-guest-get").addEventListener("click", function () { $("#ga-signup").click(); });
+    $("#ga-new-back").addEventListener("click", function () { show("#ga-login"); });
+    $("#ga-new-form").addEventListener("submit", function (e) {
+      e.preventDefault(); var er = $("#ga-new-err"), go = $("#ga-new-go"), n = $("#ga-new-name").value.replace(/\s+/g, " ").trim();
+      if (n.length < 3 || n.length > 20) { er.textContent = REG_ERR.length; return; }
+      if (!/^[A-Za-z0-9 _-]+$/.test(n)) { er.textContent = REG_ERR.chars; return; }
+      go.disabled = true; er.textContent = ""; go.textContent = "Asking the gremlins\u2026";
+      rpc("gw_register", { p_name: n }).then(function (r) {
+        go.disabled = false; go.textContent = "Make my Gremlin";
+        if (!r || !r.ok) { er.textContent = (r && (REG_ERR[r.error] || ERR[r.error])) || JOKES[(jokeN++) % JOKES.length]; return; }
+        player = { name: r.name, token: r.token, expires_at: r.expires_at }; save("player", player); save("player-choice", "named"); guest = false;
+        reveal(r);
+      }, function () { go.disabled = false; go.textContent = "Make my Gremlin"; er.textContent = OFFLINE_MSG; });
+    });
+    $("#ga-rv-copy").addEventListener("click", function () {
+      var txt = "Gremlin Name: " + $("#ga-rv-name2").textContent + "\nGremlin Key: " + $("#ga-rv-key").textContent, note = $("#ga-rv-note");
+      var fin = function (m) { note.textContent = m; $("#ga-rv-go").disabled = false; };
+      (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function () { fin("Copied. Paste it somewhere safe."); },
+        function () { var r = document.createRange(); r.selectNodeContents($("#ga-rv-key")); var s = getSelection(); s.removeAllRanges(); s.addRange(r); fin("Selected. Press Ctrl+C (or Cmd+C) to copy."); });
+    });
+    $("#ga-rv-wrote").addEventListener("change", function (e) { if (e.target.checked) { $("#ga-rv-note").textContent = "Good. Gremlins love a written note."; $("#ga-rv-go").disabled = false; } });
+    $("#ga-rv-go").addEventListener("click", function () { $("#ga-rv-key").textContent = ""; loadMine().then(function () { toast("Welcome, " + (player ? player.name : "gremlin") + "! Your progress saves under your new name."); }); });
     $("#ga-guest").addEventListener("click", function () { guest = true; prog = {}; scores = {}; renderMachine(); });
     $("#ga-out").addEventListener("click", function () {
       if (player) { rpc("gw_logout", { p_token: player.token }).catch(function () {}); player = null; del("player"); prog = {}; scores = {}; toast("Logged out. Your progress is safe under your Gremlin Name."); }
@@ -211,13 +251,47 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("#ga-drawer").hidden) closeDrawer(); });
   }
 
+  /* ---------- full screen: the Fullscreen API where allowed, else a new tab with ?full=1 ---------- */
+  var ACCOUNT = "https://eclectictransformation.com/account", FULL = new URLSearchParams(location.search).get("full") === "1";
+  var D = document, R = D.documentElement;
+  function fsEl() { return D.fullscreenElement || D.webkitFullscreenElement || null; }
+  function fsOK() { return !!((D.fullscreenEnabled || D.webkitFullscreenEnabled) && (R.requestFullscreen || R.webkitRequestFullscreen)); }
+  function fsUI() {
+    var on = !!fsEl(), b = $("#ga-fs");
+    $(".ga-fs-t", b).textContent = on ? "Exit full screen" : "Full screen";
+    b.setAttribute("aria-pressed", on ? "true" : "false"); D.body.classList.toggle("ga-is-full", on || FULL);
+  }
+  function openTab() {
+    var u = new URL(location.href); u.searchParams.set("full", "1");
+    var w = window.open(u.toString(), "_blank");
+    if (!w) toast("Your browser blocked the new tab. Open Gremlin Arcade from the link in a new tab instead.");
+  }
+  function goFull() {
+    if (fsEl()) { (D.exitFullscreen || D.webkitExitFullscreen).call(D); return; }
+    if (fsOK()) {
+      try { var p = (R.requestFullscreen || R.webkitRequestFullscreen).call(R); if (p && p.catch) p.catch(openTab); } catch (e) { openTab(); }
+    } else openTab();
+  }
+  function backToAccount() {
+    try { window.close(); } catch (e) {}
+    setTimeout(function () { if (!window.closed) location.href = ACCOUNT; }, 250);   // tab wasn't opened by script: just go home
+  }
+  function bindFull() {
+    $("#ga-fs").addEventListener("click", goFull);
+    $("#ga-back").addEventListener("click", backToAccount);
+    D.addEventListener("fullscreenchange", fsUI); D.addEventListener("webkitfullscreenchange", fsUI);   // Esc exits real fullscreen natively
+    D.addEventListener("keydown", function (e) { if (e.key === "Escape" && fsEl() && !(window.GremlinArcade && GremlinArcade.isOpen()) && $("#ga-drawer").hidden) (D.exitFullscreen || D.webkitExitFullscreen).call(D); });   // backup; browsers also exit on Esc themselves
+    if (FULL) { $("#ga-back").hidden = false; $("#ga-fs").hidden = true; }
+    fsUI();
+  }
+
   function boot() {
-    bindLogin();
+    bindLogin(); bindFull();
     fetch("world-data.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (d) {
       W = d; games = catalogue(); hooks();
       if (player) { renderMachine(); loadMine(); } else show("#ga-login");
     }).catch(function () { show("#ga-login"); $("#ga-err").textContent = OFFLINE_MSG; });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
-  window.__GA = { get prog() { return prog; }, get games() { return games; }, discovered: function (id) { return discovered(games.filter(function (g) { return g.id === id; })[0]); } };   // for tests
+  window.__GA = { fsOK: fsOK, goFull: goFull, get prog() { return prog; }, get games() { return games; }, discovered: function (id) { return discovered(games.filter(function (g) { return g.id === id; })[0]); } };   // for tests
 })();
