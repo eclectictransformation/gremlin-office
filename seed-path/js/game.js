@@ -45,6 +45,29 @@
     return { open, slots: chosen };
   }
 
+  /* ---------- riddles & puzzles: tier by friend number, mix kinds, no repeats within a save ---------- */
+  const voiceLines = (id, key) => { const own = (SEED.kinLines[id] || {})[key]; return own || SEED.voices[SEED.voiceOf[id] || "quiet"][key]; };
+  const pickLine = (id, key) => { const a = voiceLines(id, key); return a[Math.floor(Math.random() * a.length)]; };
+  function tierFor(n, need) {   // n = which friend this is (2nd = 2, ...)
+    if (need >= 5) return n <= 3 ? "easy" : n === 4 ? "medium" : "harder";
+    if (need >= 3) return n <= 2 ? "easy" : "medium";
+    return "easy";
+  }
+  function pickChallenge() {
+    meta.chHist = meta.chHist || [];
+    const n = run.friends.length + 1, tier = tierFor(n, run.need);
+    const inRun = Object.values(run.kin).map(s => s.ch).filter(Boolean);
+    const lastKind = run.lastKind || (Math.random() < 0.5 ? "puzzle" : "riddle");
+    const want = lastKind === "riddle" ? "puzzle" : "riddle";
+    const all = SEED.riddles.concat(SEED.puzzles).filter(c => c.tier === tier && !inRun.includes(c.id));
+    let pool = all.filter(c => !meta.chHist.includes(c.id));
+    if (!pool.length) { meta.chHist = meta.chHist.filter(h => !all.some(c => c.id === h)); pool = all; }   // every one of this tier seen: start that tier fresh
+    const pref = pool.filter(c => SEED.challengeKind(c.id) === want);
+    const list = pref.length ? pref : pool, ch = list[Math.floor(Math.random() * list.length)];
+    meta.chHist.push(ch.id); run.lastKind = SEED.challengeKind(ch.id); saveMeta();
+    return ch.id;
+  }
+
   /* ---------- run state ---------- */
   let run = null, pos = null;
   function newRun(walkKey, force) {
@@ -167,6 +190,7 @@
   /* ---------- game loop state ---------- */
   let mode = "title";             // title | play | dialog | moment | panel | ending | rest
   let mover = null, trail = [], pathQ = [], pendingAct = null, held = [], lastInput = 0, lastMove = 0, clock = 0;
+  const banter = { next: 0, cur: null, said: [] };
   let lastProgress = 0, hintShown = false, fade = 0, fadeDir = 0, fadeCb = null, bubble = null, ending = null;
   const now = () => clock;
 
@@ -200,9 +224,7 @@
     const [id, s] = here, k = KIN[id], m = MAPS[s.area];
     const o = { name: k.name, area: m.name, where: m.where, item: k.moment.item ? cap(k.moment.item) : "" };
     if (s.area !== pos.area) return fill(TX.hints.find, o) + (pos.area === "nook" ? " The path north leads to the meadow." : "");
-    const t = k.moment.type;
-    if (t === "fetch" && s.state === "asked") return fill(s.item.got ? TX.hints.here.fetchReturn : TX.hints.here.fetchLook, o);
-    return fill(TX.hints.here[t], o);
+    return fill(run.friends.length ? TX.hints.puzzle : TX.hints.first, o);
   }
   function giveHint() { toast(hintText()); hintShown = true; }
   function progress() { lastProgress = now(); hintShown = false; }
@@ -216,7 +238,13 @@
     meta.recent = meta.recent.filter(r => r !== id).concat(id).slice(-12);
     saveMeta(); save(); progress(); Sound.chime();
     s.joy = 1.6;
-    const lines = [{ who: k.name, text: fill(TX.befriended, { name: k.name }) }, { who: "", text: TX.journalNew }];
+    const first = run.friends.length === 1;
+    const lines = [];
+    if (!first) lines.push({ who: k.name, text: pickLine(id, "join") });
+    lines.push({ who: "", text: fill(TX.befriended, { name: k.name }) });
+    if (first && run.need > 1) lines.push(TX.firstFriend);
+    lines.push({ who: "", text: TX.journalNew });
+    banter.next = clock + (first ? 22 : 30) / 1;
     if (run.friends.length >= friendsNeeded()) lines.push(TX.allFound);
     say(lines); updateHud();
   }
@@ -232,7 +260,7 @@
     const c = { kin: k, m, stage, still: settings.still, say: t => { $("mprompt").textContent = t; },
       tone: i => Sound.tone(i), hum: lv => Sound.hum(lv),
       done: () => { if (finished) return; finished = true; closeMoment(); befriend(id); } };
-    moment = { id, h: SEED.moments[m.type](c) };
+    moment = { id, h: SEED.challenge(c, run.kin[id].ch) };
     setTimeout(() => { const b = stage.querySelector("button"); if (b) b.focus({ preventScroll: true }); }, 50);
   }
   function closeMoment(away) {
@@ -254,6 +282,14 @@
     return false;
   }
   function talkKin(id) {
+    const k = KIN[id], s = run.kin[id]; progress();
+    if (s.state === "friend") return;
+    // the first friend: no puzzle, it just asks to come along (it's lonely to travel alone)
+    if (!run.friends.length) { s.first = 1; return say([{ who: k.name, text: pickLine(id, "first") }], () => befriend(id)); }
+    if (!s.ch) { s.ch = pickChallenge(); save(); }
+    return say([{ who: k.name, text: s.asked ? TX.askAgain : pickLine(id, "ask") }], () => { s.asked = 1; save(); openMoment(id); });
+  }
+  function talkKinV1(id) {
     const k = KIN[id], s = run.kin[id], t = k.moment.type; progress();
     if (t === "fetch") {
       if (s.item.got) { return say([{ who: "", text: fill(TX.fetchGive, { name: k.name, item: k.moment.item }) }], () => befriend(id)); }
@@ -353,7 +389,7 @@
     for (const [id, s] of Object.entries(run.kin)) {
       if (s.joy) s.joy = Math.max(0, s.joy - dt);
       if (s.area !== pos.area || s.state === "friend") continue;
-      const k = KIN[id], t = k.moment.type, d = Math.max(Math.abs(s.x - pos.x), Math.abs(s.y - pos.y));
+      const k = KIN[id], t = "talk", d = Math.max(Math.abs(s.x - pos.x), Math.abs(s.y - pos.y));
       if (t === "still" && mode === "play") {
         if (d <= 2 && !mover && !pathQ.length && !held.length) {
           s.stillT = (s.stillT || 0) + dt;
@@ -373,6 +409,17 @@
         } else if (d > 4) bubble = { x: s.x, y: s.y, text: "this way..." };
       }
       if (s.mt != null) { s.mt += dt / 0.5; if (s.mt >= 1) s.mt = null; }
+    }
+    // light banter from friends as you walk
+    if (mode === "play" && run.friends.length && !ending) {
+      if (!banter.next) banter.next = clock + 30;
+      if (clock >= banter.next && now() - lastMove < 4 && !bubble) {
+        const ids = run.friends.filter(f => trail[run.friends.indexOf(f)]), fid = ids[Math.floor(Math.random() * ids.length)];
+        if (fid) { let line, tries = 0; do { line = pickLine(fid, "walk"); } while (banter.said.includes(line) && ++tries < 8);
+          banter.said = banter.said.concat(line).slice(-10); banter.cur = { id: fid, text: line, until: clock + 6.5 }; }
+        banter.next = clock + 38 + Math.random() * 22;
+      }
+      const b = banter.cur; if (b && clock < b.until && !bubble) { const i = run.friends.indexOf(b.id), cell = trail[i]; if (cell) bubble = { x: cell.x, y: cell.y, text: KIN[b.id].name + ": " + b.text, talk: true }; }
     }
     // gentle idle hint
     if (mode === "play" && !hintShown && now() - lastProgress > 60) giveHint();
@@ -458,8 +505,8 @@
   function placeBubble() {
     const b = $("bubble");
     if (!bubble || mode !== "play") { b.hidden = true; return; }
-    b.hidden = false; b.textContent = bubble.text;
-    b.style.left = ((bubble.x + 0.5) / W * 100) + "%"; b.style.top = (bubble.y / H * 100) + "%";
+    b.hidden = false; b.textContent = bubble.text; b.classList.toggle("talk", !!bubble.talk);
+    b.style.left = (bubble.talk ? Math.max(22, Math.min(78, (bubble.x + 0.5) / W * 100)) : (bubble.x + 0.5) / W * 100) + "%"; b.style.top = (bubble.y / H * 100) + "%";
   }
   function drawTitleBg(x, t) {
     x.fillStyle = "#AFC29E"; x.fillRect(0, 0, 320, 240);
@@ -471,12 +518,24 @@
 
   /* ---------- ending ---------- */
   function startEnding() {
-    mode = "dialog"; pathQ = [];
-    say(TX.ending.slice(), () => {
+    mode = "dialog"; pathQ = []; banter.cur = null;
+    say(groupBanter().concat(TX.ending), () => {
       ending = { t: 0, stage: "grow" }; mode = "ending"; Sound.chime(); hud(false);
       run.done = true; meta.runs++; saveMeta(); store.del(LS.save);
       setTimeout(showCard, (settings.still ? 3000 : 7500) / SPEED);
     });
+  }
+  function groupBanter() {   // a few words together near Seed Hill, before planting
+    const fr = run.friends, firstId = fr.find(f => run.kin[f].first) || fr[0], out = [];
+    if (fr.length >= 2) {
+      const st = fr.find(f => SEED.voiceOf[f] === "steady" && f !== firstId), a = st || fr.find(f => f !== firstId);
+      out.push({ who: KIN[a].name, text: SEED.groupBanter[0].text });
+      const p = fr.find(f => SEED.voiceOf[f] === "playful" && f !== a);
+      if (st && p) out.push({ who: KIN[p].name, text: SEED.groupBanter[1].text });
+      else { const o = fr.find(f => f !== a && f !== firstId); if (o) out.push({ who: KIN[o].name, text: TX.nearlyThere }); }
+    }
+    out.push({ who: KIN[firstId].name, text: SEED.groupBanter[2].text });
+    return out;
   }
   function treeG() { return ending ? Math.min(1, Math.max(0, (ending.t - 1.5) / 6)) : 0; }
   function drawTree(x, t) {
@@ -630,6 +689,8 @@
     interactAt: (x, y) => interactAt(x, y),
     momentInfo: () => moment && moment.h.info ? moment.h.info() : null,
     hint: () => hintText(), solid: (x, y) => solid(pos.area, x, y), tileAt: (x, y) => tileAt(pos.area, x, y),
-    pick: w => pickTasks(w), speed: SPEED
+    pick: w => pickTasks(w), speed: SPEED,
+    challenge: () => moment ? moment.h.info() : null, banter: () => banter.cur, forceBanter: () => { banter.next = clock; },
+    setTrail: () => trail
   };
 })();

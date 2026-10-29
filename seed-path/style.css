@@ -139,3 +139,69 @@ body.still .flame, body.still .flame2 { animation: none; }
 #restbar[hidden] { display: none; }
 #restbar button { background: var(--cream); }
 body.still * { animation-duration: .6s !important; }
+
+/* v2: riddles and tiny puzzles (same palette; no new colours beyond the Gremlin World set) */
+#bubble.talk { white-space: normal; width: max-content; max-width: min(300px, 70vw); text-align: center; line-height: 1.3; padding: 4px 12px; }
+.chal { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.chtitle { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 18px; color: var(--forest); }
+.chbody { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.chhint { margin: 0; font-size: 17px; background: var(--cream); border: 2px dashed var(--sage); border-radius: 14px; padding: 8px 14px; max-width: 30em; }
+.chrow { justify-content: center; gap: 10px; flex-wrap: wrap; }
+.chbtn { min-height: 46px; font-size: 16px; }
+.riddle-q { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 20px; max-width: 26em; text-align: center; }
+.rform { gap: 8px; justify-content: center; flex-wrap: wrap; }
+.rin { font: inherit; font-size: 18px; min-height: 48px; width: min(260px, 80vw); border-radius: 14px; border: 2px solid var(--forest); background: var(--cream); padding: 6px 14px; color: var(--ink); }
+.rchoices { gap: 10px; justify-content: center; flex-wrap: wrap; }
+.rchoice { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 104px; min-height: 64px; font-size: 16px; }
+.rchoice .rpic { font-size: 28px; line-height: 1; }
+.rchoice.nope { opacity: .45; cursor: default; }
+.rchoice.right, .mbtn.right { background: var(--sage); }
+.mbtn.primary { background: var(--forest); color: var(--cream); }
+.stream, .lily { display: grid; gap: 4px; width: min(100%, 380px); }
+.bank { background: #cbd9bd; border-radius: 10px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.bank canvas { width: 40px; height: 40px; }
+.wcell { min-height: 52px; padding: 0; background: #7FA7B5; color: #FBF6EA; font-size: 22px; border-color: var(--duskD); }
+.wcell.stone { background: #b4b4a6; color: #6E6E62; border-color: var(--forest); }
+.wcell.pad { background: #7F9A6E; color: var(--cream); border-color: var(--forest); }
+.reed { background: #A6B89A; border-radius: 10px; min-height: 52px; display: flex; align-items: center; justify-content: center; color: var(--forest); font-size: 22px; }
+.shitems, .shslots { gap: 14px; justify-content: center; }
+.shitem, .shslot { width: 84px; height: 84px; padding: 8px; }
+.shslot { background: #E2D6BC; border-style: dashed; }
+.shitem svg, .shslot svg { width: 100%; height: 100%; }
+.shitem.sel { background: var(--lav); }
+.shitem.used { opacity: .3; }
+.lanterns { gap: 12px; align-items: flex-end; justify-content: center; }
+.lantern { padding: 6px 8px; min-width: 64px; display: flex; align-items: flex-end; justify-content: center; background: var(--duskD); border-color: var(--duskD); }
+.lantern svg { width: auto; display: block; }
+.lantern.lit { background: var(--dusk); box-shadow: 0 0 18px rgba(251,227,160,.7); }
+.pipes { display: grid; grid-template-columns: repeat(4, 64px); grid-template-rows: repeat(2, 64px); gap: 4px; }
+.pipe { padding: 0; background: #E2D6BC; }
+.pipe svg { width: 100%; height: 100%; display: block; }
+.pend, .prock { display: flex; align-items: center; justify-content: center; font-size: 26px; color: var(--forest); }
+.pend.spring { background: #7FA7B5; color: var(--cream); border-radius: 14px; }
+.pend.sprout { background: #E2D6BC; border-radius: 14px; }
+.pend.sprout.happy { background: var(--sage); }
+.prock { color: #9A9A8C; }
+.pebbles { gap: 10px; justify-content: center; }
+.pebble { width: 56px; height: 48px; border-radius: 50%; padding: 0; }
+.pebble.sel { outline: 4px solid var(--lav); outline-offset: 2px; }
+.pebblelab { width: min(100%, 340px); justify-content: space-between; color: var(--forest); font-size: 16px; }
+.chimes { gap: 12px; justify-content: center; }
+.chime { width: 64px; height: 92px; padding: 6px; background: var(--cream); transition: background .25s, box-shadow .25s; }
+.chime svg { width: 100%; height: 100%; }
+.chime.glow { background: var(--cc); box-shadow: 0 0 0 4px var(--cream), 0 0 20px var(--cc); }
+.chime:disabled { cursor: default; }
+.chorder { gap: 10px; justify-content: center; align-items: center; }
+.chdot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--moss); display: inline-block; }
+.mosswrap { gap: 18px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.moss { display: grid; grid-template-columns: repeat(3, 84px); grid-template-rows: repeat(2, 84px); gap: 3px; background: var(--forest); padding: 3px; border-radius: 12px; }
+.moss.whole { gap: 0; }
+.mtile { padding: 0; border-radius: 6px; background-size: 300% 200%; image-rendering: pixelated; min-width: 0; min-height: 0; width: 84px; height: 84px; }
+.mtile.empty { background: #54664A; }
+.mossprev { width: 90px; height: 60px; background-size: cover; image-rendering: pixelated; border: 2px solid var(--sage); border-radius: 8px; }
+body.still .chime, body.still .lantern { transition: none; }
+@media (max-width: 560px) {
+  .moss { grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(2, 72px); } .mtile { width: 72px; height: 72px; }
+  .pipes { grid-template-columns: repeat(4, 56px); grid-template-rows: repeat(2, 56px); }
+  .chime { width: 56px; } .pebble { width: 48px; } .shitem, .shslot { width: 76px; height: 76px; }
+}

@@ -7,6 +7,9 @@ SEED.text = {
     { who: "The Cloud", text: "{N} shy friends are hiding. Go slowly. They like that." },
     { who: "The Cloud", text: "When they're all with you, we'll plant a seed on the hill. Tap me, or the cloud button, if you'd like a hint." }
   ],
+  firstFriend: { who: "The Cloud", text: "Now you're not walking alone. The others might ask a little riddle or a tiny puzzle first. There's no wrong way to try." },
+  askAgain: "Want to try my little puzzle again? It's still here.",
+  nearlyThere: "Nearly! I can see the top from here!",
   welcomeBack: { who: "The Cloud", text: "Welcome back. Everything waited for you." },
   befriended: "{name} decides to come along with you.",
   journalNew: "A new page has filled in, in your journal.",
@@ -46,6 +49,8 @@ SEED.text = {
       warm: "{name} is nearby, by a little fire. Say hello.",
       guide: "{name} is nearby with a thirsty seed. Say hello."
     },
+    first: "{name} is nearby, and might like some company. Say hello.",
+    puzzle: "{name} is nearby, with a little riddle or puzzle for you. Say hello. Inside, hints appear after a couple of tries.",
     hill: "All your friends are with you. Seed Hill is north of the meadow; the bare patch is at the very top.",
     hillHere: "Walk up to the bare patch at the top of the hill and plant the seed."
   },
