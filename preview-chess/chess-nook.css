@@ -1,0 +1,92 @@
+/* Gremlin Chess + the Game Nook (hidden preview). Palette from office.css / the arcade preview. */
+:root{--cream:#E8E4D8;--paper:#F1EDE2;--sage:#A6B89A;--forest:#54664A;--moss:#3A4A33;--ink:#1A1A18;--wood:#b07a4a;--wood-d:#7d5232;--butter:#f3d98b;--plum:#6b4f6e;
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;--sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--hand:'Bradley Hand','Segoe Print','Comic Sans MS',cursive}
+.gc *,.nook *{box-sizing:border-box}
+[hidden]{display:none!important}
+.gc{font-family:var(--sans);color:var(--ink);font-size:17px;line-height:1.45;position:relative}
+.gc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.gc h2,.gc-title{font:800 clamp(22px,5vw,28px)/1.15 var(--serif);margin:.1em 0 .2em;color:var(--moss)}
+.gc-hello{margin:0;font:600 17px var(--hand);color:var(--forest)}
+.gc-sub{margin:.6em 0}
+.gc-fine{font-size:16px;color:#55524a;margin:.8em 0}
+.gc-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:50px;min-width:44px;padding:10px 18px;font:700 17px var(--sans);color:var(--paper);background:var(--forest);
+  border:2.5px solid var(--ink);border-radius:14px 10px 14px 10px;box-shadow:2px 3px 0 var(--ink);cursor:pointer;text-decoration:none;touch-action:manipulation}
+.gc-btn:hover{background:var(--moss)}
+.gc-btn:active{transform:translate(1px,2px);box-shadow:1px 1px 0 var(--ink)}
+.gc-btn.ghost{background:var(--paper);color:var(--ink)}
+.gc-btn.ghost:hover{background:#fff8e2}
+.gc-btn.small{min-height:44px;font-size:16px;padding:8px 14px}
+.gc button:focus-visible,.gc input:focus-visible,.nook button:focus-visible,.nook a:focus-visible{outline:3px dashed var(--forest);outline-offset:3px}
+.gc-row{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.gc-resume{background:#fff8e2;border:2px dashed var(--wood-d);border-radius:14px;padding:10px 14px;margin:10px 0}
+.gc-resume p{margin:0 0 8px}
+.gc-toggle{display:flex;align-items:center;gap:10px;min-height:44px;font-size:16px;font-weight:700;color:var(--plum);background:rgba(107,79,110,.08);border:2px dashed var(--plum);border-radius:12px;padding:6px 12px;margin:8px 0;cursor:pointer}
+.gc-toggle input{width:26px;height:26px;accent-color:var(--plum)}
+/* the gremlin picker */
+.gc-crew{list-style:none;margin:10px 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.gc-gcard{width:100%;height:100%;display:flex;gap:12px;align-items:flex-start;text-align:left;padding:12px;background:var(--paper);color:var(--ink);font:inherit;
+  border:2.5px solid var(--ink);border-radius:16px 12px 18px 10px;box-shadow:3px 4px 0 rgba(26,26,24,.18)}
+button.gc-gcard{cursor:pointer}
+button.gc-gcard:hover{background:#fff8e2}
+button.gc-gcard:active{transform:translate(1px,2px)}
+.gc-g.away .gc-gcard{background:rgba(241,237,226,.55);border-style:dashed;box-shadow:none;color:#55524a}
+.gc-g.away .gc-face{filter:grayscale(.7) opacity(.7)}
+.gc-face{width:72px;height:72px;border-radius:50%;border:2.5px solid var(--ink);object-fit:cover;flex:none;background:var(--cream)}
+.gc-face.big{width:120px;height:120px}
+.gc-gtext{display:flex;flex-direction:column;gap:3px}
+.gc-gname{font:800 20px var(--serif)}
+.gc-acorns{letter-spacing:2px;font-size:16px;color:var(--wood-d)}
+.gc-acorns .off{color:#b9b3a3}
+.gc-gline{font-style:italic}
+.gc-ghow{font-size:16px;color:var(--forest);font-weight:600}
+.gc-badge{font-size:16px;font-weight:700;color:var(--plum)}
+.gc-choose{text-align:center}
+.gc-choose .gc-row{justify-content:center}
+.gc-say{font:600 18px/1.4 var(--hand);color:var(--moss);margin:.3em 0}
+/* the board */
+.gc-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.gc-face{display:block}
+.gc-top .gc-face{width:64px;height:64px}
+.gc-vs{margin:0;font:800 18px var(--serif)}
+.gc-top .gc-say{margin:2px 0 0;min-height:1.4em}
+.gc-board{width:max(352px,min(100%,560px,calc(100vh - 230px)));aspect-ratio:1/1;margin:0 auto;display:grid;grid-template-rows:repeat(8,1fr);
+  border:4px solid var(--wood-d);border-radius:8px;box-shadow:0 0 0 2.5px var(--ink),5px 6px 0 rgba(26,26,24,.25);overflow:hidden;background:var(--wood-d)}
+.gc-rank{display:grid;grid-template-columns:repeat(8,1fr)}
+.gc-sq{position:relative;border:0;padding:0;margin:0;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;font:inherit}
+.gc-sq.light{background:#efe3c4}
+.gc-sq.dark{background:#9cad8c}
+.gc-sq:focus-visible{outline:4px solid var(--plum);outline-offset:-4px;z-index:2}
+.gc-pc{font-size:clamp(28px,8.4vmin,54px);line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols","DejaVu Sans",serif;pointer-events:none;position:relative;z-index:1}
+.gc-pc.w{color:#fffaf0;text-shadow:0 0 1px var(--ink),1px 0 0 var(--ink),-1px 0 0 var(--ink),0 1px 0 var(--ink),0 -1px 0 var(--ink),1px 1px 0 var(--ink),-1px -1px 0 var(--ink),1px -1px 0 var(--ink),-1px 1px 0 var(--ink)}
+.gc-pc.b{color:#2a2622;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+.gc-coord{position:absolute;font:700 12px var(--sans);color:rgba(26,26,24,.55);pointer-events:none}
+.gc-coord.r{top:2px;left:3px}
+.gc-coord.f{bottom:1px;right:4px}
+.gc-sq.last{box-shadow:inset 0 0 0 4px rgba(243,217,139,.95)}
+.gc-sq.sel{box-shadow:inset 0 0 0 5px var(--plum)}
+.gc-sq.hint{box-shadow:inset 0 0 0 5px #d38b2c}
+.gc-sq.check{background:radial-gradient(circle,#f2a48a 0 45%,transparent 72%),#e8c2a8}
+.gc-sq.dot::after{content:"";position:absolute;width:30%;height:30%;border-radius:50%;background:rgba(58,74,51,.55)}
+.gc-sq.cap::after{content:"";position:absolute;inset:6%;border-radius:50%;border:5px solid rgba(107,79,110,.6)}
+.gc-status{text-align:center;font-weight:700;margin:10px 0 4px;min-height:1.5em}
+.gc-ctrl{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}
+.gc-promo{background:var(--paper);border:2.5px solid var(--ink);border-radius:14px;padding:10px 12px;margin:8px auto;max-width:560px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.gc-promo p{flex-basis:100%;margin:0;text-align:center;font-weight:700}
+/* the end card: surprise moment / good game */
+.gc-end{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(26,26,24,.45)}
+.gc-endcard{position:relative;max-width:460px;width:100%;max-height:calc(100vh - 32px);overflow:auto;text-align:center;background:var(--paper);border:3px solid var(--ink);border-radius:22px 16px 24px 14px;padding:22px 18px 16px;box-shadow:5px 7px 0 rgba(26,26,24,.3)}
+.gc-endcard .gc-row{justify-content:center}
+.gc-endcard .gc-face{width:110px;height:110px;margin:0 auto 6px}
+.gc-end.won .gc-endcard{background:#fff8e2;border-color:var(--wood-d)}
+.gc-prize{display:inline-block;margin:8px 0 2px;padding:8px 14px;background:var(--butter);border:2px dashed var(--wood-d);border-radius:12px;font-weight:700}
+.gc-confetti{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,#d38b2c 0 3px,transparent 4px),radial-gradient(circle,var(--sage) 0 3px,transparent 4px),radial-gradient(circle,var(--plum) 0 2.5px,transparent 3.5px);
+  background-size:70px 60px,90px 80px,60px 90px;background-position:10px 8px,40px 30px,25px 50px;opacity:.28;z-index:0}
+.gc-endcard>*:not(.gc-confetti){position:relative;z-index:1}
+@keyframes gc-pop{0%{transform:translateY(40px) scale(.6);opacity:0}60%{transform:translateY(-8px) scale(1.06);opacity:1}100%{transform:none}}
+@keyframes gc-drift{to{background-position:10px 68px,40px 110px,25px 140px}}
+.gc-face.pop{animation:gc-pop .7s ease-out both}
+.gc-confetti{animation:gc-drift 6s linear infinite}
+.gc-endcard{animation:gc-pop .4s ease-out both}
+@media (prefers-reduced-motion:reduce){.gc *,.nook *{animation:none!important;transition:none!important}}
+.gw-still .gc *,.gw-still .nook *{animation:none!important;transition:none!important}
+@media (max-width:480px){.gc-crew{grid-template-columns:1fr}.gc-face{width:60px;height:60px}.gc-btn{padding:10px 14px}}

@@ -1,0 +1,24 @@
+/* The Game Nook room (hidden preview) */
+html,body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--sans);-webkit-text-size-adjust:100%}
+body{min-height:100vh;padding:14px 10px 28px;background-image:radial-gradient(rgba(84,102,74,.12) 1px,transparent 1.5px);background-size:18px 18px}
+.nook{max-width:880px;margin:0 auto}
+.nook-head{position:relative;padding-right:0}
+.nook-head h1{font:900 clamp(28px,7vw,42px)/1.05 var(--serif);margin:.1em 0;color:var(--moss)}
+.nook-meta{margin:0;font:700 16px var(--hand);color:var(--forest);letter-spacing:.06em}
+.nook-hello{margin:.2em 0 .8em;font-size:17px}
+.nook-still{min-height:44px;padding:8px 14px;font:700 16px var(--sans);background:var(--paper);color:var(--ink);border:2px solid var(--ink);border-radius:22px;cursor:pointer;margin-bottom:12px}
+.nook-still[aria-pressed=true]{background:var(--sage)}
+.nook-room{position:relative;border:3px solid var(--ink);border-radius:22px 18px 24px 16px;overflow:hidden;box-shadow:5px 7px 0 rgba(26,26,24,.22);background:#6b4f6e}
+.nook-art{display:block;width:100%;height:auto}
+.lights circle{fill:#f3d98b;stroke:#1a1a18;stroke-width:2;animation:nook-twinkle 4s ease-in-out infinite}
+.lights circle:nth-child(2n){animation-delay:-2s;fill:#e8a87c}
+.lampglow{animation:nook-breathe 7s ease-in-out infinite}
+@keyframes nook-twinkle{50%{opacity:.55}}
+@keyframes nook-breathe{50%{opacity:.6}}
+.nook-table{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);width:34%;min-width:150px;max-width:300px;padding:0 0 6px;background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:0;touch-action:manipulation}
+.nook-table svg{width:100%;height:auto;display:block;transition:transform .2s}
+.nook-table:hover svg{transform:translateY(-3px)}
+.nook-table-label{display:inline-flex;align-items:center;min-height:44px;padding:6px 14px;font:800 16px var(--serif);background:var(--butter);border:2.5px solid var(--ink);border-radius:14px 10px 14px 10px;box-shadow:2px 3px 0 var(--ink);white-space:nowrap}
+.nook-card{margin-top:18px;background:var(--paper);border:2.5px solid var(--ink);border-radius:18px 14px 20px 12px / 14px 20px 12px 18px;padding:18px 16px;box-shadow:4px 5px 0 rgba(26,26,24,.18);scroll-margin-top:10px}
+.nook-foot{text-align:center;font-size:16px;color:#55524a;margin:14px 0 0}
+@media (max-width:560px){.nook-table{width:52%;bottom:0}.nook-card{padding:14px 10px}}
