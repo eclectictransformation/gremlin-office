@@ -1,0 +1,140 @@
+{
+ "source": "Moth's Design Studio (copied from assets/world/moss-garden)",
+ "files": {
+  "bridge-plank": {
+   "webp": "bridge-plank.webp"
+  },
+  "fern": {
+   "webp": "fern.webp"
+  },
+  "garden-frame-portrait": {
+   "webp": "garden-frame-portrait.webp"
+  },
+  "garden-frame": {
+   "webp": "garden-frame.webp"
+  },
+  "gremlin-statue": {
+   "webp": "gremlin-statue.webp"
+  },
+  "icon-bridge-plank": {
+   "webp": "icon-bridge-plank.webp"
+  },
+  "icon-fern": {
+   "webp": "icon-fern.webp"
+  },
+  "icon-fresh-garden": {
+   "webp": "icon-fresh-garden.webp"
+  },
+  "icon-gremlin-statue": {
+   "webp": "icon-gremlin-statue.webp"
+  },
+  "icon-lantern": {
+   "webp": "icon-lantern.webp"
+  },
+  "icon-leaf-boat": {
+   "webp": "icon-leaf-boat.webp"
+  },
+  "icon-moss-clump": {
+   "webp": "icon-moss-clump.webp"
+  },
+  "icon-rake-fine": {
+   "webp": "icon-rake-fine.webp"
+  },
+  "icon-rake-smooth": {
+   "webp": "icon-rake-smooth.webp"
+  },
+  "icon-rake-swirl": {
+   "webp": "icon-rake-swirl.webp"
+  },
+  "icon-stepping-stone": {
+   "webp": "icon-stepping-stone.webp"
+  },
+  "icon-undo": {
+   "webp": "icon-undo.webp"
+  },
+  "lantern-glow": {
+   "webp": "lantern-glow.webp"
+  },
+  "lantern": {
+   "webp": "lantern.webp"
+  },
+  "leaf-boat": {
+   "webp": "leaf-boat.webp"
+  },
+  "moss-clump": {
+   "webp": "moss-clump.webp"
+  },
+  "moss-overlay": {
+   "webp": "moss-overlay.webp"
+  },
+  "rake-stamp-fine": {
+   "webp": "rake-stamp-fine.webp"
+  },
+  "rake-stamp-smooth": {
+   "webp": "rake-stamp-smooth.webp"
+  },
+  "rake-stamp-swirl": {
+   "webp": "rake-stamp-swirl.webp"
+  },
+  "sand-texture": {
+   "webp": "sand-texture.webp"
+  },
+  "stepping-stone": {
+   "webp": "stepping-stone.webp"
+  },
+  "stone-1": {
+   "webp": "stone-1.webp"
+  },
+  "stone-2": {
+   "webp": "stone-2.webp"
+  },
+  "stone-3": {
+   "webp": "stone-3.webp"
+  },
+  "water-texture": {
+   "webp": "water-texture.webp"
+  }
+ },
+ "rects": {
+  "garden-frame": {
+   "x": 160,
+   "y": 110,
+   "w": 1600,
+   "h": 860
+  },
+  "garden-frame-portrait": {
+   "x": 90,
+   "y": 160,
+   "w": 900,
+   "h": 1500
+  }
+ },
+ "frames": {
+  "landscape": {
+   "file": "garden-frame.png",
+   "size": [
+    1920,
+    1080
+   ],
+   "playArea": {
+    "x": 160,
+    "y": 110,
+    "w": 1600,
+    "h": 860
+   }
+  },
+  "portrait": {
+   "file": "garden-frame-portrait.png",
+   "size": [
+    1080,
+    1920
+   ],
+   "playArea": {
+    "x": 90,
+    "y": 160,
+    "w": 900,
+    "h": 1500
+   }
+  }
+ }
+}

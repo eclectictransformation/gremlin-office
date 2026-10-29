@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" class="q-game">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Moss Garden · The Quiet Room</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap">
+<link rel="stylesheet" href="../shared/quiet.css">
+<link rel="stylesheet" href="garden.css">
+<script>(function(){try{var v=localStorage.getItem("gw-still-mode");if(v==="1"||(v===null&&matchMedia("(prefers-reduced-motion: reduce)").matches))document.documentElement.classList.add("gw-still");}catch(e){}})();</script>
+<script src="../shared/name.js"></script>
+</head>
+<body>
+<canvas id="mg" class="q-stage" tabindex="0" aria-label="The Moss Garden. Drag to rake the sand, push stones, and guide water from the spring in the top-left corner. Keyboard: arrow keys move a cursor, Space picks up or puts down, Enter lifts or lowers the rake, 1 2 3 choose a rake head, Z undoes."></canvas>
+<div id="q-soft" class="q-soft" role="toolbar" aria-label="Garden options">
+  <button class="q-btn" id="mg-time" type="button">Time left?</button>
+  <button class="q-btn" id="mg-sound" type="button" aria-pressed="false">Sound: off</button>
+  <button class="q-btn" id="mg-still" type="button" aria-pressed="false">Still mode: off</button>
+  <a class="q-btn" id="mg-leave" href="../">Leave the garden</a>
+</div>
+<p id="q-savenote" class="q-savenote" aria-live="polite"></p>
+<p id="mg-whisper" class="q-whisper" aria-live="polite"></p>
+<nav id="mg-tray" class="mg-tray" aria-label="Garden tray">
+  <div class="mg-group" role="radiogroup" aria-label="Rake head">
+    <button class="q-tool mg-tool on" data-head="1" role="radio" aria-checked="true" aria-label="Fine rake (1)"><span class="mg-ic" data-icon="rake-fine"></span><span class="mg-tl">Fine</span></button>
+    <button class="q-tool mg-tool" data-head="2" role="radio" aria-checked="false" aria-label="Swirl rake (2)"><span class="mg-ic" data-icon="rake-swirl"></span><span class="mg-tl">Swirl</span></button>
+    <button class="q-tool mg-tool" data-head="0" role="radio" aria-checked="false" aria-label="Smooth, the eraser (3)"><span class="mg-ic" data-icon="rake-smooth"></span><span class="mg-tl">Smooth</span></button>
+  </div>
+  <div class="mg-group mg-shelf" aria-label="Shelf: drag things into the garden, or tap one then tap the sand">
+    <button class="q-tool mg-item" data-kind="plank" aria-label="Bridge plank"><span class="mg-ic" data-icon="bridge-plank"></span></button>
+    <button class="q-tool mg-item" data-kind="step" aria-label="Stepping stone"><span class="mg-ic" data-icon="stepping-stone"></span></button>
+    <button class="q-tool mg-item" data-kind="lantern" aria-label="Lantern"><span class="mg-ic" data-icon="lantern"></span></button>
+    <button class="q-tool mg-item" data-kind="moss" aria-label="Moss clump"><span class="mg-ic" data-icon="moss-clump"></span></button>
+    <button class="q-tool mg-item" data-kind="fern" aria-label="Fern"><span class="mg-ic" data-icon="fern"></span></button>
+    <button class="q-tool mg-item" data-kind="statue" aria-label="Gremlin statue"><span class="mg-ic" data-icon="gremlin-statue"></span></button>
+    <button class="q-tool mg-item" data-kind="boat" aria-label="Leaf boat"><span class="mg-ic" data-icon="leaf-boat"></span></button>
+  </div>
+  <div class="mg-group">
+    <button class="q-tool" id="mg-undo" aria-label="Undo (Z)"><span class="mg-ic" data-icon="undo"></span><span class="mg-tl">Undo</span></button>
+    <button class="q-tool" id="mg-fresh" aria-label="Fresh garden"><span class="mg-ic" data-icon="fresh-garden"></span><span class="mg-tl">Fresh</span></button>
+  </div>
+</nav>
+<script src="../shared/quiet.js"></script>
+<script src="garden.js"></script>
+</body>
+</html>

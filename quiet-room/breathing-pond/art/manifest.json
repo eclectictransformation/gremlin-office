@@ -1,0 +1,100 @@
+{
+ "source": "Moth's Design Studio (copied from assets/world/breathing-pond)",
+ "files": {
+  "breath-ring": {
+   "webp": "breath-ring.webp"
+  },
+  "caustics": {
+   "webp": "caustics.webp"
+  },
+  "dragonfly-2": {
+   "webp": "dragonfly-2.webp"
+  },
+  "dragonfly": {
+   "webp": "dragonfly.webp"
+  },
+  "firefly": {
+   "webp": "firefly.webp"
+  },
+  "koi-calico-segments": {
+   "webp": "koi-calico-segments.webp"
+  },
+  "koi-calico": {
+   "webp": "koi-calico.webp"
+  },
+  "koi-cream-segments": {
+   "webp": "koi-cream-segments.webp"
+  },
+  "koi-cream": {
+   "webp": "koi-cream.webp"
+  },
+  "koi-orange-segments": {
+   "webp": "koi-orange-segments.webp"
+  },
+  "koi-orange": {
+   "webp": "koi-orange.webp"
+  },
+  "leaf-1": {
+   "webp": "leaf-1.webp"
+  },
+  "leaf-2": {
+   "webp": "leaf-2.webp"
+  },
+  "leaf-3": {
+   "webp": "leaf-3.webp"
+  },
+  "lily-bloom-strip": {
+   "webp": "lily-bloom-strip.webp"
+  },
+  "lily-bloom": {
+   "webp": "lily-bloom.webp"
+  },
+  "lily-bud": {
+   "webp": "lily-bud.webp"
+  },
+  "lilypad-1": {
+   "webp": "lilypad-1.webp"
+  },
+  "lilypad-2": {
+   "webp": "lilypad-2.webp"
+  },
+  "lilypad-3": {
+   "webp": "lilypad-3.webp"
+  },
+  "pond-dusk-portrait": {
+   "webp": "pond-dusk-portrait.webp"
+  },
+  "pond-dusk": {
+   "webp": "pond-dusk.webp"
+  },
+  "pond-golden-portrait": {
+   "webp": "pond-golden-portrait.webp"
+  },
+  "pond-golden": {
+   "webp": "pond-golden.webp"
+  },
+  "pond-midday-portrait": {
+   "webp": "pond-midday-portrait.webp"
+  },
+  "pond-midday": {
+   "webp": "pond-midday.webp"
+  },
+  "pond-night-portrait": {
+   "webp": "pond-night-portrait.webp"
+  },
+  "pond-night": {
+   "webp": "pond-night.webp"
+  },
+  "ripple-ring": {
+   "webp": "ripple-ring.webp"
+  }
+ },
+ "notes": [
+  "All pond-* backgrounds of one orientation share the identical composition (times of day are color grades of the same midday painting) and can be crossfaded pixel-for-pixel.",
+  "Koi face RIGHT (head at right edge); shadow baked offset down-right.",
+  "koi-*-segments: 4 cells of 256x128; cell i contains only the slice x=[i*64,i*64+64) at its ORIGINAL x position within the cell (rest transparent). Draw cell i at the same origin as the whole koi with a per-cell offset/rotation for bending; stacking all 4 unmodified reproduces the koi.",
+  "Dragonflies face UP (head at top). Leaves/pads rotate freely.",
+  "lily-bloom-strip: 6 frames of 192x192, bud -> full bloom, left to right.",
+  "Rings and caustics are near-white/cream with alpha; tint/opacity in code. caustics tiles seamlessly."
+ ]
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" class="q-game">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Breathing Pond · The Quiet Room</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap">
+<link rel="stylesheet" href="../shared/quiet.css">
+<style>html.q-game,html.q-game body{background:#3F6B5C}#bp{cursor:pointer;outline:none}</style>
+<script>(function(){try{var v=localStorage.getItem("gw-still-mode");if(v==="1"||(v===null&&matchMedia("(prefers-reduced-motion: reduce)").matches))document.documentElement.classList.add("gw-still");}catch(e){}})();</script>
+<script src="../shared/name.js"></script>
+</head>
+<body>
+<canvas id="bp" class="q-stage" tabindex="0" aria-label="The Breathing Pond. Hold anywhere, or hold Space, to breathe in. Let go to breathe out. The pond keeps breathing on its own if you just watch."></canvas>
+<div id="q-soft" class="q-soft" role="toolbar" aria-label="Pond options">
+  <button class="q-btn" id="bp-time" type="button">Time left?</button>
+  <button class="q-btn" id="bp-sound" type="button" aria-pressed="false">Sound: off</button>
+  <button class="q-btn" id="bp-still" type="button" aria-pressed="false">Still mode: off</button>
+  <a class="q-btn" id="bp-leave" href="../">Leave the pond</a>
+</div>
+<p id="q-savenote" class="q-savenote" aria-live="polite"></p>
+<p id="bp-whisper" class="q-whisper" aria-live="polite"></p>
+<script src="../shared/quiet.js"></script>
+<script src="pond.js"></script>
+</body>
+</html>

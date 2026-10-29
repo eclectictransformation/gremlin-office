@@ -1,0 +1,29 @@
+[hidden]{display:none!important}
+/* The Quiet Room: shared calm styles. Site palette: paper #F1EDE2, sage #A6B89A, forest #54664A, moss #3A4A33, ink #1A1A18 */
+:root{--paper:#F1EDE2;--cream:#F1EDE2;--sage:#A6B89A;--forest:#54664A;--moss:#3A4A33;--ink:#1A1A18;--peach:#F2C48D;
+  --serif:"Fraunces",Georgia,serif;--sans:"DM Sans",system-ui,-apple-system,sans-serif;--hand:"Bradley Hand","Segoe Print","Comic Sans MS",cursive}
+*{box-sizing:border-box}
+.q-game,.q-game body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;font:16px/1.4 var(--sans);color:var(--ink);-webkit-text-size-adjust:100%}
+.q-game body{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.q-stage{position:fixed;inset:0;display:block;width:100%;height:100%}
+.q-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:8px 18px;font:700 16px var(--sans);color:var(--ink);background:var(--paper);border:2px solid var(--ink);border-radius:22px;cursor:pointer;text-decoration:none;touch-action:manipulation}
+.q-btn.primary{background:var(--forest);color:var(--paper)}
+.q-btn:focus-visible,.q-tool:focus-visible{outline:3px solid var(--peach);outline-offset:2px}
+/* soft controls: fade in on movement, hide after 4s */
+.q-soft{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 20px);opacity:0;pointer-events:none;transition:opacity 1.2s ease;z-index:20}
+.q-soft.on,.q-soft:has(:focus-visible){opacity:1;pointer-events:auto}
+.q-soft .q-btn{background:rgba(241,237,226,.88);border-color:rgba(26,26,24,.55);font-weight:600}
+.q-whisper{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);margin:0;padding:8px 16px;border-radius:18px;background:rgba(241,237,226,.85);font:500 16px var(--sans);opacity:0;transition:opacity 2s ease;pointer-events:none;z-index:15;text-align:center;max-width:90vw}
+.q-whisper.on{opacity:1}
+.q-savenote{position:fixed;left:max(10px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));margin:0;font:500 16px var(--sans);color:var(--ink);background:rgba(241,237,226,.75);padding:6px 12px;border-radius:14px;opacity:0;transition:opacity 1.2s;z-index:19;pointer-events:none}
+.q-soft.on ~ .q-savenote{opacity:.9}
+/* cards */
+.q-cardwrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(26,26,24,.18);opacity:0;transition:opacity 1.2s ease;z-index:50}
+.q-cardwrap.in{opacity:1}.q-cardwrap.out{opacity:0}
+.q-card{max-width:440px;width:100%;background:var(--paper);border:2.5px solid var(--ink);border-radius:20px 16px 22px 14px / 16px 22px 14px 20px;padding:22px 20px;box-shadow:4px 5px 0 rgba(26,26,24,.18);text-align:center}
+.q-card h2{font:800 clamp(22px,5vw,28px)/1.2 var(--serif);color:var(--moss);margin:0 0 8px}
+.q-card p{font-size:17px;margin:0 0 14px}
+.q-card-btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.gw-still .q-cardwrap,.gw-still .q-soft,.gw-still .q-whisper{transition-duration:.01s}
+@media (prefers-reduced-motion:reduce){.q-cardwrap,.q-soft,.q-whisper{transition-duration:.01s}}
+@media (max-width:700px){.q-savenote{top:calc(max(10px,env(safe-area-inset-top)) + 112px);font-size:16px}}

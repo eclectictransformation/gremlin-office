@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>The Quiet Room · Gremlin World</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap">
+<link rel="stylesheet" href="shared/quiet.css">
+<link rel="stylesheet" href="room.css">
+<script>(function(){try{var v=localStorage.getItem("gw-still-mode");if(v==="1"||(v===null&&matchMedia("(prefers-reduced-motion: reduce)").matches))document.documentElement.classList.add("gw-still");}catch(e){}})();</script>
+<script src="shared/name.js"></script>
+</head>
+<body>
+<main class="qr" id="qr">
+  <header class="qr-head">
+    <p class="qr-meta"><a class="qr-back" href="../preview-arcade-sections/">&larr; Back to the Arcade</a></p>
+    <h1 data-qname>The Quiet Room</h1>
+    <p class="qr-hello" id="qr-hello">A soft little room off the Arcade. Nothing to win here. Pick a door when you're ready.</p>
+    <div class="qr-toprow">
+      <button id="btn-still" class="q-btn" type="button" aria-pressed="false">Still mode: off</button>
+      <div id="qr-acct" class="qr-acct">
+        <span id="qr-who" class="qr-who">Playing as a guest. Your garden stays on this device.</span>
+        <button id="qr-login" class="q-btn" type="button" aria-haspopup="dialog">Log in (optional)</button>
+        <button id="qr-out" class="q-btn" type="button" hidden>Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="qr-room" aria-label="The Quiet Room: a soft room with two doors, one to a moss garden and one to a lily pond.">
+    <svg class="qr-art" viewBox="0 0 800 380" aria-hidden="true" focusable="false">
+      <defs>
+        <pattern id="qr-wp" width="44" height="44" patternUnits="userSpaceOnUse"><rect width="44" height="44" fill="#c9d3bd"/><path d="M22 6c6 6 6 12 0 18-6-6-6-12 0-18z" fill="#b9c6aa"/></pattern>
+        <pattern id="qr-fl" width="90" height="26" patternUnits="userSpaceOnUse"><rect width="90" height="26" fill="#b9946a"/><path d="M0 25.5H90M45 0V26" stroke="#9c7a54" stroke-width="2"/></pattern>
+        <radialGradient id="qr-glow"><stop offset="0" stop-color="#F2C48D" stop-opacity=".7"/><stop offset="1" stop-color="#F2C48D" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="800" height="290" fill="url(#qr-wp)"/>
+      <rect y="284" width="800" height="96" fill="url(#qr-fl)"/>
+      <path d="M0 288H800" stroke="#1a1a18" stroke-width="4"/>
+      <ellipse cx="400" cy="340" rx="230" ry="26" fill="#A6B89A" stroke="#1a1a18" stroke-width="3"/>
+      <circle class="qr-glow" cx="400" cy="120" r="110" fill="url(#qr-glow)"/>
+      <g transform="translate(372 52)"><path d="M28 0v22" stroke="#1a1a18" stroke-width="3"/><path d="M8 22h40l-6 34H14z" fill="#F2C48D" stroke="#1a1a18" stroke-width="3"/></g>
+      <!-- plant + cushion -->
+      <g transform="translate(360 250)"><rect x="10" y="20" width="60" height="30" rx="14" fill="#B7A6C9" stroke="#1a1a18" stroke-width="3"/></g>
+      <g transform="translate(700 200)"><path d="M20 90h44l-6-34H26z" fill="#9c7a54" stroke="#1a1a18" stroke-width="3"/><path d="M42 56C30 30 18 26 8 30M42 56C50 24 64 14 80 18M42 56C40 30 44 10 46 0" fill="none" stroke="#54664A" stroke-width="7" stroke-linecap="round"/></g>
+    </svg>
+    <a class="qr-door qr-door-garden" href="moss-garden/" aria-label="Open the Moss Garden">
+      <svg viewBox="0 0 200 240" aria-hidden="true"><path d="M14 236V90a86 86 0 0 1 172 0v146z" fill="#EADFC8" stroke="#1a1a18" stroke-width="5"/>
+        <path d="M30 220V96a70 70 0 0 1 140 0v124z" fill="#D6C7A8"/><path d="M40 120c30 10 90 10 120 0M40 150c30 10 90 10 120 0M40 180c30 10 90 10 120 0" stroke="#c4b391" stroke-width="3" fill="none"/>
+        <ellipse cx="120" cy="150" rx="22" ry="14" fill="#9A94A8" stroke="#1a1a18" stroke-width="3"/><path d="M30 96c20 30 30 70 26 124" stroke="#7FB7B0" stroke-width="10" fill="none" stroke-linecap="round"/>
+        <circle cx="70" cy="200" r="14" fill="#6E8B4E"/><circle cx="150" cy="205" r="10" fill="#6E8B4E"/></svg>
+      <span class="qr-door-name">Moss Garden</span><span class="qr-door-blurb">Rake the sand, move stones, guide a little stream.</span></a>
+    <a class="qr-door qr-door-pond" href="breathing-pond/" aria-label="Open the Breathing Pond">
+      <svg viewBox="0 0 200 240" aria-hidden="true"><path d="M14 236V90a86 86 0 0 1 172 0v146z" fill="#5E9E98" stroke="#1a1a18" stroke-width="5"/>
+        <path d="M30 220V96a70 70 0 0 1 140 0v124z" fill="#3F6B5C"/><circle class="qr-ring" cx="100" cy="150" r="30" fill="none" stroke="#F4EAD8" stroke-opacity=".6" stroke-width="3"/>
+        <ellipse cx="62" cy="190" rx="20" ry="12" fill="#7FA65A"/><ellipse cx="140" cy="120" rx="16" ry="10" fill="#7FA65A"/>
+        <path d="M110 186c14-6 26-4 34 4-10 6-22 6-34-4z" fill="#E8A05C"/></svg>
+      <span class="qr-door-name">Breathing Pond</span><span class="qr-door-blurb">Breathe with the water. The koi will keep you company.</span></a>
+  </section>
+  <p class="qr-foot">No scores, no timers on screen. Sound is off unless you turn it on.</p>
+</main>
+
+<div id="qr-modal" class="q-cardwrap qr-modal" hidden>
+  <div class="q-card" role="dialog" aria-modal="true" aria-labelledby="qr-pop-h">
+    <form id="qr-form-login" novalidate>
+      <h2 id="qr-pop-h">Log in</h2>
+      <p>Optional. It just lets your garden follow your Gremlin Name.</p>
+      <label class="qr-label">Gremlin Name <input id="qr-name" type="text" maxlength="20" autocomplete="username" spellcheck="false" autocapitalize="off"></label>
+      <label class="qr-label">Gremlin Key <input id="qr-key" type="text" maxlength="40" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="moss-sock-7"></label>
+      <p id="qr-err" class="qr-msg" role="status" aria-live="polite"></p>
+      <div class="q-card-btns"><button class="q-btn primary" id="qr-go" type="submit">Let me in</button><button class="q-btn" id="qr-new-open" type="button">Get a Gremlin Key</button><button class="q-btn" id="qr-cancel" type="button">Not now</button></div>
+    </form>
+    <form id="qr-form-new" novalidate hidden>
+      <h2>Get a Gremlin Key</h2>
+      <label class="qr-label">Gremlin Name <input id="qr-new-name" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="e.g. Captain Crumbs"></label>
+      <p class="qr-small">A friendly nickname, 3 to 20 letters or numbers. No email, no password.</p>
+      <p id="qr-new-err" class="qr-msg" role="status" aria-live="polite"></p>
+      <div class="q-card-btns"><button class="q-btn primary" id="qr-new-go" type="submit">Get my key</button><button class="q-btn" id="qr-cancel2" type="button">Not now</button></div>
+    </form>
+    <div id="qr-reveal" hidden>
+      <h2>Hello, <span id="qr-rv-name"></span></h2>
+      <p>Your Gremlin Key</p><p id="qr-rv-key" class="qr-bigkey"></p>
+      <p><strong>Write this down, the gremlins are forgetful.</strong></p>
+      <div class="q-card-btns"><button class="q-btn primary" id="qr-rv-go" type="button">All set</button></div>
+    </div>
+  </div>
+</div>
+<script src="shared/quiet.js"></script>
+<script src="room.js"></script>
+</body>
+</html>
