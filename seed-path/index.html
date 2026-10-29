@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>The Seed Path (preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app">
+  <header id="hud" hidden>
+    <div class="hl"><span id="areaname">Portal Nook</span><span id="friends" role="img"></span></div>
+    <div class="hr">
+      <button id="bhint" class="hbtn" type="button" aria-label="A hint from the Cloud (H)"><span class="cloudicon" aria-hidden="true"></span><span class="lbl">Hint</span></button>
+      <button id="bjournal" class="hbtn" type="button" aria-label="Journal (J)"><span aria-hidden="true">&#10070;</span><span class="lbl">Journal</span></button>
+      <button id="bmenu" class="hbtn" type="button" aria-label="Menu (M)"><span aria-hidden="true">&#9776;</span><span class="lbl">Menu</span></button>
+    </div>
+  </header>
+
+  <div id="frame">
+    <canvas id="world" aria-label="The Hollowmere. Move with the arrow keys or WASD, or tap where you'd like to walk. Space or Enter to say hello." role="img"></canvas>
+    <div id="bubble" hidden></div>
+
+    <section id="title" class="screen" hidden>
+      <h1>The Seed Path</h1>
+      <p class="sub">A slow walk through the Hollowmere, where shy little Kin are waiting to make friends.</p>
+      <button id="continue" class="big primary" type="button" hidden>Continue your walk</button>
+      <p class="ask">How long would you like to walk today?</p>
+      <div class="walks">
+        <button class="walk" data-walk="short" type="button"><b>A short stroll</b><span>about 5 minutes &middot; 2 friends</span></button>
+        <button class="walk" data-walk="medium" type="button"><b>A gentle wander</b><span>about 10 minutes &middot; 3 friends</span></button>
+        <button class="walk" data-walk="long" type="button"><b>A long ramble</b><span>about 15 minutes &middot; 5 friends</span></button>
+      </div>
+      <p id="metcount" class="small"></p>
+      <div class="row">
+        <button class="tog" data-toggle="sound" type="button" aria-pressed="false">Sound <b>off</b></button>
+        <button class="tog" data-toggle="still" type="button" aria-pressed="false">Still mode <b>off</b></button>
+        <a class="tog arcade" href="#" target="_top">Return to the Arcade</a>
+      </div>
+      <p class="small">Arrows or WASD to walk, or tap where you'd like to go. Space or Enter to say hello. Your walk saves itself on this device only.</p>
+    </section>
+
+    <div id="dialog" hidden role="dialog" aria-live="polite">
+      <p id="dwho"></p><p id="dtext"></p><button id="dnext" type="button">Continue &#9656;</button>
+    </div>
+    <div id="toast" hidden role="status"></div>
+
+    <section id="moment" class="screen" hidden role="dialog" aria-labelledby="mname">
+      <div class="mhead"><div id="mpic"></div><div><h2 id="mname"></h2><p id="mkind"></p></div></div>
+      <p id="mprompt" aria-live="polite"></p>
+      <div id="mstage"></div>
+      <button id="mclose" class="quiet" type="button">Step away for now</button>
+    </section>
+
+    <section id="journal" class="screen panel" hidden role="dialog" aria-label="Journal">
+      <div class="phead"><h2>Journal</h2><button class="quiet" data-close type="button">Close</button></div>
+      <div class="row tabs" role="tablist"><button class="jtab" data-tab="walk" role="tab" type="button">This walk</button><button class="jtab" data-tab="all" role="tab" type="button">Kin you've met</button></div>
+      <div id="jbody"></div>
+    </section>
+
+    <section id="menu" class="screen panel" hidden role="dialog" aria-label="Menu">
+      <div class="phead"><h2>Resting spot</h2><button class="quiet" data-close type="button">Back to the walk</button></div>
+      <div class="col">
+        <button class="tog" data-toggle="sound" type="button" aria-pressed="false">Sound <b>off</b></button>
+        <button class="tog" data-toggle="still" type="button" aria-pressed="false">Still mode (less motion) <b>off</b></button>
+        <a class="tog arcade" href="#" target="_top">Return to the Arcade</a>
+        <button id="newwalk" class="tog" type="button">Start a different walk</button>
+      </div>
+      <p class="small">Walk: arrow keys or WASD, or tap a spot. Say hello: Space, Enter or E, or tap the friend. Journal: J. Hint: H. Menu: M or Esc. Your walk is saved on this device only; nothing is sent anywhere.</p>
+    </section>
+
+    <section id="card" class="screen" hidden><p id="cardtext"></p><button id="cardgo" class="big primary" type="button">Continue</button></section>
+    <section id="choices" class="screen" hidden>
+      <h2>Where to now?</h2>
+      <div class="col">
+        <a class="big primary arcade" href="#" target="_top">Return to the Arcade</a>
+        <button id="restbtn" class="big" type="button">Rest here a while</button>
+        <a class="big meditate" href="#" target="_top">Try a meditation</a>
+        <button id="againbtn" class="big quiet" type="button">Take another walk</button>
+      </div>
+    </section>
+    <div id="restbar" hidden><button id="restdone" class="quiet" type="button">I'm ready to go</button></div>
+  </div>
+</main>
+<script src="data/maps.js"></script>
+<script src="data/kin.js"></script>
+<script src="data/text.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/moments.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

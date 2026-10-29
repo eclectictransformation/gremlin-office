@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Something behind the wall…</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#2B2540;color:#F6EBD9;font:18px/1.5 "DM Sans",system-ui,sans-serif;text-align:center}
+.wall{position:relative;width:min(90vw,420px);aspect-ratio:4/3;background:repeating-linear-gradient(0deg,#5A4A6E 0 22px,#4A3D5C 22px 24px);border-radius:12px;overflow:hidden}
+.sock{position:absolute;left:58%;top:46%;width:64px;height:64px;min-width:44px;border:0;cursor:pointer;background:none;font-size:48px;transform:rotate(-12deg);transition:transform .6s}
+.sock:hover,.sock:focus-visible{transform:rotate(4deg) scale(1.1);outline:3px solid #FFD98A;border-radius:12px}
+.glow{position:absolute;inset:0;background:radial-gradient(circle at 62% 52%,#FFD98A88,transparent 55%);opacity:0;transition:opacity 1.2s}
+.open .glow{opacity:1}p{max-width:30em;padding:0 1em}a{color:#FFD98A;font-size:20px;display:inline-block;padding:12px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body><main>
+<p>Behind the arcade's back wall, one sock is a little loose…</p>
+<div class="wall" id="w"><div class="glow"></div><button class="sock" id="s" aria-label="Wiggle the loose sock">🧦</button></div>
+<p id="m" aria-live="polite"></p>
+<p><a href="https://eclectictransformation.github.io/gremlin-office/preview-arcade/">Return to the Arcade</a></p>
+</main><script>
+s.onclick=()=>{w.classList.add('open');m.innerHTML='A warm breeze. A path of moss. Somebody small is humming.<br><a href="./">Step through to the Seed Path →</a>';};
+</script></body></html>
