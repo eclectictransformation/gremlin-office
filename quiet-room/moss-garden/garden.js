@@ -661,23 +661,62 @@
   function elapsed() { return (performance.now() - session.start) * Q.timeScale; }
   document.getElementById("mg-time").addEventListener("click", function () { whisper(Q.timeLeftSentence(session.len ? Math.max(0, session.len * 60000 - elapsed()) : null)); });
   var sound = { trickle: null,
-    toggle: function () { var on = !Q.sound.on; if (on && !this.trickle) { this.trickle = Q.sound.noise(900); this.wind = Q.sound.noise(320); this.hush = Q.sound.noise(1600); if (this.wind) Q.sound.ramp(this.wind.gain, .12, 3); } Q.sound.set(on);
+    toggle: function () { var on = !Q.sound.on; if (on && !this.trickle) { this.trickle = Q.sound.noise(900); this.wind = Q.sound.noise(320); this.hush = Q.sound.noise(1600); if (this.wind) Q.sound.ramp(this.wind.gain.gain, .12, 3); } Q.sound.set(on);
       var b = document.getElementById("mg-sound"); b.textContent = "Sound: " + (on ? "on" : "off"); b.setAttribute("aria-pressed", on); },
-    tick: function () { var sh = S.objs.some(function (o) { return o.k === "shishi" && o.fed && o.st === "fill"; }); if (this.trickle && Q.sound.on) Q.sound.ramp(this.trickle.gain, Math.min(.35, flowing * .05 + (S.fill[0] ? .04 : 0) + (sh ? .05 : 0)), 2); },
+    tick: function () { var sh = S.objs.some(function (o) { return o.k === "shishi" && o.fed && o.st === "fill"; }); if (this.trickle && Q.sound.on) Q.sound.ramp(this.trickle.gain.gain, Math.min(.35, flowing * .05 + (S.fill[0] ? .04 : 0) + (sh ? .05 : 0)), 2); },
     hush: null,
     rake: function () { if (Q.sound.on && Math.random() < .3) Q.sound.tone(196 + Math.random() * 60, .02, 2); } };
   document.getElementById("mg-sound").addEventListener("click", function () { sound.toggle(); musicSync(); });
-  /* optional background track: no music ships yet. MossGarden.setMusic(url) attaches one; it plays only when Sound is on
-     AND MossGarden.music(true) was chosen (remembered on this device). Off by default, low volume, gentle fades. */
-  var music = { url: null, el: null, on: false }; try { music.on = localStorage.getItem("gw-mg-music") === "1"; } catch (e) {}
-  function musicSync() {
-    if (!music.url) return; if (!music.el) { music.el = new Audio(music.url); music.el.loop = true; music.el.volume = 0; }
-    var want = music.on && Q.sound.on, el = music.el; clearInterval(music.f);
-    if (want && el.paused) el.play().catch(function () {});
-    music.f = setInterval(function () { var t = want ? .28 : 0; el.volume = Math.max(0, Math.min(1, el.volume + (t > el.volume ? .02 : -.03))); if (Math.abs(el.volume - t) < .03) { el.volume = t; if (!want) el.pause(); clearInterval(music.f); } }, 100);
+  /* background stream loop (Frequency Weaver sample B). Loaded lazily on the first Sound tap, never autoplayed.
+     Web Audio AudioBufferSourceNode loop=true for a gapless loop; opus first, mp3 if opus can't be played/decoded.
+     Fades in over 2.5 s, out over ~1 s. Paused while the tab is hidden. MossGarden.music(false) opts out on this device. */
+  var music = { url: null, alt: null, on: true, buf: null, loading: false, src: null, g: null, t: 0 };
+  try { music.on = localStorage.getItem("gw-mg-music") !== "0"; } catch (e) {}
+  (function () { var a = document.createElement("audio"), ok = a.canPlayType && a.canPlayType('audio/ogg; codecs="opus"');
+    music.ext = ok ? ".opus" : ".mp3"; music.url = "audio/moss-trickle" + music.ext; music.alt = ok ? "audio/moss-trickle.mp3" : null; })();
+  var MUSIC_GAIN = .5;
+  function musicLoad(c) {
+    if (music.buf || music.loading || !music.url) return; music.loading = true;
+    function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(function (ab) {
+      return new Promise(function (res, rej) { var p = c.decodeAudioData(ab, res, rej); if (p && p.then) p.then(res, rej); }); }); }
+    get(music.url).catch(function () { if (!music.alt) throw 0; return get(music.alt); })
+      .then(function (b) { music.buf = b; music.loading = false; musicSync(); drips.load(c, get); }, function () { music.loading = false; music.url = null; });
   }
-  window.MossGarden = { setMusic: function (url) { music.url = url || null; if (music.el) { music.el.pause(); music.el = null; } musicSync(); },
-    music: function (on) { music.on = !!on; try { localStorage.setItem("gw-mg-music", on ? "1" : "0"); } catch (e) {} musicSync(); } };
+  function musicSync() {
+    var c = Q.sound.ctx && Q.sound.ctx(); if (!c || !music.url) return;
+    var want = music.on && Q.sound.on && !document.hidden;
+    if (want && !music.buf) { musicLoad(c); return; }
+    if (!music.buf) return;
+    if (!music.g) { music.g = c.createGain(); music.g.gain.value = 0; music.g.connect(c.destination); }
+    var g = music.g.gain, now = c.currentTime; clearTimeout(music.t);
+    g.cancelScheduledValues(now); g.setValueAtTime(g.value, now);
+    if (want) {
+      if (!music.src) { var s = c.createBufferSource(); s.buffer = music.buf; s.loop = true; s.connect(music.g); s.start(); music.src = s; }
+      g.linearRampToValueAtTime(MUSIC_GAIN, now + 2.5); drips.start();
+    } else {
+      drips.stop(); if (!music.src) return;
+      g.linearRampToValueAtTime(0, now + 1.5);
+      var s2 = music.src; music.t = setTimeout(function () { try { s2.stop(); } catch (e) {} s2.disconnect(); if (music.src === s2) music.src = null; }, 1600);
+    }
+  }
+  /* soft drips over the bed: one of six, gain .5, slight pan, gaps 8-25 s never landing on 10 s / 20 s, never overlapping */
+  var drips = { bufs: [], loading: false, timer: 0, playing: false, on: false, log: [],
+    load: function (c, get) { if (this.loading || this.bufs.length) return; this.loading = true; var self = this, ext = music.ext;
+      [1, 2, 3, 4, 5, 6].forEach(function (i) { get("audio/drips/moss-drip-" + i + ext).catch(function () { return ext === ".mp3" ? null : get("audio/drips/moss-drip-" + i + ".mp3"); })
+        .then(function (b) { if (b) self.bufs.push(b); }, function () {}); }); },
+    gap: function () { var g; do { g = 8 + Math.random() * 17; } while (Math.round(g) % 10 === 0); return g; },
+    start: function () { if (this.on) return; this.on = true; this.next(); },
+    stop: function () { this.on = false; clearTimeout(this.timer); },
+    next: function () { var self = this, g = this.gap(); this.log.push(g); this.timer = setTimeout(function () { self.fire(); }, g * 1000); },
+    fire: function () { if (!this.on) return; var c = Q.sound.ctx && Q.sound.ctx();
+      if (c && this.bufs.length && !this.playing && music.g) { var self = this, s = c.createBufferSource(), g = c.createGain();
+        s.buffer = this.bufs[(Math.random() * this.bufs.length) | 0]; g.gain.value = .5; var out = g;
+        if (c.createStereoPanner) { var pn = c.createStereoPanner(); pn.pan.value = Math.random() * .8 - .4; g.connect(pn); out = pn; }
+        s.connect(g); out.connect(music.g); this.playing = true; s.onended = function () { self.playing = false; out.disconnect(); }; s.start(); }
+      this.next(); } };
+  document.addEventListener("visibilitychange", musicSync);
+  window.MossGarden = { setMusic: function (url) { if (music.src) { try { music.src.stop(); } catch (e) {} music.src = null; } music.url = url || null; music.alt = null; music.buf = null; musicSync(); },
+    music: function (on) { music.on = !!on; try { localStorage.setItem("gw-mg-music", on ? "1" : "0"); } catch (e) {} musicSync(); }, _music: music, _drips: drips };
   function endCard() {
     session.ended = true;
     Q.card({ title: "Your garden will be here when you come back.", buttons: [
