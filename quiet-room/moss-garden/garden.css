@@ -12,3 +12,5 @@ html.q-game,html.q-game body{background:#55684a}
 @media (min-width:1000px){.mg-tl{display:block}.q-tool{min-width:60px}}
 @media (max-width:600px){.mg-tray{gap:4px;padding:4px 6px;border-radius:18px}.mg-group+.mg-group{padding-left:4px}.q-tool{min-width:44px;min-height:44px;padding:1px}.mg-ic{width:36px;height:36px}}
 .mg-ghost{position:fixed;width:64px;height:64px;pointer-events:none;z-index:30;transform:translate(-50%,-50%);background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.85}
+.mg-shelf{flex-wrap:wrap;justify-content:center}
+@media (max-width:600px){.mg-group{flex-wrap:wrap;justify-content:center}}

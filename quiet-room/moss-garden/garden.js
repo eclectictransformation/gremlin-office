@@ -14,23 +14,27 @@
     stone3: { art: "stone-3", w: 100, h: 100, r: 1.0, heavy: .3, stone: true },
     plank: { art: "bridge-plank", w: 192, h: 64 }, step: { art: "stepping-stone", w: 80, h: 80 },
     lantern: { art: "lantern", w: 80, h: 80, glow: "lantern-glow" }, moss: { art: "moss-clump", w: 96, h: 96 },
-    fern: { art: "fern", w: 96, h: 96 }, statue: { art: "gremlin-statue", w: 96, h: 96 }, boat: { art: "leaf-boat", w: 64, h: 64, floats: true }
+    fern: { art: "fern", w: 96, h: 96 }, statue: { art: "gremlin-statue", w: 96, h: 96 }, boat: { art: "leaf-boat", w: 64, h: 64, floats: true },
+    shishi: { art: "shishi-odoshi", w: 120, h: 120, blocks: .75 }, spout: { art: "bamboo-spout", w: 88, h: 88, source: true }, barrel: { art: "rain-barrel", w: 96, h: 96, source: true }
   };
   var DEFAULT_STONES = [["stone1", 27.5, 7.5], ["stone2", 12.5, 14.5], ["stone3", 19.5, 4.5], ["stone2", 33.5, 15.5], ["stone3", 7.5, 7.5], ["stone1", 22.5, 16.5], ["stone3", 35.5, 4.5]];
 
   /* ---------- state ---------- */
-  var S = { h: new Float32Array(N), t: new Uint8Array(N), d: new Uint8Array(N), moss: new Float32Array(N), fill: new Float32Array(N), objs: [] };
+  var S = { h: new Float32Array(N), t: new Uint8Array(N), d: new Uint8Array(N), moss: new Float32Array(N), fill: new Float32Array(N), objs: [], strokes: [], leg: new Uint8Array(N), met: 0 };
+  var srcMask = new Uint8Array(N), lab = new Int16Array(N), MAX_EXTRA_SOURCES = 2;   // the corner spring + up to two more (no count on screen)
+  var BIN = { x: COLS - 1.55, y: ROWS - 1.45, r: 1.5 }, binOpen = 0, puffs = [], tumble = null;
   var dist = new Int16Array(N), blocked = new Uint8Array(N), head = 1, hist = [], uid = 1;
   var art = {}, sprites = {}, cv = document.getElementById("mg"), ctx = cv.getContext("2d");
   var L = {};   // layout
   var dirty = { groove: true, moss: true }, changed = false;
   function idx(x, y) { return y * COLS + x; }
   function inb(x, y) { return x >= 0 && y >= 0 && x < COLS && y < ROWS; }
-  function isSource(i) { return i === 0 || i === 1 || i === COLS; }
+  function isSource(i) { return srcMask[i] > 0; }
+  function inBin(x, y) { return Math.hypot(x - BIN.x, y - BIN.y) < BIN.r; }
   function channel(i) { return S.h[i] < -0.4; }
 
   function freshState() {
-    S.h.fill(0); S.t.fill(0); S.d.fill(0); S.moss.fill(0); S.fill.fill(0);
+    S.h.fill(0); S.t.fill(0); S.d.fill(0); S.moss.fill(0); S.fill.fill(0); S.leg.fill(0); S.strokes = [{ k: 1, p: [2.1, 1.5, 2.7, 1.5, 3.3, 1.52, 3.9, 1.5, 4.6, 1.48] }];
     S.objs = DEFAULT_STONES.map(function (s) { return { id: uid++, k: s[0], x: s[1], y: s[2] }; });
     [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(function (p) { var i = idx(p[0], p[1]); S.h[i] = -1.6; S.t[i] = 2; });   // the little spring pool
     for (var x = 2; x < 5; x++) { var i = idx(x, 1); S.h[i] = -1; S.t[i] = 1; S.d[i] = 0; }   // a short starter groove
@@ -39,11 +43,11 @@
   function ensureSpring() { [[0, 0], [1, 0], [0, 1]].forEach(function (p) { var i = idx(p[0], p[1]); if (S.h[i] > -1) { S.h[i] = -1.6; S.t[i] = 2; } }); }
 
   /* ---------- history: about 30 steps ---------- */
-  function snap() { return { h: S.h.slice(), t: S.t.slice(), d: S.d.slice(), moss: S.moss.slice(), objs: JSON.parse(JSON.stringify(S.objs)) }; }
+  function snap() { return { h: S.h.slice(), t: S.t.slice(), d: S.d.slice(), moss: S.moss.slice(), leg: S.leg.slice(), objs: JSON.parse(JSON.stringify(S.objs)), strokes: S.strokes.map(function (k) { return { k: k.k, p: k.p.slice() }; }) }; }
   function remember() { hist.push(snap()); if (hist.length > 30) hist.shift(); }
   function undo() {
     var s = hist.pop(); if (!s) { whisper("Nothing to undo just now."); return; }
-    S.h = s.h; S.t = s.t; S.d = s.d; S.moss = s.moss; S.objs = s.objs; hand = null; drag = null;
+    S.h = s.h; S.t = s.t; S.d = s.d; S.moss = s.moss; S.objs = s.objs; S.strokes = s.strokes; S.leg = s.leg; tumble = null; hand = null; drag = null;
     dirty.groove = dirty.moss = true; touched(); whisper("Undone.");
   }
 
@@ -52,13 +56,25 @@
   function enc() {
     var td = "", hh = "", mm = "";
     for (var i = 0; i < N; i++) { td += B64[S.t[i] * 16 + S.d[i]]; hh += B64[Math.round(Math.min(2, -S.h[i]) * 8)]; mm += B64[Math.round(Math.max(0, Math.min(1, S.moss[i])) * 63)]; }
-    return { v: 1, cols: COLS, rows: ROWS, td: td, h: hh, m: mm, head: head, objs: S.objs.map(function (o) { return [o.k, +o.x.toFixed(2), +o.y.toFixed(2)]; }) };
+    var lg = ""; for (var j = 0; j < N; j++) lg += S.leg[j] ? "1" : "0";
+    return { v: 2, cols: COLS, rows: ROWS, td: td, h: hh, m: mm, head: head, leg: lg, met: S.met ? 1 : 0,
+      strokes: S.strokes.map(function (k) { return [k.k, k.p.map(function (v) { return Math.round(v * 20); })]; }),
+      objs: S.objs.map(function (o) { var a = [o.k, +o.x.toFixed(2), +o.y.toFixed(2)]; if (o.r) a.push(o.r); return a; }) };
   }
   function dec(D) {
-    if (!D || D.v !== 1 || D.cols !== COLS || D.rows !== ROWS || typeof D.td !== "string" || D.td.length !== N) return false;
+    if (!D || (D.v !== 1 && D.v !== 2) || D.cols !== COLS || D.rows !== ROWS || typeof D.td !== "string" || D.td.length !== N) return false;
     for (var i = 0; i < N; i++) { var a = B64.indexOf(D.td[i]); S.t[i] = Math.max(0, Math.min(2, a >> 4)); S.d[i] = a & 15; S.h[i] = -B64.indexOf(D.h[i]) / 8; S.moss[i] = B64.indexOf(D.m[i]) / 63; }
-    S.objs = (D.objs || []).filter(function (o) { return KINDS[o[0]]; }).slice(0, 80).map(function (o) { return { id: uid++, k: o[0], x: clampX(+o[1] || 1), y: clampY(+o[2] || 1) }; });
-    if (D.head === 0 || D.head === 1 || D.head === 2) setHead(D.head, true);
+    S.objs = (D.objs || []).filter(function (o) { return KINDS[o[0]]; }).slice(0, 80).map(function (o) { return { id: uid++, k: o[0], x: clampX(+o[1] || 1), y: clampY(+o[2] || 1), r: (+o[3] || 0) & 7 }; });
+    // v1 saves had no stroke list: keep their old painted tine stamps so nothing they raked disappears
+    S.leg.fill(0); S.strokes = [];
+    if (D.v === 1) { for (var a1 = 0; a1 < N; a1++) if (S.t[a1] === 1) S.leg[a1] = 1; }
+    else {
+      if (typeof D.leg === "string" && D.leg.length === N) for (var a2 = 0; a2 < N; a2++) S.leg[a2] = D.leg[a2] === "1" ? 1 : 0;
+      (Array.isArray(D.strokes) ? D.strokes : []).forEach(function (k) { if (!Array.isArray(k) || (k[0] !== 1 && k[0] !== 3) || !Array.isArray(k[1])) return;
+        var pts = k[1].slice(0, 4000).map(function (v) { return (+v || 0) / 20; }); if (pts.length >= 4) S.strokes.push({ k: k[0], p: pts.slice(0, pts.length - pts.length % 2) }); });
+      S.met = D.met ? 1 : 0;
+    }
+    if (D.head === 0 || D.head === 1 || D.head === 2 || D.head === 3) setHead(D.head, true);
     S.fill.fill(0); ensureSpring(); dirty.groove = dirty.moss = true; return true;
   }
   var saveSoon = Q.debounce(function () { if (!changed) return; changed = false; Q.save(GAME, enc()); }, 4000);
@@ -68,7 +84,7 @@
   /* ---------- art + soft procedural placeholders ---------- */
   var ART_NAMES = ["sand-texture", "moss-overlay", "water-texture", "garden-frame", "garden-frame-portrait", "rake-stamp-fine", "rake-stamp-swirl", "rake-stamp-smooth",
     "stone-1", "stone-2", "stone-3", "stepping-stone", "bridge-plank", "lantern", "lantern-glow", "moss-clump", "fern", "gremlin-statue", "leaf-boat",
-    "icon-rake-fine", "icon-rake-swirl", "icon-rake-smooth", "icon-bridge-plank", "icon-stepping-stone", "icon-lantern", "icon-moss-clump", "icon-fern", "icon-gremlin-statue", "icon-leaf-boat", "icon-undo", "icon-fresh-garden"];
+    "icon-rake-fine", "icon-rake-swirl", "icon-rake-smooth", "icon-bridge-plank", "icon-stepping-stone", "icon-lantern", "icon-moss-clump", "icon-fern", "icon-gremlin-statue", "icon-leaf-boat", "icon-undo", "icon-fresh-garden"];   // shishi-odoshi, spout, rain barrel, compost bin and the wanderer are painted below in Moth's palette
   function mk(w, h) { var c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
   function rnd(seed) { return function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
   function blob(g, cx, cy, rx, ry, col, seed) {   // a soft, slightly irregular painted blob
@@ -93,7 +109,22 @@
         for (var l = 1; l < 6; l++) { var px = W / 2 + Math.cos(an) * W * .07 * l, py = H / 2 + Math.sin(an) * H * .07 * l; blob(g, px + Math.cos(an + 1.4) * 10, py + Math.sin(an + 1.4) * 10, 9, 5, "#7FA65A", l + f); blob(g, px + Math.cos(an - 1.4) * 10, py + Math.sin(an - 1.4) * 10, 9, 5, "#7FA65A", l + f + 9); } } }
     else if (name === "gremlin-statue") { stone("#a7a2b2", .8); blob(g, W * .36, H * .3, W * .08, H * .1, "#8f8a9c", 4); blob(g, W * .64, H * .3, W * .08, H * .1, "#8f8a9c", 6); g.fillStyle = PAL.ink; g.beginPath(); g.arc(W * .42, H * .48, 5, 0, 7); g.arc(W * .58, H * .48, 5, 0, 7); g.fill(); g.strokeStyle = PAL.ink; g.lineWidth = 3; g.beginPath(); g.arc(W / 2, H * .55, 10, .3, 2.8); g.stroke(); }
     else if (name === "leaf-boat") { var lg = g.createLinearGradient(0, 0, W, H); lg.addColorStop(0, "#9bbf6a"); lg.addColorStop(1, "#5f8a45"); g.fillStyle = lg; g.beginPath(); g.moveTo(W * .1, H * .55); g.quadraticCurveTo(W * .45, H * .05, W * .92, H * .42); g.quadraticCurveTo(W * .5, H * .95, W * .1, H * .55); g.fill(); g.strokeStyle = "#4b6e36"; g.lineWidth = 3; g.beginPath(); g.moveTo(W * .14, H * .55); g.lineTo(W * .88, H * .44); g.stroke(); }
+    else if (name === "bamboo-spout") { stone("#a39eab", .78); var bx = W * .2, by = H * .42;
+      g.save(); g.translate(W / 2, H / 2); g.rotate(-.5); bamboo(g, -W * .36, -H * .07, W * .62, H * .14); g.restore();
+      var wg = g.createRadialGradient(W * .74, H * .3, 2, W * .74, H * .3, W * .14); wg.addColorStop(0, "#d9f0ec"); wg.addColorStop(1, "rgba(127,183,176,.2)"); blob(g, W * .74, H * .3, W * .1, H * .08, wg, 9); }
+    else if (name === "rain-barrel") { var rg = g.createRadialGradient(W * .42, H * .4, 4, W / 2, H / 2, W * .44); rg.addColorStop(0, "#c49a68"); rg.addColorStop(1, "#8a6440"); blob(g, W / 2, H / 2, W * .4, H * .4, rg, 13);
+      g.strokeStyle = "rgba(62,74,58,.55)"; g.lineWidth = 5; g.beginPath(); g.arc(W / 2, H / 2, W * .36, 0, 7); g.stroke(); g.lineWidth = 3; g.beginPath(); g.arc(W / 2, H / 2, W * .3, 0, 7); g.stroke();
+      var wb = g.createRadialGradient(W * .44, H * .42, 2, W / 2, H / 2, W * .28); wb.addColorStop(0, "#bfe3dd"); wb.addColorStop(1, PAL.water); blob(g, W / 2, H / 2, W * .27, H * .27, wb, 21);
+      g.strokeStyle = "rgba(255,255,255,.45)"; g.lineWidth = 3; g.beginPath(); g.arc(W * .46, H * .46, W * .12, 3.6, 4.8); g.stroke(); }
+    else if (name === "shishi-odoshi") { stone("#a39eab", .5); g.save(); g.translate(W / 2, H / 2); bamboo(g, -W * .4, -H * .08, W * .8, H * .16); g.restore(); }
     return c;
+  }
+  function bamboo(g, x, y, w, h) {   // a painted green bamboo tube with nodes and a soft highlight
+    var gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, "#a9c27a"); gr.addColorStop(.45, "#7f9f55"); gr.addColorStop(1, "#56733c");
+    g.fillStyle = gr; g.beginPath(); g.roundRect(x, y, w, h, h * .45); g.fill();
+    g.strokeStyle = "rgba(62,74,58,.55)"; g.lineWidth = Math.max(1.5, h * .12); for (var n = 1; n < 3; n++) { var nx = x + w * n / 3; g.beginPath(); g.moveTo(nx, y + h * .1); g.lineTo(nx, y + h * .9); g.stroke(); }
+    g.strokeStyle = "rgba(255,250,230,.45)"; g.lineWidth = Math.max(1, h * .1); g.beginPath(); g.moveTo(x + h * .4, y + h * .28); g.lineTo(x + w - h * .4, y + h * .28); g.stroke();
+    g.fillStyle = "#4a6233"; g.beginPath(); g.ellipse(x + w - h * .1, y + h / 2, h * .18, h * .42, 0, 0, 7); g.fill();
   }
   function sprite(kind) { var K = KINDS[kind]; return sprites[K.art] || (sprites[K.art] = art[K.art] || placeholder(K.art, K.w, K.h)); }
   function glowSprite() { return sprites.glow || (sprites.glow = art["lantern-glow"] || placeholder("lantern-glow", 192, 192)); }
@@ -139,41 +170,94 @@
   /* ---------- the rake ---------- */
   function rakeCell(x, y, hd, ang) {
     if (!inb(x, y)) return; var i = idx(x, y); if (blocked[i]) return;
-    if (hd === 0) { if (isSource(i)) return; S.h[i] = Math.min(0, S.h[i] * .2 + 0); if (S.h[i] > -.3) { S.h[i] = 0; S.t[i] = 0; } return; }
-    if (hd === 1) { if (S.t[i] !== 2) { S.t[i] = 1; S.d[i] = ang; } S.h[i] = Math.min(S.h[i], -1); }
+    if (hd === 0) { if (isSource(i)) return; S.h[i] = Math.min(0, S.h[i] * .2 + 0); if (S.h[i] > -.3) { S.h[i] = 0; S.t[i] = 0; S.leg[i] = 0; } return; }
+    if (inBin(x + .5, y + .5)) return;
+    if (hd === 1 || hd === 3) { if (S.t[i] !== 2) { S.t[i] = 1; S.d[i] = ang; S.leg[i] = 0; } S.h[i] = Math.min(S.h[i], -1); }
     if (hd === 2) { S.t[i] = 2; S.d[i] = ang; S.h[i] = Math.min(S.h[i], -1.25); }
   }
   function rakeAt(gx, gy, hd, ang) {
     var cx = Math.floor(gx), cy = Math.floor(gy);
     if (hd === 1) rakeCell(cx, cy, 1, ang);
-    else { var r = hd === 2 ? 1 : 1.2; for (var y = cy - 1; y <= cy + 1; y++) for (var x = cx - 1; x <= cx + 1; x++) { var dx = x + .5 - gx, dy = y + .5 - gy; if (dx * dx + dy * dy <= r * r + .1) rakeCell(x, y, hd, ang); } }
+    else if (hd === 3) { for (var wy = cy - 1; wy <= cy + 1; wy++) for (var wx = cx - 1; wx <= cx + 1; wx++) { var ex = wx + .5 - gx, ey = wy + .5 - gy; if (ex * ex + ey * ey <= .62) rakeCell(wx, wy, 1, ang); } }
+    else {
+      if (hd === 0) eraseStrokes(gx, gy, 1.05); var r = hd === 2 ? 1 : 1.2; for (var y = cy - 1; y <= cy + 1; y++) for (var x = cx - 1; x <= cx + 1; x++) { var dx = x + .5 - gx, dy = y + .5 - gy; if (dx * dx + dy * dy <= r * r + .1) rakeCell(x, y, hd, ang); } }
     if (hd === 2) { var ci = inb(cx, cy) ? idx(cx, cy) : -1; if (ci >= 0 && !blocked[ci]) S.h[ci] = Math.min(S.h[ci], -1.6); }   // swirls dig a little dip that pools
     dirty.groove = true;
   }
   function rakeLine(a, b, hd) {
-    var dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy); if (len < .01 && rakeLine.started) return;
+    var dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy); if (!rakeLine.started) curStroke = null; if (len < .01 && rakeLine.started) return;
     var ang = Math.round(((Math.atan2(dy, dx) + Math.PI * 2) % Math.PI) / Math.PI * 16) % 16;   // 16 directions over 180 degrees
     var n = Math.max(1, Math.ceil(len / .25));
     for (var k = 0; k <= n; k++) rakeAt(a[0] + dx * k / n, a[1] + dy * k / n, hd, ang);
+    if (hd === 1 || hd === 3) { if (!curStroke || curStroke.k !== hd) strokeTo(a, hd); var m = Math.max(1, Math.ceil(len / .2)); for (var q = 1; q <= m; q++) strokeTo([a[0] + dx * q / m, a[1] + dy * q / m], hd); }
     rakeLine.started = true; touched();
+  }
+  /* real tine lines: every stroke is a list of points (about one every 6 px); tines are drawn as offset curves */
+  var curStroke = null, MAX_PTS = 12000;
+  function strokeTo(p, hd) {
+    var x = Math.max(0, Math.min(COLS, p[0])), y = Math.max(0, Math.min(ROWS, p[1]));
+    if (!curStroke || curStroke.k !== hd) { curStroke = { k: hd, p: [x, y] }; S.strokes.push(curStroke); trimStrokes(); return; }
+    var q = curStroke.p, lx = q[q.length - 2], ly = q[q.length - 1]; if (Math.hypot(x - lx, y - ly) < .16) return;
+    q.push(x, y); trimStrokes();
+  }
+  function trimStrokes() { var tot = 0; for (var i = S.strokes.length - 1; i >= 0; i--) { tot += S.strokes[i].p.length / 2; if (tot > MAX_PTS && S.strokes[i] !== curStroke) { S.strokes.splice(0, i + 1); break; } } }
+  function eraseStrokes(gx, gy, r) {
+    var out = [], hitAny = false;
+    S.strokes.forEach(function (k) { var seg = [];
+      for (var i = 0; i < k.p.length; i += 2) { var x = k.p[i], y = k.p[i + 1], w = k.k === 3 ? .45 : .12;
+        if (Math.hypot(x - gx, y - gy) < r + w) { hitAny = true; if (seg.length >= 4) out.push({ k: k.k, p: seg }); seg = []; } else seg.push(x, y); }
+      if (seg.length >= 4) out.push(seg.length === k.p.length ? k : { k: k.k, p: seg }); });
+    if (hitAny) { S.strokes = out; curStroke = null; }
+    for (var y = Math.floor(gy - r); y <= gy + r; y++) for (var x = Math.floor(gx - r); x <= gx + r; x++) if (inb(x, y) && Math.hypot(x + .5 - gx, y + .5 - gy) < r) S.leg[idx(x, y)] = 0;
   }
 
   /* ---------- water: a small, stable grid sim ---------- */
   var N8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]], flowing = 0;
   function computeBlocked() {
     blocked.fill(0);
-    S.objs.forEach(function (o) { var K = KINDS[o.k]; if (!K.stone) return; var r = K.r * .85;
+    S.objs.forEach(function (o) { var K = KINDS[o.k]; if (!K.stone && !K.blocks) return; var r = K.stone ? K.r * .85 : K.blocks;
       for (var y = Math.floor(o.y - r - 1); y <= o.y + r + 1; y++) for (var x = Math.floor(o.x - r - 1); x <= o.x + r + 1; x++) { if (!inb(x, y)) continue; var dx = x + .5 - o.x, dy = y + .5 - o.y; if (dx * dx + dy * dy < r * r) blocked[idx(x, y)] = 1; } });
   }
   function bfs() {
-    dist.fill(-1); var q = [0, 1, COLS], h = 0; q.forEach(function (i) { dist[i] = 0; });
+    dist.fill(-1); lab.fill(0); var q = [], h = 0;
+    for (var s0 = 0; s0 < N; s0++) if (srcMask[s0] && channel(s0) && !blocked[s0]) { dist[s0] = 0; lab[s0] = srcMask[s0]; q.push(s0); }
     while (h < q.length) { var i = q[h++], x = i % COLS, y = (i / COLS) | 0;
       for (var k = 0; k < 8; k++) { var nx = x + N8[k][0], ny = y + N8[k][1]; if (!inb(nx, ny)) continue; var j = idx(nx, ny); if (dist[j] >= 0 || !channel(j) || blocked[j]) continue;
         if (k >= 4 && !channel(idx(x + N8[k][0], y)) && !channel(idx(x, y + N8[k][1]))) { /* diagonal step: allowed, grooves drawn at an angle are diagonal */ }
-        dist[j] = dist[i] + 1; q.push(j); } }
+        dist[j] = dist[i] + 1; lab[j] = lab[i]; q.push(j); } }
+  }
+  function cellOf(x, y) { var cx = Math.floor(x), cy = Math.floor(y); return inb(cx, cy) ? idx(cx, cy) : -1; }
+  function dig(i, depth) { if (i < 0 || blocked[i]) return; if (S.h[i] > -depth) S.h[i] = -depth; }
+  function shDir(o) { var a = (o.r || 0) * Math.PI / 4; return [Math.cos(a), Math.sin(a)]; }
+  function shOut(o) { var d = shDir(o); return [o.x + d[0] * 1.7, o.y + d[1] * 1.7]; }
+  function computeSources() {
+    srcMask.fill(0); [0, 1, COLS].forEach(function (i) { srcMask[i] = 1; });
+    S.objs.forEach(function (o) {
+      var K = KINDS[o.k];
+      if (K.source && !(drag && drag.o === o)) { var c = cellOf(o.x, o.y); if (c < 0 || blocked[c]) return; dig(c, 1.6); srcMask[c] = 2 + (o.id % 200);
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var n = cellOf(o.x + d[0], o.y + d[1]); if (n >= 0 && S.h[n] > -.4 && !blocked[n]) S.h[n] = -1.0; }); }   // a little pool so it can join a groove
+      if (o.k === "shishi" && o.out > 0) { var op = shOut(o), oc = cellOf(op[0], op[1]); if (oc >= 0 && !blocked[oc]) { dig(oc, 1.3); srcMask[oc] = o.lab || 300; } }
+    });
+  }
+  /* shishi-odoshi: fills ~10 s (8-12), tips 0.6 s, pours, rocks back 1.2 s; its pour feeds the channel it points at */
+  function shishiSim(o, dt) {
+    if (!o.st) { o.st = "fill"; o.f = 0; o.ph = 0; o.dur = 8 + Math.random() * 4; o.out = 0; }
+    if (o.out > 0) o.out = Math.max(0, o.out - dt);
+    var fed = 0, flab = 0, op = shOut(o);
+    if (!(drag && drag.o === o)) for (var y = Math.floor(o.y - 2); y <= o.y + 2; y++) for (var x = Math.floor(o.x - 2); x <= o.x + 2; x++) {
+      if (!inb(x, y)) continue; var i = idx(x, y), d = Math.hypot(x + .5 - o.x, y + .5 - o.y);
+      if (d > 1.9 || blocked[i] || Math.hypot(x + .5 - op[0], y + .5 - op[1]) < 1.3) continue;
+      if (S.fill[i] > .9 && dist[i] >= 0 && lab[i] !== o.lab) { fed = 1; flab = lab[i]; }
+    }
+    o.fed = fed;
+    if (o.st === "fill") { if (fed) { o.f += dt / o.dur; o.inlab = flab; } if (o.f >= 1) { o.f = 1; o.st = "tip"; o.ph = 0; } }
+    else if (o.st === "tip") { o.ph += dt; if (o.ph >= .6) { o.st = "pour"; o.ph = 0; tok(); } }
+    else if (o.st === "pour") { o.ph += dt; o.f = Math.max(0, 1 - o.ph / 1.0); o.lab = o.inlab || 300; o.out = 14; if (o.ph >= 1.0) { o.st = "reset"; o.ph = 0; } }
+    else if (o.st === "reset") { o.ph += dt; if (o.ph >= 1.2) { o.st = "fill"; o.ph = 0; o.f = 0; o.dur = 8 + Math.random() * 4; } }
   }
   function sim(dt) {
-    computeBlocked(); bfs(); flowing = 0;
+    computeBlocked(); computeSources(); bfs(); flowing = 0;
+    S.objs.forEach(function (o) { if (o.k === "shishi") shishiSim(o, dt); });
     var nf = S.fill.slice();
     for (var i = 0; i < N; i++) {
       var ch = channel(i) && !blocked[i];
@@ -186,6 +270,10 @@
       if (fed) { var deep = Math.max(0, -S.h[i] - 1); nf[i] = Math.min(1, S.fill[i] + dt / (1 + deep * 1.2)); flowing++; }   // ~1 tile a second; dips take a little longer (they pool)
     }
     S.fill = nf;
+    // two streams meeting: one soft chime, the first time only
+    if (!S.met) for (var a = 0; a < N && !S.met; a++) { if (S.fill[a] < .95 || !lab[a]) continue; var ax0 = a % COLS, ay0 = (a / COLS) | 0;
+      for (var b = 0; b < 4; b++) { var bx = ax0 + N8[b][0], by = ay0 + N8[b][1]; if (!inb(bx, by)) continue; var bj = idx(bx, by);
+        if (S.fill[bj] > .95 && lab[bj] && lab[bj] !== lab[a]) { S.met = 1; touched(); whisper("The streams found each other."); if (Q.sound.on) Q.sound.tone(784, .035, 2.5); break; } } }
     // moss greens along wet edges over a minute or two
     var mossGrew = false;
     for (var m = 0; m < N; m++) {
@@ -209,14 +297,14 @@
   var mossTick = 0;
 
   /* ---------- layers (garden space) ---------- */
-  var grooveC = mk(COLS * LT, ROWS * LT), mossC = mk(COLS * LT, ROWS * LT), waterC = mk(COLS * LT, ROWS * LT), mossMask = mk(COLS * LT, ROWS * LT);
+  var grooveC = mk(COLS * LT, ROWS * LT), mossC = mk(COLS * LT, ROWS * LT), waterC = mk(COLS * LT / 2, ROWS * LT / 2), waterM = mk(COLS * LT / 2, ROWS * LT / 2), mossMask = mk(COLS * LT, ROWS * LT);
   function drawGrooves() {
     var g = grooveC.getContext("2d"); g.clearRect(0, 0, grooveC.width, grooveC.height); g.lineCap = "round"; g.lineJoin = "round";
     function each(fn) { for (var i = 0; i < N; i++) if (S.t[i] || S.h[i] < -.2) fn(i, i % COLS, (i / COLS) | 0); }
     // soft trench shading: connect neighbouring groove cells
     [["rgba(150,128,92,.30)", 1.0, 0, 2], ["rgba(178,158,120,.45)", .72, 0, 1], ["rgba(255,250,236,.55)", .16, -.22, 1]].forEach(function (pass) {
       g.strokeStyle = pass[0]; g.fillStyle = pass[0];
-      each(function (i, x, y) { if (!S.t[i]) return; var w = (S.t[i] === 2 ? 1.15 : .62) * pass[1] * LT, cx = (x + .5) * LT, cy = (y + .5 + pass[2] * .3) * LT;
+      each(function (i, x, y) { if (!S.t[i] || (S.t[i] === 1 && !S.leg[i])) return; /* new rake strokes carry their own shading */ var w = (S.t[i] === 2 ? 1.15 : .62) * pass[1] * LT, cx = (x + .5) * LT, cy = (y + .5 + pass[2] * .3) * LT;
         g.lineWidth = w; g.beginPath(); g.arc(cx, cy, w / 2, 0, 7); g.fill();
         for (var k = 0; k < 8; k += (k < 4 ? 1 : 1)) { if (k === 1 || k === 3 || k === 5 || k === 7) continue; var nx = x + N8[k][0], ny = y + N8[k][1]; if (!inb(nx, ny) || !S.t[idx(nx, ny)]) continue;
           g.beginPath(); g.moveTo(cx, cy); g.lineTo((nx + .5) * LT, (ny + .5 + pass[2] * .3) * LT); g.stroke(); }
@@ -228,6 +316,7 @@
       var t = S.t[i]; if (!t) { if (S.h[i] < -.2) { var dg = g.createRadialGradient((x + .5) * LT, (y + .5) * LT, 1, (x + .5) * LT, (y + .5) * LT, LT * .9); dg.addColorStop(0, "rgba(140,118,84,.35)"); dg.addColorStop(1, "rgba(140,118,84,0)"); g.fillStyle = dg; g.fillRect(x * LT - LT, y * LT - LT, LT * 3, LT * 3); } return; }
       var a = S.d[i] / 16 * Math.PI, cx = (x + .5) * LT, cy = (y + .5) * LT; g.save(); g.translate(cx, cy); g.rotate(a);
       if (t === 1) {
+        if (!S.leg[i]) { g.restore(); return; }   // new raking draws real tine lines (below); old saves keep their stamps
         var st = art["rake-stamp-fine"];
         if (st) { g.globalAlpha = .75; g.drawImage(st, -LT * .62, -LT * .38, LT * 1.24, LT * .76); }
         else { g.strokeStyle = "rgba(160,138,100,.55)"; g.lineWidth = 1.6; for (var k2 = -1; k2 <= 1; k2++) { g.beginPath(); g.moveTo(-LT * .62, k2 * LT * .16); g.lineTo(LT * .62, k2 * LT * .16); g.stroke(); } }
@@ -238,35 +327,63 @@
       }
       g.restore();
     });
+    drawStrokes(g);
     dirty.groove = false;
+  }
+  // tine geometry: fine rake 3 tines close together, wide rake 7 tines further apart (layer px; 32 px = one tile)
+  var TINES = { 1: { n: 3, sp: 5, w: 2.4 }, 3: { n: 7, sp: 7.5, w: 3.2 } };
+  function drawStrokes(g) {
+    g.lineCap = "round"; g.lineJoin = "round";
+    S.strokes.forEach(function (k) {
+      var P = k.p, n = P.length / 2; if (n < 2) return; var T = TINES[k.k] || TINES[1], xs = [], ys = [];
+      for (var i = 0; i < n; i++) { xs.push(P[i * 2] * LT); ys.push(P[i * 2 + 1] * LT); }
+      // one Chaikin pass: curves come out as smooth as straights
+      if (n > 2) { var cx = [xs[0]], cy = [ys[0]]; for (var c = 0; c < n - 1; c++) { cx.push(xs[c] * .75 + xs[c + 1] * .25, xs[c] * .25 + xs[c + 1] * .75); cy.push(ys[c] * .75 + ys[c + 1] * .25, ys[c] * .25 + ys[c + 1] * .75); } cx.push(xs[n - 1]); cy.push(ys[n - 1]); xs = cx; ys = cy; n = xs.length; }
+      var nx = [], ny = [];
+      for (var j = 0; j < n; j++) { var a = Math.max(0, j - 1), b = Math.min(n - 1, j + 1), dx = xs[b] - xs[a], dy = ys[b] - ys[a], l = Math.hypot(dx, dy) || 1; nx.push(-dy / l); ny.push(dx / l); }
+      // light from the upper left: the upper-left wall of each groove is in shadow, the lower-right lip catches light
+      [["rgba(255,251,240,.75)", T.w * .8, .9, .9], ["rgba(120,98,66,.42)", T.w, -.7, -.7], ["rgba(176,152,112,.55)", T.w * .6, 0, 0]].forEach(function (pass) {
+        g.strokeStyle = pass[0]; g.lineWidth = pass[1];
+        for (var t = 0; t < T.n; t++) { var off = (t - (T.n - 1) / 2) * T.sp; g.beginPath();
+          for (var m = 0; m < n; m++) { var px = xs[m] + nx[m] * off + pass[2], py = ys[m] + ny[m] * off + pass[3]; m ? g.lineTo(px, py) : g.moveTo(px, py); }
+          g.stroke(); }
+      });
+    });
   }
   var mossPat = null;
   function drawMoss() {
-    var m = mossMask.getContext("2d"); m.clearRect(0, 0, mossMask.width, mossMask.height); m.filter = "blur(6px)";
+    var m = mossMask.getContext("2d"); m.clearRect(0, 0, mossMask.width, mossMask.height);
     for (var i = 0; i < N; i++) { var v = S.moss[i]; if (v < .04) continue; var x = (i % COLS + .5) * LT, y = (((i / COLS) | 0) + .5) * LT, r = LT * (.45 + v * .55);
       var gr = m.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, "rgba(0,0,0," + Math.min(.95, v * 1.1) + ")"); gr.addColorStop(1, "rgba(0,0,0,0)"); m.fillStyle = gr; m.fillRect(x - r, y - r, r * 2, r * 2); }
-    m.filter = "none";
-    var g = mossC.getContext("2d"); g.clearRect(0, 0, mossC.width, mossC.height); g.globalCompositeOperation = "source-over"; g.drawImage(mossMask, 0, 0);
+    var g = mossC.getContext("2d"); g.clearRect(0, 0, mossC.width, mossC.height); g.globalCompositeOperation = "source-over"; g.filter = "blur(6px)"; g.drawImage(mossMask, 0, 0); g.filter = "none";   // one blur for the whole mask
     g.globalCompositeOperation = "source-in"; if (!mossPat) mossPat = g.createPattern(mossTex(), "repeat"); g.fillStyle = mossPat; g.fillRect(0, 0, mossC.width, mossC.height); g.globalCompositeOperation = "source-over";
     dirty.moss = false;
   }
-  var waterPat = null;
+  var waterPat = null, wpx = new Float32Array(N), wpy = new Float32Array(N);
   function drawWater(time) {
-    var g = waterC.getContext("2d"); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, waterC.width, waterC.height); g.globalCompositeOperation = "source-over";
-    g.lineCap = "round"; g.fillStyle = "#fff"; g.strokeStyle = "#fff"; g.filter = "blur(3px)";
+    var wc = waterC.getContext("2d"), g = waterM.getContext("2d"); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, waterM.width, waterM.height); g.setTransform(.5, 0, 0, .5, 0, 0);   // half resolution: it is soft anyway, and four times cheaper g.globalCompositeOperation = "source-over";
+    g.lineCap = "round"; g.fillStyle = "#fff"; g.strokeStyle = "#fff"; g.filter = "none";
+    // smooth the cell centres (each wet cell leans toward its wet neighbours) so diagonal streams read as curves, not stairs
+    for (var s1 = 0; s1 < N; s1++) { if (S.fill[s1] < .02) continue; var sx = s1 % COLS, sy = (s1 / COLS) | 0, ax = (sx + .5) * 2, ay = (sy + .5) * 2, wn = 2;
+      for (var s2 = 0; s2 < 8; s2++) { var tx = sx + N8[s2][0], ty = sy + N8[s2][1]; if (inb(tx, ty) && S.fill[idx(tx, ty)] >= .02) { ax += tx + .5; ay += ty + .5; wn++; } }
+      wpx[s1] = ax / wn * LT; wpy[s1] = ay / wn * LT; }
     for (var i = 0; i < N; i++) {
-      var f = S.fill[i]; if (f < .02) continue; var x = i % COLS, y = (i / COLS) | 0, cx = (x + .5) * LT, cy = (y + .5) * LT, deep = Math.max(0, -S.h[i] - 1);
+      var f = S.fill[i]; if (f < .02) continue; var x = i % COLS, y = (i / COLS) | 0, cx = wpx[i], cy = wpy[i], deep = Math.max(0, -S.h[i] - 1);
       g.globalAlpha = Math.min(1, .35 + f * .65);
       var r = LT * (.34 + deep * .5) * (.4 + .6 * f); g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill();
       for (var k = 0; k < 8; k++) { var nx = x + N8[k][0], ny = y + N8[k][1]; if (!inb(nx, ny)) continue; var j = idx(nx, ny); if (S.fill[j] < .02) continue;
         var fj = S.fill[j], reach;
         if (f >= .999 && fj >= .999) { if (j < i) continue; reach = 1; }
         else if (fj >= .999) reach = f; else continue;   // a filling cell grows out of its full neighbour
-        g.lineWidth = LT * .56; g.beginPath(); g.moveTo((nx + .5) * LT, (ny + .5) * LT); g.lineTo((nx + .5) * LT + (cx - (nx + .5) * LT) * reach, (ny + .5) * LT + (cy - (ny + .5) * LT) * reach); g.stroke(); }
+        if (k >= 4 && S.fill[idx(nx, y)] >= .02 && S.fill[idx(x, ny)] >= .02) continue;   // skip the diagonal across an already-wet corner
+        g.lineWidth = LT * .6; g.beginPath(); g.moveTo(wpx[j], wpy[j]); g.lineTo(wpx[j] + (cx - wpx[j]) * reach, wpy[j] + (cy - wpy[j]) * reach); g.stroke(); }
     }
-    g.filter = "none"; g.globalAlpha = 1; g.globalCompositeOperation = "source-in";
+    g.globalAlpha = 1;
+    // blur the whole mask once (blurring every shape separately was what made it slow)
+    wc.setTransform(1, 0, 0, 1, 0, 0); wc.globalCompositeOperation = "source-over"; wc.clearRect(0, 0, waterC.width, waterC.height); wc.filter = "blur(2px)"; wc.drawImage(waterM, 0, 0); wc.filter = "none";
+    g = wc; g.setTransform(.5, 0, 0, .5, 0, 0); g.globalCompositeOperation = "source-in";
     if (!waterPat) waterPat = g.createPattern(waterTex(), "repeat");
-    var off = Q.still() ? 0 : (time / 1000 * 6) % 512; g.translate(off, off * .4); g.fillStyle = waterPat; g.fillRect(-off, -off, waterC.width + 512, waterC.height + 512);
+    var off = Q.still() ? 0 : (time / 1000 * 6) % 512; g.translate(off, off * .4); g.fillStyle = waterPat; g.fillRect(-off, -off, COLS * LT + 512, ROWS * LT + 512);
     g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = "source-over";
   }
 
@@ -284,7 +401,7 @@
   /* ---------- drawing ---------- */
   var sandPat = null, cursor = { x: 5.5, y: 5.5, show: false }, hand = null, drag = null, rakeDown = false, kbRake = false;
   function draw(time) {
-    if (dirty.groove) drawGrooves(); if (dirty.moss) drawMoss(); drawWater(time);
+    if (dirty.groove) drawGrooves(); if (dirty.moss && (time - (draw.mt || -1e9) > 800 || dirty.mossNow)) { draw.mt = time; dirty.mossNow = false; drawMoss(); } drawWater(time);
     var g = ctx; g.setTransform(L.dpr, 0, 0, L.dpr, 0, 0);
     var bg = g.createLinearGradient(0, 0, 0, L.H); bg.addColorStop(0, "#5f7650"); bg.addColorStop(1, "#4c6042"); g.fillStyle = bg; g.fillRect(0, 0, L.W, L.H);
     g.translate(L.ox, L.oy); g.scale(L.s, L.s);
@@ -293,17 +410,20 @@
     g.save(); g.fillStyle = PAL.sand; g.fillRect(L.R[0] - 30, L.R[1] - 30, L.R[2] + 60, L.R[3] + 60); g.translate(L.R[0], L.R[1]); g.scale(.75, .75); g.fillStyle = sandPat; g.fillRect(-40, -40, L.R[2] / .75 + 80, L.R[3] / .75 + 80); g.restore();
     // garden-space layers
     g.save(); g.translate(L.gx0, L.gy0); if (L.tr) g.transform(0, 1, 1, 0, 0, 0); g.scale(L.T / LT, L.T / LT);
-    g.drawImage(mossC, 0, 0); g.drawImage(grooveC, 0, 0); g.globalAlpha = .92; g.drawImage(waterC, 0, 0); g.globalAlpha = 1;
+    g.drawImage(mossC, 0, 0); g.drawImage(grooveC, 0, 0); g.globalAlpha = .92; g.drawImage(waterC, 0, 0, COLS * LT, ROWS * LT); g.globalAlpha = 1;
     g.restore();
+    drawFootprints(g, time);
     // objects, back to front
     var objs = S.objs.slice().sort(function (a, b) { var pa = g2d(a.x, a.y), pb = g2d(b.x, b.y); return (KINDS[a.k].floats ? 1 : 0) - (KINDS[b.k].floats ? 1 : 0) || pa[1] - pb[1]; });
     var bob = Q.still() ? 0 : Math.sin(time / 1400);
     objs.forEach(function (o) { var K = KINDS[o.k], p = g2d(o.x, o.y), sp = sprite(o.k), lift = drag && drag.o === o ? 1.06 : 1;
       if (K.glow) { g.globalAlpha = .55 + (Q.still() ? 0 : .08 * Math.sin(time / 2600)); var gs = glowSprite(); g.drawImage(gs, p[0] - 96, p[1] - 96, 192, 192); g.globalAlpha = 1; }
+      if (o.k === "shishi") { drawShishi(g, o, p, lift, time); return; }
       g.save(); g.translate(p[0], p[1] + (K.floats && o.float ? bob * 2 : 0)); if (K.floats && o.float && !Q.still()) g.rotate(Math.sin(time / 2100 + o.id) * .08);
       g.drawImage(sp, -K.w / 2 * lift, -K.h / 2 * lift, K.w * lift, K.h * lift); g.restore(); });
     // the frame on top (inner sand area is transparent)
     g.drawImage(frameImg(), 0, 0, L.DW, L.DH);
+    drawBin(g, time); drawWanderer(g, time);
     // keyboard cursor + held item
     if (hand) { var hp = g2d(hand.x, hand.y), K2 = KINDS[hand.k]; g.globalAlpha = .7; g.drawImage(sprite(hand.k), hp[0] - K2.w / 2, hp[1] - K2.h / 2, K2.w, K2.h); g.globalAlpha = 1; }
     if (cursor.show) { var cp = g2d(cursor.x, cursor.y); g.strokeStyle = kbRake ? PAL.moss : PAL.ink; g.lineWidth = 4; g.setLineDash(kbRake ? [] : [10, 8]); g.beginPath(); g.arc(cp[0], cp[1], L.T * .9, 0, 7); g.stroke(); g.setLineDash([]); }
@@ -320,24 +440,29 @@
   cv.addEventListener("pointerdown", function (e) {
     if (pid !== null) return; pid = e.pointerId; try { cv.setPointerCapture(e.pointerId); } catch (x) {}
     cursor.show = false; var gp = scr2g(e.clientX, e.clientY);
+    if (W && hitWanderer(gp)) { pid = null; wandererTap(); return; }
     if (hand) { placeHand(gp); pid = null; return; }
     var o = hit(gp[0], gp[1]);
-    if (o) { remember(); drag = { o: o, dx: o.x - gp[0], dy: o.y - gp[1], tx: o.x, ty: o.y, sx: o.x, sy: o.y }; return; }
-    remember(); rakeDown = true; rakeLine.started = false; lastG = gp; rakeLine(gp, gp, head); sound.rake();
+    if (o) { remember(); drag = { o: o, dx: o.x - gp[0], dy: o.y - gp[1], tx: o.x, ty: o.y, sx: o.x, sy: o.y, gx: gp[0], gy: gp[1], moved: 0 }; return; }
+    if (inBin(gp[0], gp[1])) { pid = null; whisper("The compost bin. Drag anything you don't need onto it."); return; }
+    remember(); rakeDown = true; rakeLine.started = false; lastG = gp; rakeT = gp; rakeLine(gp, gp, head); sound.rake();
   });
   cv.addEventListener("pointermove", function (e) {
     if (e.pointerId !== pid) return; var gp = scr2g(e.clientX, e.clientY);
-    if (drag) { drag.tx = clampX(gp[0] + drag.dx); drag.ty = clampY(gp[1] + drag.dy); drag.px = e.clientX; drag.py = e.clientY; return; }
-    if (rakeDown) { rakeLine(lastG, gp, head); lastG = gp; }
+    if (drag) { drag.tx = clampX(gp[0] + drag.dx); drag.ty = clampY(gp[1] + drag.dy); drag.px = e.clientX; drag.py = e.clientY; drag.moved = Math.max(drag.moved, Math.hypot(gp[0] - drag.gx, gp[1] - drag.gy)); return; }
+    if (rakeDown) rakeT = gp;
   });
   function up(e) {
     if (e.pointerId !== pid) return; pid = null;
     if (drag) { endDrag(overTray(e.clientX, e.clientY)); }
-    rakeDown = false;
+    if (rakeDown && rakeT) { rakeLine(lastG, rakeT, head); }
+    rakeDown = false; rakeT = null;
   }
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
   function endDrag(toTray) {
     var o = drag.o, K = KINDS[o.k];
+    if (inBin(drag.tx, drag.ty) || inBin(o.x, o.y)) { compost(o); drag = null; return; }
+    if (o.k === "shishi" && drag.moved != null && drag.moved < .3) { o.x = drag.sx; o.y = drag.sy; o.r = ((o.r || 0) + 1) & 7; hist.pop(); drag = null; whisper("It will pour that way now."); touched(); return; }
     if (toTray && !K.stone) { S.objs = S.objs.filter(function (x) { return x !== o; }); whisper("Back on the shelf."); }
     else if (K.stone) {   // a stone leaves a small dent where it sat
       if (Math.hypot(drag.tx - drag.sx, drag.ty - drag.sy) > .6) { var cx = Math.floor(drag.sx), cy = Math.floor(drag.sy); if (inb(cx, cy)) { var i = idx(cx, cy); if (!S.t[i]) S.h[i] = Math.min(S.h[i], -.7); } dirty.groove = true; }
@@ -346,6 +471,7 @@
   }
   // stones ease toward where you pull them; heavy ones a little slower
   function moveObjs(dt) {
+    binOpen += ((drag && inBin(drag.tx, drag.ty) ? 1 : 0) - binOpen) * Math.min(1, dt * 6);
     if (drag) { var o = drag.o, K = KINDS[o.k], k = K.stone ? (6 - K.heavy * 3.6) : 12; o.x += (drag.tx - o.x) * Math.min(1, dt * k); o.y += (drag.ty - o.y) * Math.min(1, dt * k); }
     S.objs.forEach(function (b) { if (b.k === "boat" && b !== (drag && drag.o) && (b.vx || b.vy)) { b.x = clampX(b.x + b.vx * dt); b.y = clampY(b.y + b.vy * dt); } });
   }
@@ -354,7 +480,11 @@
   var ghost = null;
   function placeHand(gp) {
     if (!hand) return; var x = clampX(gp ? gp[0] : hand.x), y = clampY(gp ? gp[1] : hand.y);
-    remember(); S.objs.push({ id: uid++, k: hand.k, x: x, y: y }); hand = null; trayOn(null); touched();
+    var K = KINDS[hand.k];
+    if (K.source && S.objs.filter(function (o) { return KINDS[o.k].source; }).length >= MAX_EXTRA_SOURCES) { whisper("The garden has enough springs for now. You can move one, or compost one."); hand = null; trayOn(null); return; }
+    if (inBin(x, y)) { hand = null; trayOn(null); return; }
+    remember(); S.objs.push({ id: uid++, k: hand.k, x: x, y: y, r: 0 }); hand = null; trayOn(null); touched();
+    if (K.source) whisper("A new spring. Rake a groove from it to join the water."); else if (hand === null && x && K.blocks) whisper("Lead water to it. Tap it to turn where it pours.");
   }
   function trayOn(kind) { document.querySelectorAll(".mg-item").forEach(function (b) { b.classList.toggle("on", b.dataset.kind === kind); }); }
   document.querySelectorAll(".mg-item").forEach(function (b) {
@@ -384,7 +514,7 @@
   /* ---------- tools ---------- */
   function setHead(hd, quiet) {
     head = hd; document.querySelectorAll(".mg-tool").forEach(function (b) { var on = +b.dataset.head === hd; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
-    if (!quiet) { whisper(hd === 1 ? "Fine lines." : hd === 2 ? "Wide swirls." : "Smooth: brush lines away."); touched(); }
+    if (!quiet) { whisper(hd === 1 ? "The small rake: fine, close lines." : hd === 3 ? "The wide rake: broad, even lines." : hd === 2 ? "Wide swirls." : "Smooth: brush lines away."); touched(); }
   }
   document.querySelectorAll(".mg-tool").forEach(function (b) { b.addEventListener("click", function () { setHead(+b.dataset.head); }); });
   document.getElementById("mg-undo").addEventListener("click", undo);
@@ -392,7 +522,7 @@
   function fresh() {
     Q.card({ title: "Smooth it all out?", text: "The stones go back to their places and the sand is raked smooth. You can undo this.", buttons: [
       { label: "Keep my garden", fn: function () {} },
-      { label: "Smooth it out", primary: true, id: "mg-fresh-yes", fn: function () { remember(); freshState(); touched(); whisper("A fresh garden."); } }] });
+      { label: "Smooth it out", primary: true, id: "mg-fresh-yes", fn: function () { remember(); freshState(); dirty.mossNow = true; touched(); whisper("A fresh garden."); } }] });
   }
 
   /* ---------- keyboard: arrow cursor, Space to pick up / put down, Enter to lower the rake ---------- */
@@ -401,7 +531,7 @@
     var tag = (e.target.tagName || "").toLowerCase(); if (tag === "input") return;
     var k = e.key, mv = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[k];
     if ((k === "z" || k === "Z") && !e.altKey) { e.preventDefault(); undo(); return; }
-    if (k === "1" || k === "2" || k === "3") { setHead(k === "1" ? 1 : k === "2" ? 2 : 0); return; }
+    if (k === "1" || k === "2" || k === "3" || k === "4") { setHead({ 1: 1, 2: 3, 3: 2, 4: 0 }[k]); return; }
     if (e.target !== cv && e.target !== document.body) return;
     if (mv) {
       e.preventDefault(); cursor.show = true; var sx = mv[0] * .5, sy = mv[1] * .5, gx = L.tr ? sy : sx, gy = L.tr ? sx : sy;   // screen arrows -> garden directions
@@ -420,7 +550,7 @@
       return;
     }
     if (k === "Enter") { e.preventDefault(); cursor.show = true; kbRake = !kbRake; if (kbRake) { remember(); rakeLine.started = false; rakeLine([cursor.x, cursor.y], [cursor.x, cursor.y], head); } whisper(kbRake ? "Rake down. Move with the arrow keys." : "Rake up."); }
-    if (k === "Delete" || k === "Backspace") { if (drag && !KINDS[drag.o.k].stone) { var dd2 = drag; drag = null; S.objs = S.objs.filter(function (x) { return x !== dd2.o; }); touched(); whisper("Back on the shelf."); } }
+    if (k === "Delete" || k === "Backspace") { if (drag) { var dd2 = drag; drag = null; compost(dd2.o); } }
   });
 
   /* ---------- whispers, soft controls, time, sound ---------- */
@@ -431,9 +561,10 @@
   function elapsed() { return (performance.now() - session.start) * Q.timeScale; }
   document.getElementById("mg-time").addEventListener("click", function () { whisper(Q.timeLeftSentence(session.len ? Math.max(0, session.len * 60000 - elapsed()) : null)); });
   var sound = { trickle: null,
-    toggle: function () { var on = !Q.sound.on; if (on && !this.trickle) { this.trickle = Q.sound.noise(900); this.wind = Q.sound.noise(320); if (this.wind) Q.sound.ramp(this.wind.gain, .12, 3); } Q.sound.set(on);
+    toggle: function () { var on = !Q.sound.on; if (on && !this.trickle) { this.trickle = Q.sound.noise(900); this.wind = Q.sound.noise(320); this.hush = Q.sound.noise(1600); if (this.wind) Q.sound.ramp(this.wind.gain, .12, 3); } Q.sound.set(on);
       var b = document.getElementById("mg-sound"); b.textContent = "Sound: " + (on ? "on" : "off"); b.setAttribute("aria-pressed", on); },
-    tick: function () { if (this.trickle && Q.sound.on) Q.sound.ramp(this.trickle.gain, Math.min(.35, flowing * .05 + (S.fill[0] ? .04 : 0)), 2); },
+    tick: function () { var sh = S.objs.some(function (o) { return o.k === "shishi" && o.fed && o.st === "fill"; }); if (this.trickle && Q.sound.on) Q.sound.ramp(this.trickle.gain, Math.min(.35, flowing * .05 + (S.fill[0] ? .04 : 0) + (sh ? .05 : 0)), 2); },
+    hush: null,
     rake: function () { if (Q.sound.on && Math.random() < .3) Q.sound.tone(196 + Math.random() * 60, .02, 2); } };
   document.getElementById("mg-sound").addEventListener("click", function () { sound.toggle(); });
   function endCard() {
@@ -449,12 +580,220 @@
   function frame(now) {
     var dt = Math.min(.1, (now - last) / 1000) * Q.timeScale; last = now;
     acc += dt; while (acc >= .1) { sim(.1); acc -= .1; }
-    moveObjs(Math.min(.1, dt));
+    moveObjs(Math.min(.1, dt)); rakeFollow(Math.min(.1, dt)); wanderUpdate(Math.min(.1, dt)); puffUpdate(Math.min(.1, dt));
     sTick += dt; if (sTick > 1) { sTick = 0; sound.tick(); }
     if (session.len && !session.ended && elapsed() >= session.len * 60000) endCard();
     draw(now); requestAnimationFrame(frame);
   }
   window.addEventListener("resize", function () { layout(); });
+
+  /* ---------- the rake follows the pointer softly (lerp ~0.2) so lines curve smoothly ---------- */
+  var rakeT = null, hushV = 0;
+  function rakeFollow(dt) {
+    var sp = 0;
+    if (rakeDown && rakeT && lastG) { var k = 1 - Math.pow(.8, dt * 60), nx = lastG[0] + (rakeT[0] - lastG[0]) * k, ny = lastG[1] + (rakeT[1] - lastG[1]) * k;
+      sp = Math.hypot(nx - lastG[0], ny - lastG[1]) / Math.max(dt, .001); if (sp > .02) { rakeLine(lastG, [nx, ny], head); lastG = [nx, ny]; } }
+    // sand hush: volume follows drag speed, fades about 0.3 s after you stop
+    var c = Q.sound.ctx && Q.sound.on && sound.hush ? Q.sound.ctx() : null;
+    if (c) { var v = Math.min(.18, sp * .02); if (Math.abs(v - hushV) > .005) { hushV = v; sound.hush.gain.gain.setTargetAtTime(v, c.currentTime, v > 0 ? .08 : .1); } }
+  }
+  /* ---------- small percussive sounds (only when sound is on) ---------- */
+  function knock(freq, vol, len) {
+    if (!Q.sound.on) return; var c = Q.sound.ctx(), m = Q.sound.master && Q.sound.master(); if (!c || !m) return;
+    var o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter(), t = c.currentTime; o.type = "triangle";
+    o.frequency.setValueAtTime(freq * 1.25, t); o.frequency.exponentialRampToValueAtTime(freq, t + .05); f.type = "lowpass"; f.frequency.value = freq * 3;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + len);
+    o.connect(f); f.connect(g); g.connect(m); o.start(t); o.stop(t + len + .05);
+  }
+  var tokOn = true; try { tokOn = localStorage.getItem("gw-mg-tok") !== "0"; } catch (e) {}
+  function tok() { if (tokOn) knock(330, .05, .35); }   // warm, low, quieter than the ambience
+  /* ---------- compost bin ---------- */
+  function compost(o) {
+    var p = g2d(o.x, o.y); S.objs = S.objs.filter(function (x) { return x !== o; });
+    tumble = { k: o.k, x: p[0], y: p[1], t: 0 }; binOpen = 1; dirty.groove = true; touched();
+    setTimeout(function () { knock(110, .09, .5); var b = g2d(BIN.x, BIN.y), n = Q.still() ? 4 : 10;
+      for (var i = 0; i < n; i++) { var a = -Math.PI / 2 + (Math.random() - .5) * 2.2; puffs.push({ x: b[0], y: b[1] - L.T * .4, vx: Math.cos(a) * (14 + Math.random() * 20), vy: Math.sin(a) * (18 + Math.random() * 24), t: 0, c: i % 3 ? "rgba(214,199,168," : "rgba(110,139,78," }); } }, Q.still() ? 0 : 450);
+    whisper("Back to the earth.");
+  }
+  function puffUpdate(dt) {
+    if (tumble) { tumble.t += dt / (Q.still() ? .3 : .5); if (tumble.t >= 1) tumble = null; }
+    puffs.forEach(function (p) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 10 * dt; }); puffs = puffs.filter(function (p) { return p.t < 1.4; });
+    if (!drag && !tumble) binOpen += (0 - binOpen) * Math.min(1, dt * 3);
+  }
+  function drawBin(g, time) {
+    var b = g2d(BIN.x, BIN.y), u = L.T * 1.15;
+    g.save(); g.translate(b[0], b[1]);
+    softShadow(g, 6, 9, u * 1.15, u * .9, .3);
+    var wg = g.createLinearGradient(-u, -u, u, u); wg.addColorStop(0, "#a7845a"); wg.addColorStop(1, "#7a5b3b");
+    g.fillStyle = wg; g.beginPath(); g.roundRect(-u, -u * .75, u * 2, u * 1.6, u * .25); g.fill();
+    g.strokeStyle = "rgba(62,48,30,.45)"; g.lineWidth = 3; for (var i = -2; i <= 2; i++) { g.beginPath(); g.moveTo(-u * .9, i * u * .28 + u * .05); g.lineTo(u * .9, i * u * .28 + u * .05); g.stroke(); }
+    // dark soil and a leaf inside, seen when the lid lifts
+    blob(g, 0, -u * .2, u * .78, u * .42, "#5b4a35", 8); blob(g, -u * .3, -u * .3, u * .2, u * .1, PAL.moss, 4); blob(g, u * .25, -u * .15, u * .16, u * .08, PAL.peach, 6);
+    // the lid hinges at the back and lifts while something is held over the bin
+    var lift = binOpen; g.save(); g.translate(0, -u * .75); g.scale(1, Math.max(.12, 1 - lift * .85));
+    var lg = g.createLinearGradient(0, 0, 0, u * 1.5); lg.addColorStop(0, "#8f6c46"); lg.addColorStop(1, "#6f5235");
+    g.fillStyle = lg; g.beginPath(); g.roundRect(-u * 1.05, 0, u * 2.1, u * 1.5, u * .25); g.fill();
+    g.fillStyle = "rgba(255,240,210,.25)"; g.fillRect(-u * .9, u * .12, u * 1.8, 4);
+    blob(g, -u * .55, u * .2, u * .32, u * .14, PAL.moss, 12); blob(g, -u * .3, u * .15, u * .22, u * .1, "#86a364", 13);
+    g.restore();
+    // a tiny sprout on the lid so it reads as compost, not trash
+    if (lift < .5) { g.strokeStyle = "#5f7d43"; g.lineWidth = 3; g.lineCap = "round"; g.beginPath(); g.moveTo(u * .45, -u * .05); g.quadraticCurveTo(u * .5, -u * .35, u * .4, -u * .5); g.stroke(); blob(g, u * .3, -u * .5, u * .14, u * .07, "#7FA65A", 3); blob(g, u * .55, -u * .42, u * .13, u * .07, "#7FA65A", 9); }
+    g.restore();
+    if (tumble) { var K = KINDS[tumble.k], t = tumble.t, e = t * t, x = tumble.x + (b[0] - tumble.x) * e, y = tumble.y + (b[1] - u * .3 - tumble.y) * e - Math.sin(t * Math.PI) * L.T * (Q.still() ? 0 : 1);
+      g.save(); g.globalAlpha = 1 - t * .8; g.translate(x, y); if (!Q.still()) g.rotate(t * 2.2); var sc = 1 - t * .7; g.drawImage(sprite(tumble.k), -K.w / 2 * sc, -K.h / 2 * sc, K.w * sc, K.h * sc); g.restore(); }
+    puffs.forEach(function (p) { var a = Math.max(0, 1 - p.t / 1.4) * .7; g.fillStyle = p.c + a + ")"; g.beginPath(); g.arc(p.x, p.y, 4 + p.t * 9, 0, 7); g.fill(); });
+  }
+  /* ---------- shishi-odoshi, painted live so it can tip ---------- */
+  function softShadow(g, x, y, rx, ry, a) {   // a blurred-looking shadow without a per-frame canvas filter
+    g.save(); g.translate(x, y); g.scale(1, ry / rx); var sg = g.createRadialGradient(0, 0, 0, 0, 0, rx); sg.addColorStop(0, "rgba(62,74,58," + a + ")"); sg.addColorStop(.6, "rgba(62,74,58," + a * .6 + ")"); sg.addColorStop(1, "rgba(62,74,58,0)");
+    g.fillStyle = sg; g.beginPath(); g.arc(0, 0, rx, 0, 7); g.fill(); g.restore();
+  }
+  function ease(t) { return t * t; } function easeOut(t) { return 1 - (1 - t) * (1 - t); }
+  function drawShishi(g, o, p, lift, time) {
+    var op = shOut(o), q = g2d(op[0], op[1]), ang = Math.atan2(q[1] - p[1], q[0] - p[0]), u = L.T, still = Q.still();
+    var tilt = 0; if (!still) { if (o.st === "tip") tilt = ease(o.ph / .6); else if (o.st === "pour") tilt = 1; else if (o.st === "reset") tilt = 1 - easeOut(o.ph / 1.2); }
+    // a stone basin where the water lands
+    softShadow(g, q[0] + 4, q[1] + 6, u * .8, u * .65, .25);
+    var sg = g.createRadialGradient(q[0] - 6, q[1] - 6, 2, q[0], q[1], u * .7); sg.addColorStop(0, "#c9c4d4"); sg.addColorStop(1, "#8a8597"); blob(g, q[0], q[1], u * .62, u * .5, sg, 17);
+    var basinW = o.out > 0 ? Math.min(1, o.out / 3) : 0; blob(g, q[0], q[1], u * .38, u * .3, "rgba(127,183,176," + (.35 + basinW * .6) + ")", 19);
+    g.save(); g.translate(p[0], p[1]); g.scale(lift, lift);
+    softShadow(g, 5, 8, u * 1.45, u * .65, .25);
+    g.rotate(ang);
+    // the two posts and the pivot pin
+    g.fillStyle = "#6f5235"; g.beginPath(); g.roundRect(-u * .12, -u * .62, u * .24, u * .3, 4); g.roundRect(-u * .12, u * .32, u * .24, u * .3, 4); g.fill();
+    // the tube: the pour end dips down (looks longer and lower), the back end lifts
+    var Lh = u * 1.4, dip = tilt * u * .18; g.save(); g.translate(dip, tilt * 3); g.scale(1 + tilt * .06, 1);
+    bamboo(g, -Lh, -u * .26, Lh * 2, u * .52);
+    // water in the cup: fills slowly
+    var f = o.f || 0; if (f > .02) { g.fillStyle = "rgba(127,183,176," + (.4 + f * .5) + ")"; g.beginPath(); g.ellipse(Lh - u * .05, 0, u * .12, u * .32 * Math.min(1, f + .2), 0, 0, 7); g.fill(); }
+    g.restore();
+    g.fillStyle = "#3E4A3A"; g.beginPath(); g.arc(0, 0, u * .08, 0, 7); g.fill();
+    g.restore();
+    // the pour: a soft ribbon from the lip to the basin
+    var pr = 0; if (o.st === "pour") pr = still ? .6 : Math.sin(Math.min(1, o.ph / 1.0) * Math.PI); else if (still && o.out > 12) pr = .5;
+    if (pr > .02) { var lx = p[0] + Math.cos(ang) * u * 1.3, ly = p[1] + Math.sin(ang) * u * 1.3; g.strokeStyle = "rgba(190,228,222," + pr * .85 + ")"; g.lineWidth = u * .16; g.lineCap = "round";
+      g.beginPath(); g.moveTo(lx, ly); g.quadraticCurveTo((lx + q[0]) / 2, (ly + q[1]) / 2 + u * .2, q[0], q[1]); g.stroke(); }
+    // the intake: a thin bamboo pipe dribbles when water reaches it
+    if (o.fed && o.st === "fill" && !still) { var ix = p[0] + Math.cos(ang) * u * 1.1, iy = p[1] + Math.sin(ang) * u * 1.1, dr = (time / 300) % 1; g.fillStyle = "rgba(200,232,226,.8)"; g.beginPath(); g.arc(ix, iy - u * .3 + dr * u * .3, 2.5, 0, 7); g.fill(); }
+  }
+  /* ---------- the wanderer ---------- */
+  var W = null, prints = [], TAP_LINES = ["Lovely spot.", "I like where the water goes.", "The moss is soft here.", "Thank you for this garden.", "I could sit here all day."];
+  function cover(x, y) {   // the plank or stepping stone under a garden point, if any
+    var p = g2d(x, y);
+    for (var i = S.objs.length - 1; i >= 0; i--) { var o = S.objs[i]; if (o.k !== "plank" && o.k !== "step") continue; var K = KINDS[o.k], q = g2d(o.x, o.y);
+      if (Math.abs(p[0] - q[0]) < K.w * .46 && Math.abs(p[1] - q[1]) < K.h * .42) return o; }
+    return null;
+  }
+  function walkable(cx, cy) {
+    if (!inb(cx, cy)) return false; var i = idx(cx, cy); if (blocked[i] || inBin(cx + .5, cy + .5)) return false;
+    if (S.fill[i] > .4 || isSource(i)) return !!cover(cx + .5, cy + .5);
+    return !S.objs.some(function (o) { return (o.k === "lantern" || o.k === "statue" || o.k === "spout" || o.k === "barrel") && Math.hypot(o.x - cx - .5, o.y - cy - .5) < .7; });
+  }
+  function findPath(sx, sy, goal) {   // BFS over cells (8 ways, no corner cutting); returns cell centres
+    var s0 = idx(sx, sy), prev = new Int32Array(N).fill(-2); prev[s0] = -1; var q = [s0], h = 0;
+    while (h < q.length) { var i = q[h++]; if (goal(i)) { var out = []; while (i >= 0) { out.unshift([i % COLS + .5, ((i / COLS) | 0) + .5]); i = prev[i]; } return out; }
+      var x = i % COLS, y = (i / COLS) | 0;
+      for (var k = 0; k < 8; k++) { var nx = x + N8[k][0], ny = y + N8[k][1]; if (!walkable(nx, ny)) continue; var j = idx(nx, ny); if (prev[j] !== -2) continue;
+        if (k >= 4 && (!walkable(nx, y) || !walkable(x, ny))) continue; prev[j] = i; q.push(j); } }
+    return null;
+  }
+  function spots() {   // nice places to visit: bridges, stones, lanterns, ferns, the shishi-odoshi, the water's edge
+    var out = [];
+    S.objs.forEach(function (o) { var nice = { plank: 4, step: 3, lantern: 3, fern: 2, moss: 1, statue: 2, shishi: 3, spout: 2, barrel: 2 }[o.k]; if (!nice) return;
+      out.push({ x: o.x, y: o.y, on: o.k === "plank" || o.k === "step", w: nice, k: o.k, id: o.id }); });
+    for (var t = 0; t < 30; t++) { var i = (Math.random() * N) | 0; if (S.fill[i] > .8) { out.push({ x: i % COLS + .5, y: ((i / COLS) | 0) + .5, on: false, w: 2, k: "water", id: "w" + i }); break; } }
+    return out;
+  }
+  function sendWanderer() {
+    if (W) { if (W.mode !== "home") { W.mode = "home"; W.path = null; whisper("The wanderer waves and strolls home."); } setWanderBtn(); return; }
+    computeBlocked(); var start = null;
+    for (var y = ROWS - 1; y >= 0 && !start; y--) for (var x = 0; x < 6 && !start; x++) if (walkable(x, y)) start = [x, y];
+    if (!start) for (var i = 0; i < N && !start; i++) if (walkable(i % COLS, (i / COLS) | 0)) start = [i % COLS, (i / COLS) | 0];
+    if (!start) { whisper("There is no room to walk just now."); return; }
+    W = { x: start[0] + .5, y: start[1] + .5, home: start.slice(), mode: "visit", path: null, pause: 1.5, face: 1, hop: 0, hopH: 0, seen: {}, visits: 0, max: Q.still() ? 2 : 4 + ((Math.random() * 2) | 0), pp: 0, look: 0, fade: 0, cov: null, joy: 0, sit: 0 };
+    whisper("A wanderer has come to see your garden."); setWanderBtn();
+  }
+  function setWanderBtn() { var b = document.getElementById("mg-wander"); if (b) b.textContent = W && W.mode !== "home" ? "Wave goodbye" : "Send the wanderer"; }
+  function hitWanderer(gp) { return W && W.fade < .5 && Math.hypot(gp[0] - W.x, gp[1] - W.y) < .8; }
+  function wandererTap() { W.joy = 1.2; if (!W.hop) { W.hop = .4; W.hopH = .25; W.hopT = .4; } whisper(TAP_LINES[(Math.random() * TAP_LINES.length) | 0]); if (Q.sound.on) Q.sound.tone(523, .02, 1.2); }
+  function planNext() {
+    var cx = Math.floor(W.x), cy = Math.floor(W.y);
+    if (W.mode === "home") { var hx = W.home[0], hy = W.home[1]; W.path = findPath(cx, cy, function (i) { return i === idx(hx, hy); }) || [[W.x, W.y]]; W.leaving = true; return; }
+    var cand = spots().filter(function (s) { return !W.seen[s.id]; });
+    if (W.visits >= W.max || !cand.length) {   // end by sitting somewhere pretty a while
+      if (W.mode !== "sit") { W.mode = "sit"; cand = cand.length ? cand : spots(); cand.sort(function (a, b) { return b.w - a.w; }); }
+      else { W.mode = "home"; planNext(); return; }
+    }
+    cand.sort(function () { return Math.random() - .5; }); cand.sort(function (a, b) { return b.w - a.w + (Math.random() - .5) * 3; });
+    for (var c = 0; c < cand.length; c++) { var s = cand[c], path = findPath(cx, cy, function (i) { var x = i % COLS + .5, y = ((i / COLS) | 0) + .5, d = Math.hypot(x - s.x, y - s.y); return s.on ? d < .8 : d < 1.6 && d > .6; });
+      if (path) { W.path = path; W.spot = s; W.seen[s.id] = 1; return; } W.seen[s.id] = 1; }
+    // nothing reachable: a gentle turn and a short amble, never looks stuck
+    W.face = -W.face; W.pause = 1.5; var amb = findPath(cx, cy, function (i) { return Math.hypot(i % COLS - cx, ((i / COLS) | 0) - cy) > 3 && Math.random() < .15; });
+    W.path = amb; W.spot = null; if (W.mode === "sit" && !amb) W.mode = "visit"; if (!amb) W.visits++;
+  }
+  function wanderUpdate(dt) {
+    prints = prints.filter(function (p) { return performance.now() - p.t < 20000; });
+    if (!W) return; var still = Q.still();
+    if (W.joy > 0) W.joy -= dt;
+    if (W.hop > 0) { W.hop = Math.max(0, W.hop - dt); }
+    if (W.leaving && !W.path) { W.fade += dt / 1.5; if (W.fade >= 1) { W = null; setWanderBtn(); } return; }
+    if (W.pause > 0) { W.pause -= dt; W.look += dt; if (!still && W.look > 1.3) { W.look = 0; W.face = -W.face; } return; }
+    if (!W.path) { planNext(); return; }
+    var tgt = W.path[0]; if (!tgt) { W.path = null; return; }
+    var dx = tgt[0] - W.x, dy = tgt[1] - W.y, d = Math.hypot(dx, dy), sp = (still ? 1.0 : 1.2) * dt;
+    var gp = g2d(tgt[0], tgt[1]), wp = g2d(W.x, W.y); if (Math.abs(gp[0] - wp[0]) > 1) W.face = gp[0] > wp[0] ? 1 : -1;
+    if (d <= sp) { W.x = tgt[0]; W.y = tgt[1]; W.path.shift();
+      var cv2 = cover(W.x, W.y); if (cv2 !== W.cov) { if (!still) { W.hop = .5; W.hopT = .5; W.hopH = .35; } W.cov = cv2; }   // 0.5 s hop onto or off a stone or bridge
+      if (!W.path.length) { W.path = null;
+        if (W.leaving) return;
+        if (W.mode === "sit") { W.sitting = true; W.pause = still ? 30 : 25; W.mode = "sit"; W.visits = 99; W.spot = null; W.seen = W.seen; W.sitDone = true; return; }
+        W.visits++; W.pause = 2 + Math.random() * 2; W.look = 0;
+        if (W.spot) { var sp2 = g2d(W.spot.x, W.spot.y); W.face = sp2[0] >= g2d(W.x, W.y)[0] ? 1 : -1; } }
+    } else { W.x += dx / d * sp; W.y += dy / d * sp; W.sitting = false;
+      W.pp += sp; if (W.pp > .42) { W.pp = 0; prints.push({ x: W.x, y: W.y, t: performance.now(), s: (prints.length % 2) ? 1 : -1, a: Math.atan2(gp[1] - wp[1], gp[0] - wp[0]) }); if (prints.length > 140) prints.shift(); } }
+    if (W.sitDone && W.pause <= 0 && !W.path) { W.sitDone = false; W.mode = "home"; }
+  }
+  function drawFootprints(g) {
+    var now = performance.now();
+    prints.forEach(function (p) { var a = 1 - (now - p.t) / 20000; if (a <= 0) return; var q = g2d(p.x, p.y), o = p.s * L.T * .1;
+      g.save(); g.translate(q[0] - Math.sin(p.a) * o, q[1] + Math.cos(p.a) * o); g.rotate(p.a); g.fillStyle = "rgba(150,128,92," + (a * .35) + ")"; g.beginPath(); g.ellipse(0, 0, L.T * .1, L.T * .065, 0, 0, 7); g.fill(); g.restore(); });
+  }
+  function drawWanderer(g, time) {
+    if (!W) return; var p = g2d(W.x, W.y), u = L.T * .72, still = Q.still(), walking = !!W.path && W.pause <= 0;
+    var hopY = W.hop > 0 ? Math.sin((1 - W.hop / (W.hopT || .5)) * Math.PI) * L.T * (W.hopH || .35) : 0, bob = walking && !still ? Math.abs(Math.sin(time / 180)) * 2 : 0;
+    var sit = W.sitting && W.pause > 0;
+    g.save(); g.globalAlpha = 1 - W.fade; g.translate(p[0], p[1]);
+    g.fillStyle = "rgba(62,74,58,.22)"; g.beginPath(); g.ellipse(2, u * .9, u * (.8 - hopY / (L.T * 2)), u * .28, 0, 0, 7); g.fill();
+    g.translate(0, -hopY - bob + (sit ? u * .25 : 0)); g.scale(W.face, 1);
+    // lantern glow (screen blend, soft)
+    g.save(); g.globalCompositeOperation = "screen"; var lg = g.createRadialGradient(u * .95, u * .1, 0, u * .95, u * .1, u * 1.6); lg.addColorStop(0, "rgba(242,196,141,.55)"); lg.addColorStop(1, "rgba(242,196,141,0)"); g.fillStyle = lg; g.fillRect(-u * 1, -u * 1.6, u * 3.6, u * 3.4); g.restore();
+    // feet, body, belly
+    g.fillStyle = "#5f7a49"; if (!sit) { var st = walking && !still ? Math.sin(time / 180) * u * .15 : 0; g.beginPath(); g.ellipse(-u * .3 + st, u * .78, u * .2, u * .12, 0, 0, 7); g.ellipse(u * .3 - st, u * .78, u * .2, u * .12, 0, 0, 7); g.fill(); }
+    var bg = g.createRadialGradient(-u * .25, -u * .1, 2, 0, u * .2, u * .9); bg.addColorStop(0, "#a7bd8c"); bg.addColorStop(1, "#6E8B4E"); blob(g, 0, u * .2, u * .66, u * (sit ? .58 : .68), bg, 23);
+    blob(g, u * .05, u * .35, u * .32, u * .3, "rgba(234,223,200,.55)", 25);
+    // pointy ears under the hat
+    g.fillStyle = "#7f9a5f"; g.beginPath(); g.moveTo(-u * .5, -u * .25); g.lineTo(-u * 1.0, -u * .5); g.lineTo(-u * .42, -u * .02); g.fill(); g.beginPath(); g.moveTo(u * .5, -u * .25); g.lineTo(u * 1.0, -u * .5); g.lineTo(u * .42, -u * .02); g.fill();
+    // face
+    var blink = !still && (time % 4200) < 140; g.fillStyle = PAL.ink;
+    if (W.joy > 0 || blink) { g.strokeStyle = PAL.ink; g.lineWidth = 2; g.beginPath(); g.arc(-u * .2, u * .02, u * .08, Math.PI * 1.1, Math.PI * 1.9); g.moveTo(u * .28, u * .02); g.arc(u * .2, u * .02, u * .08, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); }
+    else { g.beginPath(); g.arc(-u * .2, u * .02, u * .07, 0, 7); g.arc(u * .2, u * .02, u * .07, 0, 7); g.fill(); }
+    g.strokeStyle = PAL.ink; g.lineWidth = 2; g.beginPath(); g.arc(0, u * .18, u * (W.joy > 0 ? .14 : .09), .4, 2.7); g.stroke();
+    if (W.joy > 0) { g.fillStyle = "rgba(242,160,140,.45)"; g.beginPath(); g.arc(-u * .36, u * .18, u * .09, 0, 7); g.arc(u * .36, u * .18, u * .09, 0, 7); g.fill(); }
+    // straw hat
+    var hg = g.createLinearGradient(0, -u * .7, 0, -u * .2); hg.addColorStop(0, "#f3d79f"); hg.addColorStop(1, "#d9b26f"); g.fillStyle = hg;
+    g.beginPath(); g.ellipse(0, -u * .32, u * .95, u * .26, 0, 0, 7); g.fill(); g.strokeStyle = "rgba(140,100,50,.5)"; g.lineWidth = 1.5; g.stroke();
+    g.beginPath(); g.ellipse(0, -u * .5, u * .45, u * .3, 0, Math.PI, 0); g.fill(); g.fillStyle = "#a3b18a"; g.fillRect(-u * .45, -u * .5, u * .9, u * .09);
+    // tiny lantern on a stick
+    g.strokeStyle = "#6f5235"; g.lineWidth = 2; g.beginPath(); g.moveTo(u * .5, u * .35); g.lineTo(u * .95, -u * .2); g.stroke();
+    var sw = still ? 0 : Math.sin(time / 600) * .15; g.save(); g.translate(u * .95, -u * .2); g.rotate(sw);
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(0, u * .18); g.stroke(); var lp = g.createRadialGradient(0, u * .35, 1, 0, u * .35, u * .2); lp.addColorStop(0, "#fff3d6"); lp.addColorStop(1, PAL.peach);
+    g.fillStyle = lp; g.beginPath(); g.roundRect(-u * .13, u * .18, u * .26, u * .32, 4); g.fill(); g.fillStyle = "#6f5235"; g.fillRect(-u * .15, u * .16, u * .3, 3); g.restore();
+    if (W.joy > 0 && !still) { g.fillStyle = "rgba(242,196,141," + Math.min(1, W.joy) + ")"; for (var s2 = 0; s2 < 3; s2++) { var a2 = -1.9 + s2 * .6, r2 = u * (1.2 + (1.2 - W.joy) * .6); g.beginPath(); g.arc(Math.cos(a2) * r2, Math.sin(a2) * r2, 3, 0, 7); g.fill(); } }
+    g.restore();
+  }
+  document.getElementById("mg-wander").addEventListener("click", sendWanderer);
+  (function () { var b = document.getElementById("mg-tok"); function show() { b.textContent = "Bamboo tok: " + (tokOn ? "on" : "off"); b.setAttribute("aria-pressed", tokOn); }
+    b.addEventListener("click", function () { tokOn = !tokOn; try { localStorage.setItem("gw-mg-tok", tokOn ? "1" : "0"); } catch (e) {} show(); }); show(); })();
 
   /* ---------- tray icons: Moth's icons, else drawn from the sprites ---------- */
   function setIcons() {
@@ -467,7 +806,7 @@
       else { g.strokeStyle = PAL.ink; g.lineWidth = 6; g.lineCap = "round"; g.beginPath();
         if (n === "undo") { g.arc(50, 52, 24, Math.PI * 1.1, Math.PI * 2.4); g.moveTo(26, 30); g.lineTo(26, 48); g.lineTo(42, 46); }
         else if (n === "fresh-garden") { for (var r = 1; r < 4; r++) { g.moveTo(18, 30 + r * 12); g.bezierCurveTo(40, 22 + r * 12, 56, 38 + r * 12, 78, 30 + r * 12); } }
-        else { g.moveTo(20, 76); g.lineTo(76, 20); var tines = n === "rake-fine" ? 5 : n === "rake-swirl" ? 3 : 0; for (var t = 0; t < tines; t++) { g.moveTo(40 + t * 9, 20 + t * 2); g.lineTo(52 + t * 9, 32 + t * 2); } if (!tines) { g.moveTo(56, 12); g.lineTo(84, 40); } }
+        else { g.moveTo(20, 76); g.lineTo(76, 20); var tines = n === "rake-wide" ? 7 : n === "rake-fine" ? 5 : n === "rake-swirl" ? 3 : 0; var x0 = tines === 7 ? 24 : 40, stp = tines === 7 ? 8 : 9; if (tines === 7) { g.moveTo(14, 46); g.lineTo(54, 6); } for (var t = 0; t < tines; t++) { var bx = x0 + t * stp * .7, by = 36 - t * stp * .7; if (tines !== 7) { bx = 40 + t * 9; by = 20 + t * 2; } g.moveTo(bx, by); g.lineTo(bx + 12, by + 12); } if (!tines) { g.moveTo(56, 12); g.lineTo(84, 40); } }
         g.stroke(); }
       s.style.backgroundImage = "url(" + c.toDataURL() + ")";
     });
@@ -487,5 +826,5 @@
 
   // test hooks (used by the Playwright checks; nothing on screen)
   window.__MG = { S: S, L: function () { return L; }, sim: function (sec) { for (var t = 0; t < sec; t += .1) sim(.1); }, rake: function (a, b, hd) { remember(); rakeLine.started = false; rakeLine(a, b, hd == null ? head : hd); }, g2scr: g2scr, idx: idx,
-    dist: dist, blocked: blocked, enc: enc, hist: function () { return hist.length; }, art: function () { return Object.keys(art).filter(function (k) { return art[k] && k[0] !== "_"; }); }, session: session, endCard: endCard, computeBlocked: computeBlocked };
+    dist: dist, blocked: blocked, send: sendWanderer, W: function () { return W; }, compost: compost, place: function (k, x, y, r) { var o = { id: uid++, k: k, x: x, y: y, r: r || 0 }; S.objs.push(o); return o; }, lab: lab, setHead: setHead, enc: enc, hist: function () { return hist.length; }, art: function () { return Object.keys(art).filter(function (k) { return art[k] && k[0] !== "_"; }); }, session: session, endCard: endCard, computeBlocked: computeBlocked };
 })();
