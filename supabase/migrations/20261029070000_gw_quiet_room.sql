@@ -2,7 +2,9 @@
 -- Same lock-down pattern as the chess migration: private schema gw, RLS on with a restrictive deny-all
 -- policy, no table grants; the browser only calls public.gw_quiet_* SECURITY DEFINER functions with its
 -- session token (validated by gw.session_player, exactly like gw_load_progress / gw_save_progress).
--- Additive only. NOT APPLIED YET. Apply with the Supabase CLI / dashboard when Bryan approves.
+-- Additive only. Applied to ydotiqwobbenwqeerkoc on Oct 29, 2026 (Moss Garden + Seed Path go-live, Bryan approved).
+-- Owner scoping: players are Gremlin Keys (gw.players), not Supabase Auth users, so auth.uid() is always null here;
+-- each row is bound to its owner by gw.session_player(p_token) inside the definer functions instead.
 
 create table if not exists gw.quiet_saves (
   player_id  uuid not null references gw.players(id) on delete cascade,

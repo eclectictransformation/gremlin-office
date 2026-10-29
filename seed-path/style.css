@@ -205,3 +205,12 @@ body.still .chime, body.still .lantern { transition: none; }
   .pipes { grid-template-columns: repeat(4, 56px); grid-template-rows: repeat(2, 56px); }
   .chime { width: 56px; } .pebble { width: 48px; } .shitem, .shslot { width: 76px; height: 76px; }
 }
+
+/* gentle meditation card after planting (links to eclectictransformation.com/meditations) */
+.medcard { display: flex; align-items: center; gap: 10px; max-width: 26em; min-height: 44px; margin: 0 auto 14px; padding: 12px 16px; border-radius: 14px;
+  background: var(--cream); color: var(--moss); border: 2px solid var(--sage); font: 500 17px/1.4 var(--sans); text-decoration: none;
+  box-shadow: 0 2px 8px rgba(58,74,51,.12); transition: background var(--fade), border-color var(--fade), transform var(--fade); }
+.medcard:hover, .medcard:focus-visible { background: #EEF2E8; border-color: var(--lav); transform: translateY(-1px); }
+.medcard:focus-visible { outline: 3px dashed var(--dusk); outline-offset: 3px; }
+.medleaf { font-size: 22px; }
+@media (prefers-reduced-motion: reduce) { .medcard { transition: none; } .medcard:hover, .medcard:focus-visible { transform: none; } }

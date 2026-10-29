@@ -506,9 +506,10 @@
 
     // arcade
     var games = allGames(), playedN = games.filter(function (g) { return (p.played[g.id] || 0) > 0; }).length;
-    var s4 = section(b, "\uD83D\uDD79\uFE0F Arcade", playedN + " / " + games.length + " played");
+    var s4 = section(b, "\uD83D\uDD79\uFE0F Arcade", playedN + " played");
     var tbl = el("div", "gw-games");
-    games.forEach(function (g) {
+    // only games you've played or scored are listed; no "???" rows, so the number of hidden games stays a mystery
+    games.filter(function (g) { return (p.played[g.id] || 0) > 0 || p.bests[g.id] != null; }).forEach(function (g) {
       var pl = p.played[g.id] || 0, bst = p.bests[g.id], r = el("div", "gw-game" + (pl ? "" : " off"));
       r.appendChild(el("span", "gw-gname", pl || bst != null ? g.name : "???"));
       r.appendChild(el("span", "gw-gmach", W.arcade.machines[g.machine].title + (g.ranked ? " \u2605" : "")));
@@ -516,6 +517,7 @@
       tbl.appendChild(r);
     });
     s4.appendChild(tbl);
+    s4.appendChild(el("p", "gw-note", "More games are hiding out there. Explore the world\u2026 who knows how many?"));
     s4.appendChild(el("p", "gw-note", "\u2605 = Break Room Brawl games with shared top-10 boards" + (player ? "." : " (get a Gremlin Name to join).")));
 
     // time

@@ -566,7 +566,7 @@
     dq = []; dcb = () => showChoices(); mode = "ending"; $("dnext").focus({ preventScroll: true });
   });
   $("dialog").addEventListener("click", () => { if (mode === "ending" && dcb && !dq.length) { $("dialog").hidden = true; const c = dcb; dcb = null; c(); } });
-  function showChoices() { $("choices").hidden = false; $("choices").querySelector("a,button").focus({ preventScroll: true }); }
+  function showChoices() { $("choices").hidden = false; $("choices").querySelector(".col a,.col button").focus({ preventScroll: true }); }
   $("restbtn").addEventListener("click", () => { $("choices").hidden = true; mode = "rest"; $("restbar").hidden = false; $("restbar").querySelector("button").focus(); });
   $("restdone").addEventListener("click", () => { $("restbar").hidden = true; mode = "ending"; showChoices(); });
   $("againbtn").addEventListener("click", () => { $("choices").hidden = true; ending = null; showTitle(); });

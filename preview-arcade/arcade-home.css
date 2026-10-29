@@ -119,3 +119,19 @@ h1,h2,h3{font-family:var(--serif);margin:.2em 0}
 .ga-chess{align-items:flex-start}
 .ga-chess-more{text-align:center;margin:10px 0 0;font-size:16px}
 .ga-chess-more a{display:inline-flex;align-items:center;min-height:44px;font-weight:700;color:var(--forest,#54664A)}
+
+/* sections (preview-arcade-sections) */
+.ga-sections{display:flex;flex-direction:column;gap:16px}
+.ga-sec{border-radius:14px}
+.ga-sec+.ga-sec{padding-top:12px;border-top:2px dashed rgba(243,217,139,.35)}
+.ga-sec-h{margin:0;font:800 clamp(19px,4.6vw,22px)/1.2 var(--serif);color:var(--paper)}
+.ga-sec-sub{margin:2px 0 10px;font:600 16px var(--hand);color:var(--butter)}
+.ga-sec-quiet .ga-game{background:#eef2e8}
+.ga-quiet-tile{text-decoration:none}
+.ga-quiet-more{grid-column:1/-1;list-style:none}
+.ga-quiet-link{display:inline-flex;align-items:center;min-height:44px;font:700 16px var(--sans);color:var(--butter);text-underline-offset:3px}
+.ga-quiet-link:focus-visible,.ga-quiet-tile:focus-visible{outline:3px dashed var(--butter);outline-offset:3px}
+@media (max-width:420px){.ga-games{grid-template-columns:1fr 1fr}.ga-game{padding:8px 9px}}
+.ga-more-li{grid-column:1/-1}
+.ga-sec-solo .ga-more-li{order:99}
+.ga-sec-solo .ga-games{display:grid}

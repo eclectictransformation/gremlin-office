@@ -232,5 +232,5 @@ SEED.walks = {
 };
 SEED.links = {
   arcade: "https://eclectictransformation.github.io/gremlin-office/preview-arcade/",
-  meditation: "https://eclectictransformation.com/"   /* TODO: point at the Listen & Breathe page */
+  meditation: "https://eclectictransformation.com/meditations"   /* Meditations & Playlists page on the main site (Meditation Guide) */
 };

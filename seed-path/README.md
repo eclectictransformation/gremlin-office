@@ -9,4 +9,4 @@ v2 befriending: the FIRST Kin you greet just asks to join (no puzzle). Later Kin
 - js/: sprites (code-drawn), moments (9 overlay types), game (run, rotation, save, journal, sound).
 Saves: localStorage seedpath.save.v1 / seedpath.meta.v1 / seedpath.settings.v1 only. No network calls besides Google Fonts.
 Testing: `?speed=N` speeds game time; window.SeedPath exposes a test hook.
-TODO: SEED.links.meditation is a placeholder (Listen & Breathe URL not found).
+SEED.links.meditation = https://eclectictransformation.com/meditations (Meditations & Playlists). After planting, a soft card asks "Now that you're a little calmer, would you like to hear a meditation?" and opens it in a new tab.

@@ -1,4 +1,6 @@
-/* Gremlin Arcade (hidden preview; embedded in My Account). Includes the Chess tile, which opens game-nook/chess-nook.js. One calm card: the starter games play right away; "Log in" or "Get a Gremlin Key"
+/* Gremlin Arcade, regrouped into soft sections (live arcade since the Moss Garden + Seed Path go-live, Oct 29 2026; preview-arcade-sections/ was the preview copy).
+   Sections: Play solo / Play together / Quiet Room. Everything else is unchanged from preview-arcade/.
+   Gremlin Arcade (hidden preview; embedded in My Account). Includes the Chess tile, which opens game-nook/chess-nook.js. One calm card: the starter games play right away; "Log in" or "Get a Gremlin Key"
    opens a small pop-up over the same spot, and every game you've discovered in Gremlin World appears in place. Uses the SAME server calls as world-player.js
    (plain fetch to /rest/v1/rpc/gw_* with the publishable key) and the SAME session storage key
    (localStorage "gremlin-world-player" = { name, token, expires_at }). No service keys, no personal info. */
@@ -20,6 +22,15 @@
     { id: "shelve", room: "returns", item: "returns-shelve", name: "Shelve It", blurb: "Vesper's return slot. Wrong shelves are allowed." },
     { id: "caption", room: "lantern", item: "lantern-caption-1", name: "Caption This", blurb: "Moth's drying comic pages need words." }
   ];
+
+  // two-player games (everything else is one-player). Chess with a friend is its own tile.
+  var TWO_PLAYER = ["desk-duel"];
+  // The Quiet Room (quiet-room/). Its name also lives in quiet-room/shared/name.js; rename both together.
+  var QUIET = { title: "The Quiet Room", sub: "Slow, calm games. Nothing to win.", games: [
+    { name: "Moss Garden", blurb: "Rake sand, move stones, guide a little stream.", href: "quiet-room/moss-garden/" }] };
+  // Breathing Pond (quiet-room/breathing-pond/) is not live yet: Bryan is still updating it. Add it back to QUIET.games when ready.
+  // The Seed Path: a calm walk reached through a loose sock behind the arcade wall (seed-path/portal-teaser.html -> seed-path/).
+  var SEED_PATH = { name: "The Seed Path", blurb: "A slow walk with small friends. Plant a seed at the end.", href: "seed-path/portal-teaser.html" };
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -74,19 +85,27 @@
     $("#ga-save").hidden = !!player; $("#ga-me").hidden = !player; $("#ga-playnow").hidden = !!player;
     if (player) $("#ga-welcome").textContent = "Welcome back, " + player.name + ". Your progress saves as you play.";
     if (!W) return;
-    var ul = $("#ga-games"); ul.innerHTML = "";
+    var box = $("#ga-sections"); box.innerHTML = "";
     var open = games.filter(discovered), locked = games.filter(function (g) { return !discovered(g); });
-    $("#ga-count").textContent = (open.length + 1) + " of " + (games.length + 1) + " games found";
-    // the chess table (game-nook/): always open, for guests too; logged-in players can also play friends there
-    var cli = el("li"), cb = el("button", "ga-game ga-chess-tile"); cb.type = "button";
-    cb.appendChild(el("span", "gg-name", "Chess with the Gremlins"));
-    cb.appendChild(el("span", "gg-blurb", "Six gremlins, easy to tricky, or a friend. No clock."));
+    $("#ga-count").textContent = (open.length + 1) + " games found so far";   // no total: hidden-game counts stay a mystery
+    function section(id, title, sub) {
+      var s = el("section", "ga-sec ga-sec-" + id); s.setAttribute("aria-labelledby", "ga-sec-h-" + id);
+      var h = el("h2", "ga-sec-h", title); h.id = "ga-sec-h-" + id; s.appendChild(h); s.appendChild(el("p", "ga-sec-sub", sub));
+      var ul = el("ul", "ga-games"); s.appendChild(ul); box.appendChild(s); return ul;
+    }
+    var solo = section("solo", "One-Player Games", "Play solo"), duo = section("duo", "Two-Player Games", "Play together"), quiet = section("quiet", QUIET.title, QUIET.sub);
+    // the chess table (game-nook/): always open, for guests too. Solo = the gremlins; together = a friend.
     var bt = 0; try { var bb = JSON.parse(localStorage.getItem(PFX + "chess-beaten") || "{}"); bt = Object.keys(bb).length; } catch (e) {}
-    cb.appendChild(el("span", "gg-tag", bt ? "beaten " + bt + " of 6" : "new: chess table"));
-    cb.setAttribute("aria-label", "Play chess with the gremlins or a friend");
-    cb.addEventListener("click", function () { openChess(cb); });
-    cli.appendChild(cb); ul.appendChild(cli);
-    open.concat(locked).forEach(function (g) {
+    function chessTile(ul, name, blurb, tag, label, friend) {
+      var li = el("li"), b = el("button", "ga-game ga-chess-tile" + (friend ? " ga-chess-friend" : "")); b.type = "button";
+      b.appendChild(el("span", "gg-name", name)); b.appendChild(el("span", "gg-blurb", blurb)); b.appendChild(el("span", "gg-tag", tag));
+      b.setAttribute("aria-label", label); b.addEventListener("click", function () { openChess(b, friend); }); li.appendChild(b); ul.appendChild(li);
+    }
+    chessTile(solo, "Chess vs the Gremlins", "Six gremlins, easy to tricky. No clock.", bt ? "beaten " + bt + " of 6" : "chess table", "Play chess against the gremlins", false);
+    chessTile(duo, "Chess with a Friend", "Invite another gremlin to a slow game.", "needs a Gremlin Key", "Play chess with a friend", true);
+    // undiscovered games: one quiet note instead of a wall of locked tiles, so the other sections stay close
+    if (locked.length) { var lli = el("li", "ga-more-li"), lb = el("div", "ga-game locked ga-more"); lb.appendChild(el("span", "gg-name", "More games are hiding out there. Explore the world\u2026 who knows how many?")); lb.appendChild(el("span", "gg-lock", "?")); lli.appendChild(lb); solo.appendChild(lli); }
+    open.forEach(function (g) {
       var d = discovered(g), li = el("li"), b = el("button", "ga-game" + (d ? "" : " locked")); b.type = "button";
       b.appendChild(el("span", "gg-name", d ? g.name : "Not found yet"));
       if (d) {
@@ -96,8 +115,19 @@
         b.addEventListener("click", function () { play(g, b); });
         b.setAttribute("aria-label", "Play " + g.name);
       } else { b.disabled = true; b.setAttribute("aria-label", "A game you haven't found yet"); b.appendChild(el("span", "gg-lock", "?")); }
-      li.appendChild(b); ul.appendChild(li);
+      li.appendChild(b); (TWO_PLAYER.indexOf(g.id) >= 0 ? duo : solo).appendChild(li);
     });
+    (function () {
+      var li = el("li"), a = el("a", "ga-game ga-quiet-tile ga-seed-tile"); a.href = SEED_PATH.href; a.target = "_top";
+      a.appendChild(el("span", "gg-name", SEED_PATH.name)); a.appendChild(el("span", "gg-blurb", SEED_PATH.blurb)); a.appendChild(el("span", "gg-tag", "no fail, no clock"));
+      a.setAttribute("aria-label", "Open " + SEED_PATH.name); li.appendChild(a); solo.appendChild(li);
+    })();
+    QUIET.games.forEach(function (q) {
+      var li = el("li"), a = el("a", "ga-game ga-quiet-tile"); a.href = q.href; a.target = "_top";
+      a.appendChild(el("span", "gg-name", q.name)); a.appendChild(el("span", "gg-blurb", q.blurb)); a.appendChild(el("span", "gg-tag", "no score, no clock"));
+      a.setAttribute("aria-label", "Open " + q.name + " in " + QUIET.title); li.appendChild(a); quiet.appendChild(li);
+    });
+    var more = el("li", "ga-quiet-more"), ma = el("a", "ga-quiet-link", "Visit " + QUIET.title + " \u2192"); ma.href = "quiet-room/"; ma.target = "_top"; more.appendChild(ma); quiet.appendChild(more);
   }
 
   /* ---------- playing (the real game modules) ---------- */
@@ -143,14 +173,15 @@
 
   /* ---------- the chess table (game-nook/chess-nook.js) ---------- */
   var chessUI = null, chessBack = null;
-  function openChess(from) {
+  function openChess(from, friend) {
     var d = $("#ga-chess"); chessBack = from; d.hidden = false;
     if (!window.GremlinChess) { $("#ga-chess-body").textContent = "The chess table is still being set up. Try again in a moment."; return; }
     chessUI = window.GremlinChess.mount($("#ga-chess-body"), { base: "game-nook/", social: window.GremlinSocial, onClose: closeChess, closeLabel: "Back to the arcade" });
+    if (friend) setTimeout(function () { var s = $("#ga-chess-body .gc-social"); if (s) { try { s.scrollIntoView({ block: "start", behavior: "smooth" }); } catch (e) { s.scrollIntoView(); } var f = s.querySelector("button, a[href]"); if (f) try { f.focus({ preventScroll: true }); } catch (e) {} } }, 80);
   }
   function closeChess() {
     $("#ga-chess").hidden = true; if (chessUI) { chessUI.destroy(); chessUI = null; } renderMachine();
-    var t = document.querySelector(".ga-chess-tile"); if (t) try { t.focus({ preventScroll: true }); } catch (e) {}
+    var t = chessBack || document.querySelector(".ga-chess-tile"); if (t) try { t.focus({ preventScroll: true }); } catch (e) {}
   }
 
   /* ---------- stats + coupons drawers ---------- */
@@ -170,7 +201,7 @@
       statRow(box, "\u2728", "Secrets found", (prog.found || []).length + " of " + eggs);
       statRow(box, "\uD83E\uDDE6", "Socks found", (prog.socks || []).length + " of " + W.socksTotal + (((prog.sock || {}).done || 0) > 0 ? " (hunt done)" : ""));
       statRow(box, "\uD83C\uDFC5", "Badges", Object.keys(got).length + " of " + bd.length);
-      statRow(box, "\uD83D\uDD79\uFE0F", "Games found", games.filter(discovered).length + " of " + games.length);
+      statRow(box, "\uD83D\uDD79\uFE0F", "Games found", games.filter(discovered).length + " so far (who knows how many more?)");
       b.appendChild(box);
       var bh = el("h3", "", "Badges"); b.appendChild(bh); var bl = el("ul", "ga-badges");
       bd.forEach(function (x) { var li = el("li", got[x.id] ? "on" : "off"); li.appendChild(el("span", "", got[x.id] ? x.icon : "\u25CC")); li.appendChild(el("b", "", got[x.id] ? x.name : "Not yet")); if (got[x.id]) li.appendChild(el("small", "", x.desc)); bl.appendChild(li); });

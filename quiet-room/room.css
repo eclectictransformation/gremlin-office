@@ -21,7 +21,7 @@ body{min-height:100vh;padding:14px 10px 28px;background-image:radial-gradient(rg
 .qr-door svg{width:100%;height:auto;transition:transform .6s ease}
 .qr-door:hover svg,.qr-door:focus-visible svg{transform:translateY(-4px)}
 .qr-door:focus-visible{outline:3px solid var(--peach);outline-offset:4px;border-radius:12px}
-.qr-door-garden{left:9%}.qr-door-pond{right:9%}
+.qr-door-garden{left:38%}.qr-door-pond{right:9%}  /* garden centred while the Breathing Pond door is hidden; was left:9% */
 .qr-door-name{font:800 18px var(--serif);background:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:4px 12px;margin-top:-10px;white-space:nowrap;box-shadow:2px 3px 0 var(--ink)}
 .qr-door-blurb{display:none}
 .qr-foot{text-align:center;font-size:16px;color:#55524a;margin:14px 0 0}
