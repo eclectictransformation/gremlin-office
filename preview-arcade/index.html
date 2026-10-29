@@ -22,18 +22,19 @@
   <section id="ga-machine" class="ga-cabinet" aria-labelledby="ga-title">
     <div class="ga-marquee"><h1 id="ga-title">GREMLIN ARCADE</h1><p id="ga-hello" class="ga-hello" aria-live="polite">Hello, guest gremlin</p></div>
     <div class="ga-screen">
-      <p class="ga-screen-head" id="ga-count">Warming up the machine&#8230;</p>
-      <div id="ga-sections" class="ga-sections"></div>
+      <p class="ga-screen-head" id="ga-count" hidden>Warming up the machine&#8230;</p>
+      <div id="ga-sections" class="ga-sections"><p class="ga-warm">Warming up the machine&#8230;</p></div>
+      <p class="ga-hint" id="ga-hint">Tap a picture to play.</p>
     </div>
-    <p id="ga-playnow" class="ga-playnow">Play now, no key needed.</p>
+    <p id="ga-playnow" class="ga-playnow" hidden>Play now, no key needed.</p>
 
-    <!-- the account line: same slot, same height, guest or signed in -->
+    <!-- the account line, compact: below the games -->
     <div id="ga-acct" class="ga-acct">
       <div id="ga-save" class="ga-save">
         <p class="ga-save-q">Save your progress?</p>
         <div class="ga-save-btns">
-          <button id="ga-open-login" class="ga-btn ghost" type="button" aria-haspopup="dialog">Log in</button>
-          <button id="ga-open-new" class="ga-btn" type="button" aria-haspopup="dialog">Get a Gremlin Key</button>
+          <button id="ga-open-login" class="ga-btn ghost small" type="button" aria-haspopup="dialog">Log in</button>
+          <button id="ga-open-new" class="ga-btn small" type="button" aria-haspopup="dialog">Get a Gremlin Key</button>
         </div>
       </div>
       <div id="ga-me" class="ga-me" hidden>
