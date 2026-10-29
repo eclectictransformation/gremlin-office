@@ -20,7 +20,7 @@
   var DEFAULT_STONES = [["stone1", 27.5, 7.5], ["stone2", 12.5, 14.5], ["stone3", 19.5, 4.5], ["stone2", 33.5, 15.5], ["stone3", 7.5, 7.5], ["stone1", 22.5, 16.5], ["stone3", 35.5, 4.5]];
 
   /* ---------- state ---------- */
-  var S = { h: new Float32Array(N), t: new Uint8Array(N), d: new Uint8Array(N), moss: new Float32Array(N), fill: new Float32Array(N), objs: [], strokes: [], leg: new Uint8Array(N), met: 0 };
+  var S = { h: new Float32Array(N), t: new Uint8Array(N), d: new Uint8Array(N), moss: new Float32Array(N), fill: new Float32Array(N), objs: [], strokes: [], leg: new Uint8Array(N), met: 0, dug: new Uint8Array(N) };
   var srcMask = new Uint8Array(N), lab = new Int16Array(N), MAX_EXTRA_SOURCES = 2;   // the corner spring + up to two more (no count on screen)
   var BIN = { x: COLS - 1.55, y: ROWS - 1.45, r: 1.5 }, binOpen = 0, puffs = [], tumble = null;
   var dist = new Int16Array(N), blocked = new Uint8Array(N), head = 1, hist = [], uid = 1;
@@ -31,23 +31,23 @@
   function inb(x, y) { return x >= 0 && y >= 0 && x < COLS && y < ROWS; }
   function isSource(i) { return srcMask[i] > 0; }
   function inBin(x, y) { return Math.hypot(x - BIN.x, y - BIN.y) < BIN.r; }
-  function channel(i) { return S.h[i] < -0.4; }
+  function channel(i) { return S.dug[i] > 0; }   // v2.1: only trowel-dug paths (and spring pools) carry water; rake lines are just lines
 
   function freshState() {
     S.h.fill(0); S.t.fill(0); S.d.fill(0); S.moss.fill(0); S.fill.fill(0); S.leg.fill(0); S.strokes = [{ k: 1, p: [2.1, 1.5, 2.7, 1.5, 3.3, 1.52, 3.9, 1.5, 4.6, 1.48] }];
     S.objs = DEFAULT_STONES.map(function (s) { return { id: uid++, k: s[0], x: s[1], y: s[2] }; });
-    [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(function (p) { var i = idx(p[0], p[1]); S.h[i] = -1.6; S.t[i] = 2; });   // the little spring pool
-    for (var x = 2; x < 5; x++) { var i = idx(x, 1); S.h[i] = -1; S.t[i] = 1; S.d[i] = 0; }   // a short starter groove
+    S.dug.fill(0); [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(function (p) { S.dug[idx(p[0], p[1])] = 2; });   // the little spring pool
+    for (var x = 2; x < 5; x++) S.dug[idx(x, 1)] = 1;   // a short dug starter channel
     dirty.groove = dirty.moss = true;
   }
-  function ensureSpring() { [[0, 0], [1, 0], [0, 1]].forEach(function (p) { var i = idx(p[0], p[1]); if (S.h[i] > -1) { S.h[i] = -1.6; S.t[i] = 2; } }); }
+  function ensureSpring() { [[0, 0], [1, 0], [0, 1]].forEach(function (p) { S.dug[idx(p[0], p[1])] = 2; }); dirty.dug = true; }
 
   /* ---------- history: about 30 steps ---------- */
-  function snap() { return { h: S.h.slice(), t: S.t.slice(), d: S.d.slice(), moss: S.moss.slice(), leg: S.leg.slice(), objs: JSON.parse(JSON.stringify(S.objs)), strokes: S.strokes.map(function (k) { return { k: k.k, p: k.p.slice() }; }) }; }
+  function snap() { return { dug: S.dug.slice(), h: S.h.slice(), t: S.t.slice(), d: S.d.slice(), moss: S.moss.slice(), leg: S.leg.slice(), objs: JSON.parse(JSON.stringify(S.objs)), strokes: S.strokes.map(function (k) { return { k: k.k, p: k.p.slice() }; }) }; }
   function remember() { hist.push(snap()); if (hist.length > 30) hist.shift(); }
   function undo() {
     var s = hist.pop(); if (!s) { whisper("Nothing to undo just now."); return; }
-    S.h = s.h; S.t = s.t; S.d = s.d; S.moss = s.moss; S.objs = s.objs; S.strokes = s.strokes; S.leg = s.leg; tumble = null; hand = null; drag = null;
+    S.h = s.h; S.dug = s.dug || S.dug; dirty.dug = true; S.t = s.t; S.d = s.d; S.moss = s.moss; S.objs = s.objs; S.strokes = s.strokes; S.leg = s.leg; tumble = null; hand = null; drag = null; carry = null;
     dirty.groove = dirty.moss = true; touched(); whisper("Undone.");
   }
 
@@ -56,8 +56,8 @@
   function enc() {
     var td = "", hh = "", mm = "";
     for (var i = 0; i < N; i++) { td += B64[S.t[i] * 16 + S.d[i]]; hh += B64[Math.round(Math.min(2, -S.h[i]) * 8)]; mm += B64[Math.round(Math.max(0, Math.min(1, S.moss[i])) * 63)]; }
-    var lg = ""; for (var j = 0; j < N; j++) lg += S.leg[j] ? "1" : "0";
-    return { v: 2, cols: COLS, rows: ROWS, td: td, h: hh, m: mm, head: head, leg: lg, met: S.met ? 1 : 0,
+    var lg = "", dg = ""; for (var j = 0; j < N; j++) { lg += S.leg[j] ? "1" : "0"; dg += S.dug[j]; }
+    return { v: 2, cols: COLS, rows: ROWS, td: td, h: hh, m: mm, head: head, leg: lg, dug: dg, met: S.met ? 1 : 0,
       strokes: S.strokes.map(function (k) { return [k.k, k.p.map(function (v) { return Math.round(v * 20); })]; }),
       objs: S.objs.map(function (o) { var a = [o.k, +o.x.toFixed(2), +o.y.toFixed(2)]; if (o.r) a.push(o.r); return a; }) };
   }
@@ -74,8 +74,11 @@
         var pts = k[1].slice(0, 4000).map(function (v) { return (+v || 0) / 20; }); if (pts.length >= 4) S.strokes.push({ k: k[0], p: pts.slice(0, pts.length - pts.length % 2) }); });
       S.met = D.met ? 1 : 0;
     }
-    if (D.head === 0 || D.head === 1 || D.head === 2 || D.head === 3) setHead(D.head, true);
-    S.fill.fill(0); ensureSpring(); dirty.groove = dirty.moss = true; return true;
+    if (D.head >= 0 && D.head <= 5) setHead(D.head, true);
+    // water paths: v2.1 saves carry them; older saves had raked channels carry water, so those become dug paths (nothing dries up)
+    if (typeof D.dug === "string" && D.dug.length === N) { for (var a3 = 0; a3 < N; a3++) S.dug[a3] = Math.min(2, +D.dug[a3] || 0); }
+    else { for (var a4 = 0; a4 < N; a4++) S.dug[a4] = S.h[a4] < -1.45 ? 2 : S.h[a4] < -.4 ? 1 : 0; }
+    S.fill.fill(0); ensureSpring(); dirty.dug = true; dirty.groove = dirty.moss = true; return true;
   }
   var saveSoon = Q.debounce(function () { if (!changed) return; changed = false; Q.save(GAME, enc()); }, 4000);
   function touched() { changed = true; saveSoon(); }
@@ -162,7 +165,9 @@
       R: rect, gx0: rect[0] + (rect[2] - gw * T) / 2, gy0: rect[1] + (rect[3] - gh * T) / 2 };
   }
   function g2d(x, y) { return L.tr ? [L.gx0 + y * L.T, L.gy0 + x * L.T] : [L.gx0 + x * L.T, L.gy0 + y * L.T]; }
-  function scr2g(px, py) { var dx = (px - L.ox) / L.s - L.gx0, dy = (py - L.oy) / L.s - L.gy0; return L.tr ? [dy / L.T, dx / L.T] : [dx / L.T, dy / L.T]; }
+  function scr2g(px, py) {   // map from the canvas's real on-screen box, so CSS scaling, DPR or a shifted viewport can't move a drop
+    var r = cv.getBoundingClientRect(); if (r.width && r.height) { px = (px - r.left) * L.W / r.width; py = (py - r.top) * L.H / r.height; }
+    var dx = (px - L.ox) / L.s - L.gx0, dy = (py - L.oy) / L.s - L.gy0; return L.tr ? [dy / L.T, dx / L.T] : [dx / L.T, dy / L.T]; }
   function g2scr(x, y) { var d = g2d(x, y); return [L.ox + d[0] * L.s, L.oy + d[1] * L.s]; }
   function clampX(x) { return Math.max(.6, Math.min(COLS - .6, x)); }
   function clampY(y) { return Math.max(.6, Math.min(ROWS - .6, y)); }
@@ -170,18 +175,22 @@
   /* ---------- the rake ---------- */
   function rakeCell(x, y, hd, ang) {
     if (!inb(x, y)) return; var i = idx(x, y); if (blocked[i]) return;
-    if (hd === 0) { if (isSource(i)) return; S.h[i] = Math.min(0, S.h[i] * .2 + 0); if (S.h[i] > -.3) { S.h[i] = 0; S.t[i] = 0; S.leg[i] = 0; } return; }
+    if (hd === 4) { if (!S.dug[i]) { S.dug[i] = 1; dirty.dug = true; } return; }   // trowel: dig
+    if (hd === 5) { if (S.dug[i] && !isSource(i)) { S.dug[i] = 0; dirty.dug = true; } return; }   // trowel: fill back in
+    if (hd === 0) { S.h[i] = Math.min(0, S.h[i] * .2 + 0); if (S.h[i] > -.3) { S.h[i] = 0; S.t[i] = 0; S.leg[i] = 0; } return; }
     if (inBin(x + .5, y + .5)) return;
-    if (hd === 1 || hd === 3) { if (S.t[i] !== 2) { S.t[i] = 1; S.d[i] = ang; S.leg[i] = 0; } S.h[i] = Math.min(S.h[i], -1); }
-    if (hd === 2) { S.t[i] = 2; S.d[i] = ang; S.h[i] = Math.min(S.h[i], -1.25); }
+    if (hd === 1 || hd === 3) { if (S.t[i] !== 2) { S.t[i] = 1; S.d[i] = ang; S.leg[i] = 0; } }
+    if (hd === 2) { S.t[i] = 2; S.d[i] = ang; }
   }
   function rakeAt(gx, gy, hd, ang) {
     var cx = Math.floor(gx), cy = Math.floor(gy);
-    if (hd === 1) rakeCell(cx, cy, 1, ang);
+    if (hd === 4) rakeCell(cx, cy, 4, ang);
+    else if (hd === 5) { for (var fy = cy - 1; fy <= cy + 1; fy++) for (var fx = cx - 1; fx <= cx + 1; fx++) { var hx = fx + .5 - gx, hy = fy + .5 - gy; if (hx * hx + hy * hy <= .7) rakeCell(fx, fy, 5, ang); } }
+    else if (hd === 1) rakeCell(cx, cy, 1, ang);
     else if (hd === 3) { for (var wy = cy - 1; wy <= cy + 1; wy++) for (var wx = cx - 1; wx <= cx + 1; wx++) { var ex = wx + .5 - gx, ey = wy + .5 - gy; if (ex * ex + ey * ey <= .62) rakeCell(wx, wy, 1, ang); } }
     else {
       if (hd === 0) eraseStrokes(gx, gy, 1.05); var r = hd === 2 ? 1 : 1.2; for (var y = cy - 1; y <= cy + 1; y++) for (var x = cx - 1; x <= cx + 1; x++) { var dx = x + .5 - gx, dy = y + .5 - gy; if (dx * dx + dy * dy <= r * r + .1) rakeCell(x, y, hd, ang); } }
-    if (hd === 2) { var ci = inb(cx, cy) ? idx(cx, cy) : -1; if (ci >= 0 && !blocked[ci]) S.h[ci] = Math.min(S.h[ci], -1.6); }   // swirls dig a little dip that pools
+
     dirty.groove = true;
   }
   function rakeLine(a, b, hd) {
@@ -227,16 +236,16 @@
         dist[j] = dist[i] + 1; lab[j] = lab[i]; q.push(j); } }
   }
   function cellOf(x, y) { var cx = Math.floor(x), cy = Math.floor(y); return inb(cx, cy) ? idx(cx, cy) : -1; }
-  function dig(i, depth) { if (i < 0 || blocked[i]) return; if (S.h[i] > -depth) S.h[i] = -depth; }
+  function dig(i) { if (i < 0 || blocked[i]) return; if (S.dug[i] !== 2) { S.dug[i] = 2; dirty.dug = true; } }   // a little pool at a source or basin
   function shDir(o) { var a = (o.r || 0) * Math.PI / 4; return [Math.cos(a), Math.sin(a)]; }
   function shOut(o) { var d = shDir(o); return [o.x + d[0] * 1.7, o.y + d[1] * 1.7]; }
   function computeSources() {
     srcMask.fill(0); [0, 1, COLS].forEach(function (i) { srcMask[i] = 1; });
     S.objs.forEach(function (o) {
       var K = KINDS[o.k];
-      if (K.source && !(drag && drag.o === o)) { var c = cellOf(o.x, o.y); if (c < 0 || blocked[c]) return; dig(c, 1.6); srcMask[c] = 2 + (o.id % 200);
-        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var n = cellOf(o.x + d[0], o.y + d[1]); if (n >= 0 && S.h[n] > -.4 && !blocked[n]) S.h[n] = -1.0; }); }   // a little pool so it can join a groove
-      if (o.k === "shishi" && o.out > 0) { var op = shOut(o), oc = cellOf(op[0], op[1]); if (oc >= 0 && !blocked[oc]) { dig(oc, 1.3); srcMask[oc] = o.lab || 300; } }
+      if (K.source && !(drag && drag.o === o) && o !== carry) { var c = cellOf(o.x, o.y); if (c < 0 || blocked[c]) return; dig(c, 1.6); srcMask[c] = 2 + (o.id % 200);
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var n = cellOf(o.x + d[0], o.y + d[1]); if (n >= 0 && !S.dug[n] && !blocked[n]) { S.dug[n] = 1; dirty.dug = true; } }); }   // a little pool so it can join a groove
+      if (o.k === "shishi" && !(drag && drag.o === o) && o !== carry) { var op = shOut(o), oc = cellOf(op[0], op[1]); if (oc >= 0 && !blocked[oc]) { dig(oc); if (o.out > 0) srcMask[oc] = o.lab || 300; } }
     });
   }
   /* shishi-odoshi: fills ~10 s (8-12), tips 0.6 s, pours, rocks back 1.2 s; its pour feeds the channel it points at */
@@ -267,7 +276,7 @@
       if (S.fill[i] >= 1) continue;
       var x = i % COLS, y = (i / COLS) | 0, fed = false;
       for (var k = 0; k < 8 && !fed; k++) { var nx = x + N8[k][0], ny = y + N8[k][1]; if (inb(nx, ny)) { var j = idx(nx, ny); if (S.fill[j] >= .999 && dist[j] >= 0 && dist[j] < dist[i] + 1) fed = true; } }
-      if (fed) { var deep = Math.max(0, -S.h[i] - 1); nf[i] = Math.min(1, S.fill[i] + dt / (1 + deep * 1.2)); flowing++; }   // ~1 tile a second; dips take a little longer (they pool)
+      if (fed) { var deep = S.dug[i] === 2 ? .6 : 0; nf[i] = Math.min(1, S.fill[i] + dt / (1 + deep * 1.2)); flowing++; }   // ~1 tile a second; dips take a little longer (they pool)
     }
     S.fill = nf;
     // two streams meeting: one soft chime, the first time only
@@ -350,6 +359,30 @@
       });
     });
   }
+  /* ---------- trowel paths: a damp, slightly darker dug line, smoothed like the water ---------- */
+  var dugC = mk(COLS * LT, ROWS * LT), dugM = mk(COLS * LT, ROWS * LT), dugT = mk(COLS * LT, ROWS * LT), dpx = new Float32Array(N), dpy = new Float32Array(N);
+  dirty.dug = true;
+  function drawDug() {
+    var m = dugM.getContext("2d"); m.setTransform(1, 0, 0, 1, 0, 0); m.clearRect(0, 0, dugM.width, dugM.height); m.fillStyle = m.strokeStyle = "#000"; m.lineCap = "round";
+    for (var i = 0; i < N; i++) { if (!S.dug[i]) continue; var x = i % COLS, y = (i / COLS) | 0, ax = (x + .5) * 2, ay = (y + .5) * 2, n = 2;
+      for (var k = 0; k < 8; k++) { var tx = x + N8[k][0], ty = y + N8[k][1]; if (inb(tx, ty) && S.dug[idx(tx, ty)]) { ax += tx + .5; ay += ty + .5; n++; } }
+      dpx[i] = ax / n * LT; dpy[i] = ay / n * LT; }
+    for (var j = 0; j < N; j++) { if (!S.dug[j]) continue; var jx = j % COLS, jy = (j / COLS) | 0, r = LT * (S.dug[j] === 2 ? .55 : .34);
+      m.beginPath(); m.arc(dpx[j], dpy[j], r, 0, 7); m.fill(); m.lineWidth = LT * .62;
+      for (var q = 0; q < 8; q++) { var nx = jx + N8[q][0], ny = jy + N8[q][1]; if (!inb(nx, ny)) continue; var o = idx(nx, ny); if (!S.dug[o] || o < j) continue;
+        if (q >= 4 && S.dug[idx(nx, jy)] && S.dug[idx(jx, ny)]) continue;
+        m.beginPath(); m.moveTo(dpx[j], dpy[j]); m.lineTo(dpx[o], dpy[o]); m.stroke(); } }
+    var g = dugC.getContext("2d"); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, dugC.width, dugC.height);
+    function tint(col, ox, oy, blur) { var t = dugT.getContext("2d"); t.globalCompositeOperation = "source-over"; t.clearRect(0, 0, dugT.width, dugT.height); t.filter = "blur(" + blur + "px)"; t.drawImage(dugM, 0, 0); t.filter = "none";
+      t.globalCompositeOperation = "source-in"; t.fillStyle = col; t.fillRect(0, 0, dugT.width, dugT.height); t.globalCompositeOperation = "source-over"; g.drawImage(dugT, ox, oy); }
+    tint("rgba(255,248,232,.7)", 2.5, 3, 2);      // the lit lower-right lip (light from the upper left)
+    tint("rgba(112,92,62,.55)", -2, -2.5, 2);     // the shaded upper-left wall
+    tint("rgba(188,168,132,.95)", 0, 0, 1.5);     // damp, darker sand in the bottom of the path
+    if (!dugTex) { dugTex = mk(64, 64); var dt = dugTex.getContext("2d"), R = rnd(71); for (var s2 = 0; s2 < 260; s2++) { dt.fillStyle = R() < .5 ? "rgba(120,100,70,.18)" : "rgba(255,250,236,.16)"; dt.fillRect(R() * 64, R() * 64, 1 + R() * 2, 1 + R() * 2); } }
+    g.globalCompositeOperation = "source-atop"; g.fillStyle = g.createPattern(dugTex, "repeat"); g.fillRect(0, 0, dugC.width, dugC.height); g.globalCompositeOperation = "source-over";
+    dirty.dug = false;
+  }
+  var dugTex = null;
   var mossPat = null;
   function drawMoss() {
     var m = mossMask.getContext("2d"); m.clearRect(0, 0, mossMask.width, mossMask.height);
@@ -368,7 +401,7 @@
       for (var s2 = 0; s2 < 8; s2++) { var tx = sx + N8[s2][0], ty = sy + N8[s2][1]; if (inb(tx, ty) && S.fill[idx(tx, ty)] >= .02) { ax += tx + .5; ay += ty + .5; wn++; } }
       wpx[s1] = ax / wn * LT; wpy[s1] = ay / wn * LT; }
     for (var i = 0; i < N; i++) {
-      var f = S.fill[i]; if (f < .02) continue; var x = i % COLS, y = (i / COLS) | 0, cx = wpx[i], cy = wpy[i], deep = Math.max(0, -S.h[i] - 1);
+      var f = S.fill[i]; if (f < .02) continue; var x = i % COLS, y = (i / COLS) | 0, cx = wpx[i], cy = wpy[i], deep = S.dug[i] === 2 ? .45 : 0;
       g.globalAlpha = Math.min(1, .35 + f * .65);
       var r = LT * (.34 + deep * .5) * (.4 + .6 * f); g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill();
       for (var k = 0; k < 8; k++) { var nx = x + N8[k][0], ny = y + N8[k][1]; if (!inb(nx, ny)) continue; var j = idx(nx, ny); if (S.fill[j] < .02) continue;
@@ -401,7 +434,7 @@
   /* ---------- drawing ---------- */
   var sandPat = null, cursor = { x: 5.5, y: 5.5, show: false }, hand = null, drag = null, rakeDown = false, kbRake = false;
   function draw(time) {
-    if (dirty.groove) drawGrooves(); if (dirty.moss && (time - (draw.mt || -1e9) > 800 || dirty.mossNow)) { draw.mt = time; dirty.mossNow = false; drawMoss(); } drawWater(time);
+    if (dirty.groove) drawGrooves(); if (dirty.dug) drawDug(); if (dirty.moss && (time - (draw.mt || -1e9) > 800 || dirty.mossNow)) { draw.mt = time; dirty.mossNow = false; drawMoss(); } drawWater(time);
     var g = ctx; g.setTransform(L.dpr, 0, 0, L.dpr, 0, 0);
     var bg = g.createLinearGradient(0, 0, 0, L.H); bg.addColorStop(0, "#5f7650"); bg.addColorStop(1, "#4c6042"); g.fillStyle = bg; g.fillRect(0, 0, L.W, L.H);
     g.translate(L.ox, L.oy); g.scale(L.s, L.s);
@@ -410,13 +443,13 @@
     g.save(); g.fillStyle = PAL.sand; g.fillRect(L.R[0] - 30, L.R[1] - 30, L.R[2] + 60, L.R[3] + 60); g.translate(L.R[0], L.R[1]); g.scale(.75, .75); g.fillStyle = sandPat; g.fillRect(-40, -40, L.R[2] / .75 + 80, L.R[3] / .75 + 80); g.restore();
     // garden-space layers
     g.save(); g.translate(L.gx0, L.gy0); if (L.tr) g.transform(0, 1, 1, 0, 0, 0); g.scale(L.T / LT, L.T / LT);
-    g.drawImage(mossC, 0, 0); g.drawImage(grooveC, 0, 0); g.globalAlpha = .92; g.drawImage(waterC, 0, 0, COLS * LT, ROWS * LT); g.globalAlpha = 1;
+    g.drawImage(mossC, 0, 0); g.drawImage(grooveC, 0, 0); g.drawImage(dugC, 0, 0); g.globalAlpha = .92; g.drawImage(waterC, 0, 0, COLS * LT, ROWS * LT); g.globalAlpha = 1;
     g.restore();
     drawFootprints(g, time);
     // objects, back to front
     var objs = S.objs.slice().sort(function (a, b) { var pa = g2d(a.x, a.y), pb = g2d(b.x, b.y); return (KINDS[a.k].floats ? 1 : 0) - (KINDS[b.k].floats ? 1 : 0) || pa[1] - pb[1]; });
     var bob = Q.still() ? 0 : Math.sin(time / 1400);
-    objs.forEach(function (o) { var K = KINDS[o.k], p = g2d(o.x, o.y), sp = sprite(o.k), lift = drag && drag.o === o ? 1.06 : 1;
+    objs.forEach(function (o) { var K = KINDS[o.k], p = g2d(o.x, o.y), sp = sprite(o.k), lift = (drag && drag.o === o) || carry === o ? 1.08 : 1;
       if (K.glow) { g.globalAlpha = .55 + (Q.still() ? 0 : .08 * Math.sin(time / 2600)); var gs = glowSprite(); g.drawImage(gs, p[0] - 96, p[1] - 96, 192, 192); g.globalAlpha = 1; }
       if (o.k === "shishi") { drawShishi(g, o, p, lift, time); return; }
       g.save(); g.translate(p[0], p[1] + (K.floats && o.float ? bob * 2 : 0)); if (K.floats && o.float && !Q.still()) g.rotate(Math.sin(time / 2100 + o.id) * .08);
@@ -436,14 +469,15 @@
     return null;
   }
   function overTray(px, py) { var r = document.getElementById("mg-tray").getBoundingClientRect(); return px >= r.left && px <= r.right && py >= r.top && py <= r.bottom; }
-  var lastG = null, pid = null;
+  var lastG = null, pid = null, carry = null;   // carry: a placed item picked up with a tap, set down with the next tap
   cv.addEventListener("pointerdown", function (e) {
     if (pid !== null) return; pid = e.pointerId; try { cv.setPointerCapture(e.pointerId); } catch (x) {}
     cursor.show = false; var gp = scr2g(e.clientX, e.clientY);
     if (W && hitWanderer(gp)) { pid = null; wandererTap(); return; }
     if (hand) { placeHand(gp); pid = null; return; }
     var o = hit(gp[0], gp[1]);
-    if (o) { remember(); drag = { o: o, dx: o.x - gp[0], dy: o.y - gp[1], tx: o.x, ty: o.y, sx: o.x, sy: o.y, gx: gp[0], gy: gp[1], moved: 0 }; return; }
+    if (carry) { var co = carry; carry = null; if (inBin(gp[0], gp[1])) { compost(co); pid = null; return; } co.x = clampX(gp[0]); co.y = clampY(gp[1]); co.vx = co.vy = 0; touched(); pid = null; whisper("Set down."); return; }
+    if (o) { remember(); drag = { o: o, dx: 0, dy: 0, tx: o.x, ty: o.y, sx: o.x, sy: o.y, gx: gp[0], gy: gp[1], moved: 0 }; return; }
     if (inBin(gp[0], gp[1])) { pid = null; whisper("The compost bin. Drag anything you don't need onto it."); return; }
     remember(); rakeDown = true; rakeLine.started = false; lastG = gp; rakeT = gp; rakeLine(gp, gp, head); sound.rake();
   });
@@ -462,18 +496,20 @@
   function endDrag(toTray) {
     var o = drag.o, K = KINDS[o.k];
     if (inBin(drag.tx, drag.ty) || inBin(o.x, o.y)) { compost(o); drag = null; return; }
+    if (o.k !== "shishi" && drag.moved != null && drag.moved < .25) { o.x = drag.sx; o.y = drag.sy; carry = o; drag = null; whisper("Picked up. Tap where it should go, or on the compost bin."); return; }
     if (o.k === "shishi" && drag.moved != null && drag.moved < .3) { o.x = drag.sx; o.y = drag.sy; o.r = ((o.r || 0) + 1) & 7; hist.pop(); drag = null; whisper("It will pour that way now."); touched(); return; }
     if (toTray && !K.stone) { S.objs = S.objs.filter(function (x) { return x !== o; }); whisper("Back on the shelf."); }
     else if (K.stone) {   // a stone leaves a small dent where it sat
       if (Math.hypot(drag.tx - drag.sx, drag.ty - drag.sy) > .6) { var cx = Math.floor(drag.sx), cy = Math.floor(drag.sy); if (inb(cx, cy)) { var i = idx(cx, cy); if (!S.t[i]) S.h[i] = Math.min(S.h[i], -.7); } dirty.groove = true; }
       o.x = o.x; }
+    o.x = clampX(drag.tx); o.y = clampY(drag.ty);   // settle exactly under the finger or cursor, not where the ease had reached
     drag.done = true; drag = null; touched();
   }
   // stones ease toward where you pull them; heavy ones a little slower
   function moveObjs(dt) {
     binOpen += ((drag && inBin(drag.tx, drag.ty) ? 1 : 0) - binOpen) * Math.min(1, dt * 6);
     if (drag) { var o = drag.o, K = KINDS[o.k], k = K.stone ? (6 - K.heavy * 3.6) : 12; o.x += (drag.tx - o.x) * Math.min(1, dt * k); o.y += (drag.ty - o.y) * Math.min(1, dt * k); }
-    S.objs.forEach(function (b) { if (b.k === "boat" && b !== (drag && drag.o) && (b.vx || b.vy)) { b.x = clampX(b.x + b.vx * dt); b.y = clampY(b.y + b.vy * dt); } });
+    S.objs.forEach(function (b) { if (b.k === "boat" && b !== (drag && drag.o) && b !== carry && (b.vx || b.vy)) { b.x = clampX(b.x + b.vx * dt); b.y = clampY(b.y + b.vy * dt); } });
   }
 
   /* ---------- the shelf (drag from the tray, or tap then tap the sand) ---------- */
@@ -484,7 +520,7 @@
     if (K.source && S.objs.filter(function (o) { return KINDS[o.k].source; }).length >= MAX_EXTRA_SOURCES) { whisper("The garden has enough springs for now. You can move one, or compost one."); hand = null; trayOn(null); return; }
     if (inBin(x, y)) { hand = null; trayOn(null); return; }
     remember(); S.objs.push({ id: uid++, k: hand.k, x: x, y: y, r: 0 }); hand = null; trayOn(null); touched();
-    if (K.source) whisper("A new spring. Rake a groove from it to join the water."); else if (hand === null && x && K.blocks) whisper("Lead water to it. Tap it to turn where it pours.");
+    if (K.source) whisper("A new spring. Dig a path from it with the trowel."); else if (hand === null && x && K.blocks) whisper("Dig a path to it with the trowel. Tap it to turn where it pours.");
   }
   function trayOn(kind) { document.querySelectorAll(".mg-item").forEach(function (b) { b.classList.toggle("on", b.dataset.kind === kind); }); }
   document.querySelectorAll(".mg-item").forEach(function (b) {
@@ -509,12 +545,12 @@
     hand = { k: kind, x: cursor.x, y: cursor.y }; trayOn(kind);
     if (kb) { cursor.show = true; cv.focus(); whisper("Move with the arrow keys, then Space to set it down."); } else whisper("Tap the sand to set it down.");
   }
-  cv.addEventListener("pointermove", function (e) { if (hand && pid === null && e.pointerType === "mouse") { var gp = scr2g(e.clientX, e.clientY); hand.x = gp[0]; hand.y = gp[1]; } });
+  cv.addEventListener("pointermove", function (e) { if (pid === null && e.pointerType === "mouse" && (hand || carry)) { var gp = scr2g(e.clientX, e.clientY); if (hand) { hand.x = gp[0]; hand.y = gp[1]; } if (carry) { carry.x = clampX(gp[0]); carry.y = clampY(gp[1]); } binOpen = carry && inBin(gp[0], gp[1]) ? 1 : binOpen; } });
 
   /* ---------- tools ---------- */
   function setHead(hd, quiet) {
     head = hd; document.querySelectorAll(".mg-tool").forEach(function (b) { var on = +b.dataset.head === hd; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
-    if (!quiet) { whisper(hd === 1 ? "The small rake: fine, close lines." : hd === 3 ? "The wide rake: broad, even lines." : hd === 2 ? "Wide swirls." : "Smooth: brush lines away."); touched(); }
+    if (!quiet) { whisper(hd === 4 ? "The trowel: dig a path for the water." : hd === 5 ? "Fill: press a dug path back into sand." : hd === 1 ? "The small rake: fine, close lines." : hd === 3 ? "The wide rake: broad, even lines." : hd === 2 ? "Wide swirls." : "Smooth: brush lines away."); touched(); }
   }
   document.querySelectorAll(".mg-tool").forEach(function (b) { b.addEventListener("click", function () { setHead(+b.dataset.head); }); });
   document.getElementById("mg-undo").addEventListener("click", undo);
@@ -531,7 +567,7 @@
     var tag = (e.target.tagName || "").toLowerCase(); if (tag === "input") return;
     var k = e.key, mv = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[k];
     if ((k === "z" || k === "Z") && !e.altKey) { e.preventDefault(); undo(); return; }
-    if (k === "1" || k === "2" || k === "3" || k === "4") { setHead({ 1: 1, 2: 3, 3: 2, 4: 0 }[k]); return; }
+    if (k >= "1" && k <= "6" && k.length === 1) { setHead({ 1: 1, 2: 3, 3: 2, 4: 0, 5: 4, 6: 5 }[k]); return; }
     if (e.target !== cv && e.target !== document.body) return;
     if (mv) {
       e.preventDefault(); cursor.show = true; var sx = mv[0] * .5, sy = mv[1] * .5, gx = L.tr ? sy : sx, gy = L.tr ? sx : sy;   // screen arrows -> garden directions
@@ -583,9 +619,10 @@
     moveObjs(Math.min(.1, dt)); rakeFollow(Math.min(.1, dt)); wanderUpdate(Math.min(.1, dt)); puffUpdate(Math.min(.1, dt));
     sTick += dt; if (sTick > 1) { sTick = 0; sound.tick(); }
     if (session.len && !session.ended && elapsed() >= session.len * 60000) endCard();
+    if (innerWidth !== L.W || innerHeight !== L.H) layout();   // phones resize without always firing "resize" (URL bar, rotation)
     draw(now); requestAnimationFrame(frame);
   }
-  window.addEventListener("resize", function () { layout(); });
+  window.addEventListener("resize", function () { layout(); }); if (window.visualViewport) visualViewport.addEventListener("resize", function () { layout(); });
 
   /* ---------- the rake follows the pointer softly (lerp ~0.2) so lines curve smoothly ---------- */
   var rakeT = null, hushV = 0;
@@ -804,7 +841,10 @@
       var c = mk(96, 96), g = c.getContext("2d");
       if (kind) { var sp = sprite(kind), K = KINDS[kind], sc = Math.min(88 / K.w, 88 / K.h); g.drawImage(sp, 48 - K.w * sc / 2, 48 - K.h * sc / 2, K.w * sc, K.h * sc); }
       else { g.strokeStyle = PAL.ink; g.lineWidth = 6; g.lineCap = "round"; g.beginPath();
-        if (n === "undo") { g.arc(50, 52, 24, Math.PI * 1.1, Math.PI * 2.4); g.moveTo(26, 30); g.lineTo(26, 48); g.lineTo(42, 46); }
+        if (n === "trowel" || n === "trowel-fill") { g.lineWidth = 7; g.moveTo(18, 80); g.lineTo(40, 58); g.stroke(); g.beginPath(); g.fillStyle = n === "trowel" ? "#9A94A8" : "#D6C7A8";
+          g.moveTo(40, 58); g.quadraticCurveTo(46, 30, 78, 18); g.quadraticCurveTo(68, 50, 40, 58); g.fill(); g.lineWidth = 3; g.stroke(); g.beginPath(); g.lineWidth = 6;
+          if (n === "trowel-fill") { g.fillStyle = "#b9a37c"; g.arc(70, 72, 12, Math.PI, 0); g.fill(); } else { g.strokeStyle = "#8f7a58"; g.moveTo(52, 82); g.quadraticCurveTo(66, 70, 84, 78); } }
+        else if (n === "undo") { g.arc(50, 52, 24, Math.PI * 1.1, Math.PI * 2.4); g.moveTo(26, 30); g.lineTo(26, 48); g.lineTo(42, 46); }
         else if (n === "fresh-garden") { for (var r = 1; r < 4; r++) { g.moveTo(18, 30 + r * 12); g.bezierCurveTo(40, 22 + r * 12, 56, 38 + r * 12, 78, 30 + r * 12); } }
         else { g.moveTo(20, 76); g.lineTo(76, 20); var tines = n === "rake-wide" ? 7 : n === "rake-fine" ? 5 : n === "rake-swirl" ? 3 : 0; var x0 = tines === 7 ? 24 : 40, stp = tines === 7 ? 8 : 9; if (tines === 7) { g.moveTo(14, 46); g.lineTo(54, 6); } for (var t = 0; t < tines; t++) { var bx = x0 + t * stp * .7, by = 36 - t * stp * .7; if (tines !== 7) { bx = 40 + t * 9; by = 20 + t * 2; } g.moveTo(bx, by); g.lineTo(bx + 12, by + 12); } if (!tines) { g.moveTo(56, 12); g.lineTo(84, 40); } }
         g.stroke(); }
@@ -821,7 +861,7 @@
     var params = new URLSearchParams(location.search);
     var start = function (m) { session.len = m; session.start = performance.now(); setTimeout(function () { cv.focus({ preventScroll: true }); }, 50); if (m === 0) whisper("No timer. Stay as long as you like."); };
     if (params.get("len") != null) start(+params.get("len") || 0);
-    else Q.pickLength({ title: "Welcome to the Moss Garden", text: "Rake, move stones, and let the spring find its way. Would you like a gentle timer?", lengths: [5, 10, 30], open: true, last: 0 }).then(start);
+    else Q.pickLength({ title: "Welcome to the Moss Garden", text: "Rake the sand, move stones, and dig paths with the trowel so the spring can find its way. Would you like a gentle timer?", lengths: [5, 10, 30], open: true, last: 0 }).then(start);
   });
 
   // test hooks (used by the Playwright checks; nothing on screen)

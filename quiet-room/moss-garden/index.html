@@ -14,7 +14,7 @@
 <script src="../shared/name.js"></script>
 </head>
 <body>
-<canvas id="mg" class="q-stage" tabindex="0" aria-label="The Moss Garden. Drag to rake the sand, push stones, and guide water from the spring in the top-left corner. Keyboard: arrow keys move a cursor, Space picks up or puts down, Enter lifts or lowers the rake, 1 2 3 4 choose small rake, wide rake, swirl or smooth, Delete sends a held item to the compost bin, Z undoes."></canvas>
+<canvas id="mg" class="q-stage" tabindex="0" aria-label="The Moss Garden. Drag to rake the sand, tap or drag things to move them, and dig paths with the trowel to guide water from the spring in the top-left corner. Keyboard: arrow keys move a cursor, Space picks up or puts down, Enter lifts or lowers the rake, 1 2 3 4 choose small rake, wide rake, swirl or smooth, 5 the trowel, 6 fill, Delete sends a held item to the compost bin, Z undoes."></canvas>
 <div id="q-soft" class="q-soft" role="toolbar" aria-label="Garden options">
   <button class="q-btn" id="mg-time" type="button">Time left?</button>
   <button class="q-btn" id="mg-sound" type="button" aria-pressed="false">Sound: off</button>
@@ -31,6 +31,10 @@
     <button class="q-tool mg-tool" data-head="3" role="radio" aria-checked="false" aria-label="Wide rake, more tines (2)"><span class="mg-ic" data-icon="rake-wide"></span><span class="mg-tl">Wide</span></button>
     <button class="q-tool mg-tool" data-head="2" role="radio" aria-checked="false" aria-label="Swirl rake (3)"><span class="mg-ic" data-icon="rake-swirl"></span><span class="mg-tl">Swirl</span></button>
     <button class="q-tool mg-tool" data-head="0" role="radio" aria-checked="false" aria-label="Smooth, the eraser (4)"><span class="mg-ic" data-icon="rake-smooth"></span><span class="mg-tl">Smooth</span></button>
+  </div>
+  <div class="mg-group" role="radiogroup" aria-label="Trowel: the only tool that moves water">
+    <button class="q-tool mg-tool" data-head="4" role="radio" aria-checked="false" aria-label="Trowel, dig a water path (5)"><span class="mg-ic" data-icon="trowel"></span><span class="mg-tl">Trowel</span></button>
+    <button class="q-tool mg-tool" data-head="5" role="radio" aria-checked="false" aria-label="Fill, press a dug path back into sand (6)"><span class="mg-ic" data-icon="trowel-fill"></span><span class="mg-tl">Fill</span></button>
   </div>
   <div class="mg-group mg-shelf" aria-label="Shelf: drag things into the garden, or tap one then tap the sand">
     <button class="q-tool mg-item" data-kind="plank" aria-label="Bridge plank"><span class="mg-ic" data-icon="bridge-plank"></span></button>
