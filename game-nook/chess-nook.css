@@ -1,4 +1,4 @@
-/* Gremlin Chess + the Game Nook (hidden preview). Palette from office.css / the arcade preview. */
+/* Gremlin Chess + the Game Nook (the live Game Nook). Palette from office.css / the arcade preview. */
 :root{--cream:#E8E4D8;--paper:#F1EDE2;--sage:#A6B89A;--forest:#54664A;--moss:#3A4A33;--ink:#1A1A18;--wood:#b07a4a;--wood-d:#7d5232;--butter:#f3d98b;--plum:#6b4f6e;
   --serif:"Fraunces",Georgia,"Times New Roman",serif;--sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--hand:'Bradley Hand','Segoe Print','Comic Sans MS',cursive}
 .gc *,.nook *{box-sizing:border-box}
@@ -62,31 +62,51 @@ button.gc-gcard:active{transform:translate(1px,2px)}
 .gc-coord{position:absolute;font:700 12px var(--sans);color:rgba(26,26,24,.55);pointer-events:none}
 .gc-coord.r{top:2px;left:3px}
 .gc-coord.f{bottom:1px;right:4px}
-.gc-sq.last{box-shadow:inset 0 0 0 4px rgba(243,217,139,.95)}
-.gc-sq.sel{box-shadow:inset 0 0 0 5px var(--plum)}
-.gc-sq.hint{box-shadow:inset 0 0 0 5px #d38b2c}
-.gc-sq.check{background:radial-gradient(circle,#f2a48a 0 45%,transparent 72%),#e8c2a8}
-.gc-sq.dot::after{content:"";position:absolute;width:30%;height:30%;border-radius:50%;background:rgba(58,74,51,.55)}
-.gc-sq.cap::after{content:"";position:absolute;inset:6%;border-radius:50%;border:5px solid rgba(107,79,110,.6)}
-.gc-status{text-align:center;font-weight:700;margin:10px 0 4px;min-height:1.5em}
-.gc-ctrl{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}
-.gc-promo{background:var(--paper);border:2.5px solid var(--ink);border-radius:14px;padding:10px 12px;margin:8px auto;max-width:560px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
-.gc-promo p{flex-basis:100%;margin:0;text-align:center;font-weight:700}
-/* the end card: surprise moment / good game */
-.gc-end{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(26,26,24,.45)}
-.gc-endcard{position:relative;max-width:460px;width:100%;max-height:calc(100vh - 32px);overflow:auto;text-align:center;background:var(--paper);border:3px solid var(--ink);border-radius:22px 16px 24px 14px;padding:22px 18px 16px;box-shadow:5px 7px 0 rgba(26,26,24,.3)}
+/* calm move tints: from/to squares a soft gold that holds; a thin lavender ring for the picked-up piece; quiet legal dots */
+.gc-sq.last{background-image:linear-gradient(rgba(232,190,80,.25),rgba(232,190,80,.25))}
+.gc-sq.sel{box-shadow:inset 0 0 0 2px #9c86cf}
+.gc-sq.hint{box-shadow:inset 0 0 0 3px #d9a64a}
+.gc-sq.check{background-image:radial-gradient(circle,rgba(240,176,80,.55) 0 42%,transparent 70%)}
+.gc-sq.check.pulse{animation:gc-amber 2s ease-in-out 1}
+@keyframes gc-amber{0%{background-image:radial-gradient(circle,rgba(240,176,80,.15) 0 42%,transparent 70%)}50%{background-image:radial-gradient(circle,rgba(240,176,80,.75) 0 48%,transparent 74%)}100%{background-image:radial-gradient(circle,rgba(240,176,80,.55) 0 42%,transparent 70%)}}
+.gc-sq.dot::after{content:"";position:absolute;width:28%;height:28%;border-radius:50%;background:rgba(58,74,51,.35)}
+.gc-sq.cap::after{content:"";position:absolute;inset:7%;border-radius:50%;border:4px solid rgba(107,79,110,.35)}
+.gc-boardwrap{position:relative;width:max(352px,min(100%,560px,calc(100vh - 300px)));margin:0 auto}
+.gc-boardwrap .gc-board{width:100%}
+.gc-vignette{position:absolute;inset:0;pointer-events:none;border-radius:8px;background:radial-gradient(ellipse at center,transparent 55%,rgba(26,26,24,.06) 100%),rgba(26,26,24,.03);opacity:0;transition:opacity .5s ease}
+.gc-vignette.on{opacity:1}
+.gc-trail{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.gc-fx{position:absolute;inset:0;pointer-events:none;z-index:4}
+.gc-ghost{position:absolute;display:flex;align-items:center;justify-content:center;border-radius:50%;will-change:transform,left,top}
+.gc-ghost.lifted{filter:drop-shadow(0 6px 6px rgba(26,26,24,.22))}
+.gc-tray{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;min-height:30px;margin:4px auto;max-width:560px}
+.gc-tray .gc-pc{font-size:24px}
+.gc-line{text-align:center;font:600 17px var(--sans);color:var(--moss);margin:8px 0 0;min-height:1.5em}
+.gc-status{font-weight:600;color:#55524a;font-size:16px}
+/* the thinking glow: fades in softly, then simply holds. Never reveals the move. */
+.gc-facewrap{position:relative;flex:none}
+.gc-face{transition:box-shadow .6s ease}
+.gc-face.thinking{box-shadow:0 0 0 4px rgba(243,217,139,.55),0 0 18px 6px rgba(243,217,139,.45)}
+.gc-bubble{position:absolute;left:74px;top:-6px;z-index:6;width:max-content;max-width:min(300px,62vw);padding:8px 12px;background:#fffdf6;border:2px solid var(--ink);border-radius:14px 14px 14px 4px;
+  font:600 16px/1.35 var(--hand);color:var(--moss);box-shadow:2px 3px 0 rgba(26,26,24,.15);opacity:0;transform:translateY(4px);transition:opacity .5s ease,transform .5s ease;pointer-events:none}
+.gc-bubble.on{opacity:1;transform:none}
+.gc-top{position:relative;min-height:76px}
+.gc-h3{font:800 20px var(--serif);color:var(--moss);margin:18px 0 0}
+.gc-pace{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:10px 0}
+.gc-pace-l{font-weight:700}
+.gc-chip{min-height:44px;min-width:44px;padding:6px 14px;font:700 16px var(--sans);border:2px solid var(--ink);border-radius:999px;background:var(--paper);color:var(--ink);cursor:pointer}
+.gc-chip.on{background:var(--forest);color:var(--paper)}
+/* the end card: one quiet card that fades in over a second. No confetti, no banner. */
+.gc-end{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(26,26,24,.35);animation:gc-fade 1s ease both}
+.gc-endcard{position:relative;max-width:460px;width:100%;max-height:calc(100vh - 32px);overflow:auto;text-align:center;background:var(--paper);border:3px solid var(--ink);border-radius:22px 16px 24px 14px;padding:22px 18px 16px;box-shadow:5px 7px 0 rgba(26,26,24,.25)}
 .gc-endcard .gc-row{justify-content:center}
-.gc-endcard .gc-face{width:110px;height:110px;margin:0 auto 6px}
-.gc-end.won .gc-endcard{background:#fff8e2;border-color:var(--wood-d)}
-.gc-prize{display:inline-block;margin:8px 0 2px;padding:8px 14px;background:var(--butter);border:2px dashed var(--wood-d);border-radius:12px;font-weight:700}
-.gc-confetti{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,#d38b2c 0 3px,transparent 4px),radial-gradient(circle,var(--sage) 0 3px,transparent 4px),radial-gradient(circle,var(--plum) 0 2.5px,transparent 3.5px);
-  background-size:70px 60px,90px 80px,60px 90px;background-position:10px 8px,40px 30px,25px 50px;opacity:.28;z-index:0}
-.gc-endcard>*:not(.gc-confetti){position:relative;z-index:1}
-@keyframes gc-pop{0%{transform:translateY(40px) scale(.6);opacity:0}60%{transform:translateY(-8px) scale(1.06);opacity:1}100%{transform:none}}
-@keyframes gc-drift{to{background-position:10px 68px,40px 110px,25px 140px}}
-.gc-face.pop{animation:gc-pop .7s ease-out both}
-.gc-confetti{animation:gc-drift 6s linear infinite}
-.gc-endcard{animation:gc-pop .4s ease-out both}
-@media (prefers-reduced-motion:reduce){.gc *,.nook *{animation:none!important;transition:none!important}}
-.gw-still .gc *,.gw-still .nook *{animation:none!important;transition:none!important}
-@media (max-width:480px){.gc-crew{grid-template-columns:1fr}.gc-face{width:60px;height:60px}.gc-btn{padding:10px 14px}}
+.gc-endcard .gc-face{width:100px;height:100px;margin:0 auto 6px}
+.gc-endsub{font-weight:700;margin:.2em 0}
+.gc-end.won .gc-endcard{background:#fff8e2}
+.gc-prize{display:inline-block;margin:8px 0 2px;padding:8px 14px;background:#fbefc7;border:2px dashed var(--wood-d);border-radius:12px;font-weight:600}
+@keyframes gc-fade{from{opacity:0}to{opacity:1}}
+/* Still mode: no glide or pulse (the JS cross-fades instead); the think glow is static */
+@media (prefers-reduced-motion:reduce){.gc-sq.pulse,.gc-end{animation:none!important}.gc-face,.gc-vignette,.gc-bubble{transition:none!important}}
+.gw-still .gc-sq.pulse,.gw-still .gc-end{animation:none!important}
+.gw-still .gc-face,.gw-still .gc-vignette,.gw-still .gc-bubble{transition:none!important}
+@media (max-width:480px){.gc-crew{grid-template-columns:1fr}.gc-face{width:60px;height:60px}.gc-btn{padding:10px 14px}.gc-bubble{left:66px}}

@@ -1,4 +1,4 @@
-/* Gremlin Arcade (hidden preview). One calm card: the starter games play right away; "Log in" or "Get a Gremlin Key"
+/* Gremlin Arcade (hidden preview; embedded in My Account). Includes the Chess tile, which opens game-nook/chess-nook.js. One calm card: the starter games play right away; "Log in" or "Get a Gremlin Key"
    opens a small pop-up over the same spot, and every game you've discovered in Gremlin World appears in place. Uses the SAME server calls as world-player.js
    (plain fetch to /rest/v1/rpc/gw_* with the publishable key) and the SAME session storage key
    (localStorage "gremlin-world-player" = { name, token, expires_at }). No service keys, no personal info. */
@@ -76,7 +76,16 @@
     if (!W) return;
     var ul = $("#ga-games"); ul.innerHTML = "";
     var open = games.filter(discovered), locked = games.filter(function (g) { return !discovered(g); });
-    $("#ga-count").textContent = open.length + " of " + games.length + " games found";
+    $("#ga-count").textContent = (open.length + 1) + " of " + (games.length + 1) + " games found";
+    // the chess table (game-nook/): always open, for guests too; logged-in players can also play friends there
+    var cli = el("li"), cb = el("button", "ga-game ga-chess-tile"); cb.type = "button";
+    cb.appendChild(el("span", "gg-name", "Chess with the Gremlins"));
+    cb.appendChild(el("span", "gg-blurb", "Six gremlins, easy to tricky, or a friend. No clock."));
+    var bt = 0; try { var bb = JSON.parse(localStorage.getItem(PFX + "chess-beaten") || "{}"); bt = Object.keys(bb).length; } catch (e) {}
+    cb.appendChild(el("span", "gg-tag", bt ? "beaten " + bt + " of 6" : "new: chess table"));
+    cb.setAttribute("aria-label", "Play chess with the gremlins or a friend");
+    cb.addEventListener("click", function () { openChess(cb); });
+    cli.appendChild(cb); ul.appendChild(cli);
     open.concat(locked).forEach(function (g) {
       var d = discovered(g), li = el("li"), b = el("button", "ga-game" + (d ? "" : " locked")); b.type = "button";
       b.appendChild(el("span", "gg-name", d ? g.name : "Not found yet"));
@@ -130,6 +139,18 @@
       ranked: function (g, score) { return player ? rpc("gw_submit_score", { p_token: player.token, p_game_id: g.id, p_score: Math.round(score), p_meta: { v: 1 } }) : Promise.resolve(null); },
       signIn: null
     });
+  }
+
+  /* ---------- the chess table (game-nook/chess-nook.js) ---------- */
+  var chessUI = null, chessBack = null;
+  function openChess(from) {
+    var d = $("#ga-chess"); chessBack = from; d.hidden = false;
+    if (!window.GremlinChess) { $("#ga-chess-body").textContent = "The chess table is still being set up. Try again in a moment."; return; }
+    chessUI = window.GremlinChess.mount($("#ga-chess-body"), { base: "game-nook/", social: window.GremlinSocial, onClose: closeChess, closeLabel: "Back to the arcade" });
+  }
+  function closeChess() {
+    $("#ga-chess").hidden = true; if (chessUI) { chessUI.destroy(); chessUI = null; } renderMachine();
+    var t = document.querySelector(".ga-chess-tile"); if (t) try { t.focus({ preventScroll: true }); } catch (e) {}
   }
 
   /* ---------- stats + coupons drawers ---------- */
@@ -271,6 +292,8 @@
     });
     document.querySelectorAll("[data-open]").forEach(function (b) { b.addEventListener("click", function () { b.dataset.open === "stats" ? openStats() : openCoupons(); }); });
     $("#ga-drawer .ga-x").addEventListener("click", closeDrawer);
+    $("#ga-chess .ga-x").addEventListener("click", closeChess);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("#ga-chess").hidden && !document.querySelector(".gc-end")) closeChess(); });
     $("#ga-drawer").addEventListener("click", function (e) { if (e.target.id === "ga-drawer") closeDrawer(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("#ga-drawer").hidden) closeDrawer(); });
   }

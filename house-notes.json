@@ -198,22 +198,6 @@
  ],
  "comingSoon": [
   {
-   "id": "soon-breakroom-1",
-   "room": "arcade",
-   "who": "noodle",
-   "title": "Still being set up",
-   "text": "Another door goes right here, someday. I'm still setting up this side room. I think it wants to be a snack nook with a very long couch.",
-   "at": {
-    "face": "front",
-    "x": 880,
-    "y": 330
-   },
-   "size": [
-    90,
-    105
-   ]
-  },
-  {
    "id": "soon-breakroom-2",
    "room": "arcade",
    "who": "dot",

@@ -116,9 +116,9 @@
             150
           ],
           "card": {
-            "title": "Knock Knock (Life in the Gremlin Office) · Issue 1, Page 1: The Great Sock Situation",
+            "title": "Knock Knock (Life in the Gremlin Office) \u00b7 Issue 1, Page 1: The Great Sock Situation",
             "image": "comics/knock-knock/issue-01-page-01-web.jpg",
-            "alt": "Knock Knock (Life in the Gremlin Office) · Issue 1, Page 1: The Great Sock Situation"
+            "alt": "Knock Knock (Life in the Gremlin Office) \u00b7 Issue 1, Page 1: The Great Sock Situation"
           }
         }
       ],
@@ -1628,10 +1628,28 @@
             160,
             293
           ]
+        },
+        {
+          "id": "breakroom-to-game-nook",
+          "type": "doorlink",
+          "href": "game-nook/",
+          "tag": "Game Nook",
+          "label": "A little door to the Game Nook, where the gremlins play chess",
+          "img": "assets/world/props/break-room-door.svg",
+          "cls": "breakdoor",
+          "at": {
+            "face": "front",
+            "x": 880,
+            "y": 600
+          },
+          "size": [
+            130,
+            234
+          ]
         }
       ],
       "painted": true,
-      "_readme": "The Break Room (room id stays 'arcade' so saves, links, badges and the server whitelist keep working). It is the hub where the arcade lives: always open (house-schedule.json alwaysOpen), reached from the Office's BREAK ROOM door and from the Tunnel. Future side rooms: add a portal item here and remove the matching 'comingSoon' note in house-notes.json."
+      "_readme": "The Break Room (room id stays 'arcade' so saves, links, badges and the server whitelist keep working). It is the hub where the arcade lives: always open (house-schedule.json alwaysOpen), reached from the Office's BREAK ROOM door and from the Tunnel. Future side rooms: add a portal item here and remove the matching 'comingSoon' note in house-notes.json. The Game Nook (chess) is a 'doorlink' item: a door that opens its own page (game-nook/), and that page's back link returns to world.html#arcade."
     },
     "wing": {
       "name": "The Gremlin Wing",
