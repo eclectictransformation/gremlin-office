@@ -12,16 +12,20 @@
     stone1: { art: "stone-1", w: 150, h: 150, r: 1.55, heavy: 1, stone: true },
     stone2: { art: "stone-2", w: 124, h: 124, r: 1.25, heavy: .6, stone: true },
     stone3: { art: "stone-3", w: 100, h: 100, r: 1.0, heavy: .3, stone: true },
-    plank: { art: "bridge-plank", w: 192, h: 64 }, step: { art: "stepping-stone", w: 80, h: 80 },
-    lantern: { art: "lantern", w: 80, h: 80, glow: "lantern-glow" }, moss: { art: "moss-clump", w: 96, h: 96 },
-    fern: { art: "fern", w: 96, h: 96 }, statue: { art: "gremlin-statue", w: 96, h: 96 }, boat: { art: "leaf-boat", w: 64, h: 64, floats: true },
-    shishi: { art: "shishi-odoshi", w: 120, h: 120, blocks: .75 }, spout: { art: "bamboo-spout", w: 88, h: 88, source: true }, barrel: { art: "rain-barrel", w: 96, h: 96, source: true }
+    pebble: { art: "stone-3", w: 62, h: 62, r: .6, heavy: .12, stone: true },   // v2.2: the small rock
+    plank: { art: "bridge-plank", w: 192, h: 64, rot: true, flat: true, walk: true }, step: { art: "stepping-stone", w: 80, h: 80, flat: true, walk: true },
+    board: { art: "wood-plank", w: 120, h: 44, rot: true, flat: true, walk: true },   // v2.2: bridge planks; they join into one walkable bridge
+    tree: { art: "tree", w: 176, h: 176, solid: 1.1 },
+    lantern: { art: "lantern", w: 80, h: 80, glow: "lantern-glow", solid: .7 }, moss: { art: "moss-clump", w: 96, h: 96 },
+    fern: { art: "fern", w: 96, h: 96 }, statue: { art: "gremlin-statue", w: 96, h: 96, solid: .7 }, boat: { art: "leaf-boat", w: 64, h: 64, floats: true },
+    shishi: { art: "shishi-odoshi", w: 120, h: 120, blocks: .75 }, spout: { art: "bamboo-spout", w: 88, h: 88, source: true, solid: .7 }, barrel: { art: "rain-barrel", w: 96, h: 96, source: true, solid: .7 }
   };
+  // v2.2: lantern, leaf boat and bamboo spout left the shelf; they stay here so older gardens still show them
   var DEFAULT_STONES = [["stone1", 27.5, 7.5], ["stone2", 12.5, 14.5], ["stone3", 19.5, 4.5], ["stone2", 33.5, 15.5], ["stone3", 7.5, 7.5], ["stone1", 22.5, 16.5], ["stone3", 35.5, 4.5]];
 
   /* ---------- state ---------- */
   var S = { h: new Float32Array(N), t: new Uint8Array(N), d: new Uint8Array(N), moss: new Float32Array(N), fill: new Float32Array(N), objs: [], strokes: [], leg: new Uint8Array(N), met: 0, dug: new Uint8Array(N) };
-  var srcMask = new Uint8Array(N), lab = new Int16Array(N), MAX_EXTRA_SOURCES = 2;   // the corner spring + up to two more (no count on screen)
+  var srcMask = new Uint8Array(N), lab = new Int16Array(N), MAX_EXTRA_SOURCES = 3;   // v2.2: four bodies of water in all: the corner spring + up to three placed ponds (no count on screen)
   var BIN = { x: COLS - 1.55, y: ROWS - 1.45, r: 1.5 }, binOpen = 0, puffs = [], tumble = null;
   var dist = new Int16Array(N), blocked = new Uint8Array(N), head = 1, hist = [], uid = 1;
   var art = {}, sprites = {}, cv = document.getElementById("mg"), ctx = cv.getContext("2d");
@@ -30,6 +34,8 @@
   function idx(x, y) { return y * COLS + x; }
   function inb(x, y) { return x >= 0 && y >= 0 && x < COLS && y < ROWS; }
   function isSource(i) { return srcMask[i] > 0; }
+  var RM = window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+  function calm() { return Q.still() || !!(RM && RM.matches); }
   function inBin(x, y) { return Math.hypot(x - BIN.x, y - BIN.y) < BIN.r; }
   function channel(i) { return S.dug[i] > 0; }   // v2.1: only trowel-dug paths (and spring pools) carry water; rake lines are just lines
 
@@ -47,7 +53,7 @@
   function remember() { hist.push(snap()); if (hist.length > 30) hist.shift(); }
   function undo() {
     var s = hist.pop(); if (!s) { whisper("Nothing to undo just now."); return; }
-    S.h = s.h; S.dug = s.dug || S.dug; dirty.dug = true; S.t = s.t; S.d = s.d; S.moss = s.moss; S.objs = s.objs; S.strokes = s.strokes; S.leg = s.leg; tumble = null; hand = null; drag = null; carry = null;
+    S.h = s.h; S.dug = s.dug || S.dug; dirty.dug = true; S.t = s.t; S.d = s.d; S.moss = s.moss; S.objs = s.objs; S.strokes = s.strokes; S.leg = s.leg; tumble = null; hand = null; drag = null; carry = null; sel = null; push = null;
     dirty.groove = dirty.moss = true; touched(); whisper("Undone.");
   }
 
@@ -74,7 +80,7 @@
         var pts = k[1].slice(0, 4000).map(function (v) { return (+v || 0) / 20; }); if (pts.length >= 4) S.strokes.push({ k: k[0], p: pts.slice(0, pts.length - pts.length % 2) }); });
       S.met = D.met ? 1 : 0;
     }
-    if (D.head >= 0 && D.head <= 5) setHead(D.head, true);
+    if (D.head >= 0 && D.head <= 6) setHead(D.head, true);
     // water paths: v2.1 saves carry them; older saves had raked channels carry water, so those become dug paths (nothing dries up)
     if (typeof D.dug === "string" && D.dug.length === N) { for (var a3 = 0; a3 < N; a3++) S.dug[a3] = Math.min(2, +D.dug[a3] || 0); }
     else { for (var a4 = 0; a4 < N; a4++) S.dug[a4] = S.h[a4] < -1.45 ? 2 : S.h[a4] < -.4 ? 1 : 0; }
@@ -105,6 +111,17 @@
     if (/^stone/.test(name)) stone(PAL.stone, 1);
     else if (name === "stepping-stone") { stone("#a9a39a", .95); }
     else if (name === "bridge-plank") { g.fillStyle = "#b08a5e"; g.beginPath(); g.roundRect(W * .04, H * .2, W * .92, H * .6, 18); g.fill(); g.strokeStyle = "rgba(90,64,40,.45)"; g.lineWidth = 4; for (var i = 1; i < 6; i++) { g.beginPath(); g.moveTo(W * .04 + i * W * .153, H * .22); g.lineTo(W * .04 + i * W * .153, H * .78); g.stroke(); } }
+    else if (name === "wood-plank") {   // warm, clearly wooden, flat from above
+      var wg = g.createLinearGradient(0, H * .15, 0, H * .85); wg.addColorStop(0, "#d2a46c"); wg.addColorStop(.5, "#b8864f"); wg.addColorStop(1, "#9a6c3c");
+      g.fillStyle = wg; g.beginPath(); g.roundRect(W * .03, H * .14, W * .94, H * .72, 10); g.fill();
+      g.strokeStyle = "rgba(96,62,32,.55)"; g.lineWidth = 3; g.stroke();
+      g.strokeStyle = "rgba(110,72,38,.35)"; g.lineWidth = 2.5; [.32, .5, .68].forEach(function (f, n) { g.beginPath(); g.moveTo(W * .08, H * f); g.bezierCurveTo(W * .35, H * (f + (n - 1) * .05), W * .6, H * (f - .04), W * .92, H * f); g.stroke(); });
+      g.fillStyle = "rgba(70,48,30,.7)"; [[.08, .3], [.08, .7], [.92, .3], [.92, .7]].forEach(function (n) { g.beginPath(); g.arc(W * n[0], H * n[1], 4, 0, 7); g.fill(); });
+      g.fillStyle = "rgba(255,240,210,.25)"; g.fillRect(W * .06, H * .18, W * .88, H * .08); }
+    else if (name === "tree") {   // a small maple seen from above: soft layered canopy
+      blob(g, W * .5, H * .52, W * .42, H * .4, "#55703d", 21); blob(g, W * .4, H * .42, W * .26, H * .24, "#6E8B4E", 22); blob(g, W * .62, H * .45, W * .24, H * .23, "#67854a", 23);
+      blob(g, W * .5, H * .64, W * .26, H * .2, "#5f7c44", 24); blob(g, W * .42, H * .36, W * .13, H * .12, "#8fa86a", 25); blob(g, W * .62, H * .38, W * .1, H * .09, "#A3B18A", 26);
+      g.fillStyle = "rgba(242,196,141,.55)"; [[.35, .55], [.66, .6], [.52, .3], [.3, .4], [.7, .42]].forEach(function (n) { g.beginPath(); g.arc(W * n[0], H * n[1], W * .022, 0, 7); g.fill(); }); }
     else if (name === "lantern") { stone("#a6a1ad", .9); var gl = g.createRadialGradient(W / 2, H / 2, 2, W / 2, H / 2, W * .22); gl.addColorStop(0, "#fff3d6"); gl.addColorStop(1, PAL.peach); blob(g, W / 2, H / 2, W * .18, H * .18, gl, 5); }
     else if (name === "lantern-glow") { var gg = g.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W / 2); gg.addColorStop(0, "rgba(242,196,141,.75)"); gg.addColorStop(1, "rgba(242,196,141,0)"); g.clearRect(0, 0, W, H); g.fillStyle = gg; g.fillRect(0, 0, W, H); }
     else if (name === "moss-clump") { for (var m = 0; m < 9; m++) { var a2 = m / 9 * 6.28; blob(g, W / 2 + Math.cos(a2) * W * .18, H / 2 + Math.sin(a2) * H * .16, W * .2, H * .18, m % 2 ? PAL.moss : "#7d9a5a", 20 + m); } blob(g, W / 2, H / 2, W * .22, H * .2, "#86a364", 31); }
@@ -194,6 +211,7 @@
     dirty.groove = true;
   }
   function rakeLine(a, b, hd) {
+    if (hd === 6) return;   // the hand never rakes
     var dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy); if (!rakeLine.started) curStroke = null; if (len < .01 && rakeLine.started) return;
     var ang = Math.round(((Math.atan2(dy, dx) + Math.PI * 2) % Math.PI) / Math.PI * 16) % 16;   // 16 directions over 180 degrees
     var n = Math.max(1, Math.ceil(len / .25));
@@ -447,24 +465,35 @@
     g.restore();
     drawFootprints(g, time);
     // objects, back to front
-    var objs = S.objs.slice().sort(function (a, b) { var pa = g2d(a.x, a.y), pb = g2d(b.x, b.y); return (KINDS[a.k].floats ? 1 : 0) - (KINDS[b.k].floats ? 1 : 0) || pa[1] - pb[1]; });
+    var objs = S.objs.slice().sort(function (a, b) { var pa = g2d(a.x, a.y), pb = g2d(b.x, b.y); return layerOf(a) - layerOf(b) || pa[1] - pb[1]; });
     var bob = Q.still() ? 0 : Math.sin(time / 1400);
     objs.forEach(function (o) { var K = KINDS[o.k], p = g2d(o.x, o.y), sp = sprite(o.k), lift = (drag && drag.o === o) || carry === o ? 1.08 : 1;
       if (K.glow) { g.globalAlpha = .55 + (Q.still() ? 0 : .08 * Math.sin(time / 2600)); var gs = glowSprite(); g.drawImage(gs, p[0] - 96, p[1] - 96, 192, 192); g.globalAlpha = 1; }
       if (o.k === "shishi") { drawShishi(g, o, p, lift, time); return; }
       g.save(); g.translate(p[0], p[1] + (K.floats && o.float ? bob * 2 : 0)); if (K.floats && o.float && !Q.still()) g.rotate(Math.sin(time / 2100 + o.id) * .08);
+      if (K.rot) g.rotate(dispAng(o));
       g.drawImage(sp, -K.w / 2 * lift, -K.h / 2 * lift, K.w * lift, K.h * lift); g.restore(); });
     // the frame on top (inner sand area is transparent)
     g.drawImage(frameImg(), 0, 0, L.DW, L.DH);
     drawBin(g, time); drawWanderer(g, time);
     // keyboard cursor + held item
     if (hand) { var hp = g2d(hand.x, hand.y), K2 = KINDS[hand.k]; g.globalAlpha = .7; g.drawImage(sprite(hand.k), hp[0] - K2.w / 2, hp[1] - K2.h / 2, K2.w, K2.h); g.globalAlpha = 1; }
+    if (head === 6 && pushC && !hand && !carry) { var hp2 = g2d(pushC[0], pushC[1]); g.fillStyle = push ? "rgba(246,241,228,.35)" : "rgba(246,241,228,.18)"; g.strokeStyle = "rgba(62,74,58," + (push ? .45 : .25) + ")"; g.lineWidth = 3; g.beginPath(); g.arc(hp2[0], hp2[1], RF * L.T, 0, 7); g.fill(); g.stroke(); }
     if (cursor.show) { var cp = g2d(cursor.x, cursor.y); g.strokeStyle = kbRake ? PAL.moss : PAL.ink; g.lineWidth = 4; g.setLineDash(kbRake ? [] : [10, 8]); g.beginPath(); g.arc(cp[0], cp[1], L.T * .9, 0, 7); g.stroke(); g.setLineDash([]); }
   }
 
+  function layerOf(o) { var K = KINDS[o.k]; return K.flat ? 0 : K.floats ? 2 : 1; }
+  function angOf(o) { return o.ra != null ? o.ra : (o.r || 0) * Math.PI / 4; }
+  function dispAng(o) { var a = angOf(o); return L.tr ? Math.PI / 2 - a : a; }   // portrait draws the garden transposed
+  function local(o, x, y) { var a = (o.r || 0) * Math.PI / 4, dx = x - o.x, dy = y - o.y, c = Math.cos(a), sn = Math.sin(a); return [dx * c + dy * sn, -dx * sn + dy * c]; }
+  function turnUpdate(dt) { S.objs.forEach(function (o) { if (!KINDS[o.k].rot) return; var t = (o.r || 0) * Math.PI / 4; if (o.ra == null || calm()) { o.ra = t; return; }
+    var d = ((t - o.ra) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI; o.ra = Math.abs(d) < .002 ? t : o.ra + d * Math.min(1, dt * 7); }); }
+
   /* ---------- pointer play ---------- */
   function hit(gx, gy) {
-    for (var i = S.objs.length - 1; i >= 0; i--) { var o = S.objs[i], K = KINDS[o.k], rw = (K.w / 2) / L.T, rh = (K.h / 2) / L.T; if (L.tr) { var t = rw; rw = rh; rh = t; }
+    for (var i = S.objs.length - 1; i >= 0; i--) { var o = S.objs[i], K = KINDS[o.k], rw = (K.w / 2) / L.T, rh = (K.h / 2) / L.T;
+      if (K.rot) { var lc = local(o, gx, gy); if (Math.abs(lc[0]) < rw * .9 && Math.abs(lc[1]) < Math.max(rh, .6)) return o; continue; }
+      if (L.tr) { var t = rw; rw = rh; rh = t; }
       if (Math.abs(gx - o.x) < rw * .85 && Math.abs(gy - o.y) < rh * .85) return o; }
     return null;
   }
@@ -476,19 +505,23 @@
     if (W && hitWanderer(gp)) { pid = null; wandererTap(); return; }
     if (hand) { placeHand(gp); pid = null; return; }
     var o = hit(gp[0], gp[1]);
-    if (carry) { var co = carry; carry = null; if (inBin(gp[0], gp[1])) { compost(co); pid = null; return; } co.x = clampX(gp[0]); co.y = clampY(gp[1]); co.vx = co.vy = 0; touched(); pid = null; whisper("Set down."); return; }
+    if (carry) { var co = carry; carry = null; if (inBin(gp[0], gp[1])) { compost(co); pid = null; return; } co.x = clampX(gp[0]); co.y = clampY(gp[1]); co.vx = co.vy = 0; sel = co; touched(); pid = null; whisper(KINDS[co.k].rot ? "Set down. The little arrow turns it." : "Set down."); return; }
+    sel = null;
+    if (head === 6) { remember(); push = { last: gp, moved: false }; pushC = gp; pushAt(gp, gp); return; }   // the hand: push, don't lift
     if (o) { remember(); drag = { o: o, dx: 0, dy: 0, tx: o.x, ty: o.y, sx: o.x, sy: o.y, gx: gp[0], gy: gp[1], moved: 0 }; return; }
     if (inBin(gp[0], gp[1])) { pid = null; whisper("The compost bin. Drag anything you don't need onto it."); return; }
     remember(); rakeDown = true; rakeLine.started = false; lastG = gp; rakeT = gp; rakeLine(gp, gp, head); sound.rake();
   });
   cv.addEventListener("pointermove", function (e) {
     if (e.pointerId !== pid) return; var gp = scr2g(e.clientX, e.clientY);
+    if (push) { pushAt(push.last, gp); push.last = gp; pushC = gp; return; }
     if (drag) { drag.tx = clampX(gp[0] + drag.dx); drag.ty = clampY(gp[1] + drag.dy); drag.px = e.clientX; drag.py = e.clientY; drag.moved = Math.max(drag.moved, Math.hypot(gp[0] - drag.gx, gp[1] - drag.gy)); return; }
     if (rakeDown) rakeT = gp;
   });
   function up(e) {
     if (e.pointerId !== pid) return; pid = null;
     if (drag) { endDrag(overTray(e.clientX, e.clientY)); }
+    if (push) { if (!push.moved) hist.pop(); else whisper(pushMsg()); push = null; if (e.pointerType !== "mouse") pushC = null; }
     if (rakeDown && rakeT) { rakeLine(lastG, rakeT, head); }
     rakeDown = false; rakeT = null;
   }
@@ -496,14 +529,14 @@
   function endDrag(toTray) {
     var o = drag.o, K = KINDS[o.k];
     if (inBin(drag.tx, drag.ty) || inBin(o.x, o.y)) { compost(o); drag = null; return; }
-    if (o.k !== "shishi" && drag.moved != null && drag.moved < .25) { o.x = drag.sx; o.y = drag.sy; carry = o; drag = null; whisper("Picked up. Tap where it should go, or on the compost bin."); return; }
+    if (o.k !== "shishi" && drag.moved != null && drag.moved < .25) { o.x = drag.sx; o.y = drag.sy; carry = o; drag = null; whisper(K.rot ? "Picked up. Tap where it should go. The little arrow turns it." : "Picked up. Tap where it should go, or on the compost bin."); return; }
     if (o.k === "shishi" && drag.moved != null && drag.moved < .3) { o.x = drag.sx; o.y = drag.sy; o.r = ((o.r || 0) + 1) & 7; hist.pop(); drag = null; whisper("It will pour that way now."); touched(); return; }
     if (toTray && !K.stone) { S.objs = S.objs.filter(function (x) { return x !== o; }); whisper("Back on the shelf."); }
     else if (K.stone) {   // a stone leaves a small dent where it sat
       if (Math.hypot(drag.tx - drag.sx, drag.ty - drag.sy) > .6) { var cx = Math.floor(drag.sx), cy = Math.floor(drag.sy); if (inb(cx, cy)) { var i = idx(cx, cy); if (!S.t[i]) S.h[i] = Math.min(S.h[i], -.7); } dirty.groove = true; }
       o.x = o.x; }
     o.x = clampX(drag.tx); o.y = clampY(drag.ty);   // settle exactly under the finger or cursor, not where the ease had reached
-    drag.done = true; drag = null; touched();
+    drag.done = true; drag = null; sel = o; touched();
   }
   // stones ease toward where you pull them; heavy ones a little slower
   function moveObjs(dt) {
@@ -517,11 +550,40 @@
   function placeHand(gp) {
     if (!hand) return; var x = clampX(gp ? gp[0] : hand.x), y = clampY(gp ? gp[1] : hand.y);
     var K = KINDS[hand.k];
-    if (K.source && S.objs.filter(function (o) { return KINDS[o.k].source; }).length >= MAX_EXTRA_SOURCES) { whisper("The garden has enough springs for now. You can move one, or compost one."); hand = null; trayOn(null); return; }
+    if (K.source && S.objs.filter(function (o) { return KINDS[o.k].source; }).length >= MAX_EXTRA_SOURCES) { whisper("The garden holds as much water as it can for now. You can move a pond, or compost one."); hand = null; trayOn(null); return; }
     if (inBin(x, y)) { hand = null; trayOn(null); return; }
-    remember(); S.objs.push({ id: uid++, k: hand.k, x: x, y: y, r: 0 }); hand = null; trayOn(null); touched();
-    if (K.source) whisper("A new spring. Dig a path from it with the trowel."); else if (hand === null && x && K.blocks) whisper("Dig a path to it with the trowel. Tap it to turn where it pours.");
+    remember(); var no = { id: uid++, k: hand.k, x: x, y: y, r: 0 }; S.objs.push(no); sel = no; hand = null; trayOn(null); touched();
+    if (K.source) whisper("A little pond. Dig a path from it with the trowel."); else if (K.blocks) whisper("Dig a path to it with the trowel. Tap it to turn where it pours.");
+    else if (hand === null && no.k === "board") whisper("A plank. Lay a few across the water and they join into a bridge.");
   }
+  /* ---------- v2.2 the hand: push placed things gently, like nudging a real stone ---------- */
+  var push = null, pushC = null, sel = null, RF = .45;
+  function objR(o) { var K = KINDS[o.k]; return K.stone ? K.r * .8 : Math.min(K.w, K.h) / 2 / L.T * .75; }
+  function pushAt(a, b) {
+    var dx = b[0] - a[0], dy = b[1] - a[1], n = Math.max(1, Math.ceil(Math.hypot(dx, dy) / .12)), any = false;
+    for (var k = 1; k <= n || k === 1; k++) { var px = a[0] + dx * k / n, py = a[1] + dy * k / n;
+      S.objs.forEach(function (o) { if (o === carry) return; var K = KINDS[o.k], ro = objR(o), ox = o.x - px, oy = o.y - py, d = Math.hypot(ox, oy), reach = RF + ro;
+        if (d >= reach) return; if (d < 1e-3) { var m = Math.hypot(dx, dy) || 1; ox = dx / m; oy = dy / m; d = 1e-3; } else { ox /= d; oy /= d; }
+        var heavy = K.stone ? K.heavy : .15, pen = reach - d, mv = Math.max(pen / (1 + heavy * 2.2), pen - ro * (.15 + .5 * heavy));   // heavy stones lag behind the hand a little
+        var nx = clampX(o.x + ox * mv), ny = clampY(o.y + oy * mv); if (inBin(nx, ny)) return;
+        if (Math.hypot(nx - o.x, ny - o.y) > .002) { o.x = nx; o.y = ny; o.vx = o.vy = 0; any = true; if (K.stone && Math.random() < .04) knock(150 + Math.random() * 40, .025, .25); } }); }
+    if (any) { if (push) push.moved = true; touched(); }
+  }
+  function pushMsg() { return ["Nudged.", "It slides over the sand.", "A gentle push."][(Math.random() * 3) | 0]; }
+  // the rotate control: a small curved-arrow button beside a selected or picked-up long piece
+  var rotBtn = document.getElementById("mg-rot"), rotAt = null;
+  function rotTarget() { var o = carry || (drag && pid === null ? drag.o : null) || (drag ? null : sel); return o && KINDS[o.k] && KINDS[o.k].rot && S.objs.indexOf(o) >= 0 ? o : null; }
+  function turnIt() { var o = rotTarget(); if (!o) return; remember(); o.r = ((o.r || 0) + 1) & 7; touched(); if (Q.sound.on) knock(260, .03, .3); whisper(["A little turn.", "Turned.", "There."][(o.r) % 3]); }
+  function placeRot() {
+    if (!rotBtn) return; var o = rotTarget(); if (!o) { if (!rotBtn.hidden) rotBtn.hidden = true; rotAt = null; return; }
+    var p = g2scr(o.x, o.y), K = KINDS[o.k], off = Math.max(K.w, K.h) * L.s * .42 + 30, want = [p[0] + off * .75, p[1] - off * .75];
+    want[0] = Math.max(30, Math.min(innerWidth - 30, want[0])); want[1] = Math.max(30, Math.min(innerHeight - 30, want[1]));
+    // while a piece follows the mouse, the button only hops along once the pointer is well away, so it can always be reached
+    if (!rotAt || !carry || !lastMouse || Math.hypot(lastMouse[0] - rotAt[0], lastMouse[1] - rotAt[1]) > 115) rotAt = want;
+    rotBtn.style.left = rotAt[0] + "px"; rotBtn.style.top = rotAt[1] + "px"; if (rotBtn.hidden) rotBtn.hidden = false;
+  }
+  var lastMouse = null; window.addEventListener("pointermove", function (e) { if (e.pointerType === "mouse") lastMouse = [e.clientX, e.clientY]; });
+  if (rotBtn) { rotBtn.addEventListener("pointerdown", function (e) { e.stopPropagation(); }); rotBtn.addEventListener("click", function (e) { e.stopPropagation(); turnIt(); }); }
   function trayOn(kind) { document.querySelectorAll(".mg-item").forEach(function (b) { b.classList.toggle("on", b.dataset.kind === kind); }); }
   document.querySelectorAll(".mg-item").forEach(function (b) {
     var down = null;
@@ -545,12 +607,13 @@
     hand = { k: kind, x: cursor.x, y: cursor.y }; trayOn(kind);
     if (kb) { cursor.show = true; cv.focus(); whisper("Move with the arrow keys, then Space to set it down."); } else whisper("Tap the sand to set it down.");
   }
-  cv.addEventListener("pointermove", function (e) { if (pid === null && e.pointerType === "mouse" && (hand || carry)) { var gp = scr2g(e.clientX, e.clientY); if (hand) { hand.x = gp[0]; hand.y = gp[1]; } if (carry) { carry.x = clampX(gp[0]); carry.y = clampY(gp[1]); } binOpen = carry && inBin(gp[0], gp[1]) ? 1 : binOpen; } });
+  cv.addEventListener("pointermove", function (e) { if (pid === null && e.pointerType === "mouse" && (hand || carry || head === 6)) { var gp = scr2g(e.clientX, e.clientY); if (hand) { hand.x = gp[0]; hand.y = gp[1]; } if (carry) { carry.x = clampX(gp[0]); carry.y = clampY(gp[1]); } if (head === 6) pushC = gp; binOpen = carry && inBin(gp[0], gp[1]) ? 1 : binOpen; } });
 
   /* ---------- tools ---------- */
   function setHead(hd, quiet) {
     head = hd; document.querySelectorAll(".mg-tool").forEach(function (b) { var on = +b.dataset.head === hd; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
-    if (!quiet) { whisper(hd === 4 ? "The trowel: dig a path for the water." : hd === 5 ? "Fill: press a dug path back into sand." : hd === 1 ? "The small rake: fine, close lines." : hd === 3 ? "The wide rake: broad, even lines." : hd === 2 ? "Wide swirls." : "Smooth: brush lines away."); touched(); }
+    if (hd !== 6) pushC = null;
+    if (!quiet) { whisper(hd === 6 ? "The hand: push things gently over the sand." : hd === 4 ? "The trowel: dig a path for the water." : hd === 5 ? "Fill: press a dug path back into sand." : hd === 1 ? "The small rake: fine, close lines." : hd === 3 ? "The wide rake: broad, even lines." : hd === 2 ? "Wide swirls." : "Smooth: brush lines away."); touched(); }
   }
   document.querySelectorAll(".mg-tool").forEach(function (b) { b.addEventListener("click", function () { setHead(+b.dataset.head); }); });
   document.getElementById("mg-undo").addEventListener("click", undo);
@@ -567,14 +630,15 @@
     var tag = (e.target.tagName || "").toLowerCase(); if (tag === "input") return;
     var k = e.key, mv = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[k];
     if ((k === "z" || k === "Z") && !e.altKey) { e.preventDefault(); undo(); return; }
-    if (k >= "1" && k <= "6" && k.length === 1) { setHead({ 1: 1, 2: 3, 3: 2, 4: 0, 5: 4, 6: 5 }[k]); return; }
+    if (k >= "1" && k <= "7" && k.length === 1) { setHead({ 1: 1, 2: 3, 3: 2, 4: 0, 5: 4, 6: 5, 7: 6 }[k]); return; }
+    if ((k === "r" || k === "R") && rotTarget()) { e.preventDefault(); turnIt(); return; }
     if (e.target !== cv && e.target !== document.body) return;
     if (mv) {
       e.preventDefault(); cursor.show = true; var sx = mv[0] * .5, sy = mv[1] * .5, gx = L.tr ? sy : sx, gy = L.tr ? sx : sy;   // screen arrows -> garden directions
       var from = [cursor.x, cursor.y]; cursor.x = clampX(cursor.x + gx); cursor.y = clampY(cursor.y + gy);
       if (hand) { hand.x = cursor.x; hand.y = cursor.y; }
       if (drag) { drag.tx = cursor.x; drag.ty = cursor.y; }
-      if (kbRake) rakeLine(from, [cursor.x, cursor.y], head);
+      if (kbRake) { if (head === 6) pushAt(from, [cursor.x, cursor.y]); else rakeLine(from, [cursor.x, cursor.y], head); }
       return;
     }
     if (k === " ") {
@@ -602,7 +666,18 @@
     tick: function () { var sh = S.objs.some(function (o) { return o.k === "shishi" && o.fed && o.st === "fill"; }); if (this.trickle && Q.sound.on) Q.sound.ramp(this.trickle.gain, Math.min(.35, flowing * .05 + (S.fill[0] ? .04 : 0) + (sh ? .05 : 0)), 2); },
     hush: null,
     rake: function () { if (Q.sound.on && Math.random() < .3) Q.sound.tone(196 + Math.random() * 60, .02, 2); } };
-  document.getElementById("mg-sound").addEventListener("click", function () { sound.toggle(); });
+  document.getElementById("mg-sound").addEventListener("click", function () { sound.toggle(); musicSync(); });
+  /* optional background track: no music ships yet. MossGarden.setMusic(url) attaches one; it plays only when Sound is on
+     AND MossGarden.music(true) was chosen (remembered on this device). Off by default, low volume, gentle fades. */
+  var music = { url: null, el: null, on: false }; try { music.on = localStorage.getItem("gw-mg-music") === "1"; } catch (e) {}
+  function musicSync() {
+    if (!music.url) return; if (!music.el) { music.el = new Audio(music.url); music.el.loop = true; music.el.volume = 0; }
+    var want = music.on && Q.sound.on, el = music.el; clearInterval(music.f);
+    if (want && el.paused) el.play().catch(function () {});
+    music.f = setInterval(function () { var t = want ? .28 : 0; el.volume = Math.max(0, Math.min(1, el.volume + (t > el.volume ? .02 : -.03))); if (Math.abs(el.volume - t) < .03) { el.volume = t; if (!want) el.pause(); clearInterval(music.f); } }, 100);
+  }
+  window.MossGarden = { setMusic: function (url) { music.url = url || null; if (music.el) { music.el.pause(); music.el = null; } musicSync(); },
+    music: function (on) { music.on = !!on; try { localStorage.setItem("gw-mg-music", on ? "1" : "0"); } catch (e) {} musicSync(); } };
   function endCard() {
     session.ended = true;
     Q.card({ title: "Your garden will be here when you come back.", buttons: [
@@ -616,7 +691,7 @@
   function frame(now) {
     var dt = Math.min(.1, (now - last) / 1000) * Q.timeScale; last = now;
     acc += dt; while (acc >= .1) { sim(.1); acc -= .1; }
-    moveObjs(Math.min(.1, dt)); rakeFollow(Math.min(.1, dt)); wanderUpdate(Math.min(.1, dt)); puffUpdate(Math.min(.1, dt));
+    moveObjs(Math.min(.1, dt)); turnUpdate(Math.min(.1, dt)); placeRot(); rakeFollow(Math.min(.1, dt)); wanderUpdate(Math.min(.1, dt)); puffUpdate(Math.min(.1, dt));
     sTick += dt; if (sTick > 1) { sTick = 0; sound.tick(); }
     if (session.len && !session.ended && elapsed() >= session.len * 60000) endCard();
     if (innerWidth !== L.W || innerHeight !== L.H) layout();   // phones resize without always firing "resize" (URL bar, rotation)
@@ -717,14 +792,15 @@
   var W = null, prints = [], TAP_LINES = ["Lovely spot.", "I like where the water goes.", "The moss is soft here.", "Thank you for this garden.", "I could sit here all day."];
   function cover(x, y) {   // the plank or stepping stone under a garden point, if any
     var p = g2d(x, y);
-    for (var i = S.objs.length - 1; i >= 0; i--) { var o = S.objs[i]; if (o.k !== "plank" && o.k !== "step") continue; var K = KINDS[o.k], q = g2d(o.x, o.y);
-      if (Math.abs(p[0] - q[0]) < K.w * .46 && Math.abs(p[1] - q[1]) < K.h * .42) return o; }
+    for (var i = S.objs.length - 1; i >= 0; i--) { var o = S.objs[i], K = KINDS[o.k]; if (!K.walk || o === carry || (drag && drag.o === o)) continue;
+      if (K.rot) { var lc = local(o, x, y); if (Math.abs(lc[0]) < K.w / 2 / L.T * .96 && Math.abs(lc[1]) < K.h / 2 / L.T + .3) return o; continue; }
+      var q = g2d(o.x, o.y); if (Math.abs(p[0] - q[0]) < K.w * .46 && Math.abs(p[1] - q[1]) < K.h * .42) return o; }
     return null;
   }
   function walkable(cx, cy) {
     if (!inb(cx, cy)) return false; var i = idx(cx, cy); if (blocked[i] || inBin(cx + .5, cy + .5)) return false;
     if (S.fill[i] > .4 || isSource(i)) return !!cover(cx + .5, cy + .5);
-    return !S.objs.some(function (o) { return (o.k === "lantern" || o.k === "statue" || o.k === "spout" || o.k === "barrel") && Math.hypot(o.x - cx - .5, o.y - cy - .5) < .7; });
+    return !S.objs.some(function (o) { var so = KINDS[o.k].solid; return so && Math.hypot(o.x - cx - .5, o.y - cy - .5) < so; });
   }
   function findPath(sx, sy, goal) {   // BFS over cells (8 ways, no corner cutting); returns cell centres
     var s0 = idx(sx, sy), prev = new Int32Array(N).fill(-2); prev[s0] = -1; var q = [s0], h = 0;
@@ -736,8 +812,8 @@
   }
   function spots() {   // nice places to visit: bridges, stones, lanterns, ferns, the shishi-odoshi, the water's edge
     var out = [];
-    S.objs.forEach(function (o) { var nice = { plank: 4, step: 3, lantern: 3, fern: 2, moss: 1, statue: 2, shishi: 3, spout: 2, barrel: 2 }[o.k]; if (!nice) return;
-      out.push({ x: o.x, y: o.y, on: o.k === "plank" || o.k === "step", w: nice, k: o.k, id: o.id }); });
+    S.objs.forEach(function (o) { var nice = { board: 4, plank: 4, step: 3, lantern: 3, fern: 2, moss: 1, statue: 2, shishi: 3, spout: 2, barrel: 2, tree: 3, pebble: 1 }[o.k]; if (!nice) return;
+      out.push({ x: o.x, y: o.y, on: !!KINDS[o.k].walk, w: nice, k: o.k, id: o.id }); });
     for (var t = 0; t < 30; t++) { var i = (Math.random() * N) | 0; if (S.fill[i] > .8) { out.push({ x: i % COLS + .5, y: ((i / COLS) | 0) + .5, on: false, w: 2, k: "water", id: "w" + i }); break; } }
     return out;
   }
@@ -837,13 +913,19 @@
     document.querySelectorAll(".mg-ic").forEach(function (s) {
       var n = s.dataset.icon, a = art["icon-" + n];
       if (a) { s.style.backgroundImage = "url(" + a.src + ")"; return; }
-      var kind = Object.keys(KINDS).filter(function (k) { return KINDS[k].art === n; })[0];
+      var pk = s.parentNode && s.parentNode.dataset ? s.parentNode.dataset.kind : null;
+      var kind = pk && KINDS[pk] ? pk : Object.keys(KINDS).filter(function (k) { return KINDS[k].art === n; })[0];
       var c = mk(96, 96), g = c.getContext("2d");
-      if (kind) { var sp = sprite(kind), K = KINDS[kind], sc = Math.min(88 / K.w, 88 / K.h); g.drawImage(sp, 48 - K.w * sc / 2, 48 - K.h * sc / 2, K.w * sc, K.h * sc); }
+      if (kind) { var sp = sprite(kind), K = KINDS[kind], sc = Math.min(88 / K.w, 88 / K.h) * (kind === "pebble" ? .8 : 1);
+        if (kind === "board") { sc = 84 / K.w; [30, 48, 66].forEach(function (yy) { g.drawImage(sp, 48 - K.w * sc / 2, yy - K.h * sc / 2, K.w * sc, K.h * sc); }); }   // a little stack of planks
+        else g.drawImage(sp, 48 - K.w * sc / 2, 48 - K.h * sc / 2, K.w * sc, K.h * sc); }
       else { g.strokeStyle = PAL.ink; g.lineWidth = 6; g.lineCap = "round"; g.beginPath();
         if (n === "trowel" || n === "trowel-fill") { g.lineWidth = 7; g.moveTo(18, 80); g.lineTo(40, 58); g.stroke(); g.beginPath(); g.fillStyle = n === "trowel" ? "#9A94A8" : "#D6C7A8";
           g.moveTo(40, 58); g.quadraticCurveTo(46, 30, 78, 18); g.quadraticCurveTo(68, 50, 40, 58); g.fill(); g.lineWidth = 3; g.stroke(); g.beginPath(); g.lineWidth = 6;
           if (n === "trowel-fill") { g.fillStyle = "#b9a37c"; g.arc(70, 72, 12, Math.PI, 0); g.fill(); } else { g.strokeStyle = "#8f7a58"; g.moveTo(52, 82); g.quadraticCurveTo(66, 70, 84, 78); } }
+        else if (n === "hand") { g.lineWidth = 5; g.fillStyle = "#EADFC8"; g.beginPath(); g.roundRect(30, 44, 38, 38, 14); g.fill(); g.stroke();
+          [[34, 18], [44, 12], [54, 14], [63, 22]].forEach(function (f) { g.beginPath(); g.roundRect(f[0], f[1], 8, 40 - (f[1] - 12), 4); g.fill(); g.stroke(); });
+          g.beginPath(); g.moveTo(30, 62); g.quadraticCurveTo(16, 50, 20, 44); g.stroke(); g.beginPath(); }
         else if (n === "undo") { g.arc(50, 52, 24, Math.PI * 1.1, Math.PI * 2.4); g.moveTo(26, 30); g.lineTo(26, 48); g.lineTo(42, 46); }
         else if (n === "fresh-garden") { for (var r = 1; r < 4; r++) { g.moveTo(18, 30 + r * 12); g.bezierCurveTo(40, 22 + r * 12, 56, 38 + r * 12, 78, 30 + r * 12); } }
         else { g.moveTo(20, 76); g.lineTo(76, 20); var tines = n === "rake-wide" ? 7 : n === "rake-fine" ? 5 : n === "rake-swirl" ? 3 : 0; var x0 = tines === 7 ? 24 : 40, stp = tines === 7 ? 8 : 9; if (tines === 7) { g.moveTo(14, 46); g.lineTo(54, 6); } for (var t = 0; t < tines; t++) { var bx = x0 + t * stp * .7, by = 36 - t * stp * .7; if (tines !== 7) { bx = 40 + t * 9; by = 20 + t * 2; } g.moveTo(bx, by); g.lineTo(bx + 12, by + 12); } if (!tines) { g.moveTo(56, 12); g.lineTo(84, 40); } }
@@ -866,5 +948,5 @@
 
   // test hooks (used by the Playwright checks; nothing on screen)
   window.__MG = { S: S, L: function () { return L; }, sim: function (sec) { for (var t = 0; t < sec; t += .1) sim(.1); }, rake: function (a, b, hd) { remember(); rakeLine.started = false; rakeLine(a, b, hd == null ? head : hd); }, g2scr: g2scr, idx: idx,
-    dist: dist, blocked: blocked, send: sendWanderer, W: function () { return W; }, compost: compost, place: function (k, x, y, r) { var o = { id: uid++, k: k, x: x, y: y, r: r || 0 }; S.objs.push(o); return o; }, lab: lab, setHead: setHead, enc: enc, hist: function () { return hist.length; }, art: function () { return Object.keys(art).filter(function (k) { return art[k] && k[0] !== "_"; }); }, session: session, endCard: endCard, computeBlocked: computeBlocked };
+    dist: dist, blocked: blocked, send: sendWanderer, W: function () { return W; }, compost: compost, place: function (k, x, y, r) { var o = { id: uid++, k: k, x: x, y: y, r: r || 0 }; S.objs.push(o); return o; }, lab: lab, setHead: setHead, enc: enc, hist: function () { return hist.length; }, art: function () { return Object.keys(art).filter(function (k) { return art[k] && k[0] !== "_"; }); }, session: session, endCard: endCard, computeBlocked: computeBlocked, findPath: findPath, cover: cover, walkable: walkable, sel: function (o) { if (o !== undefined) sel = o; return sel; }, carry: function () { return carry; }, turn: turnIt, KINDS: KINDS };
 })();

@@ -25,6 +25,7 @@
 </div>
 <p id="q-savenote" class="q-savenote" aria-live="polite"></p>
 <p id="mg-whisper" class="q-whisper" aria-live="polite"></p>
+<button id="mg-rot" class="mg-rot" type="button" aria-label="Turn it a little (R)" hidden><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M18.5 12a6.5 6.5 0 1 1-2.1-4.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M17.6 3.6l.4 4.4-4.4.3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <nav id="mg-tray" class="mg-tray" aria-label="Garden tray">
   <div class="mg-group" role="radiogroup" aria-label="Rake head">
     <button class="q-tool mg-tool on" data-head="1" role="radio" aria-checked="true" aria-label="Small rake, fine lines (1)"><span class="mg-ic" data-icon="rake-fine"></span><span class="mg-tl">Small</span></button>
@@ -36,17 +37,20 @@
     <button class="q-tool mg-tool" data-head="4" role="radio" aria-checked="false" aria-label="Trowel, dig a water path (5)"><span class="mg-ic" data-icon="trowel"></span><span class="mg-tl">Trowel</span></button>
     <button class="q-tool mg-tool" data-head="5" role="radio" aria-checked="false" aria-label="Fill, press a dug path back into sand (6)"><span class="mg-ic" data-icon="trowel-fill"></span><span class="mg-tl">Fill</span></button>
   </div>
+  <div class="mg-group" role="radiogroup" aria-label="Hand">
+    <button class="q-tool mg-tool" data-head="6" role="radio" aria-checked="false" aria-label="Hand, push things gently (7)"><span class="mg-ic" data-icon="hand"></span><span class="mg-tl">Hand</span></button>
+  </div>
   <div class="mg-group mg-shelf" aria-label="Shelf: drag things into the garden, or tap one then tap the sand">
-    <button class="q-tool mg-item" data-kind="plank" aria-label="Bridge plank"><span class="mg-ic" data-icon="bridge-plank"></span></button>
-    <button class="q-tool mg-item" data-kind="step" aria-label="Stepping stone"><span class="mg-ic" data-icon="stepping-stone"></span></button>
-    <button class="q-tool mg-item" data-kind="lantern" aria-label="Lantern"><span class="mg-ic" data-icon="lantern"></span></button>
-    <button class="q-tool mg-item" data-kind="moss" aria-label="Moss clump"><span class="mg-ic" data-icon="moss-clump"></span></button>
-    <button class="q-tool mg-item" data-kind="fern" aria-label="Fern"><span class="mg-ic" data-icon="fern"></span></button>
+    <button class="q-tool mg-item" data-kind="plank" aria-label="Long stepping stone, the arrow beside it turns it"><span class="mg-ic" data-icon="bridge-plank"></span></button>
+    <button class="q-tool mg-item" data-kind="step" aria-label="Large round stone"><span class="mg-ic" data-icon="stepping-stone"></span></button>
+    <button class="q-tool mg-item" data-kind="pebble" aria-label="Small rock"><span class="mg-ic" data-icon="pebble"></span></button>
+    <button class="q-tool mg-item" data-kind="moss" aria-label="Moss bush"><span class="mg-ic" data-icon="moss-clump"></span></button>
+    <button class="q-tool mg-item" data-kind="fern" aria-label="Fern bush"><span class="mg-ic" data-icon="fern"></span></button>
+    <button class="q-tool mg-item" data-kind="tree" aria-label="Little tree"><span class="mg-ic" data-icon="tree"></span></button>
     <button class="q-tool mg-item" data-kind="statue" aria-label="Gremlin statue"><span class="mg-ic" data-icon="gremlin-statue"></span></button>
-    <button class="q-tool mg-item" data-kind="boat" aria-label="Leaf boat"><span class="mg-ic" data-icon="leaf-boat"></span></button>
+    <button class="q-tool mg-item" data-kind="barrel" aria-label="Little pond, a new source of water"><span class="mg-ic" data-icon="rain-barrel"></span></button>
     <button class="q-tool mg-item" data-kind="shishi" aria-label="Shishi-odoshi, a bamboo water rocker. Tap it in the garden to turn it."><span class="mg-ic" data-icon="shishi-odoshi"></span></button>
-    <button class="q-tool mg-item" data-kind="spout" aria-label="Bamboo spout, a new spring"><span class="mg-ic" data-icon="bamboo-spout"></span></button>
-    <button class="q-tool mg-item" data-kind="barrel" aria-label="Rain barrel, a new spring"><span class="mg-ic" data-icon="rain-barrel"></span></button>
+    <button class="q-tool mg-item" data-kind="board" aria-label="Wooden plank for a bridge, lay a few across the water"><span class="mg-ic" data-icon="wood-plank"></span></button>
   </div>
   <div class="mg-group">
     <button class="q-tool" id="mg-undo" aria-label="Undo (Z)"><span class="mg-ic" data-icon="undo"></span><span class="mg-tl">Undo</span></button>

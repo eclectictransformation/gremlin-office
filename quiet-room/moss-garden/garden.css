@@ -14,3 +14,9 @@ html.q-game,html.q-game body{background:#55684a}
 .mg-ghost{position:fixed;width:64px;height:64px;pointer-events:none;z-index:30;transform:translate(-50%,-50%);background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.85}
 .mg-shelf{flex-wrap:wrap;justify-content:center}
 @media (max-width:600px){.mg-group{flex-wrap:wrap;justify-content:center}}
+
+/* v2.2 rotate control: a soft round button beside a selected long piece */
+.mg-rot{position:fixed;left:0;top:0;z-index:30;width:52px;height:52px;margin:0;padding:0;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;border-radius:50%;border:2px solid var(--forest,#4F6B3A);background:rgba(246,241,228,.96);color:var(--ink,#3E4A3A);box-shadow:0 3px 10px rgba(62,74,58,.25);cursor:pointer;touch-action:none;transition:opacity .25s}
+.mg-rot[hidden]{display:none}
+.mg-rot:hover{background:#fbf7ec}
+.mg-rot:focus-visible{outline:3px solid var(--forest,#4F6B3A);outline-offset:3px}
