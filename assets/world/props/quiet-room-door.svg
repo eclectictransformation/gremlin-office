@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 252" width="140" height="252">
+<defs><radialGradient id="g"><stop offset="0" stop-color="#fff6cf" stop-opacity=".9"/><stop offset=".5" stop-color="#ffd27a" stop-opacity=".45"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+<linearGradient id="w" x1="0" x2="1"><stop offset="0" stop-color="#3f5e4c"/><stop offset=".5" stop-color="#557a62"/><stop offset="1" stop-color="#3f5e4c"/></linearGradient></defs>
+<path d="M18 250V100a52 52 0 0 1 104 0v150z" fill="#5c4630"/>
+<path d="M26 250V102a44 44 0 0 1 88 0v148z" fill="url(#w)" stroke="#1a2f27" stroke-width="3"/>
+<path d="M48 250V80M70 250V60M92 250V80" stroke="#2f4a3c" stroke-width="2" opacity=".6"/>
+<path d="M22 108c8-14 22-22 30-16 6-10 22-12 30-2 10-6 26 2 32 16-10-4-18 0-22 6-6-6-16-6-22 0-6-8-18-8-24 0-8-6-18-8-24-4z" fill="#7fae6a" stroke="#3f6b3a" stroke-width="2"/>
+<path d="M30 112c2 10-2 16 0 26M108 112c-2 12 2 18 0 30" stroke="#7fae6a" stroke-width="4" stroke-linecap="round" fill="none"/>
+<path d="M20 250c4-12 14-16 22-12 6-8 16-6 20 2h-42zM84 250c4-10 14-12 20-6 8-4 16 0 16 6z" fill="#8fbf74" stroke="#3f6b3a" stroke-width="2"/>
+<circle cx="70" cy="150" r="34" fill="url(#g)"/>
+<path d="M70 118v10" stroke="#1a2f27" stroke-width="2.5"/><circle cx="70" cy="116" r="3" fill="none" stroke="#1a2f27" stroke-width="2"/>
+<path d="M60 132h20l-3 6v20l3 6H60l3-6v-20z" fill="#2b4a3f" stroke="#1a2f27" stroke-width="2.5" stroke-linejoin="round"/>
+<rect x="64" y="139" width="12" height="18" rx="2" fill="#ffe9b8"/><path d="M70 143c-3 4-3 9 0 11 3-2 3-7 0-11z" fill="#f2a65a"/>
+<circle cx="100" cy="186" r="6" fill="#c9b26a" stroke="#1a2f27" stroke-width="2"/>
+<rect x="18" y="246" width="104" height="5" rx="2" fill="#1a2f27"/>
+</svg>

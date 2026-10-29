@@ -198,7 +198,7 @@
     var tag = b.querySelector(".tag"), resting = isResting(dest);
     b.classList.toggle("resting", resting);
     if (!tag) { tag = el("span", "tag"); b.appendChild(tag); }
-    tag.textContent = resting ? "zzz \u00b7 " + W.rooms[dest].short + " is napping" : (it.odd === "stairs" ? "Up to " + W.rooms[dest].short + " (for now) \u2192" : W.rooms[dest].short + " \u2192");
+    tag.textContent = resting ? "zzz \u00b7 " + W.rooms[dest].short + " is napping" : (it.odd === "stairs" ? "Up to " + W.rooms[dest].short + " (for now) \u2192" : (it.tag && dest === it.to ? it.tag : W.rooms[dest].short + " \u2192"));
     b.setAttribute("aria-label", resting ? it.label + ". " + roomName(dest) + " is napping today." : it.odd === "stairs" ? "A slowly turning staircase. Right now it goes to " + roomName(dest) + ", but it may change its mind." : it.label);
     var zz = b.querySelector(".zzz");
     if (resting && !zz) { zz = el("span", "zzz"); zz.innerHTML = SVG.sleepy + "<i>z</i><i>z</i><i>z</i>"; b.appendChild(zz); }

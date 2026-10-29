@@ -134,8 +134,8 @@
       if (it.rot) b.style.transform = "rotate(" + it.rot + "deg)";
       if (img) { var im = el("img", "prop", { alt: (it.type === "frame" && it.card && it.card.alt) || "", draggable: "false" }); im.dataset.src = img; b.appendChild(im); }
       if (it.type === "sock" && !(painted && it.artBare)) { var si = el("img", "", { alt: "", draggable: "false" }); si.dataset.src = "assets/world/props/sock-" + it.gremlin + ".svg"; b.appendChild(si); }
-      if (it.type === "portal") { var tg = el("span", "tag"); tg.textContent = W.rooms[it.to].short + " \u2192"; b.appendChild(tg); }
-      if (it.type === "doorlink") { var tg2 = el("span", "tag"); tg2.textContent = (it.tag || "Next room") + " \u2192"; b.appendChild(tg2); }
+      if (it.type === "portal") { var tg = el("span", "tag"); tg.textContent = it.tag || (W.rooms[it.to].short + " \u2192"); b.appendChild(tg); }
+      if (it.type === "doorlink") { var tg2 = el("span", "tag"); tg2.textContent = /[\u2190\u2192]/.test(it.tag || "") ? it.tag : (it.tag || "Next room") + " \u2192"; b.appendChild(tg2); }
       if (it.type === "egg" && found.indexOf(it.id) >= 0) b.classList.add("found");
       if (it.type === "arcade") decorateCabinet(b, it);
       if (it.hover) { var hv = el("span", "hov"); hv.textContent = it.hover; b.appendChild(hv); }
@@ -343,7 +343,7 @@
     if (it && hook("intercept", it, b, x)) return;
     if (x.office) { turnTo(x.yaw, x.pitch, 1.3, function () { showCard(x.card, x.type); }); return; }
     if (it.type === "portal") { var dest = hook("portalTarget", it) || it.to; if (hook("isResting", dest)) { hook("restingDoor", dest, b, x); return; } if (hook("isLocked", dest)) { hook("lockedDoor", dest, b, x); return; } travel(dest, b); return; }
-    if (it.type === "doorlink") { var href = it.href; if (!/^[a-z0-9-]+\/(index\.html)?$/.test(href)) return; if (mqReduce.matches || document.documentElement.classList.contains("gw-still")) { location.href = href; return; } turnTo(x.yaw, x.pitch, 1.6, function () { location.href = href; }); return; }   // a side room that lives on its own page (e.g. the Game Nook)
+    if (it.type === "doorlink") { var href = it.href; if (!/^[a-z0-9-]+\/([a-z0-9-]+\.html)?$/.test(href)) return; if (mqReduce.matches || document.documentElement.classList.contains("gw-still")) { location.href = href; return; } turnTo(x.yaw, x.pitch, 1.6, function () { location.href = href; }); return; }   // a side room that lives on its own page (e.g. the Game Nook)
     if (it.type === "sock") { grabSock(b, it); return; }
     if (it.type === "arcade") { turnTo(x.yaw, x.pitch, 1.35, function () { openArcade(it.machine, b, it.game); }); return; }
     if (it.type === "scoreboard") { turnTo(x.yaw, x.pitch, 1.3, function () { openArcade(it.machine, b); if (window.GremlinArcade && GremlinArcade.isOpen()) GremlinArcade.showBoards(); }); return; }

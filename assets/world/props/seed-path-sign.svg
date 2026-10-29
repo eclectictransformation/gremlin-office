@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+<ellipse cx="54" cy="154" rx="30" ry="5" fill="#6b4a2c" opacity=".35"/>
+<rect x="47" y="40" width="14" height="114" rx="3" fill="#a8774a" stroke="#6b4a2c" stroke-width="3"/>
+<path d="M50 70v20M57 110v18" stroke="#6b4a2c" stroke-width="1.5" opacity=".6"/>
+<path d="M54 40c0-12 0-18 0-24" stroke="#5f9b4f" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M54 22c-12 0-18-8-18-14 10 0 18 4 18 14z" fill="#a8e07a" stroke="#3f6b3a" stroke-width="2"/>
+<path d="M54 18c10-2 16-10 16-16-10 0-16 6-16 16z" fill="#7fc8a9" stroke="#3f6b3a" stroke-width="2"/>
+<path d="M8 52h86l20 17-20 17H8z" fill="#c9a273" stroke="#6b4a2c" stroke-width="4" stroke-linejoin="round"/>
+<text x="56" y="75" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="15" font-weight="700" fill="#2b231d">Seed Path</text>
+<path d="M14 88c4-8 10-8 12 0" stroke="#5f9b4f" stroke-width="2.5" fill="none"/><path d="M20 84c-4-6 0-10 4-8" fill="#a8e07a" stroke="#3f6b3a" stroke-width="1.5"/>
+<path d="M38 150c-2-8 2-14 8-14-1 7-4 11-8 14zM70 150c2-8-2-12-7-12 0 6 3 10 7 12z" fill="#a8e07a" stroke="#3f6b3a" stroke-width="1.5"/>
+</svg>

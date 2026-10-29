@@ -1,4 +1,4 @@
-/* QUIET GARDEN: two slow, scoreless games for the Shifting House. Original, drawn in code, no sounds.
+/* LANTERN LIGHT ARCADE (machine id quiet-garden): two slow, scoreless games for the Shifting House. Original, drawn in code, no sounds.
    Registers: lantern-float, firefly-jar, attract:quiet-garden. No timers, no fail state, no prizes.
    Both use api.edgeInset so a thumb at the screen edge never covers the jar or the launch spot. */
 (function () {
@@ -110,6 +110,6 @@
   A.register("attract:quiet-garden", function (c, t, api) {
     var x = 160 + Math.sin(t * 0.4) * 30, y = 200 - ((t * 10) % 170);
     lantern(c, x, y, 0.9, 1);
-    api.text(c, "QUIET GARDEN", 160, 30, 12, "#f6e3a1", "center");
+    api.text(c, "LANTERN LIGHT ARCADE", 160, 30, 12, "#f6e3a1", "center");
   });
 })();

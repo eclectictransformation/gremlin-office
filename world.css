@@ -18,6 +18,12 @@
   background:rgba(58,74,51,.88);padding:6px 14px;border-radius:999px;opacity:0;transition:opacity .25s;pointer-events:none}
 .it.portal:hover .tag,.it.portal:focus-visible .tag,.it.portal.glow .tag{opacity:1}
 .it.portal.nofocus .tag{opacity:.0}
+/* doorlinks (side rooms on their own pages) share the portal tag look; tags stay >=16 CSS px and tap areas >=44px */
+.it.doorlink .tag{position:absolute;left:50%;top:-18px;transform:translate(-50%,-100%);white-space:nowrap;font:600 22px var(--serif);color:var(--paper);
+  background:rgba(58,74,51,.88);padding:6px 14px;border-radius:999px;opacity:0;transition:opacity .25s;pointer-events:none}
+.it.portal .tag,.it.doorlink .tag{font-size:26px}
+@media (max-width:560px){.it.portal .tag,.it.doorlink .tag{font-size:40px;padding:8px 18px}.it.doorlink,.it.portal{min-width:80px;min-height:80px}}
+.it.doorlink:hover .tag,.it.doorlink:focus-visible .tag,.it.doorlink.glow .tag{opacity:1}
 .it.portal::before{content:"";position:absolute;inset:-6px;border-radius:inherit;border:4px dashed rgba(243,217,139,.0);transition:border-color .3s}
 .it.portal:hover::before,.it.portal:focus-visible::before{border-color:rgba(243,217,139,.9)}
 .it.sock{border-radius:50%;cursor:pointer}

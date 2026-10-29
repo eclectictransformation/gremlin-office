@@ -1564,7 +1564,7 @@
           "id": "cabinet-quiet",
           "type": "arcade",
           "machine": "quiet-garden",
-          "label": "Quiet Garden arcade cabinet: Lantern Float and Firefly Jar. Tap to play.",
+          "label": "Lantern Light Arcade cabinet: Lantern Float and Firefly Jar. Tap to play.",
           "at": {
             "face": "back",
             "x": 860,
@@ -1574,8 +1574,8 @@
             170,
             330
           ],
-          "img": "assets/world/props/cabinet-quiet.svg",
-          "hover": "Quiet Garden"
+          "img": "assets/world/props/cabinet-lantern-light.svg",
+          "hover": "Lantern Light Arcade"
         },
         {
           "id": "breakroom-to-office",
@@ -1591,7 +1591,8 @@
           "size": [
             140,
             252
-          ]
+          ],
+          "tag": "\u2190 Office"
         },
         {
           "id": "skee-ball-machine",
@@ -1633,18 +1634,54 @@
           "id": "breakroom-to-game-nook",
           "type": "doorlink",
           "href": "game-nook/",
-          "tag": "Game Nook",
-          "label": "A little door to the Game Nook, where the gremlins play chess",
-          "img": "assets/world/props/break-room-door.svg",
+          "tag": "Game Nook: Chess \u2192",
+          "label": "A little door with a chessboard on it, to the Game Nook, where the gremlins play chess",
+          "img": "assets/world/props/game-nook-door.svg",
           "cls": "breakdoor",
           "at": {
-            "face": "front",
-            "x": 880,
-            "y": 600
+            "face": "back",
+            "x": 710,
+            "y": 790
           },
           "size": [
             130,
             234
+          ]
+        },
+        {
+          "id": "breakroom-to-quiet-room",
+          "type": "doorlink",
+          "href": "quiet-room/",
+          "tag": "The Quiet Room \u2192",
+          "label": "A mossy door to the Quiet Room",
+          "img": "assets/world/props/quiet-room-door.svg",
+          "cls": "breakdoor",
+          "at": {
+            "face": "right",
+            "x": 105,
+            "y": 700
+          },
+          "size": [
+            140,
+            252
+          ]
+        },
+        {
+          "id": "breakroom-to-seed-path",
+          "type": "doorlink",
+          "href": "seed-path/portal-teaser.html",
+          "tag": "Seed Path \u2192",
+          "label": "A small signpost pointing to the Seed Path",
+          "img": "assets/world/props/seed-path-sign.svg",
+          "cls": "breakdoor",
+          "at": {
+            "face": "right",
+            "x": 105,
+            "y": 445
+          },
+          "size": [
+            120,
+            160
           ]
         }
       ],
@@ -7145,7 +7182,7 @@
       },
       "quiet-garden": {
         "id": "quiet-garden",
-        "title": "QUIET GARDEN",
+        "title": "LANTERN LIGHT ARCADE",
         "tagline": "Slow games for a soft evening",
         "script": "games/quiet-garden.js",
         "color": "#3f6b5a",
