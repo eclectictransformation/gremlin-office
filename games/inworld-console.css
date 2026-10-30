@@ -1,0 +1,28 @@
+/* In-world console (games/inworld-console.js): the cabinet look from arcade.css, with a big screen for a side game */
+.gw-console{z-index:16;padding:10px}
+.gwc-cab{width:min(980px,100%);height:min(760px,100%);gap:8px;padding:8px 10px 10px}
+.gwc-marquee{display:flex;align-items:center;gap:10px;text-align:left;padding:6px 8px}
+.gwc-titles{min-width:0;flex:1}
+.gwc-marquee h2{font-size:clamp(16px,3.6vw,24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gwc-close{flex:none;min-height:44px;min-width:80px;font-size:14px}
+.gwc-bezel{flex:1;width:100%;min-height:0;padding:6px;display:flex}
+.gwc-frame{flex:1;width:100%;height:100%;border:0;border-radius:10px;background:#f1ede2;display:block}
+@media (max-width:560px){
+  .gw-console{padding:4px}
+  .gwc-cab{border-radius:12px;padding:6px}
+  .gwc-close{font-size:15px;min-height:48px}
+}
+/* the player's gremlin badge (top left, after the wardrobe is found) */
+.gw-avatar-badge{flex:none;width:46px;height:46px;padding:2px;border-radius:50%;border:3px solid #54664A;background:#f1ede2;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}
+.gw-avatar-badge[hidden]{display:none}
+.gw-avatar-badge svg{width:100%;height:100%}
+.gw-avatar-badge:focus-visible{outline:3px solid #f3d98b;outline-offset:2px}
+@media (max-width:560px){.gw-avatar-badge{width:44px;height:44px}}
+/* Quiet Room: console props and the wardrobe wear an always-on name plaque under them; the way back is always labelled */
+.it.console,.it.wardrobe{cursor:pointer;filter:drop-shadow(0 0 10px rgba(255,214,150,.45))}
+.it.console:hover,.it.console:focus-visible,.it.wardrobe:hover,.it.wardrobe:focus-visible{filter:drop-shadow(0 0 16px rgba(255,214,150,.85))}
+.it.qr-tile img.prop{border-radius:22px}
+.it.console .tag,.it.wardrobe .tag{position:absolute;left:50%;top:calc(100% + 14px);transform:translateX(-50%);white-space:nowrap;font:600 26px var(--serif,Georgia,serif);color:var(--paper,#f1ede2);
+  background:rgba(58,74,51,.9);padding:6px 16px;border-radius:999px;pointer-events:none}
+.it.qr-always .tag{opacity:1}
+@media (max-width:560px){.it.console .tag,.it.wardrobe .tag{font-size:40px;padding:8px 18px}.it.console,.it.wardrobe{min-width:80px;min-height:80px}}

@@ -1631,31 +1631,13 @@
           ]
         },
         {
-          "id": "breakroom-to-game-nook",
-          "type": "doorlink",
-          "href": "game-nook/",
-          "tag": "Game Nook: Chess \u2192",
-          "label": "A little door with a chessboard on it, to the Game Nook, where the gremlins play chess",
-          "img": "assets/world/props/game-nook-door.svg",
-          "cls": "breakdoor",
-          "at": {
-            "face": "back",
-            "x": 710,
-            "y": 790
-          },
-          "size": [
-            130,
-            234
-          ]
-        },
-        {
           "id": "breakroom-to-quiet-room",
-          "type": "doorlink",
-          "href": "quiet-room/",
+          "type": "portal",
+          "to": "quietroom",
           "tag": "The Quiet Room \u2192",
-          "label": "A mossy door to the Quiet Room",
+          "label": "A mossy door to the Quiet Room, where Moss Garden, the Seed Path and Gremlin Chess live",
           "img": "assets/world/props/quiet-room-door.svg",
-          "cls": "breakdoor",
+          "cls": "breakdoor qr-always",
           "at": {
             "face": "right",
             "x": 105,
@@ -1665,28 +1647,129 @@
             140,
             252
           ]
-        },
-        {
-          "id": "breakroom-to-seed-path",
-          "type": "doorlink",
-          "href": "seed-path/portal-teaser.html",
-          "tag": "Seed Path \u2192",
-          "label": "A small signpost pointing to the Seed Path",
-          "img": "assets/world/props/seed-path-sign.svg",
-          "cls": "breakdoor",
-          "at": {
-            "face": "right",
-            "x": 105,
-            "y": 445
-          },
-          "size": [
-            120,
-            160
-          ]
         }
       ],
       "painted": true,
-      "_readme": "The Break Room (room id stays 'arcade' so saves, links, badges and the server whitelist keep working). It is the hub where the arcade lives: always open (house-schedule.json alwaysOpen), reached from the Office's BREAK ROOM door and from the Tunnel. Future side rooms: add a portal item here and remove the matching 'comingSoon' note in house-notes.json. The Game Nook (chess) is a 'doorlink' item: a door that opens its own page (game-nook/), and that page's back link returns to world.html#arcade."
+      "_readme": "The Break Room (room id stays 'arcade' so saves, links, badges and the server whitelist keep working). It is the hub where the arcade lives: always open (house-schedule.json alwaysOpen), reached from the Office's BREAK ROOM door and from the Tunnel. Future side rooms: add a portal item here and remove the matching 'comingSoon' note in house-notes.json. The Quiet Room door is a portal to rooms.quietroom (an in-world room). Moss Garden, the Seed Path and Gremlin Chess live in there as 'console' items: they open inside the world's console overlay (games/inworld-console.js), never as a new page. The old standalone pages (quiet-room/, seed-path/, game-nook/) stay in the repo."
+    },
+    "quietroom": {
+      "name": "The Quiet Room",
+      "short": "Quiet Room",
+      "faces": "assets/world/quietroom/{face}.svg",
+      "startView": {
+        "yaw": 0,
+        "pitch": 0
+      },
+      "_readme": "The Quiet Room: a soft in-world room off the Break Room (door on the Break Room's right wall). Side games open in the in-world console (type 'console': src is a repo-relative page, shown in an iframe inside the world with a Back button). The wardrobe (type 'wardrobe') is where a player first makes their gremlin; after that their gremlin badge shows top left. The Breathing Pond stays hidden (files in quiet-room/breathing-pond/). Faces are drawn placeholders until Moth paints this room.",
+      "greet": {
+        "who": "moth",
+        "text": "Shh, you found the Quiet Room. Nothing to win in here. The Moss Garden, the Seed Path and the chess table all open right here. There's a wardrobe too, if you'd like to make your own gremlin."
+      },
+      "items": [
+        {
+          "id": "quietroom-moss-garden",
+          "type": "console",
+          "src": "quiet-room/moss-garden/",
+          "title": "Moss Garden",
+          "tagline": "Rake the sand, move stones, guide a little stream",
+          "label": "Moss Garden. Tap to open it here.",
+          "tag": "Moss Garden",
+          "img": "assets/world/game-tiles/moss-garden.webp",
+          "cls": "qr-tile",
+          "color": "#54664A",
+          "colorDark": "#3a4a33",
+          "accent": "#cfe3b8",
+          "at": {
+            "face": "front",
+            "x": 300,
+            "y": 560
+          },
+          "size": [
+            250,
+            250
+          ]
+        },
+        {
+          "id": "quietroom-seed-path",
+          "type": "console",
+          "src": "seed-path/index.html",
+          "title": "The Seed Path",
+          "tagline": "A slow walk through the Hollowmere",
+          "label": "The Seed Path signpost. Tap to walk the Seed Path here.",
+          "img": "assets/world/props/seed-path-sign.svg",
+          "cls": "qr-tile",
+          "color": "#5A4A6E",
+          "colorDark": "#3c3150",
+          "accent": "#FFD98A",
+          "at": {
+            "face": "front",
+            "x": 724,
+            "y": 600
+          },
+          "size": [
+            200,
+            268
+          ],
+          "tag": "The Seed Path"
+        },
+        {
+          "id": "quietroom-chess",
+          "type": "console",
+          "src": "game-nook/embed.html?view=chess",
+          "title": "Gremlin Chess",
+          "tagline": "No clock, no rush",
+          "label": "The chess table: Gremlin Chess. Tap to play here.",
+          "img": "assets/world/game-tiles/chess-vs-gremlins.webp",
+          "cls": "qr-tile",
+          "color": "#6b4f6e",
+          "colorDark": "#4a3550",
+          "accent": "#f3d98b",
+          "at": {
+            "face": "right",
+            "x": 420,
+            "y": 580
+          },
+          "size": [
+            250,
+            250
+          ],
+          "tag": "Gremlin Chess"
+        },
+        {
+          "id": "quietroom-wardrobe",
+          "type": "wardrobe",
+          "label": "The wardrobe. Tap to make and dress your gremlin.",
+          "img": "assets/world/props/wardrobe.svg",
+          "at": {
+            "face": "left",
+            "x": 330,
+            "y": 640
+          },
+          "size": [
+            150,
+            250
+          ],
+          "tag": "The Wardrobe"
+        },
+        {
+          "id": "quietroom-to-breakroom",
+          "type": "portal",
+          "to": "arcade",
+          "tag": "\u2190 Break Room",
+          "label": "The door back to the Break Room",
+          "img": "assets/world/props/break-room-door.svg",
+          "cls": "breakdoor qr-always",
+          "at": {
+            "face": "left",
+            "x": 760,
+            "y": 640
+          },
+          "size": [
+            140,
+            252
+          ]
+        }
+      ]
     },
     "wing": {
       "name": "The Gremlin Wing",
@@ -6844,6 +6927,10 @@
     [
       "stacks",
       "lantern"
+    ],
+    [
+      "arcade",
+      "quietroom"
     ]
   ],
   "map": {
@@ -6922,6 +7009,10 @@
     "corridor": [
       40,
       245
+    ],
+    "quietroom": [
+      218,
+      84
     ]
   },
   "prize": {

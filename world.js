@@ -136,6 +136,7 @@
       if (it.type === "sock" && !(painted && it.artBare)) { var si = el("img", "", { alt: "", draggable: "false" }); si.dataset.src = "assets/world/props/sock-" + it.gremlin + ".svg"; b.appendChild(si); }
       if (it.type === "portal") { var tg = el("span", "tag"); tg.textContent = it.tag || (W.rooms[it.to].short + " \u2192"); b.appendChild(tg); }
       if (it.type === "doorlink") { var tg2 = el("span", "tag"); tg2.textContent = /[\u2190\u2192]/.test(it.tag || "") ? it.tag : (it.tag || "Next room") + " \u2192"; b.appendChild(tg2); }
+      if (it.type === "console" || it.type === "wardrobe") { var tg3 = el("span", "tag"); tg3.textContent = it.tag || it.title || it.label; b.appendChild(tg3); }   // always-on name plaque
       if (it.type === "egg" && found.indexOf(it.id) >= 0) b.classList.add("found");
       if (it.type === "arcade") decorateCabinet(b, it);
       if (it.hover) { var hv = el("span", "hov"); hv.textContent = it.hover; b.appendChild(hv); }
@@ -305,6 +306,7 @@
   window.addEventListener("keydown", function (e) {
     if (arcadeOpen()) return;   // the cabinet has the keyboard while it's open
     if (roomGameOpen()) return;   // so does a room mini-game (it closes itself on Esc)
+    if (consoleOpen()) return;   // and the in-world console (Esc closes it)
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;   // typing a Gremlin Name or Key
     if (playerOpen()) return;   // the sign-in card / journal / guestbook handle their own keys
     poke();
@@ -343,7 +345,9 @@
     if (it && hook("intercept", it, b, x)) return;
     if (x.office) { turnTo(x.yaw, x.pitch, 1.3, function () { showCard(x.card, x.type); }); return; }
     if (it.type === "portal") { var dest = hook("portalTarget", it) || it.to; if (hook("isResting", dest)) { hook("restingDoor", dest, b, x); return; } if (hook("isLocked", dest)) { hook("lockedDoor", dest, b, x); return; } travel(dest, b); return; }
-    if (it.type === "doorlink") { var href = it.href; if (!/^[a-z0-9-]+\/([a-z0-9-]+\.html)?$/.test(href)) return; if (mqReduce.matches || document.documentElement.classList.contains("gw-still")) { location.href = href; return; } turnTo(x.yaw, x.pitch, 1.6, function () { location.href = href; }); return; }   // a side room that lives on its own page (e.g. the Game Nook)
+    // a side game that lives on its own page: it opens in the in-world console (same window, never a new page or tab)
+    if (it.type === "doorlink" || it.type === "console") { turnTo(x.yaw, x.pitch, 1.35, function () { openConsole({ src: it.src || it.href, title: it.title || it.hover || it.tag || it.label, tagline: it.tagline, color: it.color, colorDark: it.colorDark, accent: it.accent }, b); }); return; }
+    if (it.type === "wardrobe") { turnTo(x.yaw, x.pitch, 1.35, function () { openWardrobe(b); }); return; }
     if (it.type === "sock") { grabSock(b, it); return; }
     if (it.type === "arcade") { turnTo(x.yaw, x.pitch, 1.35, function () { openArcade(it.machine, b, it.game); }); return; }
     if (it.type === "scoreboard") { turnTo(x.yaw, x.pitch, 1.3, function () { openArcade(it.machine, b); if (window.GremlinArcade && GremlinArcade.isOpen()) GremlinArcade.showBoards(); }); return; }
@@ -432,6 +436,49 @@
       var f = btn || returnFocus; if (f && document.contains(f)) try { f.focus({ preventScroll: true }); } catch (e) {}
     } });
   }
+
+  /* ---------- in-world console: side games that live on their own pages, shown in an iframe overlay ---------- */
+  function consoleOpen() { return !!(window.GremlinConsole && window.GremlinConsole.isOpen()); }
+  function openConsole(spec, btn, after) {
+    if (!window.GremlinConsole) return;
+    hideBubble(); keys = {}; vel.yaw = vel.pitch = 0; anim = null; dragging = false; down = null; vp.classList.remove("dragging");
+    var ok = window.GremlinConsole.open(spec, { onClose: function () {
+      turnTo(view.yaw, view.pitch, 1);
+      if (after) after();
+      var f = btn || returnFocus; if (f && document.contains(f)) try { f.focus({ preventScroll: true }); } catch (e) {}
+    } });
+    if (ok) notify("console", { src: spec.src, room: current });
+  }
+  /* ---------- the wardrobe + your gremlin badge (top left, only once you've found the wardrobe) ---------- */
+  function wardrobeFound() { if (load("wardrobe-found", 0)) return true; try { return !!localStorage.getItem("gremlin-world-wardrobe"); } catch (e) { return false; } }
+  function outfitNow() {
+    var D = window.GremlinWardrobe, o = {}; if (!D) return o;
+    D.slots.forEach(function (s) { o[s.id] = s.items[0].id; });
+    try { var saved = JSON.parse(localStorage.getItem("gremlin-world-wardrobe") || "{}") || {}; Object.keys(saved).forEach(function (k) { o[k] = saved[k]; }); } catch (e) {}
+    return o;
+  }
+  function paintBadge() {
+    var b = $("#btn-avatar"); if (!b) return;
+    var on = wardrobeFound() && !!window.GremlinWardrobeUI;
+    b.hidden = !on; if (!on) return;
+    b.innerHTML = window.GremlinWardrobeUI.avatar(outfitNow());
+    var svg = b.querySelector("svg"); if (svg) { svg.setAttribute("aria-hidden", "true"); svg.removeAttribute("role"); svg.removeAttribute("aria-label"); }
+  }
+  function openWardrobe(btn) {
+    var first = !wardrobeFound();
+    if (first) { save("wardrobe-found", Date.now()); notify("wardrobe-found", { room: current }); }
+    openConsole({ src: "game-nook/embed.html?view=wardrobe" + (first ? "&first=1" : ""), title: first ? "Make your gremlin" : "Your gremlin", tagline: "The wardrobe \u00b7 change it any time", color: "#8a5a3a", colorDark: "#5e3d27", accent: "#f3d98b" }, btn, function () {
+      paintBadge();
+      if (first) setTimeout(function () { say("moth", "Oh, you look lovely. Your gremlin waits in the top corner now. Tap it whenever you want to change clothes."); }, 500);
+    });
+  }
+  (function () {
+    var hl = $(".hud-left"); if (!hl || $("#btn-avatar")) return;
+    var b = el("button", "gw-avatar-badge", { id: "btn-avatar", type: "button", "aria-label": "Your gremlin. Open the wardrobe", title: "Your gremlin (open the wardrobe)" });
+    b.hidden = true; hl.insertBefore(b, hl.firstChild);
+    b.addEventListener("click", function () { returnFocus = b; openWardrobe(b); });
+    window.addEventListener("storage", function (e) { if (!e.key || /wardrobe/.test(e.key)) paintBadge(); });
+  })();
 
   /* ---------- gentle room mini-games (games/room-games.js, loaded on first use; no timers, no fail state) ---------- */
   var gamesLoading = null;
@@ -542,6 +589,7 @@
     if (hook("isLocked", to)) { hook("lockedDoor", to); return; }   // a Gremlin-Key room: a friendly "not yet" (soft lock, lore not security)
     if (arcadeOpen()) window.GremlinArcade.close(true);
     if (roomGameOpen()) window.GremlinRoomGames.close(true);
+    if (consoleOpen()) window.GremlinConsole.close(true);
     busy = true; hideBubble(); closeCard(); closeMap();
     var warp = $("#warp"), from = current;
     var go = function () {
@@ -602,7 +650,7 @@
     W = res[0]; OFFICE = res[1];
     return Promise.resolve(hook("prepare", W)).then(function () { return res; });
   }).then(function (res) {
-    updateSocks();
+    updateSocks(); paintBadge();
     // comic strips, newest first, for the archive's empty frames
     STRIPS = ((res[2] && res[2].strips) || []).filter(function (x) { return x.active !== false; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
     var startId = W.rooms[location.hash.slice(1)] ? location.hash.slice(1) : W.start, napStart = null;
@@ -622,7 +670,7 @@
       reloadProgress: reloadProgress, secrets: secretList, say: say, showCard: showCard, closeCard: closeCard, hideBubble: hideBubble,
       get artMode() { return artMode; }, item: function (id) { return itemEls[id]; },
       enter: enter, history: history, openMap: openMap, closeMap: closeMap, effect: effect, rebuild: function () { if (current && !busy) { buildRoom(current); render(); } },
-      get gameOpen() { return roomGameOpen(); }, closeGame: function () { if (roomGameOpen()) window.GremlinRoomGames.close(true); } };
+      get gameOpen() { return roomGameOpen(); }, openConsole: openConsole, openWardrobe: openWardrobe, paintBadge: paintBadge, get consoleOpen() { return consoleOpen(); }, closeGame: function () { if (roomGameOpen()) window.GremlinRoomGames.close(true); } };
     notify("ready", window.GremlinWorld);
     try { window.dispatchEvent(new CustomEvent("gremlinworld:ready")); } catch (e) {}
   }).catch(function (err) {

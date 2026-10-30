@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Gremlin Chess · Gremlin World</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="chess-nook.css">
+<link rel="stylesheet" href="nook.css">
+<style>
+/* In-world console version of the Game Nook: just the chess table or just the wardrobe, no page chrome.
+   world.js opens this inside its console overlay (same window); the standalone page stays at game-nook/. */
+html,body{margin:0;background:#2f2633;min-height:100%}
+.emb{padding:10px;box-sizing:border-box;max-width:820px;margin:0 auto}
+.emb .nook-play{margin:0}
+.emb-first{margin:0 0 8px;padding:10px 12px;border-radius:12px;background:#f1ede2;color:#1a1a18;font:600 15px/1.4 "DM Sans",system-ui,sans-serif}
+</style>
+<script>(function(){try{var v=localStorage.getItem("gw-still-mode");if(v==="1"||(v===null&&matchMedia("(prefers-reduced-motion: reduce)").matches))document.documentElement.classList.add("gw-still");}catch(e){}})();</script>
+</head>
+<body>
+<main class="emb">
+  <p class="emb-first" id="emb-first" hidden>You found the wardrobe! This is where you make your gremlin. Pick a hat, a scarf, socks and colours. You can change them any time from the little gremlin badge in the top left.</p>
+  <section id="nook-play" class="nook-play nook-card" aria-label="Game Nook"></section>
+</main>
+<script src="vendor/chess.js"></script>
+<script src="chess-quips.js"></script>
+<script src="chess-nook.js"></script>
+<script src="chess-social.js"></script>
+<script src="wardrobe-data.js"></script>
+<script src="wardrobe.js"></script>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), host = document.getElementById("nook-play");
+  function done() { try { window.parent.postMessage({ type: "gremlin-console-close" }, location.origin); } catch (e) {} }
+  if (q.get("view") === "wardrobe") {
+    document.title = "The Wardrobe · Gremlin World"; host.setAttribute("aria-label", "The wardrobe");
+    if (q.has("first")) document.getElementById("emb-first").hidden = false;
+    GremlinWardrobeUI.mount(host, { onClose: done });
+    var b = host.querySelector(".gc-btn.ghost"); if (b) b.textContent = "All done";
+    new MutationObserver(function () { var x = host.querySelector(".gc-btn.ghost"); if (x && x.textContent !== "All done") x.textContent = "All done"; }).observe(host, { childList: true, subtree: true });
+  } else {
+    host.setAttribute("aria-label", "The chess table");
+    window.__chess = GremlinChess.mount(host, { base: "", social: window.GremlinSocial, focus: true });
+  }
+})();
+</script>
+</body>
+</html>

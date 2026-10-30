@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<defs><pattern id="wp" width="64" height="64" patternUnits="userSpaceOnUse"><rect width="64" height="64" fill="#c9d3bd"/><path d="M32 10c9 9 9 18 0 27-9-9-9-18 0-27z" fill="#b9c6aa"/><circle cx="4" cy="52" r="3" fill="#b3c1a3"/></pattern>
+<radialGradient id="gl"><stop offset="0" stop-color="#F2C48D" stop-opacity=".55"/><stop offset="1" stop-color="#F2C48D" stop-opacity="0"/></radialGradient></defs>
+<rect width="1024" height="1024" fill="url(#wp)"/>
+<rect y="0" width="1024" height="36" fill="#a6b89a"/><path d="M0 36H1024" stroke="#54664A" stroke-width="6"/>
+<rect y="760" width="1024" height="264" fill="#b9946a"/><path d="M0 760H1024" stroke="#54664A" stroke-width="10"/>
+<path d="M0 820H1024M0 900H1024M0 980H1024" stroke="#9c7a54" stroke-width="3"/>
+<rect y="1004" width="1024" height="20" fill="#7d5a3a"/>
+<g transform="translate(392 150)"><rect width="240" height="200" rx="110" fill="#3a4a5e" stroke="#1a1a18" stroke-width="6"/><circle cx="170" cy="70" r="26" fill="#f1ede2"/><circle cx="158" cy="62" r="26" fill="#3a4a5e"/><circle cx="60" cy="60" r="3" fill="#f3d98b"/><circle cx="90" cy="140" r="2.5" fill="#f3d98b"/><path d="M120 0V200M0 110H240" stroke="#7d5a3a" stroke-width="8"/></g><g transform="translate(330 860)"><ellipse cx="180" cy="40" rx="190" ry="38" fill="#B7A6C9" stroke="#1a1a18" stroke-width="4"/></g></svg>

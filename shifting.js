@@ -28,7 +28,7 @@
   var KEY_ROOMS = [];
   /* =========================================================== */
 
-  var W = null, SCHED = null, SHELF = { shelf: [], overflow: [] }, OPEN = [], ALWAYS = ["office", "wing", "arcade"], lastSwap = [], justShifted = false, issue = null;
+  var W = null, SCHED = null, SHELF = { shelf: [], overflow: [] }, OPEN = [], ALWAYS = ["office", "wing", "arcade", "quietroom"], lastSwap = [], justShifted = false, issue = null;
   var stairsTargets = [], stairsIdx = 0, stairsTimer = null, catHere = false;
 
   /* ---------- the mood guide (exact lines from world-guide.md) ---------- */
@@ -59,7 +59,8 @@
     lantern: "Moth's Lantern Loft. The moon lamp is glowing.", press: "Dot's Back-Room Press. The radio is low and the cat is asleep.",
     proof: "The Proof Room has a round window seat with cushions.", dispatch: "Noodle's Dispatch Loft. The noodles are never cold.",
     lostfound: "The Lost & Found. Every sock here is waiting patiently.", returns: "Vesper's Returns Bin. Wrong shelves are allowed.",
-    stacks: "The Stacks Below. Lanterns and kind margin notes."
+    stacks: "The Stacks Below. Lanterns and kind margin notes.",
+    quietroom: "The Quiet Room, off the Break Room. Moss Garden, the Seed Path and a chess table. Nothing to win."
   };
 
   /* ---------- the house: which rooms are open ---------- */
@@ -124,7 +125,7 @@
     var get = function (u) { return fetch(u, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); };
     return Promise.all([get("house-schedule.json"), get("reading-shelf.json"), get("gremlish.json"), get("house-notes.json")]).then(function (res) {
       GREMLISH = res[2]; addNotes(res[3]);
-      SCHED = res[0] || { alwaysOpen: ["office", "wing", "arcade"], openCount: 7, base: { open: ["returns", "corridor", "lantern", "rooftop", "arcade", "burrow", "greenhouse"] }, swapPool: [], issues: [] };
+      SCHED = res[0] || { alwaysOpen: ["office", "wing", "arcade", "quietroom"], openCount: 7, base: { open: ["returns", "corridor", "lantern", "rooftop", "arcade", "burrow", "greenhouse"] }, swapPool: [], issues: [] };
       arrange(SCHED, W.rooms);
       SHELF = readShelf(res[1]);
       // Socks wander too: a sock whose room is napping today waits in the always-open Wing, so the hunt can always be finished.

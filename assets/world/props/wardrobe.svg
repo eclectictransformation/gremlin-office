@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 200"><!-- placeholder wardrobe (drawn to match the Game Nook one) until Moth paints one -->
+<rect x="8" y="10" width="104" height="176" rx="10" fill="#b07a4a" stroke="#1a1a18" stroke-width="5"/>
+<path d="M14 24h92" stroke="#1a1a18" stroke-width="3"/><path d="M60 26V182" stroke="#1a1a18" stroke-width="4"/>
+<circle cx="52" cy="104" r="4.5" fill="#f3d98b" stroke="#1a1a18" stroke-width="2"/><circle cx="68" cy="104" r="4.5" fill="#f3d98b" stroke="#1a1a18" stroke-width="2"/>
+<path d="M18 186v10M102 186v10" stroke="#1a1a18" stroke-width="6" stroke-linecap="round"/>
+<path d="M78 40q14 6 22 0v40q-8 6-22 0z" fill="#A6B89A" stroke="#1a1a18" stroke-width="3"/>
+<path d="M22 60c6-8 22-8 28 0" fill="none" stroke="#e46f5a" stroke-width="6" stroke-linecap="round"/>
+</svg>
