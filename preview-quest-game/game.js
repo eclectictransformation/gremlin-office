@@ -1,11 +1,10 @@
-/* Mossbert's Doors - calm quest game preview v2. Static; only fetches ./quests.json. */
+/* Mossbert's Doors - calm quest game preview v3. Static; only fetches ./quests.json. */
 (function () {
   'use strict';
   var app = document.getElementById('app');
   var restBtn = document.getElementById('rest-btn');
   var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var TS = /[?&]test=1/.test(location.search) ? 0.02 : 1; // test-only speed-up of calm delays
-  var TTS = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
   var KEY = 'qg_preview_v1';
   var QUESTS = [], S = load(), run = null, timers = [];
 
@@ -23,7 +22,6 @@
 
   function h(html) {
     timers.forEach(clearTimeout); timers = [];
-    if (TTS) try { speechSynthesis.cancel(); } catch (e) {}
     document.body.classList.remove('rest-dim');
     app.innerHTML = '<div class="screen">' + html + '</div>';
     var scr = app.firstChild;
@@ -31,20 +29,28 @@
     var first = scr.querySelector('.say'), slot = document.createElement('div');
     slot.id = 'popslot'; slot.setAttribute('aria-live', 'polite');
     if (first) first.after(slot); else scr.prepend(slot);
-    if (TTS && (first || scr.querySelector('.plaque'))) {
-      var rb = document.createElement('button');
-      rb.className = 'btn read'; rb.type = 'button'; rb.id = 'readbtn'; rb.textContent = 'Read it to me';
-      rb.addEventListener('click', readAloud);
-      (scr.querySelector('.plaque') || first).after(rb);
-    }
     window.scrollTo(0, 0);
     var f = app.querySelector('[data-focus]'); if (f) f.focus({ preventScroll: true });
   }
-  function readAloud() {
-    var parts = [];
-    app.querySelectorAll('.say .line, .plaque').forEach(function (el) { parts.push(el.textContent); });
-    try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(parts.join('. ')); u.rate = 0.85; u.pitch = 0.95; speechSynthesis.speak(u); } catch (e) {}
+  /* Music toggle: off by default, remembered. No track yet; set MUSIC_SRC when Bryan supplies one. */
+  var MUSIC_SRC = '', MKEY = 'qg_music_on', audio = null, musicBtn = $('music-btn');
+  function musicOn() { try { return localStorage.getItem(MKEY) === '1'; } catch (e) { return false; } }
+  function paintMusic() {
+    var onNow = musicOn();
+    musicBtn.setAttribute('aria-pressed', onNow ? 'true' : 'false');
+    musicBtn.textContent = onNow ? 'Music: on' : 'Music: off';
+    musicBtn.title = MUSIC_SRC ? '' : 'Music is coming soon';
   }
+  function playMusic() {
+    if (!MUSIC_SRC || !musicOn()) { if (audio) audio.pause(); return; }
+    if (!audio) { audio = new Audio(MUSIC_SRC); audio.loop = true; audio.volume = 0.35; }
+    audio.play().catch(function () {});
+  }
+  musicBtn.addEventListener('click', function () {
+    try { localStorage.setItem(MKEY, musicOn() ? '0' : '1'); } catch (e) {}
+    paintMusic(); playMusic();
+  });
+  paintMusic();
   function setLine(el, text, who) { el.innerHTML = say(text, who); }
 
   /* ---------- art: flat SVG, Moth's palette ---------- */
@@ -181,28 +187,34 @@
     settle();
   }
 
-  // Settle: player-paced breathing; the button rests while the circle grows (~3s) or shrinks (~4s).
+  // Settle: automatic guided breathing. The circle breathes 3 times on its own; no clicking, no skip.
+  // Players follow along if they like. After the third breath the way on appears.
   function settle() {
     run.beat = settle;
-    var q = run.q.quest, breaths = 0, inhale = false;
+    var q = run.q.quest, breaths = 0;
     h('<h2>' + esc(q.title) + '</h2><p class="small-note">Lantern ' + (run.done + 1) + ' of ' + run.total + '</p>' + say(q.settle) +
       '<div class="breath-wrap"><div class="breath" id="breath">' + friendSVG(q.friend) + '</div>' +
+      '<p class="small-note" id="bnote" aria-live="polite">Take a breath with ' + esc(q.friend.name) + '. Three slow ones.</p>' +
       '<div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>' +
-      '<button class="btn primary" id="bbtn" data-focus>Breathe in</button><p class="small-note" id="bnote" aria-live="polite">&nbsp;</p></div>');
+      '<button class="btn primary" id="bbtn" hidden>' + esc(q.friend.name) + ' feels calm. Let\'s look around</button></div>');
     var b = $('bbtn'), c = $('breath'), dots = app.querySelectorAll('.dots i'), note = $('bnote');
-    b.addEventListener('click', function () {
-      if (b.disabled) return;
-      if (breaths >= 3) return explore();
-      inhale = !inhale;
-      c.classList.toggle('in', inhale);
-      b.disabled = true; b.classList.add('waiting');
-      note.textContent = inhale ? 'Breathing in...' : 'Breathing out...';
+    b.addEventListener('click', explore);
+    function cycle() {
+      if (!$('breath')) return;
+      c.classList.add('in'); note.textContent = 'Breathe in...';
       later(function () {
-        b.disabled = false; b.classList.remove('waiting'); note.innerHTML = '&nbsp;';
-        if (!inhale) { dots[breaths].classList.add('on'); breaths++; }
-        b.textContent = breaths >= 3 ? q.friend.name + ' feels calm. Let\'s look around' : (inhale ? 'Breathe out' : 'Breathe in');
-      }, inhale ? 3000 : 4000);
-    });
+        if (!$('breath')) return;
+        c.classList.remove('in'); note.textContent = 'And breathe out...';
+        later(function () {
+          if (!$('breath')) return;
+          dots[breaths].classList.add('on'); breaths++;
+          if (breaths < 3) return cycle();
+          note.textContent = 'Lovely.';
+          b.hidden = false; b.focus();
+        }, 4500);
+      }, 4000);
+    }
+    later(cycle, 1200);
   }
 
   // Explore: tap to bloom; rabbit hops closer with each new bloom; one gem.
