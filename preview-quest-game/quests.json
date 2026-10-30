@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "quests": [
+    {
+      "id": "q_owl_door", "title": "The Owl's Round Door", "kind": "calm",
+      "friend": {"id": "f_glim", "name": "Glim", "desc": "a sleepy owl", "color": "#B9A8D9"},
+      "settle": "Glim the owl is a little ruffled. Breathe with her slowly.",
+      "explore": {"intro": "Tap things to make them bloom. Somewhere is a hidden gem.",
+        "objects": ["flower", "bush", "mushroom", "flower"], "gem": {"id": "g_tiny_hat", "name": "a tiny hat on a rock"}},
+      "door": {"type": "riddle",
+        "easy": [
+          {"q": "I have hands but I can't clap. I tell you when it's time for a nap.", "choices": ["A clock", "A glove", "A pillow"], "answer": 0, "hint": "Tick, tock."},
+          {"q": "What gets wetter the more it dries?", "choices": ["A towel", "A fish", "The sun"], "answer": 0, "hint": "You use me after a bath."},
+          {"q": "I'm full of holes, but I still hold water.", "choices": ["A bucket", "A sponge", "A rock"], "answer": 1, "hint": "I live by the sink."},
+          {"q": "I have keys, but I can't open any door.", "choices": ["A piano", "A turtle", "A tree"], "answer": 0, "hint": "You can play me."}
+        ],
+        "medium": [
+          {"q": "The more you take, the more you leave behind.", "choices": ["Cookies", "Footsteps", "Naps", "Leaves"], "answer": 1, "hint": "Look down at the path behind you."},
+          {"q": "I run but never walk. I have a mouth but never talk. I have a bed but never sleep.", "choices": ["A dog", "A river", "A clock", "A road"], "answer": 1, "hint": "Fish live in me."},
+          {"q": "I'm light as a feather, but even the strongest person can't hold me for long.", "choices": ["A cloud", "A bubble", "Your breath", "A leaf"], "answer": 2, "hint": "You just practised me with Glim."}
+        ],
+        "hard": [
+          {"q": "I have cities but no houses, forests but no trees, and water but no fish.", "accept": ["map", "a map", "the map", "maps", "atlas"], "hint": "Explorers fold me up and put me in a pocket."}
+        ]
+      }
+    },
+    {
+      "id": "q_lantern_path", "title": "The Lantern Gate", "kind": "puzzle",
+      "friend": {"id": "f_teaspoon", "name": "Teaspoon", "desc": "a tiny hedgehog", "color": "#E8B48F"},
+      "settle": "Teaspoon is curled up tight. Breathe slowly so she can uncurl.",
+      "explore": {"intro": "Tap things to make them bloom. One of them is hiding a gem.",
+        "objects": ["mushroom", "flower", "bush", "mushroom"], "gem": {"id": "g_sock", "name": "a sock on a branch"}},
+      "door": {"type": "lanterns",
+        "intro": "The gate opens when its lanterns glow in the order of the stars above them.",
+        "easy": {"count": 3, "showNumbers": true},
+        "medium": {"count": 4, "showNumbers": false},
+        "hard": {"count": 5, "showNumbers": false},
+        "hint": "Count the little stars over each lantern. Start with the one that has one star."
+      }
+    },
+    {
+      "id": "q_stone_bridge", "title": "The Stone Bridge", "kind": "learning", "subject": "math",
+      "friend": {"id": "f_mossbun", "name": "Mossbun", "desc": "a mossy bunny", "color": "#8FAF8A"},
+      "settle": "Mossbun is worried about the bridge. Breathe with him.",
+      "explore": {"intro": "Tap things to make them bloom. Look for a hidden gem.",
+        "objects": ["bush", "flower", "flower", "mushroom"], "gem": {"id": "g_letter", "name": "a letter that just says 'Hi.'"}},
+      "door": {"type": "math",
+        "easy": {"need": 5, "have": 3, "choices": [1, 2, 4]},
+        "medium": {"need": 8, "have": 5, "choices": [2, 3, 4, 5]},
+        "hard": {"need": 12, "have": 7},
+        "hint": "Count the empty spaces on the bridge."
+      }
+    }
+  ]
+}
