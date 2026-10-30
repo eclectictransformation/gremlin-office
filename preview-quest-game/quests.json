@@ -40,8 +40,8 @@
     },
     {
       "id": "q_stone_bridge", "title": "The Stone Bridge", "kind": "learning", "subject": "math",
-      "friend": {"id": "f_mossbun", "name": "Mossbun", "desc": "a mossy bunny", "color": "#8FAF8A"},
-      "settle": "Mossbun is worried about the bridge. Breathe with him.",
+      "friend": {"id": "f_clover", "name": "Clover", "desc": "a mossy bunny", "color": "#8FAF8A"},
+      "settle": "Clover is worried about the bridge. Breathe with him.",
       "explore": {"intro": "Tap things to make them bloom. Look for a hidden gem.",
         "objects": ["bush", "flower", "flower", "mushroom"], "gem": {"id": "g_letter", "name": "a letter that just says 'Hi.'"}},
       "door": {"type": "math",

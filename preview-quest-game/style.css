@@ -1,92 +1,131 @@
 :root{
   --ink:#2B3350;--dusk:#3E4A6B;--plum:#6B5A8E;--teal:#6E9C9A;--moss:#8FAF8A;--lavender:#B9A8D9;
   --sky:#9DB8D6;--apricot:#E8B48F;--sage:#C9D8B6;--fog:#D9D3E6;--butter:#F2D48A;--paper:#F4EEDF;
-  --serif:Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  --slow:2.2s;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font:18px/1.45 var(--sans)}
-body{transition:filter 3s ease, background 3s ease}
-body.dim{filter:brightness(.82) saturate(.85)}
-#app{min-height:100%;max-width:820px;margin:0 auto;padding:16px 16px 110px;display:flex;flex-direction:column;align-items:center;gap:14px}
-h1,h2{font-family:var(--serif);font-weight:600;margin:.2em 0;text-align:center}
-h1{font-size:clamp(30px,6vw,46px)} h2{font-size:clamp(24px,4.5vw,32px)}
+html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font:18px/1.45 var(--sans)}
+body{transition:filter 3s ease}
+body.dim{filter:brightness(.84) saturate(.85)}
+body.rest-dim{filter:brightness(.8) saturate(.88);transition:filter 15s ease}
+#app{max-width:820px;margin:0 auto;padding:56px 16px 120px;display:flex;flex-direction:column;align-items:center}
+h1,h2{font-family:var(--serif);font-weight:600;margin:.1em 0;text-align:center;letter-spacing:.01em}
+h1{font-size:clamp(32px,6vw,48px)} h2{font-size:clamp(25px,4.5vw,34px)}
 p{margin:.3em 0;text-align:center;max-width:36em}
-.say{background:var(--fog);border-radius:18px;padding:12px 18px;max-width:34em;text-align:center;font-size:19px}
-.say b{display:block;font:600 13px var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--plum)}
 .screen{width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;animation:fadein 1.4s ease}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
+.say{background:var(--fog);border-radius:18px;padding:10px 18px;max-width:34em;text-align:center;font-size:19px}
+.say b{display:block;font:600 13px var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--plum)}
+#popslot{width:100%;display:flex;justify-content:center}
+#popslot:empty{display:none}
 .btn{min-height:56px;min-width:120px;padding:12px 24px;border-radius:28px;border:2px solid var(--plum);
-  background:var(--paper);color:var(--ink);font:600 19px var(--sans);cursor:pointer;transition:background .8s ease,transform .8s ease}
+  background:var(--paper);color:var(--ink);font:600 19px var(--sans);cursor:pointer;transition:background .8s ease,opacity 1.5s ease}
 .btn:hover,.btn:focus-visible{background:var(--fog)}
-.btn:focus-visible{outline:3px solid var(--dusk);outline-offset:3px}
+.btn:focus-visible,.lantern:focus-visible,.obj:focus-visible,.popup:focus-visible{outline:3px solid var(--dusk);outline-offset:3px}
 .btn.primary{background:var(--plum);color:var(--paper)}
 .btn.primary:hover,.btn.primary:focus-visible{background:var(--dusk)}
 .btn.soft{border-color:var(--teal);font-weight:500}
+.btn.read{min-height:48px;min-width:0;padding:8px 18px;font-size:16px;border-color:var(--lavender);background:var(--paper)}
 .btn.sel{background:var(--butter);border-color:var(--ink)}
-.row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;width:100%}
+.btn[disabled]{opacity:.55;cursor:default}
+.btn.waiting{opacity:.5}
 .col{display:flex;flex-direction:column;gap:12px;width:100%;max-width:420px}
 .col .btn{width:100%}
-.lanterns-pick .btn{min-width:90px;min-height:90px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.col:empty,#easyslot:empty{display:none}
+#easyslot .btn{width:100%}
+/* answer choices: soft rounded stones in a row */
+.stone-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;width:100%;max-width:640px}
+.btn.stone{min-width:110px;min-height:68px;padding:12px 22px;border:0;border-radius:46% 54% 50% 50% / 58% 52% 48% 42%;
+  background:var(--sage);box-shadow:inset 0 -6px 0 rgba(43,51,80,.12),0 3px 8px rgba(43,51,80,.12);font-family:var(--serif);font-size:20px}
+.btn.stone:nth-child(2n){border-radius:54% 46% 52% 48% / 50% 58% 42% 50%;background:var(--fog)}
+.btn.stone:hover,.btn.stone:focus-visible{background:var(--butter)}
+.lanterns-pick .btn.stone{display:flex;flex-direction:column;align-items:center;min-width:96px;min-height:110px}
+.lamps svg{width:26px;height:42px}
 .mossbert{width:min(300px,70vw);height:auto}
 .mossbert.small{width:min(170px,40vw)}
-.scene{position:relative;width:100%;max-width:720px;aspect-ratio:16/10;border-radius:22px;overflow:hidden;background:var(--sky)}
-.scene svg.bg{position:absolute;inset:0;width:100%;height:100%}
-.rabbit{position:absolute;top:22%;width:46px;height:auto;transition:left 3s ease-in-out,opacity 2s ease;pointer-events:none}
-.obj{position:absolute;width:19%;min-width:64px;aspect-ratio:1;border:0;background:transparent;padding:0;cursor:pointer;border-radius:50%}
-.obj svg{width:100%;height:100%;transition:transform var(--slow) ease}
+.mossbert.tiny{width:100%}
+.mossbert .foot{transition:transform 2.5s ease}
+.mossbert.dance .foot{transform:translateY(-14px)}
+/* stages: layered backdrop */
+.stage{position:relative;width:100%;max-width:720px;aspect-ratio:16/10;border-radius:22px;overflow:hidden;background:var(--sky)}
+.stage.short{aspect-ratio:16/8}
+.stage svg.bg{position:absolute;inset:0;width:100%;height:100%}
+.stage-front{position:absolute;left:50%;bottom:4%;transform:translateX(-50%);width:42%}
+.stage-front .mossbert{width:100%}
+.stage .glow{opacity:0;transition:opacity 2s ease}
+.stage .leaf{transition:transform 1.6s ease;transform-box:fill-box;transform-origin:left center}
+.stage.open .glow{opacity:1}
+.stage.open .leaf{transform:scaleX(.12)}
+.door-stage{aspect-ratio:16/9}
+.mb-front{position:absolute;left:6%;bottom:4%;width:24%}
+.rabbit{position:absolute;width:5.5%;min-width:26px;transition:left 3s ease-in-out,transform 1.5s ease;pointer-events:none}
+.rabbit svg{width:100%;height:auto;display:block}
+.rabbit.flip{transform:scaleX(-1)}
+.rabbit.glance{transform:translateY(-4px) rotate(-6deg)}
+.rabbit.glance.flip{transform:scaleX(-1) translateY(-4px) rotate(-6deg)}
+.plaque{margin-top:-34px;position:relative;z-index:2;max-width:30em;padding:14px 22px;border-radius:14px;
+  background:linear-gradient(#D9D3E6,#C9C1DA);border:3px solid var(--plum);box-shadow:inset 0 2px 0 rgba(244,238,223,.8),inset 0 -3px 0 rgba(43,51,80,.15),0 4px 10px rgba(43,51,80,.15);
+  font:italic 600 21px/1.4 var(--serif);text-align:center;color:var(--ink);text-shadow:0 1px 0 rgba(244,238,223,.7)}
+.obj{position:absolute;width:18%;min-width:64px;aspect-ratio:1;border:0;background:transparent;padding:0;cursor:pointer;border-radius:50%}
+.obj svg{width:100%;height:100%;transition:transform 2.2s ease}
 .obj.bloomed svg{transform:scale(1.18)}
-.obj:focus-visible{outline:3px solid var(--dusk)}
 .gem-found{position:absolute;font-size:34px;color:var(--butter);text-shadow:0 0 6px var(--paper);pointer-events:none}
-.breath-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.breath-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
 .breath{width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,var(--butter),var(--sage) 70%);
-  transform:scale(.6);transition:transform 4s ease-in-out;display:flex;align-items:center;justify-content:center}
+  transform:scale(.6);transition:transform 3s ease-in-out,background-color 3s ease;display:flex;align-items:center;justify-content:center}
 .breath.in{transform:scale(1)}
+.breath:not(.in){transition-duration:4s}
 .breath svg{width:60%}
+.breath .mossbert{width:80%}
+.rest-friend{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:36%}
+.rest-friend .breath{width:100%;height:auto;aspect-ratio:1}
 .dots{display:flex;gap:10px}
 .dots i{width:16px;height:16px;border-radius:50%;background:var(--fog);border:2px solid var(--plum);transition:background 1.5s}
 .dots i.on{background:var(--butter)}
-.door-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
-.door{width:min(220px,50vw);height:auto}
-.door .leaf{transition:transform 1.6s ease;transform-origin:30% 50%}
-.door.open .leaf{transform:scaleX(.15)}
-.door .glow{opacity:0;transition:opacity 2s ease}
-.door.open .glow{opacity:1}
-.riddle{font-family:var(--serif);font-size:22px;background:var(--sage);border-radius:18px;padding:14px 20px;max-width:30em;text-align:center}
+.fade-wait{opacity:0;visibility:hidden;transition:opacity 2s ease}
+.fade-wait.shown{opacity:1;visibility:visible}
 input.answer{min-height:56px;font:20px var(--sans);padding:10px 16px;border-radius:16px;border:2px solid var(--plum);background:var(--paper);color:var(--ink);width:100%}
 input.answer:focus-visible{outline:3px solid var(--dusk)}
-.hint{background:var(--butter);border-radius:14px;padding:8px 14px}
+.hint{background:var(--butter);border-radius:14px;padding:8px 14px;text-align:center;margin-top:6px}
 .lantern-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.lantern{width:84px;min-height:120px;border:2px solid var(--plum);border-radius:18px;background:var(--fog);cursor:pointer;padding:6px;display:flex;flex-direction:column;align-items:center;gap:4px;font:600 16px var(--sans);color:var(--ink)}
-.lantern svg{width:46px;height:60px}
-.lantern .flame{opacity:.15;transition:opacity 1.8s ease}
+.lantern{width:84px;min-height:132px;border:2px solid var(--plum);border-radius:18px;background:var(--fog);cursor:pointer;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px;font:600 16px var(--sans);color:var(--ink)}
+.lantern .stars{color:var(--plum);font-size:13px;letter-spacing:1px;min-height:18px}
+.lantern svg{width:46px;height:74px}
+.lantern .flame{opacity:.12;transition:opacity 1.8s ease}
 .lantern.lit .flame{opacity:1}
 .lantern.lit{background:var(--butter)}
-.stones{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:560px}
-.stones span{width:34px;height:24px;border-radius:12px;background:var(--plum);opacity:.9}
-.stones span.empty{background:transparent;border:2px dashed var(--plum)}
+.lantern.shake{animation:sway 1.6s ease}
+@keyframes sway{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+.bridge{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:560px;padding:10px 14px;background:var(--teal);border-radius:18px}
+.bridge span{width:34px;height:24px;border-radius:12px;background:var(--fog);box-shadow:inset 0 -4px 0 rgba(43,51,80,.15)}
+.bridge span.empty{background:transparent;border:2px dashed var(--paper);box-shadow:none}
 .collection{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
 .card{background:var(--sage);border-radius:18px;padding:12px 16px;min-width:140px;text-align:center}
 .card.gem{background:var(--butter)}
-.calm-card{background:var(--fog);border-radius:18px;padding:16px;max-width:420px;position:relative;text-align:center}
+.calm-card{background:var(--fog);border-radius:18px;padding:16px 48px;max-width:420px;position:relative;text-align:center}
 .calm-card a{color:var(--dusk);font-weight:600}
 .calm-card .x{position:absolute;top:4px;right:4px;min-width:48px;min-height:48px;border:0;background:transparent;font-size:24px;cursor:pointer;color:var(--ink)}
-.rest-btn{position:fixed;right:16px;bottom:16px;z-index:20;min-width:96px;min-height:64px;border-radius:32px;border:2px solid var(--dusk);
-  background:var(--lavender);color:var(--ink);font:600 20px var(--sans);cursor:pointer;box-shadow:0 4px 14px rgba(43,51,80,.2)}
+/* small corner Rest button, top right, out of the play area */
+.rest-btn{position:absolute;right:10px;top:8px;z-index:20;min-width:64px;min-height:48px;padding:0 14px;border-radius:24px;border:2px solid var(--dusk);
+  background:var(--lavender);color:var(--ink);font:600 16px var(--sans);cursor:pointer}
 .rest-btn:focus-visible{outline:3px solid var(--dusk);outline-offset:3px}
-.preview-tag{position:fixed;left:10px;top:10px;z-index:30;background:var(--dusk);color:var(--paper);font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:10px;pointer-events:none}
-#popup-layer{position:fixed;left:12px;bottom:12px;z-index:15;max-width:min(330px,calc(100vw - 140px));pointer-events:none}
-.popup{pointer-events:auto;background:var(--paper);border:2px solid var(--lavender);border-radius:18px;padding:10px 12px;display:flex;gap:10px;align-items:center;
-  box-shadow:0 6px 20px rgba(43,51,80,.18);opacity:0;transform:translateY(10px);transition:opacity 1.2s ease-in,transform 1.2s ease-in;cursor:pointer;min-height:56px;font-size:16px}
-.popup.show{opacity:1;transform:none}
-.popup svg{width:56px;height:56px;flex:none}
+.preview-tag{position:absolute;left:10px;top:12px;z-index:30;background:var(--dusk);color:var(--paper);font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:10px;pointer-events:none}
+.popup{width:100%;max-width:34em;background:var(--paper);border:2px solid var(--lavender);border-radius:18px;padding:8px 12px;display:flex;gap:10px;align-items:center;text-align:left;
+  opacity:0;transition:opacity 1.2s ease-in;cursor:pointer;min-height:56px;font:16px/1.35 var(--sans);color:var(--ink)}
+.popup.show{opacity:1}
+.popup svg{width:52px;height:52px;flex:none}
 .small-note{font-size:15px;opacity:.85}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-@media (max-width:520px){ body{font-size:17px} .riddle{font-size:20px} .lantern{width:64px} }
+@media (max-width:520px){ body{font-size:17px} .plaque{font-size:19px;margin-top:-22px} .lantern{width:62px} .btn.stone{min-width:96px;font-size:18px} }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
-  .popup{opacity:1;transform:none}
-  .breath{transform:scale(.8)!important}
+  .popup{opacity:1}
+  /* breathing: no scaling, a slow colour + text fade instead */
+  .breath,.breath.in{transform:scale(.85)!important}
+  .breath{background:var(--sage)!important;transition:background-color 3s ease!important}
+  .breath.in{background:var(--butter)!important}
+  .fade-wait{transition:opacity 2s ease!important}
+  .stage .glow{transition:opacity 2s ease!important}
+  body.rest-dim{transition:filter 15s ease!important}
 }
-.door-wrap>div[role=img] svg{width:100%;height:auto;display:block}
