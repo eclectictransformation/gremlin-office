@@ -1,38 +1,34 @@
-/* Mossbert's Doors - calm quest game preview v3. Static; only fetches ./quests.json. */
+/* Mossbert's Doors - calm quest game preview v4 (tap-along path). Static; only fetches ./quests.json.
+   No timers shown, no fail states, no saving progress. localStorage holds preferences only. */
 (function () {
   'use strict';
   var app = document.getElementById('app');
   var restBtn = document.getElementById('rest-btn');
   var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var TS = /[?&]test=1/.test(location.search) ? 0.02 : 1; // test-only speed-up of calm delays
-  var KEY = 'qg_preview_v1';
-  var QUESTS = [], S = load(), run = null, timers = [];
+  var TS = /[?&]test=1/.test(location.search) ? (parseFloat((location.search.match(/[?&]speed=([\d.]+)/) || [])[1]) || 0.02) : 1; // test-only speed-up of calm delays (?test=1, optional &speed=0.2)
+  var KEY = 'qg_preview_v1'; // preferences only: last age + difficulty picked (no progress, no collection)
+  var DATA = null, P = loadPrefs(), run = null, timers = [];
 
-  function load() {
-    try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.v === 1) { d.friends = d.friends.map(function (f) { return f === 'f_mossbun' ? 'f_clover' : f; }); return d; } } catch (e) {}
-    return { v: 1, mode: null, friends: [], gems: [], questsDone: 0, nextIndex: 0, lastPopup: null };
+  function loadPrefs() {
+    try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.v === 2) return { v: 2, age: d.age || null, diff: d.diff || null }; } catch (e) {}
+    return { v: 2, age: null, diff: null };
   }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function savePrefs() { try { localStorage.setItem(KEY, JSON.stringify({ v: 2, age: P.age, diff: P.diff })); } catch (e) {} }
   function later(fn, ms) { var t = setTimeout(fn, ms * TS); timers.push(t); return t; }
   function rand(n) { return Math.floor(Math.random() * n); }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = rand(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function $(id) { return document.getElementById(id); }
   function on(sel, fn) { app.querySelectorAll(sel).forEach(function (el) { el.addEventListener('click', fn); }); }
   function say(text, who) { return '<div class="say"><b>' + (who || 'Mossbert') + '</b><span class="line">' + esc(text) + '</span></div>'; }
-
   function h(html) {
     timers.forEach(clearTimeout); timers = [];
     document.body.classList.remove('rest-dim');
     app.innerHTML = '<div class="screen">' + html + '</div>';
-    var scr = app.firstChild;
-    // pop-up slot sits inline under the first speech bubble, so it can never cover play
-    var first = scr.querySelector('.say'), slot = document.createElement('div');
-    slot.id = 'popslot'; slot.setAttribute('aria-live', 'polite');
-    if (first) first.after(slot); else scr.prepend(slot);
     window.scrollTo(0, 0);
     var f = app.querySelector('[data-focus]'); if (f) f.focus({ preventScroll: true });
   }
-  /* Music toggle: off by default, remembered. No track yet; set MUSIC_SRC when Bryan supplies one. */
+  /* Music toggle: off by default, remembered. No track yet; set MUSIC_SRC when the Frequency Weaver track arrives. */
   var MUSIC_SRC = '', MKEY = 'qg_music_on', audio = null, musicBtn = $('music-btn');
   function musicOn() { try { return localStorage.getItem(MKEY) === '1'; } catch (e) { return false; } }
   function paintMusic() {
@@ -51,7 +47,6 @@
     paintMusic(); playMusic();
   });
   paintMusic();
-  function setLine(el, text, who) { el.innerHTML = say(text, who); }
 
   /* ---------- art: flat SVG, Moth's palette ---------- */
   function mossbert(cls) {
@@ -106,7 +101,7 @@
       '<path d="M0 250 Q170 150 360 220 T720 190 V450 H0Z" fill="#C9D8B6"/>' +
       '<path d="M0 320 Q220 250 430 315 T720 300 V450 H0Z" fill="#8FAF8A"/>' +
       '<path d="M180 450 C300 380 470 400 ' + ((opts.doorX || 520) + 55) + ' ' + ((opts.doorY || 150) + 138) + '" stroke="#D9D3E6" stroke-width="30" fill="none" stroke-linecap="round" opacity=".85"/>' +
-      door + '</svg>';
+      (opts.extra || '') + door + (opts.front || '') + '</svg>';
   }
   var LAMP = '<svg viewBox="0 0 50 80" aria-hidden="true"><path d="M17 10 Q25 0 33 10" fill="none" stroke="#2B3350" stroke-width="3"/>' +
     '<path d="M12 18 L38 18 L33 10 L17 10Z" fill="#6B5A8E"/>' +
@@ -115,312 +110,376 @@
     '<line x1="25" y1="18" x2="25" y2="58" stroke="#6B5A8E" stroke-width="1.5" opacity=".35"/>' +
     '<path d="M10 58 H40 L36 66 H14Z" fill="#6B5A8E"/></svg>';
 
-  /* ---------- rabbit ---------- */
-  function rabbitHTML(pos, top) { return '<div class="rabbit" id="rabbit" style="left:' + pos + '%;top:' + (top || 34) + '%">' + rabbitSVG() + '</div>'; }
-  function hopRabbit(pos) { var r = $('rabbit'); if (r) requestAnimationFrame(function () { r.style.left = pos + '%'; }); }
-
-  /* ---------- pop-ups (text, inline, never block) ---------- */
-  var POPUPS = {
-    umbrella: { where: 'scene', text: 'A single raindrop falls. Mossbert opens an umbrella the size of a coin. "Prepared."', art: '<svg viewBox="0 0 60 60"><path d="M10 30 A20 20 0 0 1 50 30Z" fill="#B9A8D9"/><line x1="30" y1="30" x2="30" y2="50" stroke="#2B3350" stroke-width="3"/><ellipse cx="44" cy="10" rx="3" ry="5" fill="#9DB8D6"/></svg>' },
-    watch: { where: 'scene', text: 'The rabbit hurries past checking his pocket watch, then strolls back. "False alarm. It\'s a cookie." He eats it.', art: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="18" fill="#E8B48F"/><g fill="#6B5A8E"><circle cx="24" cy="26" r="2.5"/><circle cx="35" cy="24" r="2.5"/><circle cx="31" cy="36" r="2.5"/></g></svg>' },
-    goldfish: { where: 'scene', text: 'A goldfish peeks out of a teacup, blinks, and ducks away again.', art: '<svg viewBox="0 0 60 60"><path d="M10 34 H46 Q44 52 28 52 Q12 52 10 34Z" fill="#D9D3E6"/><ellipse cx="28" cy="30" rx="9" ry="6" fill="#E8B48F"/><circle cx="31" cy="29" r="1.5" fill="#2B3350"/></svg>' },
-    shydoor: { where: 'door', text: 'The door blushes, opens an inch, and shuts. "Sorry. Wasn\'t ready."', art: '<svg viewBox="0 0 60 60"><path d="M12 58 V26 A18 18 0 0 1 48 26 V58Z" fill="#6B5A8E"/><circle cx="24" cy="34" r="4" fill="#E8B48F"/><circle cx="36" cy="34" r="4" fill="#E8B48F"/></svg>' },
-    lettuce: { where: 'door', text: 'Mossbert chews one lettuce leaf very slowly. "Take your time. I\'m busy anyway. Crunch."', art: '<svg viewBox="0 0 60 60"><path d="M10 40 Q30 0 50 40 Q30 52 10 40Z" fill="#8FAF8A"/><path d="M30 14 V44" stroke="#C9D8B6" stroke-width="3"/></svg>' },
-    ahem: { where: 'notyet', text: 'The door clears its throat. "Ahem. Close-ish. I believe in you." Its knob gives a tiny thumbs-up.', art: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="14" fill="#2B3350"/><rect x="26" y="8" width="8" height="18" rx="4" fill="#F2D48A"/></svg>' },
-    spoon: { where: 'notyet', text: 'Mossbert tries another key from his ring. It\'s a spoon. "Hm. That explains a lot."', art: '<svg viewBox="0 0 60 60"><ellipse cx="22" cy="20" rx="9" ry="12" fill="#D9D3E6" stroke="#6B5A8E" stroke-width="2"/><rect x="26" y="28" width="6" height="26" rx="3" transform="rotate(-25 29 41)" fill="#6B5A8E"/></svg>' },
-    snore: { where: 'rest', text: 'Mossbert dozes. A snore bubble pops into sparkly zzz. "I was resting my eyes. Professionally."', art: '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="20" fill="#D9D3E6"/><text x="30" y="36" text-anchor="middle" font-size="16" fill="#6B5A8E" font-family="sans-serif">zzz</text></svg>' },
-    gremlin: { where: 'scene', text: 'A gremlin hides behind a flower far too small. "Nope. Just a flower. Very big flower."', art: '<svg viewBox="0 0 60 60"><circle cx="30" cy="34" r="18" fill="#6E9C9A"/><path d="M14 22 L18 10 L24 20 M46 22 L42 10 L36 20" fill="#6E9C9A"/><circle cx="24" cy="32" r="3" fill="#2B3350"/><circle cx="36" cy="32" r="3" fill="#2B3350"/><rect x="28" y="36" width="4" height="22" fill="#8FAF8A"/><circle cx="30" cy="38" r="6" fill="#B9A8D9"/></svg>' }
+  /* ---------- v4 data ---------- */
+  var AGES = { kids: 'Kids', teens: 'Teens', adults: 'Adults' };
+  var DIFFS = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+  // Breath lengths in seconds [in, out]. Opening = short and building; calm spots longer; door = today's v3 length (4 / 4.5).
+  var BREATHS = {
+    kids:   { open: [[2, 2.5], [2.5, 3], [3, 3.5]], bridge: [[3, 3.5]],   bench: [[3.5, 4], [3.5, 4]], door: [[4, 4.5], [4, 4.5]] },
+    teens:  { open: [[2.5, 3], [3, 3.5], [3.5, 4]], bridge: [[3.5, 4]],   bench: [[4, 4.5], [4, 4.5]], door: [[4, 4.5], [4, 4.5]] },
+    adults: { open: [[3, 3.5], [3.5, 4], [4, 4.5]], bridge: [[4, 4.5]],   bench: [[4.5, 5], [4.5, 5]], door: [[4, 4.5], [4, 4.5]] }
   };
-  var COMMON = ['umbrella', 'watch', 'goldfish', 'shydoor', 'lettuce', 'ahem', 'spoon', 'snore'];
-  function rollPopup() { // at most one per quest; ~1 in 3; gremlin rarer (~1 in 12)
-    var forced = (location.search.match(/[?&]popup=(\w+)/) || [])[1];
-    if (forced && POPUPS[forced]) return forced;
-    if (Math.random() < 1 / 12) return 'gremlin';
-    if (Math.random() >= 1 / 3) return null;
-    var keys = COMMON.filter(function (k) { return k !== S.lastPopup; });
-    return keys[rand(keys.length)];
+  var REST_GAP = 1000; // soft rest between breaths, no hold
+  var BUDDIES = [
+    { id: 'mossbun', name: 'Mossbun', desc: 'a mossy bunny-loaf that rolls', color: '#8FAF8A', acc: '🌿',
+      lines: { start: 'Mossbun rolls up beside you.', solved: 'Mossbun wiggles. A tiny leaf pops out.', bridge: 'Mossbun breathes with you.', garden: 'Mossbun sniffs a teacup planter.', bench: 'Little flowers sprout on Mossbun.', door: 'Mossbun rolls right up to the door.' } },
+    { id: 'teaspoon', name: 'Teaspoon', desc: 'a polite snail with a teacup shell', color: '#E8B48F', acc: '☕',
+      lines: { start: 'Teaspoon bows. The rabbit waits a bit longer.', solved: 'Teaspoon bows, very slowly.', bridge: 'Teaspoon breathes with you. Slowly. Politely.', garden: 'Teaspoon bows to a hedge.', bench: 'Teaspoon bows to the bench.', door: 'Teaspoon bows to the door.' } },
+    { id: 'glim', name: 'Glim', desc: 'a glowworm in a lampshade hat', color: '#F2D48A', acc: '💡',
+      lines: { start: 'Glim glows softly beside you.', solved: 'Glim blinks happily.', bridge: 'Glim glows brighter as you breathe.', garden: 'Glim lights up a dewdrop.', bench: 'Glim glows warm and low.', door: 'Glim lights up the keyhole.' } },
+    { id: 'puddlewump', name: 'Puddlewump', desc: 'a walking puddle', color: '#9DB8D6', acc: '💧',
+      lines: { start: 'Puddlewump splishes up beside you.', solved: 'Puddlewump ripples.', bridge: 'Puddlewump reflects the sky, upside down.', garden: 'Puddlewump reflects a cake that isn\'t there.', bench: 'Puddlewump goes very still and calm.', door: 'Puddlewump reflects the door. Two doors now.' } },
+    { id: 'fernsworth', name: 'Sir Fernsworth', desc: 'a tall fern in a knitted sweater', color: '#6E9C9A', acc: '🧶',
+      lines: { start: 'Sir Fernsworth: "Why did the fern cross the path...?"', solved: 'Sir Fernsworth: "Splendid. Now, where was I?"', bridge: 'Sir Fernsworth breathes, fronds rising.', garden: 'Sir Fernsworth: "...it was looking for a little shade..."', bench: 'Sir Fernsworth sits. His sweater sighs.', door: 'Sir Fernsworth: "...and found it was just leafing. Ha."' } },
+    { id: 'pebbo', name: 'Pebbo', desc: 'an apricot pebble who thinks it\'s a bird', color: '#E8B48F', acc: '🪶',
+      lines: { start: 'Pebbo "flies" over. (Rolls.) "Tweet," it says, deeply.', solved: 'Pebbo: "Tweet." (Deep, proud.)', bridge: 'Pebbo breathes. Rocks don\'t, usually.', garden: 'Pebbo perches on a hedge. Rolls off. Perches again.', bench: 'Pebbo nests on the bench.', door: 'Pebbo: "Tweet." (Deep, hopeful.)' } }
+  ];
+  var STOPS = ['doorway', 'hallway', 'bridge', 'garden', 'bench', 'door'];
+  var LINES = { // rabbit lines by age; path humor only, never on doors
+    kids:   { doorway: 'This way. Not fast. Just this way.', hallway: 'Fix the path, please.', bridge: 'Stop and look. Water is slow.', garden: 'A puzzle. And maybe a secret.', bench: 'A bench. Sit, or walk on.', door: 'Last door. It likes riddles.' },
+    teens:  { doorway: 'This way. Not fast. Just this way.', hallway: 'Long hallway. Good. More hallway for us.', bridge: 'Stop for a breath. The water isn\'t going anywhere.', garden: 'I\'d say this one\'s easy, but you\'d make the face.', bench: 'Bench. Optional. Like most good things.', door: 'Last door. It likes riddles. And compliments. Try riddles first.' },
+    adults: { doorway: 'This way. Not fast. Just this way.', hallway: 'Nobody\'s grading this. I checked. Twice.', bridge: 'Stop and look a while.', garden: 'Stuck? I was stuck once. I took a nap. Then I wasn\'t.', bench: 'A bench, if you want it.', door: 'Last door. It likes riddles. And compliments. Try riddles first.' }
+  };
+  var TITLES = { doorway: 'The doorway', hallway: 'The hallway', bridge: 'The bridge', garden: 'The garden', bench: 'The bench', door: 'The riddle door' };
+
+  /* ---------- art bits ---------- */
+  function walkerSVG() {
+    return '<svg viewBox="0 0 40 70" aria-hidden="true"><path d="M20 4 Q34 6 34 26 L38 64 H2 L6 26 Q6 6 20 4Z" fill="#B9A8D9"/>' +
+      '<ellipse cx="20" cy="24" rx="9" ry="10" fill="#3E4A6B" opacity=".35"/><ellipse cx="13" cy="66" rx="6" ry="3.5" fill="#6B5A8E"/><ellipse cx="27" cy="66" rx="6" ry="3.5" fill="#6B5A8E"/></svg>';
   }
-  function maybePopup(where) {
-    if (!run || !run.q || run.q.popupShown || !run.q.popup) return;
-    var p = POPUPS[run.q.popup], slot = $('popslot');
-    if (p.where !== where || !slot) return;
-    run.q.popupShown = true; S.lastPopup = run.q.popup; save();
-    var el = document.createElement('button');
-    el.type = 'button'; el.className = 'popup'; el.setAttribute('aria-label', p.text + ' (tap to close)');
-    el.innerHTML = p.art + '<span>' + esc(p.text) + '</span>';
-    slot.innerHTML = ''; slot.appendChild(el);
-    var close = function () { el.classList.remove('show'); timers.push(setTimeout(function () { el.remove(); }, RM ? 0 : 1300)); };
-    el.addEventListener('click', close);
-    requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('show'); }); });
-    timers.push(setTimeout(close, 10000)); // real time, even in test mode
+  function buddySVG(b) { return friendSVG({ color: b.color }) + '<span class="acc" aria-hidden="true">' + b.acc + '</span>'; }
+  function stopProps(stop) {
+    switch (stop) {
+      case 'doorway': return '<path d="M0 450 V230 Q120 140 260 230 V450Z" fill="#8FAF8A"/><path d="M70 330 V280 A60 60 0 0 1 190 280 V330Z" fill="#6B5A8E"/><path d="M130 330 V230 A60 60 0 0 1 190 280 V330Z" fill="#F2D48A" opacity=".8"/><rect x="95" y="330" width="70" height="10" rx="5" fill="#E8B48F"/>';
+      case 'hallway': var s = ''; for (var i = 0; i < 4; i++) { var x = 120 + i * 140; s += '<path d="M' + x + ' 360 V230 A50 50 0 0 1 ' + (x + 100) + ' 230 V360" fill="none" stroke="#C9D8B6" stroke-width="18"/><path d="M' + (x + 8) + ' 260 q10 30 0 60" stroke="#6E9C9A" stroke-width="5" fill="none"/>' +
+        '<g class="lamp" style="--d:' + i * .6 + 's"><line x1="' + (x + 50) + '" y1="185" x2="' + (x + 50) + '" y2="205" stroke="#2B3350" stroke-width="2"/><rect x="' + (x + 42) + '" y="205" width="16" height="22" rx="4" fill="#F4EEDF" stroke="#6B5A8E" stroke-width="2"/><circle class="flame" cx="' + (x + 50) + '" cy="216" r="5" fill="#F2D48A"/></g>'; } return s;
+      case 'bridge': return '<rect x="0" y="330" width="720" height="120" fill="#6E9C9A"/><path class="ripple" d="M60 380 q30 -10 60 0 t60 0 M420 410 q30 -10 60 0 t60 0" stroke="#D9D3E6" stroke-width="3" fill="none" opacity=".6"/>' +
+        '<ellipse class="fish" cx="520" cy="395" rx="22" ry="7" fill="#2B3350" opacity=".18"/><path d="M180 330 Q360 280 560 330" stroke="#B9875F" stroke-width="22" fill="none"/><path d="M180 300 Q360 250 560 300" stroke="#6B5A8E" stroke-width="5" fill="none"/>' +
+        '<g stroke="#8FAF8A" stroke-width="5"><line x1="80" y1="340" x2="76" y2="290"/><line x1="96" y1="340" x2="100" y2="296"/><line x1="640" y1="340" x2="644" y2="292"/></g>';
+      case 'garden': return '<circle cx="110" cy="300" r="55" fill="#6E9C9A"/><circle cx="620" cy="300" r="60" fill="#6E9C9A"/><path d="M300 360 h40 l-6 30 h-28z" fill="#D9D3E6"/><circle cx="320" cy="350" r="14" fill="#B9A8D9"/>' +
+        '<line x1="470" y1="210" x2="470" y2="360" stroke="#B9875F" stroke-width="8"/><line x1="430" y1="250" x2="510" y2="250" stroke="#B9875F" stroke-width="7"/><circle cx="470" cy="200" r="20" fill="#F2D48A"/><path d="M450 222 h40 v10 h-40z" fill="#6B5A8E"/>';
+      case 'bench': return '<path d="M560 150 V360" stroke="#B9875F" stroke-width="20"/><circle cx="560" cy="140" r="80" fill="#8FAF8A"/><rect x="40" y="170" width="240" height="190" fill="#D9D3E6"/><rect x="80" y="200" width="160" height="110" rx="10" fill="#9DB8D6"/><path d="M80 290 q80 -40 160 0 v20 h-160z" fill="#C9D8B6"/>' +
+        '<rect x="360" y="320" width="170" height="14" rx="5" fill="#B9875F"/><rect x="360" y="296" width="170" height="10" rx="5" fill="#B9875F"/><rect x="372" y="334" width="10" height="28" fill="#6B5A8E"/><rect x="508" y="334" width="10" height="28" fill="#6B5A8E"/>';
+      default: return '<rect x="0" y="150" width="720" height="210" fill="#C9C1DA" opacity=".55"/>';
+    }
+  }
+  function sceneHTML(stop, extra) {
+    var i = STOPS.indexOf(stop), isDoor = stop === 'door';
+    var sky = isDoor ? 'hard' : (i >= 3 && run.diff !== 'hard' ? 'medium' : run.diff); // drift toward dusk along the path
+    var bg = backdrop(sky, isDoor ? { doorX: 290, doorY: 70, doorS: .7, extra: stopProps(stop) } : { door: false, extra: stopProps(stop) });
+    var b = run.buddy;
+    var rabbitPos = isDoor ? 74 : 86;
+    return '<div class="stage path-stage stop-' + stop + '" id="scene">' + bg +
+      (isDoor ? '<div class="mb-front">' + mossbert('tiny') + '</div>' : '') +
+      '<div class="walker" aria-hidden="true">' + walkerSVG() + '</div>' +
+      '<div class="buddy" id="buddy" aria-hidden="true">' + buddySVG(b) + '</div>' +
+      '<div class="rabbit guide" id="rabbit" style="left:' + rabbitPos + '%;top:46%">' + rabbitSVG() + '</div>' +
+      (extra || '') + '<div id="breathslot"></div>' +
+      '<button class="walk-arrow" id="walk" hidden aria-label="Walk on to the next stop">\u279C</button></div>' +
+      '<div class="pebbles" aria-label="Stop ' + (i + 1) + ' of 6">' + STOPS.map(function (s, k) { return '<i class="' + (k < i ? 'on' : k === i ? 'here' : '') + '"></i>'; }).join('') + '</div>';
   }
 
-  /* ---------- screens ---------- */
+  /* ---------- start screens ---------- */
   function title() {
-    restBtn.hidden = true; document.body.classList.remove('dim');
+    restBtn.hidden = true; document.body.classList.remove('dim'); run = null;
     h('<h1>Mossbert\'s Doors</h1><div class="stage short">' + backdrop('easy', { door: false }) + '<div class="stage-front">' + mossbert() + '</div></div>' +
-      say('Ah, a visitor! I\'ve been waiting... since Tuesday. Which Tuesday? Unclear.') +
-      '<div class="col"><button class="btn primary" data-go="start" data-focus>Begin</button>' +
-      ((S.friends.length || S.gems.length) ? '<button class="btn soft" data-go="coll">My collection</button>' : '') + '</div>' +
-      '<p class="small-note">A calm little preview. No timers. Rest any time.</p>');
-    on('[data-go=start]', chooseMode);
-    on('[data-go=coll]', function () { collection(false); });
+      say('Ah, a visitor! I keep the riddle door at the end of the path. A rabbit will show you the way.') +
+      '<h2 class="pick-h">Who is walking today?</h2><div class="stone-row" id="ages">' + Object.keys(AGES).map(function (a) {
+        return '<button class="btn stone' + (P.age === a ? ' sel' : '') + '" data-age="' + a + '"' + (a === 'kids' ? ' data-focus' : '') + '>' + AGES[a] + '</button>'; }).join('') + '</div>' +
+      '<p class="small-note">A calm little walk, a few minutes long. No timers. Rest any time.</p>');
+    on('[data-age]', function (e) { P.age = e.currentTarget.dataset.age; savePrefs(); chooseDiff(); });
   }
-  function chooseMode() {
-    h('<h2>How would you like the doors?</h2>' + mossbert('small') + say('Pick a way to play. You can change it next time.') +
-      '<div class="stone-row">' + ['Easy', 'Medium', 'Hard'].map(function (m) {
-        return '<button class="btn stone' + (S.mode === m.toLowerCase() ? ' sel' : '') + '" data-mode="' + m.toLowerCase() + '">' + m + '</button>'; }).join('') + '</div>');
-    on('[data-mode]', function (e) { S.mode = e.currentTarget.dataset.mode; save(); chooseLanterns(); });
+  function chooseDiff() {
+    h('<h2>How tricky should the path be?</h2>' + mossbert('small') + say(P.age === 'kids' ? 'Pick one. All of them are nice.' : 'Pick a way to play. You can change it next walk.') +
+      '<div class="stone-row">' + Object.keys(DIFFS).map(function (d, k) {
+        return '<button class="btn stone' + (P.diff === d ? ' sel' : '') + '" data-diff="' + d + '"' + (k === 0 ? ' data-focus' : '') + '>' + DIFFS[d] + '</button>'; }).join('') + '</div>' +
+      '<div class="col"><button class="btn soft" id="back">Back</button></div>');
+    on('[data-diff]', function (e) { P.diff = e.currentTarget.dataset.diff; savePrefs(); chooseBuddy(); });
+    on('#back', title);
   }
-  function chooseLanterns() {
-    h('<h2>How many lanterns tonight?</h2>' + say('One quest, two, or three? I recommend one. Then a nap. (Mossbert is joking. Mostly.)') +
-      '<div class="stone-row lanterns-pick">' + [1, 2, 3].map(function (n) {
-        return '<button class="btn stone" data-n="' + n + '" aria-label="' + n + ' lantern' + (n > 1 ? 's' : '') + '"><span class="lamps">' + LAMP.repeat(n) + '</span>' + n + '</button>'; }).join('') + '</div>');
-    on('[data-n]', function (e) { startSession(+e.currentTarget.dataset.n); });
+  function chooseBuddy() {
+    h('<h2>Pick a travel buddy</h2>' + say('Someone small to walk with you. Just for today.') +
+      '<div class="buddy-grid">' + BUDDIES.map(function (b, k) {
+        return '<button class="buddy-card" data-b="' + k + '"' + (k === 0 ? ' data-focus' : '') + '><span class="bpic">' + buddySVG(b) + '</span><b>' + esc(b.name) + '</b><span class="small-note">' + esc(b.desc) + '</span></button>'; }).join('') + '</div>' +
+      '<div class="col"><button class="btn soft" id="back">Back</button></div>');
+    on('[data-b]', function (e) { startWalk(BUDDIES[+e.currentTarget.dataset.b]); });
+    on('#back', chooseDiff);
   }
-  function startSession(n) { run = { total: n, done: 0, mode: S.mode || 'easy', newFriends: [], newGems: [], q: null }; restBtn.hidden = false; nextQuest(); }
-  function nextQuest() {
-    if (run.done >= run.total) return endSession();
-    var quest = QUESTS[S.nextIndex % QUESTS.length];
-    S.nextIndex = (S.nextIndex + 1) % QUESTS.length; save();
-    run.q = { quest: quest, popup: rollPopup(), popupShown: false };
-    settle();
+  function startWalk(buddy) {
+    run = { age: P.age || 'kids', diff: P.diff || 'easy', buddy: buddy, i: 0, solved: {}, gem: false, sat: false };
+    run.br = BREATHS[run.age];
+    restBtn.hidden = false;
+    stop(0);
   }
 
-  // Settle: automatic guided breathing. The circle breathes 3 times on its own; no clicking, no skip.
-  // Players follow along if they like. After the third breath the way on appears.
-  function settle() {
-    run.beat = settle;
-    var q = run.q.quest, breaths = 0;
-    h('<h2>' + esc(q.title) + '</h2><p class="small-note">Lantern ' + (run.done + 1) + ' of ' + run.total + '</p>' + say(q.settle) +
-      '<div class="breath-wrap"><div class="breath" id="breath">' + friendSVG(q.friend) + '</div>' +
-      '<p class="small-note" id="bnote" aria-live="polite">Take a breath with ' + esc(q.friend.name) + '. Three slow ones.</p>' +
-      '<div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>' +
-      '<button class="btn primary" id="bbtn" hidden>' + esc(q.friend.name) + ' feels calm. Let\'s look around</button></div>');
-    var b = $('bbtn'), c = $('breath'), dots = app.querySelectorAll('.dots i'), note = $('bnote');
-    b.addEventListener('click', explore);
-    function cycle() {
+  /* ---------- breathing (automatic, no click, no skip) ---------- */
+  function breathe(seq, label, done) {
+    var slot = $('breathslot'); if (!slot) return;
+    slot.innerHTML = '<div class="sky-breath"><div class="breath" id="breath"></div><p class="bnote" id="bnote" aria-live="polite">' + esc(label) + '</p></div>';
+    var c = $('breath'), note = $('bnote'), sc = $('scene'), k = 0, kids = run.age === 'kids';
+    function one() {
       if (!$('breath')) return;
-      c.classList.add('in'); note.textContent = 'Breathe in...';
+      var b = seq[k];
+      c.style.transitionDuration = b[0] + 's'; c.classList.add('in'); sc.classList.add('inhale');
+      note.textContent = 'Breathe in…';
       later(function () {
         if (!$('breath')) return;
-        c.classList.remove('in'); note.textContent = 'And breathe out...';
+        c.style.transitionDuration = b[1] + 's'; c.classList.remove('in'); sc.classList.remove('inhale');
+        note.textContent = kids ? 'And out…' : 'And slowly out…';
         later(function () {
           if (!$('breath')) return;
-          dots[breaths].classList.add('on'); breaths++;
-          if (breaths < 3) return cycle();
+          k++;
+          if (k < seq.length) { note.textContent = '…'; return later(one, REST_GAP); }
           note.textContent = 'Lovely.';
-          b.hidden = false; b.focus();
-        }, 4500);
-      }, 4000);
+          later(function () { if ($('breathslot')) $('breathslot').innerHTML = ''; done(); }, 900);
+        }, b[1] * 1000);
+      }, b[0] * 1000);
     }
-    later(cycle, 1200);
+    later(one, 1000);
   }
 
-  // Explore: tap to bloom; rabbit hops closer with each new bloom; one gem.
-  function explore() {
-    run.beat = explore;
-    var q = run.q.quest, ex = q.explore, gemAt = rand(ex.objects.length), found = false, bloomed = {}, rpos = 14;
-    var spots = [[6, 60], [28, 68], [52, 64], [74, 58]];
-    h('<h2>Look around</h2>' + say(ex.intro) +
-      '<div class="stage" id="scene">' + backdrop(run.mode, { doorX: 590, doorY: 160, doorS: .42 }) + rabbitHTML(rpos, 40) +
-      ex.objects.map(function (o, i) { return '<button class="obj" data-i="' + i + '" style="left:' + spots[i][0] + '%;top:' + spots[i][1] + '%" aria-label="Tap the ' + o + '">' + OBJ[o] + '</button>'; }).join('') +
-      '</div><p id="exnote" class="small-note" aria-live="polite">The rabbit is waiting up the path.</p>' +
-      '<button class="btn primary" id="go" data-focus>Walk on to the door</button>');
-    maybePopup('scene');
-    var idle;
-    function glance() { // wordless hint: rabbit turns toward the gem after ~20s idle. Nothing ends.
-      clearTimeout(idle);
-      idle = later(function () { if (found) return; var r = $('rabbit'); if (!r) return; r.classList.add('glance'); r.classList.toggle('flip', spots[gemAt][0] < parseFloat(r.style.left)); }, 20000);
-    }
-    glance();
-    on('.obj', function (e) {
-      var el = e.currentTarget, i = +el.dataset.i;
-      el.classList.toggle('bloomed');
-      var r = $('rabbit'); if (r) r.classList.remove('glance', 'flip');
-      if (!bloomed[i]) { bloomed[i] = 1; rpos = Math.min(rpos + 12, 66); hopRabbit(rpos); }
-      if (i === gemAt && !found) {
-        found = true;
-        var g = document.createElement('span'); g.className = 'gem-found'; g.textContent = '\u2726';
-        g.style.left = el.style.left; g.style.top = (parseFloat(el.style.top) - 12) + '%';
-        $('scene').appendChild(g);
-        $('exnote').textContent = 'You found a gem: ' + ex.gem.name + '! The rabbit nods. He pretends he knew it was there.';
-        if (S.gems.indexOf(ex.gem.id) < 0) { S.gems.push(ex.gem.id); run.newGems.push(ex.gem.name); save(); }
-      }
-      glance();
+  /* ---------- the path ---------- */
+  function lineBox() { return '<div id="lines">' + say(LINES[run.age][STOPS[run.i]], 'The rabbit') + '</div>'; }
+  function buddyLine(key) { var el = $('bline'); if (el) el.textContent = run.buddy.lines[key]; }
+  function stop(i) {
+    run.i = i; var s = STOPS[i];
+    run.beat = function () { stop(run.i); };
+    var extra = '';
+    if (run.age === 'adults' && run.diff === 'easy' && i <= 3) extra += '<div class="letter-sign" style="left:' + [38, 30, 44, 34][i] + '%">' + 'NAPS'[i] + '</div>';
+    if (s === 'garden' && !run.gem) extra += '<button class="gem-spot" id="gem" aria-label="Something on the scarecrow">🧦</button>';
+    h('<h2>' + TITLES[s] + '</h2>' + sceneHTML(s, extra) + lineBox() +
+      '<p class="small-note buddy-line" id="bline" aria-live="polite"></p><div id="panel" class="panel"></div>');
+    if (s === 'doorway') buddyLine('start'); else if (s === 'hallway') $('bline').textContent = run.buddy.name + ' follows close behind.'; else buddyLine(s);
+    on('#gem', function (e) {
+      run.gem = true; e.currentTarget.classList.add('found');
+      $('bline').textContent = 'A hidden gem: a sock on the scarecrow. Nobody knows whose. ✦';
+      e.currentTarget.setAttribute('aria-label', 'Found: a sock on the scarecrow');
     });
-    $('go').addEventListener('click', solve);
+    on('#walk', function () { walkOn(); });
+    var panel = $('panel');
+    if (s === 'doorway') breathe(run.br.open, run.age === 'kids' ? 'Three slow breaths with ' + run.buddy.name + '.' : 'Three breaths to start. Short, then a little longer.', ready);
+    else if (s === 'bridge') breathe(run.br.bridge, 'One slow breath. ' + run.buddy.name + ' breathes too.', ready);
+    else if (s === 'hallway' || s === 'garden') {
+      if (run.solved[s]) { light(); ready(); }
+      else PUZZLES[run.age][s](panel, run.diff, function () { run.solved[s] = true; light(); buddyLine('solved'); later(ready, 700); });
+    }
+    else if (s === 'bench') benchStop(panel);
+    else if (s === 'door') breathe(run.br.door, 'Two breaths before the door.', function () { doorRiddle(panel); });
+  }
+  function light() { var sc = $('scene'); if (sc) sc.classList.add('lit'); }
+  function ready() {
+    var w = $('walk'); if (!w) return;
+    w.hidden = false; w.focus({ preventScroll: true });
+    var r = $('rabbit'); if (r) r.classList.add('hop');
+    idleWatch();
+  }
+  function idleWatch() { // after ~10s idle the rabbit looks back (Kids: gentle foot tap). Nothing ends.
+    var r = $('rabbit'); if (!r) return;
+    later(function () { if ($('rabbit')) $('rabbit').classList.add('lookback', run.age === 'kids' ? 'tap' : 'x'); }, 10000);
+  }
+  function walkOn() {
+    var sc = $('scene'); if (!sc) return;
+    var w = $('walk'); if (w) w.disabled = true;
+    sc.classList.add('leaving');
+    later(function () { stop(run.i + 1); }, RM ? 300 : 1400);
+  }
+  function benchStop(panel) {
+    panel.innerHTML = '<div class="stone-row"><button class="btn primary" id="sit" data-focus>Sit a while</button><button class="btn soft" id="past">Walk on past</button></div>';
+    $('sit').focus({ preventScroll: true });
+    on('#past', function () { panel.innerHTML = ''; walkOn(); });
+    on('#sit', function () {
+      panel.innerHTML = ''; run.sat = true; document.body.classList.add('rest-dim');
+      breathe(run.br.bench, 'Sit. Two slow breaths. The light goes soft.', function () { document.body.classList.remove('rest-dim'); ready(); });
+    });
   }
 
-  function solve() { run.beat = solve; var d = run.q.quest.door; ({ riddle: riddleDoor, lanterns: lanternDoor, math: mathDoor })[d.type](d); maybePopup('door'); }
-  var NOTYET = ['Ooh, close-ish. The door is thinking. Want to try again?', 'The door giggled but stayed shut. It\'s ticklish.',
-    'Hm. I tried that once too. In 1802.', 'The door says "not quite", very politely.', 'My shell says try another. My shell is usually right.'];
-  function notYet(el, extra) { el.innerHTML = say(NOTYET[rand(NOTYET.length)]) + (extra || ''); maybePopup('notyet'); }
-
-  function doorStage(plaque, intro) {
-    return '<h2>The door</h2>' + say(intro || 'Let\'s take a slow breath first. In... and out. Lovely. Now, the door.') +
-      '<div class="stage door-stage" id="dstage">' + backdrop(run.mode, { doorX: 290, doorY: 70, doorS: .7 }) +
-      '<div class="rabbit" style="left:70%;top:42%">' + rabbitSVG() + '</div>' +
-      '<div class="mb-front">' + mossbert('tiny') + '</div>' + '</div>' +
-      (plaque ? '<div class="plaque" id="plaque">' + esc(plaque) + '</div>' : '');
-  }
-  // Easy stuck-proof: after 2 tries (misses or swaps) on any door type, offer to just open.
-  function easyTry(st) {
+  /* ---------- gentle stuck helpers ---------- */
+  var NOTYET = ['Not quite. That\'s fine. Try another.', 'Hm. Close-ish. The path is patient.', 'Not that one. The rabbit shrugs kindly.', 'Almost. Take your time.'];
+  function notYet(box, hint, diff, st, alwaysHint) {
     st.tries++;
-    if (run.mode === 'easy' && st.tries >= 2 && !$('justopen')) {
-      var slot = $('easyslot'); if (!slot) return;
-      slot.innerHTML = '<button class="btn soft" id="justopen">Want the door to just open?</button>';
-      $('justopen').addEventListener('click', function () { openDoor(false, 'Mossbert leans on the door. It opens. "Sometimes that\'s all it takes."'); });
-    }
+    var extra = '';
+    if ((diff === 'medium' || (alwaysHint && diff === 'easy')) && hint) extra = '<div class="hint">' + esc(hint) + '</div>';
+    box.innerHTML = '<p class="react">' + NOTYET[rand(NOTYET.length)] + '</p>' + extra;
+    if (diff === 'easy' && st.tries >= 2 && st.showMe) st.showMe();
   }
+  function hintBtn(diff, hint) { return diff === 'hard' ? '<button class="btn soft small" id="hintbtn">Hint, please</button><div id="hintbox"></div>' : ''; }
+  function wireHint(hint) { on('#hintbtn', function () { $('hintbox').innerHTML = '<div class="hint">' + esc(hint) + '</div>'; }); }
 
-  function riddleDoor(d) {
-    var mode = run.mode, pool = d[mode].slice(), idx = rand(pool.length), st = { tries: 0 };
-    function draw(swapped) {
-      var r = pool[idx], html = doorStage(r.q) + '<div id="react">' + (swapped ? say('Of course. Here\'s a different one. That one was grumpy anyway.') : '') + '</div>';
-      if (mode === 'hard') {
-        html += '<form id="hf" class="col" autocomplete="off"><label class="sr" for="ans">Your answer</label>' +
-          '<input id="ans" class="answer" placeholder="Type your answer" data-focus>' +
-          '<div class="stone-row"><button class="btn primary" type="submit">Try it</button><button class="btn soft" type="button" id="hint">Hint</button></div></form><div id="hintbox"></div>';
-      } else {
-        html += '<div class="stone-row">' + r.choices.map(function (c, i) { return '<button class="btn stone" data-c="' + i + '"' + (i === 0 ? ' data-focus' : '') + '>' + esc(c) + '</button>'; }).join('') + '</div>' +
-          '<div class="col"><button class="btn soft" id="swap">I don\'t know this one. Can I have another?</button><div id="easyslot"></div></div>';
-      }
-      h(html);
-      if (mode !== 'hard') { var keep = st.tries; st.tries = Math.max(0, keep - 1); if (keep) easyTry(st); }
-      var react = $('react');
-      if (mode === 'hard') {
-        $('hf').addEventListener('submit', function (e) {
-          e.preventDefault();
-          var v = $('ans').value.trim().toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ');
-          if (!v) return;
-          if (r.accept.some(function (a) { return a === v || (a.length > 2 && v.indexOf(a) >= 0); })) openDoor(true); else notYet(react);
-        });
-        $('hint').addEventListener('click', function () { $('hintbox').innerHTML = '<div class="hint">' + esc(r.hint) + '</div>'; });
-      } else {
-        on('[data-c]', function (e) {
-          if (+e.currentTarget.dataset.c === r.answer) return openDoor();
-          notYet(react, '<div class="hint">' + esc(r.hint) + '</div>'); easyTry(st);
-        });
-        on('#swap', function () { st.tries++; idx = (idx + 1) % pool.length; draw(true); });
-      }
-    }
-    draw(false);
-  }
-
-  function lanternDoor(d) {
-    var cfg = d[run.mode], n = cfg.count, order = [], next = 1, st = { tries: 0 }, easy = run.mode === 'easy';
-    for (var i = 1; i <= n; i++) order.push(i);
-    for (i = n - 1; i > 0; i--) { var j = rand(i + 1), t = order[i]; order[i] = order[j]; order[j] = t; }
-    h(doorStage(null, d.intro) + '<div class="lantern-row">' + order.map(function (k) {
-      return '<button class="lantern" data-k="' + k + '" aria-label="Lantern with ' + k + ' star' + (k > 1 ? 's' : '') + '"><span class="stars" aria-hidden="true">' + '\u2726'.repeat(k) + '</span>' + LAMP + (cfg.showNumbers ? '<span>' + k + '</span>' : '') + '</button>'; }).join('') +
-      '</div><div id="react"></div><div class="col"><button class="btn soft" id="hint">Hint</button><div id="easyslot"></div></div>');
+  /* ---------- Kids puzzles ---------- */
+  function kidsFixPath(panel, diff, done) {
+    var all = ['🍃', '🌸', '🍄', '⭐'], n = { easy: 2, medium: 3, hard: 4 }[diff], shapes = all.slice(0, n), st = { tries: 0 }, sel = null, placed = 0, snail = true;
+    var pieces = shuffle(shapes.slice()), turned = diff === 'hard' ? pieces[rand(n)] : null;
+    panel.innerHTML = '<p class="task">Tap a stone, then tap its spot on the path.</p>' +
+      '<div class="fix-row"><span class="end">🧍</span>' + shapes.map(function (s) { return '<button class="gap" data-s="' + s + '" aria-label="Empty spot shaped like ' + s + '"><span>' + s + '</span></button>'; }).join('') + '<span class="end">🐇</span></div>' +
+      '<div class="tray">' + pieces.map(function (s, k) { return '<button class="piece' + (s === turned ? ' turned' : '') + '" data-s="' + s + '"' + (k === 0 ? ' data-focus' : '') + ' aria-label="Stone ' + s + (s === turned ? ', turned sideways, tap to turn it' : '') + '"><span>' + s + '</span>' + (k === 0 ? '<i class="snail">🐌</i>' : '') + '</button>'; }).join('') + '</div><div id="react"></div>' + hintBtn(diff, 'Match the picture on the stone to the picture in the spot.');
+    wireHint('Match the picture on the stone to the picture in the spot.');
     var react = $('react');
-    on('.lantern', function (e) {
-      var el = e.currentTarget, k = +el.dataset.k;
-      if (el.classList.contains('lit')) return;
-      if (k === next) { el.classList.add('lit'); next++; if (next > n) openDoor(run.mode === 'hard'); return; }
-      if (easy) { // keep lit lanterns; gently shake only the one tapped
-        el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
-        setLine(react, 'That lantern yawned. It isn\'t its turn yet. Look for ' + next + ' star' + (next > 1 ? 's' : '') + '.');
-        maybePopup('notyet');
-      } else {
-        app.querySelectorAll('.lantern').forEach(function (l) { l.classList.remove('lit'); }); next = 1;
-        setLine(react, 'The lanterns blinked sleepily and dimmed. They like to start from one star.'); maybePopup('notyet');
-      }
-      easyTry(st);
+    st.showMe = function () { var s = sel ? sel.dataset.s : null; app.querySelectorAll('.gap').forEach(function (g) { if (!g.classList.contains('filled') && (!s || g.dataset.s === s)) g.classList.add('glow'); }); };
+    on('.piece', function (e) {
+      var p = e.currentTarget; if (p.classList.contains('used')) return;
+      if (p.classList.contains('turned')) { p.classList.remove('turned'); p.setAttribute('aria-label', 'Stone ' + p.dataset.s); react.innerHTML = '<p class="react">You turned it. Now it fits.</p>'; return; }
+      app.querySelectorAll('.piece').forEach(function (x) { x.classList.remove('sel'); }); p.classList.add('sel'); sel = p;
+      var sn = p.querySelector('.snail'); if (sn && snail) { snail = false; sn.classList.add('off'); react.innerHTML = '<p class="react">A snail slides off and tips a tiny hat. 🎩</p>'; }
     });
-    on('#hint', function () { react.innerHTML = '<div class="hint">' + esc(d.hint) + '</div>'; });
+    on('.gap', function (e) {
+      var g = e.currentTarget; if (g.classList.contains('filled') || !sel) return;
+      if (g.dataset.s === sel.dataset.s) {
+        g.classList.add('filled'); g.classList.remove('glow'); sel.classList.add('used'); sel.classList.remove('sel'); sel = null; placed++;
+        react.innerHTML = '<p class="react">It fits.</p>';
+        if (placed === n) { react.innerHTML = '<p class="react">The path is fixed. The rabbit nods.</p>'; done(); }
+      } else { sel.classList.add('slide'); var s2 = sel; later(function () { s2.classList.remove('slide'); }, 800); notYet(react, 'Look for the same picture.', diff, st); }
+    });
   }
-
-  function mathDoor(d) {
-    var cfg = d[run.mode], ans = cfg.need - cfg.have, st = { tries: 0 };
-    var stones = ''; for (var i = 0; i < cfg.need; i++) stones += '<span class="' + (i < cfg.have ? '' : 'empty') + '"></span>';
-    var html = doorStage('The bridge needs ' + cfg.need + ' stones. We have ' + cfg.have + '. How many more do we need?', 'The door is across a little bridge. Let\'s count together.') +
-      '<div class="bridge" role="img" aria-label="' + cfg.have + ' stones placed, ' + ans + ' empty spaces">' + stones + '</div><div id="react"></div>';
-    if (cfg.choices) {
-      var ch = cfg.choices.slice(); if (ch.indexOf(ans) < 0) ch.push(ans); ch.sort(function (a, b) { return a - b; });
-      html += '<div class="stone-row">' + ch.map(function (c, i) { return '<button class="btn stone" data-c="' + c + '"' + (i === 0 ? ' data-focus' : '') + '>' + c + '</button>'; }).join('') + '</div>';
-    } else {
-      html += '<form id="mf" class="col"><label class="sr" for="ans">How many more stones</label><input id="ans" class="answer" inputmode="numeric" placeholder="Type a number" data-focus><button class="btn primary" type="submit">Place the stones</button></form>';
-    }
-    html += '<div class="col"><button class="btn soft" id="hint">Hint</button><div id="easyslot"></div></div>';
-    h(html);
+  function kidsShadow(panel, diff, done) {
+    var pool = ['🐘', '🐢', '🦒', '🦆', '🐌', '🦉'], n = { easy: 2, medium: 3, hard: 4 }[diff], st = { tries: 0 };
+    var opts = shuffle(pool.slice()).slice(0, n), target = opts[rand(n)];
+    panel.innerHTML = '<p class="task">Who made this shadow?</p><div class="wall"><span class="shadow">' + target + '</span></div>' +
+      '<div class="stone-row">' + opts.map(function (o, k) { return '<button class="btn stone pic" data-o="' + o + '"' + (k === 0 ? ' data-focus' : '') + '>' + o + '</button>'; }).join('') + '</div><div id="react"></div>' + hintBtn(diff, 'Look at the shape of the head.');
+    wireHint('Look at the shape of the head.');
     var react = $('react');
-    function check(v) { if (v === ans) openDoor(run.mode === 'hard'); else { notYet(react); easyTry(st); } }
-    on('[data-c]', function (e) { check(+e.currentTarget.dataset.c); });
-    var f = $('mf');
-    if (f) f.addEventListener('submit', function (e) { e.preventDefault(); var w = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 }; var raw = $('ans').value.trim().toLowerCase(); if (!raw) return; check(w[raw] || parseInt(raw, 10)); });
-    on('#hint', function () { react.innerHTML = '<div class="hint">' + esc(d.hint) + '</div>'; });
+    st.showMe = function () { var b = app.querySelector('[data-o="' + target + '"]'); if (b) b.classList.add('glow'); };
+    on('[data-o]', function (e) {
+      if (e.currentTarget.dataset.o === target) { app.querySelector('.shadow').classList.add('shown'); react.innerHTML = '<p class="react">Yes! Then ' + esc(run.buddy.name) + ' strikes a dramatic pose. Its shadow looks like a mountain.</p>'; done(); }
+      else notYet(react, 'Look at the shape of the head.', diff, st);
+    });
   }
 
-  function openDoor(hardWin, line) {
-    var st = $('dstage'); if (st) st.classList.add('open');
-    app.querySelectorAll('.stone-row .btn, .col .btn, .lantern, input, #justopen').forEach(function (b) { b.disabled = true; });
-    var win = line || (hardWin && run.mode === 'hard' ? 'Mossbert lifts one foot very slowly. "I\'ve been practicing." The door is open.' : 'The door is very impressed. Doors rarely show it.');
-    var r = $('react');
-    r.innerHTML = say('Mossbert tries a key. Doesn\'t fit. They never fit. Good thing you\'re here.') + say(win) +
-      '<button class="btn primary" id="through">Step through</button>';
-    if (hardWin && run.mode === 'hard') app.querySelector('.mossbert').classList.add('dance');
-    $('through').focus();
-    $('through').addEventListener('click', rest);
+  /* ---------- Teens puzzles ---------- */
+  function plank(p) { return '<span class="plank ' + p.shape + '" style="background:' + p.color + '">' + (p.dots ? '•'.repeat(p.dots) : '') + '</span>'; }
+  function teensPlanks(panel, diff, done) {
+    var C = ['#C9D8B6', '#E8B48F', '#B9A8D9'], seq, opts, ans, hint, st = { tries: 0 };
+    if (diff === 'easy') { seq = [0, 1, 0, 1, 0].map(function (k) { return { shape: 'round', color: C[k] }; }); ans = { shape: 'round', color: C[1] }; opts = [ans, { shape: 'round', color: C[0] }]; hint = 'Two colours take turns.'; }
+    else if (diff === 'medium') { seq = [1, 2, 3, 4].map(function (k) { return { shape: 'round', color: C[0], dots: k }; }); ans = { shape: 'round', color: C[0], dots: 5 }; opts = [ans, { shape: 'round', color: C[0], dots: 4 }, { shape: 'round', color: C[0], dots: 6 }]; hint = 'Each plank has one more dot.'; }
+    else { seq = [0, 1, 2, 3, 4].map(function (k) { return { shape: k % 2 ? 'square' : 'round', color: C[k % 3] }; }); ans = { shape: 'square', color: C[2] }; opts = [ans, { shape: 'square', color: C[0] }, { shape: 'round', color: C[2] }]; hint = 'Shapes take turns every plank. Colours go round in threes.'; }
+    opts = shuffle(opts.map(function (o, k) { return { p: o, right: k === 0 }; }));
+    panel.innerHTML = '<p class="task">Which plank comes next?</p><div class="plank-row">' + seq.map(plank).join('') + '<span class="plank q">?</span><span class="plank cat" id="cat" title="a sleeping cat">🐈</span></div>' +
+      '<div class="stone-row">' + opts.map(function (o, k) { return '<button class="btn stone pic" data-k="' + k + '"' + (k === 0 ? ' data-focus' : '') + ' aria-label="Plank option ' + (k + 1) + '">' + plank(o.p) + '</button>'; }).join('') + '</div><div id="react"></div>' + hintBtn(diff, hint);
+    wireHint(hint);
+    var react = $('react');
+    st.showMe = function () { opts.forEach(function (o, k) { if (o.right) app.querySelector('[data-k="' + k + '"]').classList.add('glow'); }); };
+    on('[data-k]', function (e) {
+      var o = opts[+e.currentTarget.dataset.k];
+      if (o.right) { var q = app.querySelector('.plank.q'); q.outerHTML = plank(o.p); $('cat').classList.add('scoot'); react.innerHTML = '<p class="react">The bridge fills in. One plank was a sleeping cat. It scoots over by itself.</p>'; done(); }
+      else notYet(react, hint, diff, st);
+    });
+  }
+  function teensSigns(panel, diff, done) {
+    var cfg = {
+      easy:   { rule: 'This sign tells the truth.', signs: [['Sign', 'The garden is NOT to the left.']], ways: ['left', 'right'], ans: 'right', hint: 'Not left… so?' },
+      medium: { rule: 'One sign always tells the truth. One always lies.', signs: [['A', 'The way is left.'], ['B', 'Sign A is telling the truth.']], ways: ['left', 'right'], ans: 'right', hint: 'If B were honest, A would be honest too. Can both be honest?' },
+      hard:   { rule: 'Exactly one of these signs tells the truth.', signs: [['A', 'The way is left.'], ['B', 'The way is not the middle.'], ['C', 'The way is not left.']], ways: ['left', 'middle', 'right'], ans: 'middle', hint: 'Try each way. Count how many signs would be true.' }
+    }[diff], st = { tries: 0 };
+    var arrows = { left: '⬅ Left', middle: '⬆ Middle', right: 'Right ➡' };
+    panel.innerHTML = '<p class="task">' + esc(cfg.rule) + ' Which way?</p><div class="signs">' + cfg.signs.map(function (s) { return '<div class="sign"><b>' + s[0] + '</b>' + esc(s[1]) + '</div>'; }).join('') + '</div>' +
+      '<p class="small-note">The rabbit asks a sign for directions. The sign shrugs.</p>' +
+      '<div class="stone-row">' + cfg.ways.map(function (w, k) { return '<button class="btn stone" data-w="' + w + '"' + (k === 0 ? ' data-focus' : '') + '>' + arrows[w] + '</button>'; }).join('') + '</div><div id="react"></div>' + hintBtn(diff, cfg.hint);
+    wireHint(cfg.hint);
+    var react = $('react');
+    st.showMe = function () { app.querySelector('[data-w="' + cfg.ans + '"]').classList.add('glow'); };
+    on('[data-w]', function (e) { if (e.currentTarget.dataset.w === cfg.ans) { react.innerHTML = '<p class="react">That\'s the way. The honest sign looks pleased.</p>'; done(); } else notYet(react, cfg.hint, diff, st); });
   }
 
-  // Rest: slow dim (~15s), friend breathes once with the circle, then buttons fade in.
-  function rest() {
-    var q = run.q.quest, f = q.friend, isNew = S.friends.indexOf(f.id) < 0;
-    if (isNew) { S.friends.push(f.id); run.newFriends.push(f.name); }
-    S.questsDone++; run.done++; save();
-    var last = run.done >= run.total;
-    run.beat = function () { restView(f, isNew, last); };
-    restView(f, isNew, last);
+  /* ---------- Adults puzzles ---------- */
+  function adultsStars(panel, diff, done) {
+    var G = {
+      easy:   { nodes: [[10, 70], [28, 30], [50, 55], [72, 25], [90, 60]], edges: [[0, 1], [1, 2], [2, 3], [3, 4]], nums: true, hint: 'Follow the numbers, 1 to 5.' },
+      medium: { nodes: [[8, 62], [24, 28], [44, 50], [60, 18], [78, 44], [92, 78]], edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]], hint: 'Start at an end, where only one line touches.' },
+      hard:   { nodes: [[25, 85], [75, 85], [75, 45], [25, 45], [50, 10]], edges: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2], [1, 3], [3, 4], [4, 2]], hint: 'Start at a bottom corner. Those have an odd number of lines.' }
+    }[diff], st = { tries: 0 }, cur = null, used = {}, count = 0;
+    function key(a, b) { return Math.min(a, b) + '-' + Math.max(a, b); }
+    function edgeOf(a, b) { return G.edges.some(function (e) { return key(e[0], e[1]) === key(a, b); }); }
+    function draw() {
+      var svg = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" class="stars-svg" aria-hidden="true">' +
+        G.edges.map(function (e) { var A = G.nodes[e[0]], B = G.nodes[e[1]]; return '<line x1="' + A[0] + '" y1="' + A[1] + '" x2="' + B[0] + '" y2="' + B[1] + '" class="' + (used[key(e[0], e[1])] ? 'drawn' : 'faint') + '"/>'; }).join('') + '</svg>';
+      $('sky').innerHTML = svg + G.nodes.map(function (n, k) { return '<button class="star' + (k === cur ? ' cur' : '') + '" data-n="' + k + '" style="left:' + (8 + .84 * n[0]) + '%;top:' + (8 + .84 * n[1]) + '%" aria-label="Star ' + (k + 1) + '">' + (G.nums ? '<span>' + (k + 1) + '</span>' : '') + '</button>'; }).join('');
+      on('.star', tap);
+    }
+    function reset(msg) { cur = null; used = {}; count = 0; draw(); if (msg) $('react').innerHTML = '<p class="react">' + msg + '</p>'; }
+    function tap(e) {
+      var n = +e.currentTarget.dataset.n, react = $('react');
+      if (cur === null) { if (G.nums && n !== 0) return notYet(react, G.hint, diff, st); cur = n; draw(); return; }
+      if (n === cur) return;
+      if (edgeOf(cur, n) && !used[key(cur, n)]) {
+        used[key(cur, n)] = 1; count++; cur = n; draw();
+        if (count === G.edges.length) { $('react').innerHTML = '<p class="react">The stars join up. The constellation is called "Man Carrying Slightly Too Many Groceries."</p>'; app.querySelectorAll('.star').forEach(function (s) { s.disabled = true; }); return done(); }
+        var left = G.edges.some(function (e) { return !used[key(e[0], e[1])] && (e[0] === cur || e[1] === cur); });
+        if (!left) { st.tries++; later(function () { reset('That line ran out of sky. No harm done. Try another start.'); if (diff === 'medium') $('react').innerHTML += '<div class="hint">' + esc(G.hint) + '</div>'; if (diff === 'easy' && st.tries >= 2) st.showMe(); }, 1200); }
+      } else notYet(react, 'Each line gets drawn once, from star to joined star.', diff, st);
+    }
+    panel.innerHTML = '<p class="task">' + (diff === 'hard' ? 'Draw the whole shape in one line. No line twice.' : diff === 'medium' ? 'Join the stars along the faint outline.' : 'Join the stars in number order.') + '</p>' +
+      '<div class="sky-box" id="sky"></div><div id="react"></div><div class="stone-row"><button class="btn soft small" id="again">Start the line again</button></div>' + hintBtn(diff, G.hint);
+    wireHint(G.hint);
+    st.showMe = function () { var nx = cur === null ? 0 : null; if (nx === null) G.edges.forEach(function (e) { if (!used[key(e[0], e[1])] && (e[0] === cur || e[1] === cur)) nx = e[0] === cur ? e[1] : e[0]; }); var b = app.querySelector('.star[data-n="' + nx + '"]'); if (b) b.classList.add('glow'); };
+    draw();
+    on('#again', function () { reset(''); });
   }
-  function restView(f, isNew, last) {
-    h('<h2>A quiet moment</h2><div class="stage">' + backdrop(run.mode, { door: false }) + rabbitHTML(78, 36) +
-      '<div class="rest-friend"><div class="breath" id="rbreath">' + friendSVG(f) + '</div></div></div>' +
-      say(f.name + ', ' + f.desc + ', ' + (isNew ? 'joins your collection.' : 'is happy to see you again.') + ' Breathe once together.') +
-      '<p class="small-note">The rabbit checks his watch. It\'s a cookie. He eats it.</p>' +
-      '<div class="col fade-wait" id="restbtns"><button class="btn primary" id="nx">' + (last ? 'All done for today' : 'Next quest') + '</button>' +
-      (last ? '' : '<button class="btn soft" id="rh">Rest here</button>') + '</div>');
-    requestAnimationFrame(function () { requestAnimationFrame(function () { document.body.classList.add('rest-dim'); }); });
-    later(function () { var b = $('rbreath'); if (b) b.classList.add('in'); }, 600);
-    later(function () { var b = $('rbreath'); if (b) b.classList.remove('in'); }, 4600);
-    later(function () { var c = $('restbtns'); if (c) c.classList.add('shown'); }, 8600);
-    maybePopup('rest');
-    $('nx').addEventListener('click', nextQuest);
-    on('#rh', endSession);
+  function adultsWordLock(panel, diff, done) {
+    var clue = { easy: 'The little letters on the signs you passed, in order.', medium: 'Unscramble S·P·A·N into something rabbits take in the afternoon.', hard: 'Cryptic: Short sleeps, a bridge\'s span turned back (4).' }[diff];
+    var hint = { easy: 'Doorway, hallway, bridge, garden. N, A, P…', medium: 'Rabbits love a little afternoon one. Plural.', hard: 'Read SPAN backwards.' }[diff], st = { tries: 0 };
+    panel.innerHTML = '<p class="task">A 4-letter word lock on the garden gate.</p><div class="sign clue">' + esc(clue) + '</div>' +
+      '<form id="wl" class="col" autocomplete="off"><label class="sr" for="word">Four letters</label><input id="word" class="answer dial" maxlength="4" placeholder="_ _ _ _" data-focus autocapitalize="characters">' +
+      '<button class="btn primary" type="submit">Turn the dials</button></form><div id="react"></div>' + hintBtn(diff, hint);
+    wireHint(hint);
+    var react = $('react');
+    st.showMe = function () { react.innerHTML += '<div class="hint">It spells N A P S.</div>'; };
+    $('wl').addEventListener('submit', function (e) {
+      e.preventDefault(); var v = $('word').value.trim().toLowerCase(); if (!v) return;
+      if (v === 'naps') { $('word').disabled = true; react.innerHTML = '<p class="react">Click. The gate swings open. The rabbit: "Everything around here ends in naps."</p>'; done(); }
+      else notYet(react, hint, diff, st);
+    });
   }
+  var PUZZLES = { kids: { hallway: kidsFixPath, garden: kidsShadow }, teens: { hallway: teensPlanks, garden: teensSigns }, adults: { hallway: adultsStars, garden: adultsWordLock } };
 
-  function endSession() {
+  /* ---------- final door: Mossbert keeps it. Riddles come from quests.json doorRiddles (Bryan's, placeholders for now) ---------- */
+  function doorRiddle(panel) {
+    var r = DATA.doorRiddles[run.age][run.diff], st = { tries: 0 }, diff = run.diff;
+    $('lines').innerHTML = say(r.q);
+    var html = (r.placeholder ? '<p class="placeholder-tag">' + esc(r.placeholder) + '</p>' : '') + '<div id="react"></div>';
+    if (r.choices) html += '<div class="stone-row">' + r.choices.map(function (c, k) { return '<button class="btn stone" data-c="' + k + '"' + (k === 0 ? ' data-focus' : '') + '>' + esc(c) + '</button>'; }).join('') + '</div><div id="easyslot"></div>';
+    else html += '<form id="hf" class="col" autocomplete="off"><label class="sr" for="ans">Your answer</label><input id="ans" class="answer" placeholder="Type your answer"><div class="stone-row"><button class="btn primary" type="submit">Try it</button><button class="btn soft" type="button" id="hintbtn">Hint, please</button></div></form><div id="hintbox"></div>';
+    panel.innerHTML = html;
+    var react = $('react'), first = panel.querySelector('[data-c],#ans'); if (first) first.focus({ preventScroll: true });
+    st.showMe = function () { var s = $('easyslot'); if (s && !$('justopen')) { s.innerHTML = '<button class="btn soft" id="justopen">Want the door to just open?</button>'; on('#justopen', function () { openDoor('Mossbert leans on the door. It opens. "Sometimes that\'s all it takes."'); }); } };
+    on('[data-c]', function (e) { if (+e.currentTarget.dataset.c === r.answer) openDoor(); else notYet(react, r.hint, diff, st, true); });
+    wireHint(r.hint);
+    var f = $('hf');
+    if (f) f.addEventListener('submit', function (e) {
+      e.preventDefault(); var v = $('ans').value.trim().toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' '); if (!v) return;
+      if (r.accept.some(function (a) { return a === v || (a.length > 2 && v.indexOf(a) >= 0); })) openDoor(); else notYet(react, r.hint, diff, st);
+    });
+  }
+  function openDoor(line) {
+    var sc = $('scene'); sc.classList.add('open');
+    app.querySelectorAll('#panel button, #panel input').forEach(function (b) { b.disabled = true; });
+    var rb = $('rabbit'); if (rb) rb.classList.add('bow');
+    buddyLine('door');
+    $('panel').innerHTML = say(line || 'The door is very impressed. Doors rarely show it.') + say('The rabbit bows.', 'The rabbit') +
+      '<div class="col"><button class="btn primary" id="through">Step through</button></div>';
+    $('through').focus({ preventScroll: true });
+    on('#through', finish);
+  }
+  function finish() {
     restBtn.hidden = true;
-    collection(true);
-    document.body.classList.add('dim');
-  }
-  function collection(end) {
-    var byId = {}; QUESTS.forEach(function (q) { byId[q.friend.id] = q.friend; byId[q.explore.gem.id] = q.explore.gem; });
-    var cards = S.friends.map(function (id) { var f = byId[id]; return f ? '<div class="card"><div style="width:70px;margin:auto">' + friendSVG(f) + '</div><b>' + esc(f.name) + '</b><br><span class="small-note">' + esc(f.desc) + '</span></div>' : ''; }).join('') +
-      S.gems.map(function (id) { var g = byId[id]; return g ? '<div class="card gem"><div style="font-size:30px">\u2726</div>' + esc(g.name) + '</div>' : ''; }).join('');
-    var showCard = end && localStorage.getItem('qg_calmcard_dismissed') !== '1';
-    h('<h2>' + (end ? 'All done for today' : 'Your collection') + '</h2>' + mossbert('small') +
-      say(end ? 'Come back anytime. I\'ll be right here. I don\'t move much.' : 'I wrote it all on my shell, so I won\'t forget.') +
-      (run && end ? '<p>Tonight: ' + run.done + ' lantern' + (run.done === 1 ? '' : 's') + (run.newFriends.length ? ', new friends: ' + esc(run.newFriends.join(', ')) : '') + (run.newGems.length ? ', gems: ' + run.newGems.length : '') + '.</p>' : '') +
-      '<div class="collection">' + (cards || '<p>Nothing yet. Friends and gems will gather here.</p>') + '</div>' +
-      (showCard ? '<div class="calm-card" id="cc"><button class="x" id="ccx" aria-label="Close this card">\u00d7</button><p>Want to keep the calm going?</p><p><a href="https://eclectictransformation.com/meditations" rel="noopener">Try a short guided meditation</a></p></div>' : '') +
-      '<div class="col"><button class="btn primary" id="home" data-focus>Back to Mossbert</button></div>');
-    on('#ccx', function () { localStorage.setItem('qg_calmcard_dismissed', '1'); var c = $('cc'); if (c) c.remove(); });
-    on('#home', function () { run = null; title(); });
+    h('<h2>Nice walk.</h2><div class="stage dusk">' + backdrop('hard', { door: false }) +
+      '<div class="rabbit" style="left:70%;top:46%">' + rabbitSVG() + '</div><div class="buddy end-buddy" aria-hidden="true">' + buddySVG(run.buddy) + '</div></div>' +
+      say(run.buddy.name + ' waves goodbye. ' + (run.gem ? 'You spotted the sock, too.' : '') + ' Come back any time. I don\'t move much.') +
+      '<div class="col fade-wait" id="endbtns"><button class="btn primary" id="again">Walk again</button><button class="btn soft" id="rest">Rest here</button></div>');
+    requestAnimationFrame(function () { requestAnimationFrame(function () { document.body.classList.add('rest-dim'); }); });
+    later(function () { var c = $('endbtns'); if (c) c.classList.add('shown'); }, 2500);
+    on('#again', title);
+    on('#rest', function () { h('<h2>Resting</h2>' + mossbert('small') + say('Stay as long as you like. Goodnight, visitor.') + '<div class="col"><button class="btn soft" id="home">Back to the start</button></div>'); document.body.classList.add('dim'); on('#home', title); });
   }
 
   restBtn.addEventListener('click', function () {
     if (!run) return;
     restBtn.hidden = true;
     h('<h2>Resting</h2><div class="breath-wrap"><div class="breath in">' + mossbert() + '</div></div>' +
-      say('Take as long as you like. I\'ll remember where you stopped. I\'ll write it on my shell.') +
+      say('Take as long as you like. The path will wait right here.') +
       '<div class="col"><button class="btn primary" id="cont" data-focus>Keep going</button><button class="btn soft" id="fin">Finish for today</button></div>');
-    $('cont').addEventListener('click', function () { restBtn.hidden = false; (run.beat || explore)(); });
-    $('fin').addEventListener('click', endSession);
+    $('cont').addEventListener('click', function () { restBtn.hidden = false; run.beat(); });
+    $('fin').addEventListener('click', title);
   });
 
-  fetch('quests.json').then(function (r) { return r.json(); }).then(function (d) { QUESTS = d.quests; title(); })
+  fetch('quests.json').then(function (r) { return r.json(); }).then(function (d) { DATA = d; title(); })
     .catch(function () { app.innerHTML = '<div class="screen"><h2>Mossbert misplaced the map.</h2><p>Please open this page from a web server.</p></div>'; });
 })();
