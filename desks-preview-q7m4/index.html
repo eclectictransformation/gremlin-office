@@ -3,6 +3,14 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Desks</title>
 <meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3A4A33">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Desks">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="stylesheet" href="style.css">
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -15,6 +23,7 @@
   </nav>
 </header>
 <main id="app"><p class="muted center">Opening the office…</p></main>
+<div id="install" hidden><button id="installBtn" hidden>📲 Install Desks</button><span id="iosHint" hidden>Install: tap Share → Add to Home Screen</span><button id="installX" class="link" aria-label="Dismiss">×</button></div>
 <div id="toast" role="status"></div>
 <script src="app.js"></script>
 </body></html>

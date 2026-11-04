@@ -233,11 +233,11 @@ screens.admin = async (tab = "people") => {
   const tabs = `<div class="tabs">${["people", "add", "bots", "tickets", "audit"].map((t) => `<button class="${t === tab ? "" : "ghost"}" data-tab="${t}">${{ people: "People", add: "Add person", bots: "Bots", tickets: "All tickets", audit: "Audit log" }[t]}</button>`).join("")}</div>`;
   let html = "";
   if (tab === "people") {
-    html = `<div class="card"><h2>People</h2><table><tr><th>Person</th><th>Bots they can ticket</th><th>Cap</th><th>Pre-approved for creation work</th><th>Active</th></tr>
+    html = `<div class="card"><h2>People</h2><table><tr><th>Person</th><th>Bots they can ticket</th><th>Cap</th><th>Gets answers without my approval</th><th>Active</th></tr>
     ${people.map((p) => `<tr data-u="${p.id}"><td><b>${esc(p.display_name)}</b>${p.is_admin ? " (admin)" : ""}<br><span class="muted">${esc(p.login_id)}</span></td>
      <td class="chips">${bots.map((b) => `<label><input type="checkbox" data-bot="${b.id}" ${has(p.id, b.id) ? "checked" : ""}>${esc(b.name)}</label>`).join("")}</td>
      <td class="mini"><input type="number" min="0" max="100" value="${p.ticket_cap}" data-f="ticket_cap" style="width:4.5em"> per <select data-f="cap_period"><option ${p.cap_period === "day" ? "selected" : ""}>day</option><option ${p.cap_period === "week" ? "selected" : ""}>week</option></select></td>
-     <td><input type="checkbox" data-f="pre_approved" ${p.pre_approved ? "checked" : ""} style="width:auto"></td>
+     <td><label class="chips"><label><input type="checkbox" data-f="pre_approved" ${p.pre_approved ? "checked" : ""}>${p.pre_approved ? "On" : "Off"}</label></label><span class="muted">Applies to replies from now on</span></td>
      <td><input type="checkbox" data-f="active" ${p.active ? "checked" : ""} ${p.id === me.id ? "disabled" : ""} style="width:auto"></td></tr>`).join("")}</table></div>
     <div class="card"><h2>Pending setup</h2><p class="muted">Named, but no personal email yet, so no account exists. Click "Finish setup" to add them.</p>
     ${pending.length ? `<table>${pending.map((p) => `<tr><td><b>${esc(p.display_name)}</b><br><span class="muted">${esc(p.login_id)}</span></td><td>${p.bot_ids.map((id) => esc(bots.find((b) => b.id === id)?.name)).join(", ") || "<span class='muted'>no bots yet</span>"}</td><td><button data-finish="${esc(p.login_id)}">Finish setup</button></td></tr>`).join("")}</table>` : `<p class="muted">Nobody pending.</p>`}</div>`;
@@ -248,7 +248,7 @@ screens.admin = async (tab = "people") => {
      <label>Their personal email (for setting and resetting their password)</label><input id="a_pe" type="email" required>
      <label>Bots they can ticket</label><div class="chips">${bots.map((b) => `<label><input type="checkbox" name="a_bot" value="${b.id}">${esc(b.name)}</label>`).join("")}</div>
      <div class="row mini"><label>Ticket cap</label><input id="a_cap" type="number" min="0" max="100" value="3"> per <select id="a_per"><option>day</option><option>week</option></select></div>
-     <label class="chips"><label><input type="checkbox" id="a_pre">Pre-approved for creation/production work</label></label>
+     <label class="chips"><label><input type="checkbox" id="a_pre">Gets answers without my approval</label></label>
      <label>How should they get their setup link?</label><select id="a_mode"><option value="link">Show me a one-time link (no email sent)</option><option value="email">Email the invite to their personal email</option></select>
      <p id="a_msg"></p><button>Add person</button></form></div>`;
   } else if (tab === "bots") {
@@ -259,7 +259,7 @@ screens.admin = async (tab = "people") => {
     html = `<div class="card"><h2>Audit log</h2><table><tr><th>When</th><th>Who</th><th>What</th><th>Ticket</th></tr>${(al || []).map((a) => `<tr><td>${new Date(a.at).toLocaleString()}</td><td>${esc(a.actor.startsWith("admin:") ? "admin" : a.actor.startsWith("user:") ? "user" : a.actor)}</td><td>${esc(a.action)} ${esc(a.detail || "")}</td><td>${a.ticket_id ? "#" + a.ticket_id : ""}</td></tr>`).join("")}</table></div>`;
   } else {
     const [{ data: ts }, { data: drafts }] = await Promise.all([sb.from("tickets").select("*, bots(name), profiles(display_name)").order("created_at", { ascending: false }).limit(100), sb.from("ticket_drafts").select("*").is("released_at", null)]);
-    html = `<div class="card"><h2>All tickets</h2>${(ts || []).map((t) => `<div class="card" data-t="${t.id}"><div class="row"><b>#${t.id} ${esc(t.profiles?.display_name)} → ${esc(t.bots?.name)}</b><span class="muted">${new Date(t.created_at).toLocaleString()}</span>${t.pre_approved ? "<span class='status'>pre-approved</span>" : ""}</div>
+    html = `<div class="card"><h2>All tickets</h2>${(ts || []).map((t) => `<div class="card" data-t="${t.id}"><div class="row"><b>#${t.id} ${esc(t.profiles?.display_name)} → ${esc(t.bots?.name)}</b><span class="muted">${new Date(t.created_at).toLocaleString()}</span></div>
      <p style="white-space:pre-wrap">${esc(t.body)}</p>
      ${(() => { const d = (drafts || []).find((x) => x.ticket_id === t.id); return d ? `<div class="reply"><b>Bot's draft reply (held for your OK):</b>\n${esc(d.draft)}</div><button data-release="${t.id}">Approve &amp; release</button>` : ""; })()}
      <label>Status</label><select data-tf="status">${Object.keys(STATUS).map((s) => `<option value="${s}" ${s === t.status ? "selected" : ""}>${STATUS[s]}</option>`).join("")}</select>
@@ -334,6 +334,19 @@ async function route() {
 sb.auth.onAuthStateChange((ev) => { if (ev === "PASSWORD_RECOVERY") { forceSetPw = true; route(); } });
 $("#logout").onclick = async () => { stopPresence(); await sb.auth.signOut(); me = null; location.hash = "#/login"; route(); };
 window.addEventListener("hashchange", route);
+// ---------- installable app ----------
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(() => {});
+(() => {
+  const box = $("#install"), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if (standalone || localStorage.getItem("desks-install-dismissed")) return;
+  $("#installX").onclick = () => { box.hidden = true; localStorage.setItem("desks-install-dismissed", "1"); };
+  let ev = null;
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); ev = e; box.hidden = false; $("#installBtn").hidden = false; });
+  $("#installBtn").onclick = async () => { if (!ev) return; ev.prompt(); await ev.userChoice; ev = null; box.hidden = true; };
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (ios) { box.hidden = false; $("#iosHint").hidden = false; }
+  window.addEventListener("appinstalled", () => (box.hidden = true));
+})();
 // let supabase-js consume invite/recovery tokens first
 setTimeout(route, /access_token|code=/.test(location.href) ? 600 : 0);
 })();

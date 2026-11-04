@@ -39,3 +39,6 @@ table{width:100%;border-collapse:collapse;font-size:.92rem}td,th{padding:.45rem;
 .tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
 .mini input,.mini select{width:auto;padding:.3rem}
 @media (max-width:600px){header{flex-direction:column;align-items:flex-start}td,th{display:block;border:0}tr{display:block;border-bottom:2px solid #bbb;padding:.4rem 0}}
+
+#install{position:fixed;right:.8rem;bottom:.8rem;display:flex;gap:.5rem;align-items:center;background:var(--paper);border:2px solid var(--ink);border-radius:12px;padding:.45rem .6rem;box-shadow:3px 3px 0 var(--forest);z-index:5;font-size:.92rem}
+#install[hidden]{display:none}#installX{color:var(--ink);font-size:1.2rem}
