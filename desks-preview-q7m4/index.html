@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Desks</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head><body>
+<header id="top">
+  <a href="#/desk" class="brand"><span class="lamp">💡</span> <span id="appName"></span></a>
+  <nav id="nav" hidden>
+    <a href="#/desk">My cubicle</a><a href="#/floor">Office floor</a><a href="#/ticket">New ticket</a><a href="#/tickets">My tickets</a>
+    <a href="#/security">Security</a><a href="#/admin" id="navAdmin" hidden>Admin</a><button id="logout" class="link">Log out</button>
+  </nav>
+</header>
+<main id="app"><p class="muted center">Opening the office…</p></main>
+<div id="toast" role="status"></div>
+<script src="app.js"></script>
+</body></html>
