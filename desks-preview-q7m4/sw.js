@@ -1,8 +1,9 @@
 // Desks service worker: caches the app shell ONLY.
 // Never caches Supabase (API, auth, storage/signed photo URLs) or any other cross-origin request.
-const CACHE = "desks-shell-v1";
-const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "manifest.webmanifest",
-  "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "assets/bryan-avatar.webp"];
+const CACHE = "desks-shell-v3";
+const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "office3d.js", "vendor/three.module.min.js", "manifest.webmanifest",
+  "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "assets/bryan-avatar.webp",
+  "assets/gallery/tea-under-the-old-oak.webp", "assets/gallery/still-life-with-tea-and-small-visitors.webp"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));

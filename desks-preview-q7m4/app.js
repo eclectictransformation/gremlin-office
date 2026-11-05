@@ -16,6 +16,8 @@ const THEMES = ["sage", "sunny", "lavender", "sky", "cocoa", "night"];
 const STATUS = { new: "New", waiting_on_bryan: "Waiting on Bryan", pending_approval: "Reply waiting for Bryan's OK", answered: "Answered" };
 document.title = C.APP_NAME; $("#appName").textContent = C.APP_NAME;
 
+const DEMO = /[?&]demo=1/.test(location.search) && ["localhost", "127.0.0.1"].includes(location.hostname); // screenshot/demo mode, localhost only
+let office3d = null, threadCh = null;
 let me = null, presence = null, online = new Set(), forceSetPw = /[?&]setpw=1/.test(location.search);
 const photoUrl = async (paths) => {
   if (!paths?.length) return {};
@@ -39,6 +41,7 @@ function startPresence() {
     online = new Set(Object.keys(presence.presenceState()));
     document.querySelectorAll("[data-online]").forEach((el) => el.classList.toggle("on", online.has(el.dataset.online)));
     const c = $("#onlineCount"); if (c) c.textContent = online.size;
+    if (office3d) office3d.setOnline(online);
   }).subscribe(async (s) => { if (s === "SUBSCRIBED") await presence.track({ at: Date.now() }); });
 }
 function stopPresence() { if (presence) { sb.removeChannel(presence); presence = null; online = new Set(); } }
@@ -129,7 +132,14 @@ screens.desk = async () => {
   let { data: d } = await sb.from("desks").select("*").eq("user_id", me.id).maybeSingle();
   if (!d) { await sb.from("desks").insert({ user_id: me.id }); d = { user_id: me.id, theme: "sage", photos: [] }; }
   const urls = await photoUrl(d.photos);
+  const [{ data: notes }, { data: notices }] = await Promise.all([sb.rpc("my_desk_notes"), sb.from("notices").select("*").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5)]);
+  const newNotes = (notes || []).filter((n) => n.is_new).length;
   app.innerHTML = `<h1>My cubicle</h1>
+  <div class="row" style="margin-bottom:1rem"><a class="btn" href="#/office">🚪 Walk into the office</a>
+   <button class="ghost" id="lockT">${d.locked ? "🔒 Door locked (tap to unlock)" : "🔓 Door open (tap to lock)"}</button>
+   ${newNotes ? `<span class="status s-new">${newNotes} new note${newNotes > 1 ? "s" : ""}</span>` : ""}</div>
+  <div class="card"><h3>☀️ Morning notices</h3>${(notices || []).length ? notices.map((n) => `<div class="notice"><b>${n.pinned ? "📌 " : ""}${esc(n.title)}</b><div style="white-space:pre-wrap">${esc(n.body)}</div><span class="muted">${new Date(n.created_at).toLocaleDateString()}</span></div>`).join("") : `<p class="muted">No notices this morning.</p>`}</div>
+  <div class="card"><h3>🗒 Notes on your desk</h3>${(notes || []).length ? notes.map((n) => `<div class="notice ${n.is_new ? "new" : ""}"><b>${esc(n.author_name)}:</b> <span style="white-space:pre-wrap">${esc(n.body)}</span> <span class="muted">${new Date(n.created_at).toLocaleString()}</span> <button class="warn small" data-dn="${n.id}">Delete</button></div>`).join("") : `<p class="muted">No notes yet. Leave your door unlocked and people can stick notes on your desk.</p>`}</div>
   <div class="cube t-${esc(d.theme)}"><div class="who">${avatar({ ...me, nickname: d.nickname })}<div><h2>${esc(d.nickname || me.display_name)}</h2><span class="muted">${esc(me.login_id)}</span></div></div>
    <p>${d.sign_text ? `<span class="sign">${esc(d.sign_text)}</span>` : `<span class="muted">No sign yet. Put one up below!</span>`}</p>
    <div class="pins">${d.photos.map((p, i) => `<div class="pin" style="--r:${(i % 2 ? -1 : 1) * (1 + i % 3)}deg"><img src="${esc(urls[p] || "")}" alt="desk photo"><button class="warn" data-del="${esc(p)}" title="Take down">×</button></div>`).join("")}</div></div>
@@ -140,6 +150,9 @@ screens.desk = async () => {
    <div class="row" style="margin-top:.8rem"><button id="save">Save desk</button></div>
    <label>Pin up a photo (JPG, PNG or WebP, up to 5 MB, max 8)</label><input id="up" type="file" accept="image/jpeg,image/png,image/webp">
    <p class="muted">Everyone on the office floor can see your desk photos. Please no client or health info.</p></div>`;
+  if (newNotes) sb.from("desks").update({ notes_seen_at: new Date().toISOString() }).eq("user_id", me.id).then(() => {});
+  $("#lockT").onclick = async () => { const { error } = await sb.from("desks").update({ locked: !d.locked }).eq("user_id", me.id); error ? toast(error.message) : (toast(d.locked ? "Door unlocked" : "Door locked"), screens.desk()); };
+  app.querySelectorAll("[data-dn]").forEach((b) => (b.onclick = async () => { const { error } = await sb.from("desk_notes").delete().eq("id", +b.dataset.dn); error ? toast(error.message) : screens.desk(); }));
   $("#save").onclick = async () => {
     const { error } = await sb.from("desks").update({ nickname: $("#nick").value.trim() || null, sign_text: $("#sign").value.trim() || null, theme: $("#theme").value, updated_at: new Date().toISOString() }).eq("user_id", me.id);
     error ? toast(error.message) : (toast("Desk saved"), screens.desk());
@@ -168,7 +181,7 @@ screens.floor = async () => {
   app.innerHTML = `<h1>The office floor</h1><p class="muted"><span class="dot on"></span><span id="onlineCount">${online.size}</span> online now</p>
   <div class="floor">${data.map((p) => `<div class="cube t-${esc(p.theme)}"><div class="who">${avatar(p)}<div><h3><span class="dot ${online.has(p.user_id) ? "on" : ""}" data-online="${esc(p.user_id)}"></span>${esc(p.nickname || p.display_name)}</h3>
     <span class="muted">${esc(p.display_name)}${p.is_admin ? " · the boss" : ""}</span></div></div>
-    ${p.sign_text ? `<p><span class="sign">${esc(p.sign_text)}</span></p>` : ""}
+    ${p.locked && p.user_id !== me.id ? `<p class="muted">🔒 Door locked</p>` : ""}${p.sign_text ? `<p><span class="sign">${esc(p.sign_text)}</span></p>` : ""}
     <div class="pins">${p.photos.slice(0, 3).map((x, i) => `<div class="pin" style="--r:${i - 1}deg"><img src="${esc(urls[x] || "")}" alt=""></div>`).join("")}</div></div>`).join("")}</div>`;
 };
 
@@ -209,17 +222,95 @@ screens.ticket = async () => {
     if (body.length > C.MAX_TICKET_CHARS) return toast(`Please keep it under ${C.MAX_TICKET_CHARS} characters.`);
     const bot = list.find((b) => b.id == $("#bot").value);
     if (!confirm(`Send this to ${bot.name}?\n\n${body.slice(0, 600)}${body.length > 600 ? "…" : ""}`)) return;
-    const { error } = await sb.from("tickets").insert({ bot_id: bot.id, body });
+    const { data: nt, error } = await sb.from("tickets").insert({ bot_id: bot.id, body }).select("id").single();
     if (error) return toast(error.message);
-    toast("Ticket sent!"); location.hash = "#/tickets";
+    toast("Ticket sent! Replies show up right here."); location.hash = "#/thread/" + nt.id;
   };
 };
 
 screens.tickets = async () => {
-  const { data } = await sb.from("tickets").select("id,body,status,reply,created_at,answered_at,bots(name,emoji)").eq("user_id", me.id).order("created_at", { ascending: false }).limit(50);
+  const { data, error } = await sb.rpc("my_tickets");
+  if (error) return (app.innerHTML = `<p class="err">${esc(error.message)}</p>`);
   app.innerHTML = `<h1>My tickets</h1>${!data?.length ? `<p class="muted">No tickets yet. <a href="#/ticket">Send one</a>.</p>` : ""}
-  ${(data || []).map((t) => `<div class="card"><div class="row"><b>#${t.id} → ${esc(t.bots?.emoji)} ${esc(t.bots?.name)}</b><span class="status s-${t.status}">${STATUS[t.status]}</span><span class="muted">${new Date(t.created_at).toLocaleString()}</span></div>
-   <p style="white-space:pre-wrap">${esc(t.body)}</p>${t.reply ? `<div class="reply"><b>Reply:</b> ${esc(t.reply)}</div>` : (t.status === "waiting_on_bryan" || t.status === "pending_approval") ? `<p class="muted">This one needs Bryan's OK before the bot starts.</p>` : ""}</div>`).join("")}`;
+  ${(data || []).map((t) => `<a class="card tlist ${t.closed_at ? "closed" : ""}" href="#/thread/${t.id}"><div class="row"><b>#${t.id} → ${esc(t.bot_emoji)} ${esc(t.bot_name)}</b>
+   <span class="status s-${t.closed_at ? "closed" : t.status}">${t.closed_at ? "Closed" : STATUS[t.status]}</span>${t.unread ? `<span class="badge">${t.unread} new</span>` : ""}
+   <span class="muted">${new Date(t.last_at || t.created_at).toLocaleString()}</span></div><p class="muted">${esc(t.preview)}</p></a>`).join("")}`;
+};
+const msgHtml = (m) => `<div class="msg ${m.author}" data-m="${m.id}"><div class="bubble">${esc(m.body)}</div><span class="muted">${m.author === "bot" ? "Reply" : "You"} · ${new Date(m.released_at || m.created_at).toLocaleString()}</span></div>`;
+screens.thread = async (id) => {
+  id = +id; if (!id) return (location.hash = "#/tickets");
+  const load = () => Promise.all([sb.from("tickets").select("id,status,closed_at,created_at,bots(name,emoji)").eq("id", id).maybeSingle(),
+    sb.from("ticket_messages").select("id,author,body,status,created_at,released_at").eq("ticket_id", id).order("id")]);
+  const [{ data: t }, { data: msgs }] = await load();
+  if (!t) return (app.innerHTML = `<div class="card"><p>That ticket isn't available.</p><a href="#/tickets">Back to my tickets</a></div>`);
+  let list = (msgs || []).filter((m) => m.status !== "held"), tk = t;
+  const waiting = () => tk.closed_at ? "This ticket is closed." : tk.status === "pending_approval" || tk.status === "waiting_on_bryan" ? "A reply is waiting for Bryan's OK." : list.length && list[list.length - 1].author === "person" ? "Sent. The reply will pop up here, no need to refresh." : "";
+  app.innerHTML = `<p><a href="#/tickets">← My tickets</a></p><div class="card"><div class="row"><h2 style="margin:0">#${t.id} → ${esc(t.bots?.emoji)} ${esc(t.bots?.name)}</h2>
+   ${t.closed_at ? "" : `<button class="ghost" id="closeT">Close ticket</button>`}</div>
+   <div id="thread" class="thread">${list.map(msgHtml).join("")}</div><p class="muted" id="wait">${esc(waiting())}</p>
+   ${t.closed_at ? "" : `<textarea id="fu" maxlength="${C.MAX_TICKET_CHARS}" placeholder="Add a follow-up…" style="min-height:90px"></textarea><div class="row"><button id="fus">Send</button><span class="muted" id="fuc">0 / ${C.MAX_TICKET_CHARS}</span></div>`}</div>`;
+  const th = $("#thread"); th.scrollTop = th.scrollHeight;
+  const seen = () => sb.rpc("mark_ticket_seen", { p_ticket: id }).then(() => {}); seen();
+  const add = (m) => { if (m.status === "held" || list.some((x) => x.id === m.id)) return; list.push(m); list.sort((a, b) => a.id - b.id); th.innerHTML = list.map(msgHtml).join(""); th.scrollTop = th.scrollHeight; $("#wait").textContent = waiting(); seen(); };
+  if (threadCh) sb.removeChannel(threadCh);
+  sb.realtime.setAuth();
+  threadCh = sb.channel(`ticket:${id}`, { config: { private: true } })
+    .on("postgres_changes", { event: "*", schema: "public", table: "ticket_messages", filter: `ticket_id=eq.${id}` }, (p) => p.new && add(p.new))
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "tickets", filter: `id=eq.${id}` }, (p) => { tk = { ...tk, ...p.new }; const w = $("#wait"); if (w) w.textContent = waiting(); })
+    .subscribe();
+  const fu = $("#fu");
+  if (fu) {
+    fu.oninput = () => ($("#fuc").textContent = `${fu.value.length} / ${C.MAX_TICKET_CHARS}`);
+    $("#fus").onclick = async () => {
+      const body = fu.value.trim(); if (!body) return;
+      $("#fus").disabled = true;
+      const { data, error } = await sb.from("ticket_messages").insert({ ticket_id: id, author: "person", body }).select("id,author,body,status,created_at,released_at").single();
+      $("#fus").disabled = false;
+      if (error) return toast(/row-level|policy/i.test(error.message) ? "Couldn't send (ticket closed, or 30 messages an hour max)." : error.message);
+      fu.value = ""; tk.status = "new"; add(data);
+    };
+    $("#closeT").onclick = async () => { if (!confirm("Close this ticket? You can always open a new one.")) return; const { error } = await sb.rpc("close_ticket", { p_ticket: id }); error ? toast(error.message) : screens.thread(id); };
+  }
+};
+
+// ---------- 3D office ----------
+const signedFrom = async (bucket, paths) => { if (!paths?.length) return {}; const { data } = await sb.storage.from(bucket).createSignedUrls(paths, C.PHOTO_URL_SECONDS || 300); const m = {}; (data || []).forEach((d) => (m[d.path] = d.signedUrl)); return m; };
+function demoData() {
+  const mk = (id, n, nick, theme, locked, sign) => ({ user_id: id, display_name: n, nickname: nick, theme, locked, sign_text: sign, photos: [], is_admin: false });
+  me = { id: "demo-me", display_name: "Demo Person", login_id: "demo@example.com", is_admin: false, active: true };
+  return { floor: [mk("demo-me", "Demo Person", "Desk Captain", "sage", false, "Powered by coffee and good intentions"), mk("a", "Vince", "Vinny", "sky", false, "Ask me about spreadsheets"),
+      mk("b", "Bryan Nolan", "The Boss", "sunny", true, null), mk("c", "Juhani", null, "lavender", false, "Back in 5"), mk("d", "Emily", "Em", "cocoa", true, null)],
+    myDesk: { nickname: "Desk Captain", sign_text: "Powered by coffee and good intentions", theme: "sage", locked: false, photos: [] },
+    notes: [{ id: 1, author_name: "Vinny", body: "Welcome to the new office! Love the plant." }, { id: 2, author_name: "Em", body: "Lunch on Friday?" }, { id: 3, author_name: "The Boss", body: "Great work this week 🎉" }],
+    notices: [{ title: "Welcome to the 3D office!", body: "Walk around, visit unlocked cubicles, and leave a kind note.", pinned: true, created_at: new Date().toISOString() }, { title: "Friday", body: "Team call at 2pm.", pinned: false, created_at: new Date().toISOString() }],
+    art: [1, 2, 3, 4, 5].map((i) => ({ id: i, title: "Art coming soon from Moth", artist: "Moth", image_path: null, position: i })), online: new Set(["demo-me", "a"]) };
+}
+screens.office = async () => {
+  const mod = await import("./office3d.js");
+  if (!mod.webglOK()) return (app.innerHTML = `<div class="card"><h1>The 3D office</h1><p>This device or browser can't show 3D right now (WebGL is off or unsupported). Your <a href="#/desk">2D desk</a> works as usual.</p></div>`);
+  let data;
+  if (DEMO) data = demoData();
+  else {
+    const [{ data: floor }, { data: myDesk }, { data: notes }, { data: notices }, { data: art }] = await Promise.all([sb.rpc("office_floor"), sb.from("desks").select("*").eq("user_id", me.id).maybeSingle(),
+      sb.rpc("my_desk_notes"), sb.from("notices").select("*").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(20), sb.from("gallery_art").select("*").order("position")]);
+    data = { floor: floor || [], myDesk: myDesk || { theme: "sage", photos: [] }, notes: notes || [], notices: notices || [], art: art || [], online };
+  }
+  document.body.classList.add("in-office");
+  app.innerHTML = `<div id="o3root"></div>`;
+  const view = (location.search.match(/[?&]view=([a-z]+)/) || [])[1];
+  office3d = mod.startOffice($("#o3root"), { ...data, me, demo: DEMO, api: {
+    exit: () => (location.hash = "#/desk"),
+    photoUrls: DEMO ? null : (paths) => photoUrl(paths),
+    artUrls: DEMO ? null : (paths) => signedFrom("gallery-art", paths),
+    setLocked: async (v) => { if (DEMO) return true; const { error } = await sb.from("desks").update({ locked: v }).eq("user_id", me.id); if (error) { toast(error.message); return false; } return true; },
+    leaveNote: async (uid, body) => { if (DEMO) return true; const { error } = await sb.from("desk_notes").insert({ desk_user: uid, body: body.slice(0, 280) });
+      if (error) { toast(/row-level|policy/i.test(error.message) ? "Couldn't leave that note (door locked, or 20 notes an hour max)." : error.message); return false; } return true; },
+    deleteNote: async (id) => { if (DEMO) return true; const { error } = await sb.from("desk_notes").delete().eq("id", id); if (error) { toast(error.message); return false; } return true; },
+  } });
+  const Lh = office3d.layout;
+  if (view === "hallway") office3d.teleport(0.2, -1.6, 0.1, -0.02);
+  if (view === "gallery") office3d.teleport(1.2, Lh.gz0 - 2.2, 0.35, -0.02);
+  if (view === "art") office3d.teleport(0, Lh.gz1 + 2.9, 0, 0);
 };
 
 screens.admin = async (tab = "people") => {
@@ -230,7 +321,7 @@ screens.admin = async (tab = "people") => {
     sb.from("profiles").select("*").order("display_name"), sb.from("bots").select("*").order("id"),
     sb.from("bot_access").select("*"), sb.from("pending_people").select("*").order("login_id")]);
   const has = (u, b) => access.some((a) => a.user_id === u && a.bot_id === b);
-  const tabs = `<div class="tabs">${["people", "add", "bots", "tickets", "audit"].map((t) => `<button class="${t === tab ? "" : "ghost"}" data-tab="${t}">${{ people: "People", add: "Add person", bots: "Bots", tickets: "All tickets", audit: "Audit log" }[t]}</button>`).join("")}</div>`;
+  const tabs = `<div class="tabs">${["people", "add", "bots", "tickets", "notices", "gallery", "audit"].map((t) => `<button class="${t === tab ? "" : "ghost"}" data-tab="${t}">${{ people: "People", add: "Add person", bots: "Bots", tickets: "All tickets", notices: "Notices", gallery: "Gallery art", audit: "Audit log" }[t]}</button>`).join("")}</div>`;
   let html = "";
   if (tab === "people") {
     html = `<div class="card"><h2>People</h2><table><tr><th>Person</th><th>Bots they can ticket</th><th>Cap</th><th>Gets answers without my approval</th><th>Active</th></tr>
@@ -254,14 +345,30 @@ screens.admin = async (tab = "people") => {
   } else if (tab === "bots") {
     html = `<div class="card"><h2>Bots</h2><table><tr><th>Bot</th><th>Role</th><th>Active</th></tr>${bots.map((b) => `<tr data-b="${b.id}"><td><input value="${esc(b.emoji)}" data-bf="emoji" style="width:3em"> <input value="${esc(b.name)}" data-bf="name" style="width:10em"></td><td><input value="${esc(b.role)}" data-bf="role"></td><td><input type="checkbox" data-bf="active" ${b.active ? "checked" : ""} style="width:auto"></td></tr>`).join("")}</table>
     <h3>Add a bot</h3><div class="row"><input id="nb_name" placeholder="Name" style="width:10em"><input id="nb_role" placeholder="Role" style="width:12em"><button id="nb">Add</button></div></div>`;
+  } else if (tab === "notices") {
+    const { data: ns } = await sb.from("notices").select("*").order("pinned", { ascending: false }).order("created_at", { ascending: false });
+    html = `<div class="card"><h2>Notices</h2><p class="muted">Shown on the gallery notice board and as "Morning notices" on every desk.</p>
+     <label>Title</label><input id="n_t" maxlength="100"><label>Message</label><textarea id="n_b" maxlength="1000" style="min-height:90px"></textarea>
+     <label class="chips"><label><input type="checkbox" id="n_p">Pin to top</label></label><button id="n_add">Post notice</button>
+     ${(ns || []).map((n) => `<div class="notice"><b>${n.pinned ? "📌 " : ""}${esc(n.title)}</b><div style="white-space:pre-wrap">${esc(n.body)}</div><button class="warn small" data-ndel="${n.id}">Remove</button></div>`).join("")}</div>`;
+  } else if (tab === "gallery") {
+    const { data: arts } = await sb.from("gallery_art").select("*").order("position");
+    const au = await signedFrom("gallery-art", (arts || []).map((a) => a.image_path).filter(Boolean));
+    html = `<div class="card"><h2>Gallery art</h2><p class="muted">JPEG, PNG or WebP up to 5 MB. Location data is stripped before upload. Only admins can add or change art.</p>
+     <label>Title</label><input id="g_t" maxlength="80"><label>Artist</label><input id="g_a" maxlength="60" value="Moth">
+     <label>Put it in</label><select id="g_slot"><option value="">A new frame</option>${(arts || []).map((a) => `<option value="${a.id}">Frame ${a.position}: ${esc(a.title)}</option>`).join("")}</select>
+     <label>Image</label><input id="g_f" type="file" accept="image/jpeg,image/png,image/webp"><p></p><button id="g_up">Upload art</button>
+     <div class="pins">${(arts || []).map((a) => `<div class="pin">${a.image_path ? `<img src="${esc(au[a.image_path] || "")}" alt="">` : `<div class="ph">Coming soon</div>`}<div class="muted">${a.position}. ${esc(a.title)}<br>by ${esc(a.artist)}</div><button class="warn" data-gdel="${a.id}" title="Remove">×</button></div>`).join("")}</div></div>`;
   } else if (tab === "audit") {
     const { data: al } = await sb.from("audit_log").select("*").order("at", { ascending: false }).limit(200);
     html = `<div class="card"><h2>Audit log</h2><table><tr><th>When</th><th>Who</th><th>What</th><th>Ticket</th></tr>${(al || []).map((a) => `<tr><td>${new Date(a.at).toLocaleString()}</td><td>${esc(a.actor.startsWith("admin:") ? "admin" : a.actor.startsWith("user:") ? "user" : a.actor)}</td><td>${esc(a.action)} ${esc(a.detail || "")}</td><td>${a.ticket_id ? "#" + a.ticket_id : ""}</td></tr>`).join("")}</table></div>`;
   } else {
-    const [{ data: ts }, { data: drafts }] = await Promise.all([sb.from("tickets").select("*, bots(name), profiles(display_name)").order("created_at", { ascending: false }).limit(100), sb.from("ticket_drafts").select("*").is("released_at", null)]);
+    const { data: ts } = await sb.from("tickets").select("*, bots(name), profiles(display_name)").order("created_at", { ascending: false }).limit(100);
+    const { data: tm } = await sb.from("ticket_messages").select("*").in("ticket_id", (ts || []).map((t) => t.id)).order("id");
     html = `<div class="card"><h2>All tickets</h2>${(ts || []).map((t) => `<div class="card" data-t="${t.id}"><div class="row"><b>#${t.id} ${esc(t.profiles?.display_name)} → ${esc(t.bots?.name)}</b><span class="muted">${new Date(t.created_at).toLocaleString()}</span></div>
-     <p style="white-space:pre-wrap">${esc(t.body)}</p>
-     ${(() => { const d = (drafts || []).find((x) => x.ticket_id === t.id); return d ? `<div class="reply"><b>Bot's draft reply (held for your OK):</b>\n${esc(d.draft)}</div><button data-release="${t.id}">Approve &amp; release</button>` : ""; })()}
+     ${t.closed_at ? `<p class="muted">Closed ${new Date(t.closed_at).toLocaleString()}</p>` : `<button class="ghost small" data-closet="${t.id}">Close ticket</button>`}
+     <div class="thread">${(tm || []).filter((m) => m.ticket_id === t.id).map((m) => m.status === "held" ? `<div class="msg bot held"><div class="bubble"><b>Held for your OK:</b>\n${esc(m.body)}</div></div>` : msgHtml(m)).join("")}</div>
+     ${(tm || []).some((m) => m.ticket_id === t.id && m.status === "held") ? `<button data-release="${t.id}">Approve &amp; release held reply</button>` : ""}
      <label>Status</label><select data-tf="status">${Object.keys(STATUS).map((s) => `<option value="${s}" ${s === t.status ? "selected" : ""}>${STATUS[s]}</option>`).join("")}</select>
      <label>Reply</label><textarea data-tf="reply" style="min-height:80px">${esc(t.reply || "")}</textarea><button data-save="${t.id}">Save</button></div>`).join("") || "<p class='muted'>No tickets yet.</p>"}</div>`;
   }
@@ -310,6 +417,30 @@ screens.admin = async (tab = "people") => {
     const { error } = await sb.rpc("admin_set_ticket", { p_ticket: +b.dataset.save, p_status: c.querySelector("[data-tf=status]").value, p_reply: c.querySelector("[data-tf=reply]").value });
     toast(error ? error.message : "Ticket updated");
   }));
+  app.querySelectorAll("[data-closet]").forEach((b) => (b.onclick = async () => { const { error } = await sb.rpc("close_ticket", { p_ticket: +b.dataset.closet }); error ? toast(error.message) : screens.admin("tickets"); }));
+  const nadd = $("#n_add"); if (nadd) nadd.onclick = async () => {
+    const title = $("#n_t").value.trim(); if (!title) return toast("Give it a title.");
+    const { error } = await sb.from("notices").insert({ title, body: $("#n_b").value.trim(), pinned: $("#n_p").checked }); error ? toast(error.message) : (toast("Notice posted"), screens.admin("notices"));
+  };
+  app.querySelectorAll("[data-ndel]").forEach((b) => (b.onclick = async () => { if (!confirm("Remove this notice?")) return; const { error } = await sb.from("notices").delete().eq("id", +b.dataset.ndel); error ? toast(error.message) : screens.admin("notices"); }));
+  const gup = $("#g_up"); if (gup) gup.onclick = async () => {
+    const f = $("#g_f").files[0], title = $("#g_t").value.trim() || "Untitled", artist = $("#g_a").value.trim() || "Moth";
+    if (!f) return toast("Pick an image first.");
+    if (f.size > 5 * 1024 * 1024) return toast("That image is over 5 MB.");
+    if (!["image/jpeg", "image/png", "image/webp"].includes(f.type)) return toast("JPG, PNG or WebP only.");
+    let clean; try { clean = await reencode(f); } catch { return toast("Couldn't read that image."); }
+    gup.disabled = true; const path = `art/${crypto.randomUUID()}.jpg`;
+    const { error } = await sb.storage.from("gallery-art").upload(path, clean, { contentType: "image/jpeg" });
+    if (error) { gup.disabled = false; return toast(error.message); }
+    const slot = $("#g_slot").value;
+    const r = slot ? await sb.from("gallery_art").update({ title, artist, image_path: path }).eq("id", +slot)
+      : await sb.from("gallery_art").insert({ title, artist, image_path: path, position: (await sb.from("gallery_art").select("position").order("position", { ascending: false }).limit(1)).data?.[0]?.position + 1 || 1 });
+    r.error ? toast(r.error.message) : (toast("Art is up in the gallery"), screens.admin("gallery"));
+  };
+  app.querySelectorAll("[data-gdel]").forEach((b) => (b.onclick = async () => { if (!confirm("Take this frame down?")) return;
+    const { data: a } = await sb.from("gallery_art").select("image_path").eq("id", +b.dataset.gdel).maybeSingle();
+    if (a?.image_path) await sb.storage.from("gallery-art").remove([a.image_path]);
+    const { error } = await sb.from("gallery_art").delete().eq("id", +b.dataset.gdel); error ? toast(error.message) : screens.admin("gallery"); }));
   app.querySelectorAll("[data-release]").forEach((b) => (b.onclick = async () => {
     const { error } = await sb.rpc("admin_release_reply", { p_ticket: +b.dataset.release, p_reply: null });
     error ? toast(error.message) : (toast("Released to the person"), screens.admin("tickets"));
@@ -318,7 +449,10 @@ screens.admin = async (tab = "people") => {
 
 // ---------- router ----------
 async function route() {
-  const h = (location.hash.match(/^#\/([a-z]+)/) || [])[1] || "desk";
+  const hm = location.hash.match(/^#\/([a-z]+)(?:\/(\d+))?/) || [], h = hm[1] || "desk", arg = hm[2];
+  if (office3d && h !== "office") { office3d.destroy(); office3d = null; document.body.classList.remove("in-office"); }
+  if (threadCh && h !== "thread") { sb.removeChannel(threadCh); threadCh = null; }
+  if (DEMO) { $("#nav").hidden = true; return screens.office(); }
   const { data: { session } } = await sb.auth.getSession();
   if (session && !me) await loadMe();
   const authed = !!(session && me && me.active);
@@ -329,7 +463,7 @@ async function route() {
   const { data: lvl } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (lvl?.nextLevel === "aal2" && lvl.currentLevel !== "aal2" && h !== "security") return screens.mfa();
   startPresence();
-  try { await (screens[h] || screens.desk)(); } catch (e) { app.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  try { await (screens[h] || screens.desk)(arg); } catch (e) { app.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
 }
 sb.auth.onAuthStateChange((ev) => { if (ev === "PASSWORD_RECOVERY") { forceSetPw = true; route(); } });
 $("#logout").onclick = async () => { stopPresence(); await sb.auth.signOut(); me = null; location.hash = "#/login"; route(); };
