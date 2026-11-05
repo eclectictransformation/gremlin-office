@@ -297,7 +297,7 @@ screens.office = async () => {
   }
   document.body.classList.add("in-office");
   app.innerHTML = `<div id="o3root"></div>`;
-  const view = (location.search.match(/[?&]view=([a-z]+)/) || [])[1];
+  const view = (location.search.match(/[?&]view=([a-z0-9]+)/) || [])[1];
   office3d = mod.startOffice($("#o3root"), { ...data, me, demo: DEMO, api: {
     exit: () => (location.hash = "#/desk"),
     photoUrls: DEMO ? null : (paths) => photoUrl(paths),
@@ -310,7 +310,9 @@ screens.office = async () => {
   const Lh = office3d.layout;
   if (view === "hallway") office3d.teleport(0.2, -1.6, 0.1, -0.02);
   if (view === "gallery") office3d.teleport(1.2, Lh.gz0 - 2.2, 0.35, -0.02);
-  if (view === "art") office3d.teleport(0, Lh.gz1 + 2.9, 0, 0);
+  if (view === "art") office3d.teleport(-Lh.gx + 2.7, Lh.gz0 - 2.8, Math.PI / 2, 0); // close-up of a landscape piece (frame 4)
+  if (view === "gallery2") office3d.teleport(-6.5, Lh.gz1 + 1.4, -2.3, -0.02);
+  if (DEMO) window.__o3 = office3d; // screenshot helper (demo mode is localhost-only)
 };
 
 screens.admin = async (tab = "people") => {
@@ -469,17 +471,53 @@ sb.auth.onAuthStateChange((ev) => { if (ev === "PASSWORD_RECOVERY") { forceSetPw
 $("#logout").onclick = async () => { stopPresence(); await sb.auth.signOut(); me = null; location.hash = "#/login"; route(); };
 window.addEventListener("hashchange", route);
 // ---------- installable app ----------
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(() => {});
+// Why it used to fail: the only "button" on iPhone was a tiny text hint (iOS has no install prompt), on Android/desktop the
+// button only appeared if beforeinstallprompt fired and did nothing otherwise, and one tap on "×" hid it forever.
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { scope: "./" }).catch((e) => console.warn("SW", e));
 (() => {
-  const box = $("#install"), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
-  if (standalone || localStorage.getItem("desks-install-dismissed")) return;
-  $("#installX").onclick = () => { box.hidden = true; localStorage.setItem("desks-install-dismissed", "1"); };
+  const box = $("#install"), guide = $("#instGuide"), body = $("#igBody"), navI = $("#navInstall");
+  const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const ua = navigator.userAgent;
+  const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const iosOther = ios && /crios|fxios|edgios|opios|gsa\/|instagram|fban|fbav|line\//i.test(ua); // Chrome/Firefox/Edge/in-app on iPhone
+  const DEMO_UA = /[?&]demo=1/.test(location.search) && ["localhost", "127.0.0.1"].includes(location.hostname) && (location.search.match(/[?&]install=(iosother|ios|android)/) || [])[1];
+  const mode = DEMO_UA || (iosOther ? "iosother" : ios ? "ios" : "android");
   let ev = null;
-  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); ev = e; box.hidden = false; $("#installBtn").hidden = false; });
-  $("#installBtn").onclick = async () => { if (!ev) return; ev.prompt(); await ev.userChoice; ev = null; box.hidden = true; };
-  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  if (ios) { box.hidden = false; $("#iosHint").hidden = false; }
-  window.addEventListener("appinstalled", () => (box.hidden = true));
+  const later = () => { const t = +localStorage.getItem("desks-install-later") || 0; return Date.now() - t < 3 * 864e5; }; // "Not now" = 3 days
+  const show = (on) => { const s = standalone(); box.hidden = !on || s || later(); navI.hidden = s; };
+  const step = (n, icon, text) => `<li><span class="ig-n">${n}</span><span class="ig-i" aria-hidden="true">${icon}</span><span>${text}</span></li>`;
+  const shareIcon = `<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#1a6fe0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5v10h14V11h-1"/></svg>`;
+  function openGuide() {
+    if (mode === "iosother") body.innerHTML = `<p class="ig-lead">On iPhone and iPad, this only works in <b>Safari</b>.</p><ol class="ig-steps">
+      ${step(1, "📋", "Tap <b>Copy link</b> below.")}${step(2, "🧭", "Open the <b>Safari</b> app.")}${step(3, "👆", "Tap the address bar, then tap <b>Paste and Go</b>.")}${step(4, "📲", "Then tap the <b>Add Desks to Home Screen</b> button again.")}</ol>
+      <button id="igCopy" class="inst-big ghost">📋 Copy link</button>`;
+    else if (mode === "ios") body.innerHTML = `<ol class="ig-steps">
+      ${step(1, shareIcon, "Tap the <b>Share</b> button (a square with an arrow pointing up). It is at the <b>bottom</b> of the screen (on iPad: top right).")}
+      ${step(2, "➕", "Scroll down a little and tap <b>Add to Home Screen</b>.")}
+      ${step(3, "✅", "Tap <b>Add</b> in the top right corner.")}</ol><p class="ig-lead">Desks will now be on your Home Screen. Tap it any time to open your office.</p>`;
+    else body.innerHTML = `<p class="ig-lead">Your browser didn't offer the one-tap button yet. You can add it from the menu:</p><ol class="ig-steps">
+      ${step(1, "⋮", "Tap the <b>menu</b> button (three dots), top right of the browser.")}
+      ${step(2, "📲", "Tap <b>Install app</b> or <b>Add to Home screen</b>.")}
+      ${step(3, "✅", "Tap <b>Install</b> (or <b>Add</b>).")}</ol>`;
+    guide.hidden = false; $("#igX").focus();
+    const c = $("#igCopy"); if (c) c.onclick = async () => { try { await navigator.clipboard.writeText(location.href.split("#")[0]); c.textContent = "✅ Link copied"; } catch { prompt("Copy this link:", location.href.split("#")[0]); } };
+  }
+  const closeGuide = () => (guide.hidden = true);
+  $("#igX").onclick = closeGuide; $("#igDone").onclick = closeGuide;
+  guide.addEventListener("click", (e) => e.target === guide && closeGuide());
+  addEventListener("keydown", (e) => e.key === "Escape" && !guide.hidden && closeGuide());
+  async function install() {
+    if (ev) { ev.prompt(); const r = await ev.userChoice; ev = null; if (r.outcome === "accepted") show(false); return; }
+    openGuide(); // iPhone/iPad (no programmatic install) or prompt not available: clear step-by-step guide
+  }
+  $("#installBtn").onclick = install; navI.onclick = (e) => { e.preventDefault(); install(); };
+  $("#installX").onclick = () => { localStorage.setItem("desks-install-later", String(Date.now())); box.hidden = true; };
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); ev = e; show(true); }); // keep the real prompt for our button
+  window.addEventListener("appinstalled", () => { ev = null; show(false); toast("Desks is on your Home Screen 🎉"); });
+  matchMedia("(display-mode: standalone)").addEventListener?.("change", () => show(!standalone()));
+  // iPhone/iPad never fire beforeinstallprompt, so always offer the guide there; others get the card as soon as the prompt is ready
+  show(mode !== "android" || !!DEMO_UA);
+  if (DEMO_UA && /[?&]guide=1/.test(location.search)) openGuide();
 })();
 // let supabase-js consume invite/recovery tokens first
 setTimeout(route, /access_token|code=/.test(location.href) ? 600 : 0);

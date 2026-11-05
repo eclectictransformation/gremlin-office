@@ -36,15 +36,30 @@ function plate(text, sub, { w = 512, h = 160, bg = PAL.moss, fg = PAL.paper, acc
 function fit(c, s, max) { s = String(s || ""); while (s.length > 1 && c.measureText(s).width > max) s = s.slice(0, -2) + "…"; return s; }
 
 // ---------- scene ----------
-// Static, approved gallery art shipped with the frontend (frames 1-2). Used whenever the
-// gallery_art row for that position has no uploaded image, so it works without DB changes.
+// Static, approved gallery art shipped with the frontend (frames 1-7, wording from gallery-labels.md).
+// A gallery_art row with an uploaded image_path at the same position overrides the static piece; no DB changes needed.
 const STATIC_ART = {
   1: { title: "Tea Under the Old Oak", artist: "Moth's Design Studio", src: "assets/gallery/tea-under-the-old-oak.webp", thumb: "assets/gallery/tea-under-the-old-oak-thumb.webp", aspect: 1280 / 1600,
     description: "An old tea-keeper takes a quiet cup under a great oak at golden hour, with a path winding toward a garden gate.",
-    find: ["a little gremlin peeking out of the oak trunk", "a tiny moth on the teapot lid", "Teaspoon the snail on the bench arm", "Clover the rabbit with his pocket watch", "Mossbun in the grass", "a seedling sprout in the path", "one lit lamp among the lanterns", "the arched garden gate"] },
+    find: ["A little gremlin peeking out of the oak trunk, upper left", "A tiny moth on the teapot lid", "Teaspoon the snail on the left bench arm", "Clover the rabbit with his pocket watch, on the footbridge", "Mossbun in the grass, lower right", "A seedling sprout in the path, bottom center", "One lit lamp among the paper lanterns, far right (Glim's glow)", "The arched garden gate in the stone wall (the quest game's Doorway)"] },
   2: { title: "Still Life with Tea and Small Visitors", artist: "Moth's Design Studio", src: "assets/gallery/still-life-with-tea-and-small-visitors.webp", thumb: "assets/gallery/still-life-with-tea-and-small-visitors-thumb.webp", aspect: 1280 / 1600,
     description: "Cream and white blooms in a celadon vase glow against a dark green niche beside a cup of tea, a peeled lemon and a pocket watch.",
-    find: ["a cream moth on the big peony", "a snail on the vase handle", "Glim's tiny glowing lamp", "a gremlin peeking behind the vase", "Pebbo the apricot pebble", "a seedling and a ladybird on the ledge", "a blossom floating in the tea", "a pocket watch"] },
+    find: ["A cream moth on the big white peony, upper left", "A snail on the vase's left handle", "Glim's tiny glowing lamp in the leaves right of the vase", "A gremlin face peeking out behind the vase base", "Pebbo the apricot pebble with a tiny feather, on the ledge right of center", "A seedling on the ledge, front left", "A ladybird on the ledge, far left", "A blossom floating in the tea", "A pocket watch, lower right (a nod to Clover)"] },
+  3: { title: "Healing Herbs Plate", artist: "Moth's Design Studio", src: "assets/gallery/healing-herbs-plate.webp", thumb: "assets/gallery/healing-herbs-plate-thumb.webp", aspect: 1280 / 1600,
+    description: "A vintage botanical plate of yarrow, chamomile, lavender and plantain, drawn in fine ink with soft sage watercolor.",
+    find: ["A small moth on the lavender stem, left middle", "A seedling at the bottom center"] },
+  4: { title: "Morning Check-In, Highlands", artist: "Moth's Design Studio", src: "assets/gallery/morning-check-in-highlands.webp", thumb: "assets/gallery/morning-check-in-highlands-thumb.webp", aspect: 1600 / 1280,
+    description: "Sunrise over the wooded ridges of the New Jersey Highlands, with mist in the valley, a farm field and an old barn.",
+    find: ["A small moth on the fence post, left of center", "A friendly gremlin peeking over the hay bale, center"] },
+  5: { title: "Slow Hands", artist: "Moth's Design Studio", src: "assets/gallery/slow-hands.webp", thumb: "assets/gallery/slow-hands-thumb.webp", aspect: 1280 / 1600,
+    description: "Layered sage, cream and dark-green ribbons that sweep like slow, gentle strokes.",
+    find: ["A tiny moth silhouette, lower right"] },
+  6: { title: "Three Stones", artist: "Moth's Design Studio", src: "assets/gallery/three-stones.webp", thumb: "assets/gallery/three-stones-thumb.webp", aspect: 1280 / 1600,
+    description: "Three pale stones carved with simple Nordic rune shapes (a design motif only), on sage linen against a dark green wall.",
+    find: ["A seedling sprouting from the linen fold, front left"] },
+  7: { title: "Desks Floor Plan (Gremlin Edition)", artist: "Moth's Design Studio", src: "assets/gallery/desks-floor-plan-gremlin-edition.webp", thumb: "assets/gallery/desks-floor-plan-gremlin-edition-thumb.webp", aspect: 1600 / 1280,
+    description: "A hand-drawn floor plan of Desks, with cubicles along a hallway that opens into the gallery. At the end of the hallway is a locked door with a taped-up note: \"Gremlin World, the gremlins have us locked in here right now.\"",
+    find: ["Gremlin eyes and green fingers at the padlocked door, west end of the hallway", "A tiny moth in the gallery's lower right", "A seedling in the 4th cubicle on the bottom row"] },
 };
 export function startOffice(root, opts) {
   const { me, floor, myDesk, notes = [], notices = [], art = [], online = new Set(), api = {} } = opts;
@@ -55,7 +70,7 @@ export function startOffice(root, opts) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
   root.appendChild(renderer.domElement);
   const scene = new THREE.Scene(); scene.background = new THREE.Color("#dcd6c6"); scene.fog = new THREE.Fog("#dcd6c6", 18, 45);
-  const cam = new THREE.PerspectiveCamera(70, 1, 0.05, 80); cam.rotation.order = "YXZ";
+  const cam = new THREE.PerspectiveCamera(70, 1, 0.1, 50); cam.rotation.order = "YXZ";
   scene.add(new THREE.HemisphereLight("#fff6e6", "#7d8a6e", 1.25));
   const sun = new THREE.DirectionalLight("#fff1d6", 1.1); sun.position.set(6, 10, 4); scene.add(sun);
   scene.add(new THREE.AmbientLight("#ffffff", 0.25));
@@ -70,15 +85,17 @@ export function startOffice(root, opts) {
   };
   const walkable = []; // {x0,x1,z0,z1,room}
   const rect = (x0, x1, z0, z1, room) => walkable.push({ x0: Math.min(x0, x1), x1: Math.max(x0, x1), z0: Math.min(z0, z1), z1: Math.max(z0, z1), room });
-  const wallM = mat(PAL.paper), trimM = mat(PAL.forest), ceilM = mat("#f5f1e7", { emissive: "#efe7d6", emissiveIntensity: 0.55 });
+  const wallM = mat(PAL.paper), trimM = mat(PAL.forest, { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }), ceilM = mat("#f5f1e7", { emissive: "#efe7d6", emissiveIntensity: 0.55 });
   // Wall along X at fixed z, from x0..x1, with door gaps [{c,w}]
+  // baseboards: lifted off the floor and given a tiny unique height so crossing trims never share a face (no z-fighting)
+  let trimK = 0; const trimH = () => 0.12 + (trimK++ % 7) * 0.003;
   function wallX(z, x0, x1, gaps = [], m = wallM) {
     let cur = x0; [...gaps].sort((a, b) => a.c - b.c).forEach((g) => {
       if (g.c - g.w / 2 > cur) box((cur + g.c - g.w / 2) / 2, H / 2, z, g.c - g.w / 2 - cur, H, T, m);
       box(g.c, (H + 2.2) / 2, z, g.w, H - 2.2, T, m); cur = g.c + g.w / 2;
     });
     if (x1 > cur) box((cur + x1) / 2, H / 2, z, x1 - cur, H, T, m);
-    box((x0 + x1) / 2, 0.06, z, x1 - x0, 0.12, T + 0.04, trimM);
+    { const th = trimH(); box((x0 + x1) / 2, 0.004 + th / 2, z, x1 - x0 - 0.002, th, T + 0.04, trimM); }
   }
   function wallZ(x, z0, z1, gaps = [], m = wallM) {
     let cur = z0; [...gaps].sort((a, b) => a.c - b.c).forEach((g) => {
@@ -86,7 +103,7 @@ export function startOffice(root, opts) {
       box(x, (H + 2.2) / 2, g.c, T, H - 2.2, g.w, m); cur = g.c + g.w / 2;
     });
     if (z1 > cur) box(x, H / 2, (cur + z1) / 2, T, H, z1 - cur, m);
-    box(x, 0.06, (z0 + z1) / 2, T + 0.04, 0.12, z1 - z0, trimM);
+    { const th = trimH(); box(x, 0.004 + th / 2, (z0 + z1) / 2, T + 0.044, th, z1 - z0 - 0.002, trimM); }
   }
   const floorTile = (x0, x1, z0, z1, color) => {
     const f = new THREE.Mesh(planeGeo, mat(color, { roughness: 0.95 })); f.rotation.x = -Math.PI / 2;
@@ -102,7 +119,8 @@ export function startOffice(root, opts) {
   // Door panel (closed when locked). Returns group.
   function door(x, z, ry, locked, label, sub) {
     const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
-    box(0, 2.22, 0, DOOR + 0.16, 0.08, T + 0.06, trimM, g); box(-DOOR / 2 - 0.04, 1.1, 0, 0.08, 2.2, T + 0.06, trimM, g); box(DOOR / 2 + 0.04, 1.1, 0, 0.08, 2.2, T + 0.06, trimM, g);
+    // door frame: jambs overlap the wall ends by 1cm and stand 3.5/4.5cm proud so no face is coplanar with the wall
+    box(0, 2.225, 0, DOOR + 0.19, 0.09, T + 0.07, trimM, g); box(-DOOR / 2 - 0.035, 1.105, 0, 0.09, 2.19, T + 0.09, trimM, g); box(DOOR / 2 + 0.035, 1.105, 0, 0.09, 2.19, T + 0.09, trimM, g);
     const leaf = new THREE.Group(); leaf.position.set(-DOOR / 2, 0, 0); g.add(leaf);
     box(DOOR / 2, 1.09, 0, DOOR - 0.02, 2.18, 0.05, mat(locked ? "#6f5a45" : PAL.oak), leaf);
     box(DOOR - 0.12, 1.05, 0.05, 0.05, 0.05, 0.08, mat("#c9b27a", { metalness: 0.6, roughness: 0.3 }), leaf);
@@ -228,36 +246,25 @@ export function startOffice(root, opts) {
   // bench
   box(0, 0.42, (gz0 + gz1) / 2, 2.4, 0.08, 0.6, mat(PAL.oak, { roughness: 0.6 })); box(-1, 0.2, (gz0 + gz1) / 2, 0.08, 0.4, 0.5, mat(PAL.moss)); box(1, 0.2, (gz0 + gz1) / 2, 0.08, 0.4, 0.5, mat(PAL.moss));
   plant(-gx + 0.6, gz0 - 0.6, 1.3); plant(gx - 0.6, gz0 - 0.6, 1.3); plant(-gx + 0.6, gz1 + 0.6, 1.3); plant(gx - 0.6, gz1 + 0.6, 1.3);
-  // art spots: back wall (z=gz1) and side walls
-  const artSpots = [];
-  [-5.5, 0, 5.5].forEach((x) => artSpots.push({ x, z: gz1 + 0.09, ry: 0 }));
-  [gz0 - 3.2, gz1 + 3.2].forEach((z) => { artSpots.push({ x: -gx + 0.09, z, ry: Math.PI / 2 }); artSpots.push({ x: gx - 0.09, z, ry: -Math.PI / 2 }); });
+  // art spots: 3 on the back wall, 2 per side wall clear of the notice board (left, centre) and the Gremlin World door + sign (right, centre)
+  const artSpots = {
+    1: { x: -5.5, z: gz1 + 0.1, ry: 0 }, 2: { x: 0, z: gz1 + 0.1, ry: 0 }, 3: { x: 5.5, z: gz1 + 0.1, ry: 0 },
+    4: { x: -gx + 0.1, z: gz0 - 2.8, ry: Math.PI / 2 }, 5: { x: -gx + 0.1, z: gz1 + 2.8, ry: Math.PI / 2 },
+    6: { x: gx - 0.1, z: gz1 + 2.8, ry: -Math.PI / 2 }, 7: { x: gx - 0.1, z: gz0 - 2.8, ry: -Math.PI / 2 },
+  };
   const artMeshes = [];
   const byPos = new Map(art.map((a) => [a.position, a]));
-  [1, 2].forEach((p) => { if (!byPos.has(p)) byPos.set(p, { id: "static-" + p, position: p, image_path: null }); });
-  const sorted = [...byPos.values()].sort((a, b) => a.position - b.position).map((a) => {
-    const st = !a.image_path && STATIC_ART[a.position];
-    return st ? { ...a, title: st.title, artist: st.artist, static: st } : a;
-  });
-  sorted.slice(0, artSpots.length).forEach((a, i) => {
-    const s = artSpots[i]; const g = new THREE.Group(); g.position.set(s.x, 1.75, s.z); g.rotation.y = s.ry; scene.add(g);
-    if (a.static) { // portrait frame sized to the painting (4:5), no stretching
-      const ph = 1.5, pw = ph * a.static.aspect;
-      box(0, 0, 0, pw + 0.28, ph + 0.28, 0.06, mat("#2c2a24", { roughness: 0.5 }), g); box(0, 0, 0.03, pw + 0.12, ph + 0.12, 0.02, mat("#f8f5ec"), g);
-      const pic = plane(canvasTex(8, 8, (c, w, h) => { c.fillStyle = "#e8e4d8"; c.fillRect(0, 0, w, h); }), pw, ph, 0, 0, 0.05, 0, g);
-      plane(plate(a.title, "by " + a.artist, { w: 1152, h: 140, bg: PAL.paper, fg: PAL.ink, accent: PAL.forest }), 1.3, 0.158, 0, -(ph / 2 + 0.3), 0.03, 0, g);
-      artMeshes.push({ a, pic }); return;
-    }
-    box(0, 0, 0, 2.1, 1.6, 0.06, mat("#2c2a24", { roughness: 0.5 }), g); box(0, 0, 0.03, 1.9, 1.4, 0.02, mat("#f8f5ec"), g);
-    const placeholder = canvasTex(512, 384, (c, w, h) => {
-      const gr = c.createLinearGradient(0, 0, w, h); const hues = [[PAL.sage, PAL.paper], ["#e9d9b8", "#cfdcc4"], ["#d9cde8", PAL.paper], ["#c6dceb", "#e8e4d8"], ["#f0d3c2", PAL.paper], ["#cfdcc4", "#f6e2a6"]][i % 6];
-      gr.addColorStop(0, hues[0]); gr.addColorStop(1, hues[1]); c.fillStyle = gr; c.fillRect(0, 0, w, h);
-      c.globalAlpha = 0.25; c.fillStyle = PAL.forest; for (let k = 0; k < 5; k++) { c.beginPath(); c.arc((k * 97 + i * 53) % w, (k * 61 + i * 31) % h, 30 + k * 12, 0, 7); c.fill(); }
-      c.globalAlpha = 1; c.fillStyle = PAL.moss; c.textAlign = "center"; c.font = "italic 34px Georgia, serif"; c.fillText("Art coming soon", w / 2, h / 2 - 8); c.font = "26px Georgia, serif"; c.fillText("from Moth", w / 2, h / 2 + 30);
-    });
-    const pic = plane(placeholder, 1.7, 1.25, 0, 0, 0.05, 0, g);
-    plane(plate(a.title, a.artist ? "by " + a.artist : "", { w: 512, h: 128, bg: PAL.paper, fg: PAL.ink, accent: PAL.forest }), 0.7, 0.18, 0, -1.05, 0.03, 0, g);
-    artMeshes.push({ a, pic });
+  Object.keys(artSpots).map(Number).forEach((p) => {
+    const row = byPos.get(p), st = STATIC_ART[p], s = artSpots[p];
+    const a = row?.image_path ? { ...row, title: row.title || st.title, artist: row.artist || st.artist, aspect: st.aspect } // uploaded art wins
+      : { id: row?.id ?? "static-" + p, position: p, image_path: null, title: st.title, artist: st.artist, aspect: st.aspect, static: st };
+    const g = new THREE.Group(); g.position.set(s.x, 1.75, s.z); g.rotation.y = s.ry; scene.add(g);
+    const land = a.aspect > 1, ph = land ? 1.3 : 1.5, pw = ph * a.aspect;
+    box(0, 0, 0, pw + 0.28, ph + 0.28, 0.06, mat("#2c2a24", { roughness: 0.5 }), g); box(0, 0, 0.035, pw + 0.12, ph + 0.12, 0.02, mat("#f8f5ec"), g);
+    const pic = plane(canvasTex(8, 8, (c, w, h) => { c.fillStyle = "#e8e4d8"; c.fillRect(0, 0, w, h); }), pw, ph, 0, 0, 0.055, 0, g);
+    plane(plate(a.title, "by " + a.artist, { w: 1152, h: 140, bg: PAL.paper, fg: PAL.ink, accent: PAL.forest }), 1.3, 0.158, 0, -(ph / 2 + 0.3), 0.03, 0, g);
+    const wp = new THREE.Vector3(); g.getWorldPosition(wp);
+    artMeshes.push({ a, pic, wp, url: a.static?.src || null });
   });
   // notice board on the side near the entrance (left wall center)
   const nb = new THREE.Group(); nb.position.set(-gx + 0.09, 1.6, (gz0 + gz1) / 2); nb.rotation.y = Math.PI / 2; scene.add(nb);
@@ -286,18 +293,18 @@ export function startOffice(root, opts) {
   const applyTex = (mesh, url) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; mesh.material.map = t; mesh.material.color.set("#fff"); mesh.material.needsUpdate = true; });
   async function loadPhotos(rm) {
     if (rm.photosLoaded || !rm.frames?.length || !api.photoUrls) return; rm.photosLoaded = true;
-    const urls = await api.photoUrls(rm.frames.map((f) => f.path)); rm.frames.forEach((f) => urls[f.path] && applyTex(f.pic, urls[f.path]));
+    const urls = await api.photoUrls(rm.frames.map((f) => f.path)); rm.frames.forEach((f) => { if (urls[f.path]) { f.url = urls[f.path]; applyTex(f.pic, urls[f.path]); } });
   }
   loadPhotos(rooms[0]);
   artMeshes.forEach((m) => m.a.static && applyTex(m.pic, m.a.static.src));
-  if (api.artUrls) api.artUrls(artMeshes.filter((m) => m.a.image_path).map((m) => m.a.image_path)).then((u) => artMeshes.forEach((m) => m.a.image_path && u[m.a.image_path] && applyTex(m.pic, u[m.a.image_path])));
+  if (api.artUrls) api.artUrls(artMeshes.filter((m) => m.a.image_path).map((m) => m.a.image_path)).then((u) => artMeshes.forEach((m) => { const url = m.a.image_path && u[m.a.image_path]; if (url) { m.url = url; applyTex(m.pic, url); } }));
 
   // ---------- HUD ----------
   const hud = document.createElement("div"); hud.className = "o3-hud"; root.appendChild(hud);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const top = el("div", "o3-top"); hud.appendChild(top);
   const where = el("div", "o3-where", "Your cubicle"); top.appendChild(where);
-  const exit = el("button", "o3-btn", "← Back to my desk"); exit.onclick = () => api.exit?.(); top.appendChild(exit);
+  const exit = el("button", "o3-btn", "← Back to my desk"); exit.onclick = () => api.exit?.(); const tr = el("div", "o3-tr"); tr.appendChild(exit); top.appendChild(tr);
   const onl = el("div", "o3-online"); hud.appendChild(onl);
   function renderOnline(set) {
     onl.textContent = ""; onl.appendChild(el("b", null, `${set.size} online`));
@@ -305,10 +312,31 @@ export function startOffice(root, opts) {
   }
   renderOnline(online);
   const actions = el("div", "o3-actions"); hud.appendChild(actions);
-  const help = el("div", "o3-help", matchMedia("(pointer:coarse)").matches ? "Drag to look · joystick to walk" : "WASD / arrows to walk · drag to look"); hud.appendChild(help);
-  const panel = el("div", "o3-panel"); panel.hidden = true; hud.appendChild(panel);
-  const closePanel = () => { panel.hidden = true; panel.textContent = ""; };
-  function openPanel(title, build) { panel.textContent = ""; panel.hidden = false; const h = el("h3", null, title); panel.appendChild(h); build(panel); const x = el("button", "o3-btn ghost", "Close"); x.onclick = closePanel; panel.appendChild(x); }
+  const touch = matchMedia("(pointer:coarse)").matches;
+  const help = el("div", "o3-help", touch ? "Joystick to walk · drag to look · ? for help" : "WASD / arrows to walk · drag to look · ? for help"); hud.appendChild(help);
+  // every overlay: X (top right), Close button, Escape key, or click/tap outside closes it
+  const backdrop = el("div", "o3-backdrop"); backdrop.hidden = true; hud.appendChild(backdrop);
+  const panel = el("div", "o3-panel"); panel.hidden = true; panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true"); hud.appendChild(panel);
+  let onClose = null;
+  const closePanel = () => { panel.hidden = true; backdrop.hidden = true; panel.textContent = ""; const f = onClose; onClose = null; f?.(); };
+  backdrop.addEventListener("pointerdown", (e) => { e.preventDefault(); closePanel(); });
+  function openPanel(title, build, opt = {}) {
+    panel.textContent = ""; panel.className = "o3-panel" + (opt.wide ? " wide" : ""); panel.hidden = false; backdrop.hidden = false; onClose = opt.onClose || null;
+    const x = el("button", "o3-x", "×"); x.setAttribute("aria-label", "Close"); x.title = "Close (Esc)"; x.onclick = closePanel; panel.appendChild(x);
+    panel.setAttribute("aria-label", title); panel.appendChild(el("h3", null, title)); build(panel);
+    const c = el("button", "o3-btn ghost", opt.closeText || "Close"); c.onclick = closePanel; panel.appendChild(c);
+    setTimeout(() => x.focus({ preventScroll: true }), 0);
+  }
+  // how to move: first-visit overlay (remembered), reopen with "?"
+  const HELP_KEY = "desks.o3.howto.v1";
+  function openHelp() { openPanel("How to get around", (p) => {
+    const ul = el("ul", "o3-howto");
+    (touch ? ["🕹 Walk: drag the round joystick, bottom left", "👆 Look around: drag anywhere on the screen", "🖼 Tap a painting or photo to see it up close", "Buttons for things you can do appear bottom right"]
+      : ["⌨️ Walk: W / S or ↑ / ↓ to go forward and back, A / D to step sideways", "↻ Turn: ← / → (or Q / E), or drag with the mouse to look around", "⇧ Hold Shift to walk faster", "🖼 Click a painting or photo to see it up close", "Buttons for things you can do appear bottom right · Esc closes any window"])
+      .forEach((t) => ul.appendChild(el("li", null, t)));
+    p.appendChild(ul);
+  }, { closeText: "Got it", onClose: () => { try { localStorage.setItem(HELP_KEY, "1"); } catch {} } }); }
+  const helpBtn = el("button", "o3-btn ghost o3-q", "?"); helpBtn.setAttribute("aria-label", "How to move"); helpBtn.title = "How to move"; helpBtn.onclick = openHelp; tr.prepend(helpBtn);
   let myLock = myLocked, myNotes = notes;
   function lockBtn() { const b = el("button", "o3-btn", myLock ? "🔓 Unlock my door" : "🔒 Lock my door");
     b.onclick = async () => { b.disabled = true; const ok = await api.setLocked?.(!myLock); b.disabled = false; if (ok !== false) { myLock = !myLock; updateActions(true); toast3(myLock ? "Door locked. Visitors can't come in." : "Door unlocked. Visitors welcome!"); } }; return b; }
@@ -327,12 +355,29 @@ export function startOffice(root, opts) {
     if (!notices.length) p.appendChild(el("p", null, "No notices right now."));
     notices.forEach((n) => { const r = el("div", "o3-note"); r.appendChild(el("b", null, (n.pinned ? "📌 " : "") + n.title)); r.appendChild(el("div", null, n.body)); r.appendChild(el("div", "o3-small", new Date(n.created_at).toLocaleDateString())); p.appendChild(r); });
   }) }); }
-  function artBtn(a) { return Object.assign(el("button", "o3-btn ghost", `🖼 Look closer: ${a.title}`), { onclick: () => openArt(a) }); }
-  function openArt(a) { openPanel(a.title, (p) => {
-    const im = el("img", "o3-art"); im.src = a.static.src; im.alt = a.title; p.appendChild(im);
-    p.appendChild(el("p", "o3-credit", "by " + a.artist)); p.appendChild(el("p", null, a.static.description));
-    if (a.static.find?.length) p.appendChild(el("p", "o3-find", "Things to find: " + a.static.find.join(", ") + "."));
+  function openArt(m) { const a = m.a; openPanel(a.title, (p) => {
+    const im = el("img", "o3-art"); im.src = m.url || a.static?.thumb || ""; im.alt = a.title; p.appendChild(im);
+    p.appendChild(el("p", "o3-credit", "by " + a.artist));
+    if (a.static) { p.appendChild(el("p", null, a.static.description));
+      if (a.static.find?.length) p.appendChild(el("p", "o3-find", "Things to find: " + a.static.find.join(" · "))); }
   }); }
+  function openPhoto(f) { openPanel("Photo", (p) => { const im = el("img", "o3-art"); im.src = f.url; im.alt = "Desk photo"; p.appendChild(im); }); }
+  function artList() { openPanel("The Gallery", (p) => {
+    p.appendChild(el("p", "o3-small", "Art by Moth's Design Studio. Pick a piece to look closer."));
+    const l = el("div", "o3-artlist");
+    artMeshes.forEach((m) => { const b = el("button", "o3-artitem"); const t = el("img"); t.src = m.a.static?.thumb || m.url || ""; t.alt = "";
+      b.append(t, el("span", null, m.a.title)); b.onclick = () => openArt(m); l.appendChild(b); });
+    p.appendChild(l);
+  }); }
+  // nearest piece in view gets its own button; everything else is one tap away in the list
+  const nearBtn = el("button", "o3-btn ghost"); let nearArt = null; nearBtn.onclick = () => nearArt && openArt(nearArt);
+  const listBtn = Object.assign(el("button", "o3-btn ghost", `🖼 All art (${artMeshes.length})`), { onclick: artList });
+  const fwd = new THREE.Vector3(), tmpV = new THREE.Vector3();
+  function updateNear() {
+    if (curZone !== "gallery") return; cam.getWorldDirection(fwd); let best = null, bd = 1e9;
+    artMeshes.forEach((m) => { tmpV.subVectors(m.wp, cam.position); const d = tmpV.length(); if (d < 7.5 && tmpV.normalize().dot(fwd) > 0.8 && d < bd) { bd = d; best = m; } });
+    if (best !== nearArt) { nearArt = best; nearBtn.textContent = best ? `🔍 Look closer: ${best.a.title}` : ""; nearBtn.hidden = !best; }
+  }
   const toastEl = el("div", "o3-toast"); hud.appendChild(toastEl);
   function toast3(m) { toastEl.textContent = m; toastEl.classList.add("show"); clearTimeout(toastEl._h); toastEl._h = setTimeout(() => toastEl.classList.remove("show"), 3000); }
   let curZone = null;
@@ -340,7 +385,7 @@ export function startOffice(root, opts) {
     const z = zoneAt(pos.x, pos.z); if (z === curZone && !force) return; curZone = z; actions.textContent = "";
     if (z === "own") { where.textContent = "Your cubicle"; actions.append(lockBtn(), notesBtn()); }
     else if (z === "hall") { where.textContent = "Hallway"; }
-    else if (z === "gallery") { where.textContent = "The Gallery"; actions.append(noticesBtn(), ...artMeshes.filter((m) => m.a.static).map((m) => artBtn(m.a))); }
+    else if (z === "gallery") { where.textContent = "The Gallery"; nearArt = undefined; actions.append(nearBtn, listBtn, noticesBtn()); updateNear(); }
     else if (z?.startsWith("room:")) { const p = floor.find((x) => "room:" + x.user_id === z); where.textContent = `${p.nickname || p.display_name}'s cubicle`; actions.append(leaveNoteBtn(p)); loadPhotos(rooms.find((r) => r.owner === p)); }
     // door state for own door mesh
     ownDoor.children[3] && (ownDoor.children[3].rotation.y = myLock ? 0 : 1.35);
@@ -353,15 +398,23 @@ export function startOffice(root, opts) {
   if (opts.start) { pos.x = opts.start.x; pos.z = opts.start.z; yaw = opts.start.yaw ?? 0; pitch = opts.start.pitch ?? -0.05; }
   // own room faces desk at z=ROOM; start looking at the desk
   if (!opts.start) yaw = Math.PI;
-  const keys = {}; const kd = (e) => { if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return; keys[e.key.toLowerCase()] = true; if (e.key.startsWith("Arrow")) e.preventDefault(); };
+  const keys = {}; const kd = (e) => { if (e.key === "Escape" && !panel.hidden) { closePanel(); e.preventDefault(); return; } if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return; keys[e.key.toLowerCase()] = true; if (e.key.startsWith("Arrow")) e.preventDefault(); };
   const ku = (e) => (keys[e.key.toLowerCase()] = false);
   addEventListener("keydown", kd); addEventListener("keyup", ku);
   const cv = renderer.domElement; cv.style.touchAction = "none";
   let drag = null;
-  cv.addEventListener("pointerdown", (e) => { drag = { id: e.pointerId, x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointerdown", (e) => { drag = { id: e.pointerId, x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY }; cv.setPointerCapture(e.pointerId); });
   cv.addEventListener("pointermove", (e) => { if (!drag || drag.id !== e.pointerId) return; const s = e.pointerType === "touch" ? 0.006 : 0.004;
     yaw -= (e.clientX - drag.x) * s; pitch = Math.max(-1.2, Math.min(1.2, pitch - (e.clientY - drag.y) * s)); drag.x = e.clientX; drag.y = e.clientY; });
-  const endDrag = (e) => { if (drag && drag.id === e.pointerId) drag = null; };
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  const endDrag = (e) => { if (!drag || drag.id !== e.pointerId) return;
+    const moved = Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0); drag = null;
+    if (e.type !== "pointerup" || moved > 6) return; // a tap/click (not a drag) on a painting or photo opens it
+    const r = cv.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, cam); ray.far = 8;
+    const photos = rooms.flatMap((rm) => (rm.frames || []).filter((f) => f.url)); const targets = [...artMeshes.map((m) => m.pic), ...photos.map((f) => f.pic)];
+    const hit = ray.intersectObjects(targets, false)[0]; if (!hit) return;
+    const m = artMeshes.find((x) => x.pic === hit.object); if (m) return openArt(m); const f = photos.find((x) => x.pic === hit.object); if (f) openPhoto(f);
+  };
   cv.addEventListener("pointerup", endDrag); cv.addEventListener("pointercancel", endDrag);
   // joystick
   const joy = el("div", "o3-joy"); const knob = el("div", "o3-knob"); joy.appendChild(knob); hud.appendChild(joy);
@@ -391,13 +444,17 @@ export function startOffice(root, opts) {
     }
     pos.y = EYE + ((f || s) ? Math.sin(now / 140) * 0.02 : 0);
     cam.position.copy(pos); cam.rotation.set(pitch, yaw, 0);
+    if (now - (tick.n || 0) > 200) { tick.n = now; updateNear(); }
     renderer.render(scene, cam);
   }
   updateActions(true); raf = requestAnimationFrame(tick);
+  let seen = false; try { seen = !!localStorage.getItem(HELP_KEY); } catch {}
+  if (!seen && !opts.demo) openHelp();
   return {
     setOnline: renderOnline,
+    openHelp, openArtAt(i) { artMeshes[i] && openArt(artMeshes[i]); }, artList,
     teleport(x, z, y, p = -0.05) { pos.x = x; pos.z = z; yaw = y; pitch = p; updateActions(true); },
-    layout: { L, gz0, gz1, hx },
+    layout: { L, gz0, gz1, hx, gx },
     destroy() { alive = false; cancelAnimationFrame(raf); ro.disconnect(); removeEventListener("keydown", kd); removeEventListener("keyup", ku); renderer.dispose(); root.innerHTML = ""; },
   };
 }

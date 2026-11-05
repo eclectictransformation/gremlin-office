@@ -6,10 +6,11 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#3A4A33">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Desks">
+<meta name="application-name" content="Desks">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="stylesheet" href="style.css">
 <script src="config.js"></script>
@@ -19,11 +20,22 @@
   <a href="#/desk" class="brand"><span class="lamp">💡</span> <span id="appName"></span></a>
   <nav id="nav" hidden>
     <a href="#/desk">My cubicle</a><a href="#/office">3D office</a><a href="#/floor">Office floor</a><a href="#/ticket">New ticket</a><a href="#/tickets">My tickets</a>
-    <a href="#/security">Security</a><a href="#/admin" id="navAdmin" hidden>Admin</a><button id="logout" class="link">Log out</button>
+    <a href="#/security">Security</a><a href="#/admin" id="navAdmin" hidden>Admin</a><a href="#" id="navInstall" hidden>📲 Add to Home Screen</a><button id="logout" class="link">Log out</button>
   </nav>
 </header>
 <main id="app"><p class="muted center">Opening the office…</p></main>
-<div id="install" hidden><button id="installBtn" hidden>📲 Install Desks</button><span id="iosHint" hidden>Install: tap Share → Add to Home Screen</span><button id="installX" class="link" aria-label="Dismiss">×</button></div>
+<div id="install" hidden role="region" aria-label="Add Desks to your Home Screen">
+  <img src="icons/icon-192.png" alt="" width="48" height="48">
+  <div class="inst-text"><b>Get Desks on your Home Screen</b><span>Open it with one tap, like an app.</span></div>
+  <button id="installBtn" class="inst-big">📲 Add Desks to Home Screen</button>
+  <button id="installX" class="inst-later">Not now</button>
+</div>
+<div id="instGuide" hidden role="dialog" aria-modal="true" aria-labelledby="instGuideTitle"><div class="ig-card">
+  <button id="igX" class="ig-x" aria-label="Close">×</button>
+  <h2 id="instGuideTitle">Add Desks to your Home Screen</h2>
+  <div id="igBody"></div>
+  <button id="igDone" class="inst-big">OK, got it</button>
+</div></div>
 <div id="toast" role="status"></div>
 <script src="app.js"></script>
 </body></html>
