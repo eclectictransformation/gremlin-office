@@ -312,6 +312,13 @@ screens.office = async () => {
   if (view === "gallery") office3d.teleport(1.2, Lh.gz0 - 2.2, 0.35, -0.02);
   if (view === "art") office3d.teleport(-Lh.gx + 2.7, Lh.gz0 - 2.8, Math.PI / 2, 0); // close-up of a landscape piece (frame 4)
   if (view === "gallery2") office3d.teleport(-6.5, Lh.gz1 + 1.4, -2.3, -0.02);
+  if (view === "ceiling") office3d.teleport(0, 2.6, Math.PI, 1.4); // own cubicle, looking up at the ceiling oddities
+  if (view === "portal") office3d.teleport(-Lh.gx + 2.6, (Lh.gz0 + Lh.gz1) / 2 - 1.4, Math.PI / 2 + 0.2, 0.02); // notice board + "What's this?" portal
+  if (view === "cathouse") office3d.enterCatHouse();
+  if (view === "ladder") office3d.catTeleport(2.5, -5.2, 0, 0.42); // facing the north-wall ladder
+  if (view === "catwalk") office3d.catTeleport(2.5, 6.6, 0.12, -0.62, 13); // up on the catwalk, looking over the hub and drop hatch
+  if (view === "cathousewide") office3d.catTeleport(6.6, 6.6, Math.PI / 4, 0.32); // corner view of the big platforms
+  if (view === "cathousetop") office3d.catTeleport(0.2, 0.9, 0.15, -0.05, 10.95); // standing on the top perch
   if (DEMO) window.__o3 = office3d; // screenshot helper (demo mode is localhost-only)
 };
 

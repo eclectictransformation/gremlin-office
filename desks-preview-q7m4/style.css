@@ -99,3 +99,14 @@ a.tlist{display:block;color:inherit;text-decoration:none}a.tlist.closed{opacity:
 @media (pointer:coarse){.o3-x{width:48px;height:48px;font-size:1.9rem}.o3-panel{max-height:76vh;width:94vw}.o3-actions .o3-btn{padding:.55rem .8rem;font-size:.9rem}}
 .o3-hud [hidden]{display:none!important}
 .o3-backdrop{z-index:30}.o3-panel{z-index:31}
+/* jump button (touch), portal prompt, portal warp overlay */
+.o3-jump{position:absolute;right:1.2rem;bottom:1.4rem;width:84px;height:84px;border-radius:50%;border:2px solid var(--ink);background:rgba(241,237,226,.85);color:var(--ink);font-size:2.2rem;font-weight:700;display:none;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:2px 2px 0 var(--ink)}
+.o3-jump:active{background:var(--sage)}
+.o3-portalbtn{background:#5b2db8;color:#fff}
+.o3-warp{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.0) 0,rgba(140,90,255,.55) 35%,rgba(29,11,68,.95) 75%);z-index:20}
+.o3-warp.on{animation:o3spin 1.6s linear}
+@keyframes o3spin{from{filter:hue-rotate(0)}to{filter:hue-rotate(160deg)}}
+@media (pointer:coarse){.o3-jump{display:block}.o3-actions{bottom:7.2rem}}
+/* Cat House bounce / landing readout */
+.o3-bounce{position:absolute;left:50%;top:7rem;transform:translateX(-50%);background:rgba(59,31,115,.92);color:#fff;border:2px solid #ffd43b;border-radius:12px;padding:.45rem .9rem;font-weight:700;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;max-width:92vw}
+.o3-bounce.show{opacity:1}.o3-bbest{font-weight:500;font-size:.85rem;color:#ffe58a}.o3-bbest:empty{display:none}

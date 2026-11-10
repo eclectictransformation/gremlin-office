@@ -71,7 +71,7 @@ export function startOffice(root, opts) {
   root.appendChild(renderer.domElement);
   const scene = new THREE.Scene(); scene.background = new THREE.Color("#dcd6c6"); scene.fog = new THREE.Fog("#dcd6c6", 18, 45);
   const cam = new THREE.PerspectiveCamera(70, 1, 0.1, 50); cam.rotation.order = "YXZ";
-  scene.add(new THREE.HemisphereLight("#fff6e6", "#7d8a6e", 1.25));
+  const hemi = new THREE.HemisphereLight("#fff6e6", "#7d8a6e", 1.25); scene.add(hemi);
   const sun = new THREE.DirectionalLight("#fff1d6", 1.1); sun.position.set(6, 10, 4); scene.add(sun);
   scene.add(new THREE.AmbientLight("#ffffff", 0.25));
 
@@ -288,6 +288,208 @@ export function startOffice(root, opts) {
   // welcome sign over the hallway entrance (gallery side)
   plane(plate("The Gallery", "Art · Notices · Good company", { w: 768, h: 180 }), 2.4, 0.56, 0, 2.6, gz0 - 0.08, Math.PI);
 
+  // ---------- ceiling oddities (look up!) — own cubicle + hallway, procedural only ----------
+  const ceilFx = { fan: null };
+  {
+    // upside-down tiny desk + chair, legs glued to the ceiling
+    const ud = new THREE.Group(); ud.position.set(-1.15, H - 0.001, 2.3); ud.rotation.set(Math.PI, 0.5, 0); ud.scale.setScalar(0.42); scene.add(ud);
+    box(0, 0.74, 0, 1.6, 0.06, 0.8, mat(PAL.oak, { roughness: 0.6 }), ud);
+    [[-0.72, -0.32], [0.72, -0.32], [-0.72, 0.32], [0.72, 0.32]].forEach(([x, z]) => box(x, 0.36, z, 0.06, 0.72, 0.06, mat(PAL.wood), ud));
+    box(0.3, 0.92, -0.1, 0.5, 0.3, 0.03, mat("#2b2f2a"), ud); box(-0.4, 0.83, 0.1, 0.12, 0.12, 0.12, mat(PAL.clay), ud);
+    box(0, 0.46, 0.85, 0.5, 0.07, 0.5, mat(PAL.forest), ud); box(0, 0.78, 1.08, 0.5, 0.55, 0.06, mat(PAL.forest), ud); box(0, 0.22, 0.85, 0.06, 0.44, 0.06, mat(PAL.ink), ud);
+    // a striped sock stuck to a ceiling tile
+    const sockT = canvasTex(64, 64, (c, w, h) => { for (let i = 0; i < 8; i++) { c.fillStyle = i % 2 ? "#e8573f" : "#f4efe2"; c.fillRect(0, i * 8, w, 8); } });
+    const sock = new THREE.Group(); sock.position.set(1.25, H - 0.02, 3.1); sock.rotation.y = -0.6; scene.add(sock);
+    const sm = new THREE.MeshStandardMaterial({ map: sockT, roughness: 1 });
+    box(0, 0, 0, 0.13, 0.025, 0.42, sm, sock); box(0.08, 0, 0.24, 0.28, 0.025, 0.13, sm, sock); box(0.2, -0.005, 0.24, 0.07, 0.03, 0.12, mat("#e8573f"), sock);
+    // "you looked up!" sticky note
+    const sticky = plane(canvasTex(256, 256, (c, w, h) => { c.fillStyle = "#f8e58c"; c.fillRect(0, 0, w, h); c.fillStyle = PAL.ink; c.textAlign = "center";
+      c.font = "bold 40px 'Comic Sans MS','Marker Felt',system-ui"; c.fillText("you", w / 2, 80); c.fillText("looked", w / 2, 128); c.fillText("up!", w / 2, 176); c.font = "38px serif"; c.fillText("👀", w / 2, 228); }),
+      0.32, 0.32, 1.0, H - 0.006, 2.0, 0);
+    sticky.rotation.set(Math.PI / 2, 0, Math.PI + 0.3); // reads upright when you look up from your chair
+    // ceiling fan with a rubber duck riding one blade
+    const fan = new THREE.Group(); fan.position.set(0.2, H, 3.05); scene.add(fan);
+    const cyl = (r, h, m, seg = 10) => new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), m);
+    const rod = cyl(0.025, 0.1, mat(PAL.ink)); rod.position.y = -0.05; fan.add(rod);
+    const hub = cyl(0.1, 0.08, mat("#c9b27a", { metalness: 0.5, roughness: 0.4 })); hub.position.y = -0.12; fan.add(hub);
+    const blades = new THREE.Group(); blades.position.y = -0.13; fan.add(blades);
+    for (let i = 0; i < 4; i++) { const b = new THREE.Group(); b.rotation.y = i * Math.PI / 2; blades.add(b); box(0.32, 0, 0, 0.5, 0.015, 0.12, mat(PAL.oak), b); }
+    const duck = new THREE.Group(); duck.position.set(0.48, 0.05, 0); blades.add(duck);
+    const sph = (r, m) => new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), m);
+    const yel = mat("#ffd93b", { roughness: 0.5 });
+    const body = sph(0.07, yel); body.scale.set(1.25, 0.8, 1); body.position.y = 0.04; duck.add(body);
+    const head = sph(0.045, yel); head.position.set(0.06, 0.11, 0); duck.add(head);
+    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.05, 6), mat("#f28c28")); beak.rotation.z = -Math.PI / 2; beak.position.set(0.11, 0.105, 0); duck.add(beak);
+    duck.rotation.y = Math.PI / 2; // duck faces the way the blade travels
+    ceilFx.fan = blades;
+    // gremlin footprints walking across the ceiling, out the door and down the hall
+    const footT = canvasTex(128, 128, (c, w, h) => { c.fillStyle = "#4f8a3c"; c.beginPath(); c.ellipse(64, 80, 26, 34, 0, 0, 7); c.fill();
+      [[34, 34], [64, 22], [94, 34]].forEach(([x, y]) => { c.beginPath(); c.ellipse(x, y, 11, 15, (x - 64) / 90, 0, 7); c.fill(); }); });
+    const footM = new THREE.MeshStandardMaterial({ map: footT, transparent: true, alphaTest: 0.3, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2 });
+    const steps = [];
+    for (let i = 0; i < 9; i++) steps.push([1.6 - i * 0.2, 3.7 - i * 0.42]); // cubicle, toward the door
+    for (let i = 0; i < 12; i++) steps.push([0.0 + 0.55, -0.2 - i * 0.45]); // hallway
+    steps.forEach(([x, z], i) => { const f = new THREE.Mesh(planeGeo, footM); f.rotation.set(Math.PI / 2, 0, 0); f.scale.set(0.14, 0.16, 1);
+      const side = i % 2 ? 0.09 : -0.09; f.position.set(x + side, H - 0.004, z); scene.add(f); });
+  }
+
+  // ---------- "What's this?" portal pinned beside the notice board ----------
+  const swirlTex = canvasTex(256, 256, (c, w, h) => {
+    const g = c.createRadialGradient(128, 128, 4, 128, 128, 128); g.addColorStop(0, "#ffffff"); g.addColorStop(0.25, "#c8a6ff"); g.addColorStop(0.7, "#5b2db8"); g.addColorStop(1, "#1d0b44");
+    c.fillStyle = g; c.beginPath(); c.arc(128, 128, 126, 0, 7); c.fill();
+    c.lineWidth = 7; c.lineCap = "round";
+    for (let arm = 0; arm < 4; arm++) { c.strokeStyle = arm % 2 ? "rgba(140,255,214,.85)" : "rgba(255,255,255,.8)"; c.beginPath();
+      for (let t = 0; t < 1; t += 0.02) { const a = arm * Math.PI / 2 + t * 7, r = 8 + t * 115; const x = 128 + Math.cos(a) * r, y = 128 + Math.sin(a) * r; t ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke(); }
+  });
+  const glowTex = canvasTex(128, 128, (c, w, h) => { const g = c.createRadialGradient(64, 64, 20, 64, 64, 64); g.addColorStop(0, "rgba(190,140,255,.9)"); g.addColorStop(1, "rgba(190,140,255,0)"); c.fillStyle = g; c.fillRect(0, 0, w, h); });
+  function makePortal(parent, x, y, z, ry, r, label) {
+    const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; parent.add(g);
+    const glow = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); glow.scale.set(r * 3.2, r * 3.2, 1); glow.position.z = -0.005; g.add(glow);
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(r, 40), new THREE.MeshBasicMaterial({ map: swirlTex })); disc.position.z = 0.01; g.add(disc);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(r, r * 0.09, 8, 40), mat("#b48cff", { emissive: "#8f5cff", emissiveIntensity: 1.1 })); ring.position.z = 0.015; g.add(ring);
+    if (label) plane(plate(label, null, { w: 512, h: 150, bg: "#3b1f73", fg: "#ffffff", accent: "#8cffd6" }), r * 2, r * 0.58, 0, r + 0.32, 0.01, 0, g);
+    const wp = new THREE.Vector3(); g.updateWorldMatrix(true, false); g.getWorldPosition(wp);
+    return { g, disc, glow, ring, wp, t: Math.random() * 6 };
+  }
+  const nbPortal = makePortal(nb, 1.95, -0.1, 0.05, 0, 0.5, "What's this?");
+  const portals = [nbPortal];
+
+  // ---------- The Cat House: climbing room for humans & gremlins (client-side only) ----------
+  const CAT = { cx: 200, cz: 0, half: 8, h: 15, cw: 13 }; CAT.x0 = CAT.cx - CAT.half; CAT.x1 = CAT.cx + CAT.half; CAT.z0 = CAT.cz - CAT.half; CAT.z1 = CAT.cz + CAT.half;
+  const cat = new THREE.Group(); scene.add(cat);
+  const solids = []; // {x0,x1,z0,z1,y0,y1,name,bounce?,perch?}
+  const solid = (x, z, w, d, y0, y1, m, o = {}) => { const s = { x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2, y0, y1, ...o }; solids.push(s); if (m) s.mesh = box(x, (y0 + y1) / 2, z, w, y1 - y0, d, m, cat); return s; };
+  const ladders = []; // climb zones in front of each ladder
+  const inst = { rung: [], post: [] }; // instanced (1 draw call each)
+  const rimM = mat("#fffbe6", { emissive: "#fff3bf", emissiveIntensity: 0.9 });
+  const rim = (x, z, w, d, top) => box(x, top - 0.06, z, w + 0.14, 0.1, d + 0.14, rimM, cat); // bright edge trim
+  {
+    const { cx, cz, half, h: CH, cw: CW } = CAT;
+    const stripes = canvasTex(256, 256, (c, w, h) => { const cols = ["#f9dbe6", "#d9eef7", "#fcf0c6", "#e1f3e2", "#e8def8"]; cols.forEach((col, i) => { c.fillStyle = col; c.fillRect(i * w / 5, 0, w / 5, h); });
+      c.fillStyle = "rgba(90,60,40,.12)"; for (let i = 0; i < 6; i++) { const x = 30 + (i * 83) % 220, y = 30 + (i * 57) % 200; c.beginPath(); c.arc(x, y, 12, 0, 7); c.fill(); [[-14, -14], [0, -20], [14, -14]].forEach(([a, b]) => { c.beginPath(); c.arc(x + a, y + b, 5, 0, 7); c.fill(); }); } });
+    stripes.wrapS = stripes.wrapT = THREE.RepeatWrapping; stripes.repeat.set(3, 2.8);
+    const wallCat = new THREE.MeshStandardMaterial({ map: stripes, roughness: 0.95 });
+    box(cx, CH / 2, CAT.z0 - 0.1, 2 * half + 0.4, CH, 0.2, wallCat, cat); box(cx, CH / 2, CAT.z1 + 0.1, 2 * half + 0.4, CH, 0.2, wallCat, cat);
+    box(CAT.x0 - 0.1, CH / 2, cz, 0.2, CH, 2 * half, wallCat, cat); box(CAT.x1 + 0.1, CH / 2, cz, 0.2, CH, 2 * half, wallCat, cat);
+    // bouncy trampoline-carpet floor
+    const carpet = canvasTex(128, 128, (c, w, h) => { c.fillStyle = "#7fb7a4"; c.fillRect(0, 0, w, h); c.fillStyle = "#94c9b6"; for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { c.beginPath(); c.arc(16 + i * 32 + (j % 2) * 16, 16 + j * 32, 7, 0, 7); c.fill(); } });
+    carpet.wrapS = carpet.wrapT = THREE.RepeatWrapping; carpet.repeat.set(8, 8);
+    const fl = new THREE.Mesh(planeGeo, new THREE.MeshStandardMaterial({ map: carpet, roughness: 1 })); fl.rotation.x = -Math.PI / 2; fl.scale.set(2 * half, 2 * half, 1); fl.position.set(cx, 0, cz); cat.add(fl);
+    const cl = new THREE.Mesh(planeGeo, mat("#fff4e0", { emissive: "#ffeccc", emissiveIntensity: 0.5 })); cl.rotation.x = Math.PI / 2; cl.scale.set(2 * half, 2 * half, 1); cl.position.set(cx, CH, cz); cat.add(cl);
+    for (const [x, z] of [[-5.5, -5.5], [5.5, -5.5], [-5.5, 5.5], [5.5, 5.5], [0, 0]]) box(cx + x, CH - 0.03, cz + z, 2, 0.05, 2, mat("#fff7e0", { emissive: "#fff2cc", emissiveIntensity: 1.3 }), cat);
+    const sisal = canvasTex(64, 64, (c, w, h) => { for (let i = 0; i < 16; i++) { c.fillStyle = i % 2 ? "#c7a46b" : "#b38e55"; c.fillRect(0, i * 4, w, 4); } }); sisal.wrapS = sisal.wrapT = THREE.RepeatWrapping;
+    const postM = (len) => { const t = sisal.clone(); t.needsUpdate = true; t.repeat.set(2, len * 3); return new THREE.MeshStandardMaterial({ map: t, roughness: 1 }); };
+    const post = (x, z, r, y0, y1, name) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, y1 - y0, 10), postM(y1 - y0)); m.position.set(x, (y0 + y1) / 2, z); cat.add(m); solid(x, z, r * 1.7, r * 1.7, y0, y1, null, { name }); };
+    // central carpeted tower + top perch
+    post(cx, cz, 0.7, 0, 10.8, "the tower");
+    const PERCH = 10.95;
+    solid(cx, cz, 2.8, 2.8, 10.8, PERCH, mat("#e03131", { emissive: "#e03131", emissiveIntensity: 0.15 }), { perch: true, name: "The Crown Perch" }); rim(cx, cz, 2.8, 2.8, PERCH);
+    box(cx, PERCH + 0.004, cz, 2.5, 0.01, 2.5, mat("#f39a8e"), cat);
+    // spiral of BIG platforms (2.45 m square, ~1.5x the old area), deep colours + bright rim + number
+    const pcols = ["#d6336c", "#1c7ed6", "#f08c00", "#2f9e44", "#7048e8", "#e8590c"];
+    const NP = 12, PR = 3.4, PS = 2.45;
+    for (let i = 0; i < NP; i++) {
+      const a = i * 0.9, x = cx + Math.sin(a) * PR, z = cz + Math.cos(a) * PR, top = 0.8 + i * 0.85, col = pcols[i % pcols.length];
+      solid(x, z, PS, PS, top - 0.22, top, mat(col, { emissive: col, emissiveIntensity: 0.18 }), { name: `Platform ${i + 1}` }); rim(x, z, PS, PS, top);
+      const num = plane(canvasTex(128, 128, (c, w, h) => { c.fillStyle = "rgba(255,255,255,.92)"; c.beginPath(); c.arc(64, 64, 58, 0, 7); c.fill(); c.fillStyle = col; c.font = "bold 72px system-ui"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(String(i + 1), 64, 68); }),
+        0.7, 0.7, x, top + 0.006, z, 0, cat, { transparent: true }); num.rotation.set(-Math.PI / 2, 0, a);
+      const arm = new THREE.Mesh(boxGeo, mat(PAL.wood)); arm.scale.set(0.18, 0.14, PR - 0.8); arm.position.set(cx + Math.sin(a) * PR / 2, top - 0.32, cz + Math.cos(a) * PR / 2); arm.rotation.y = a; cat.add(arm);
+    }
+    // cubby holes along the west wall (stand on top), one with gremlin eyes
+    const cubbyFace = (eyes) => canvasTex(128, 128, (c, w, h) => { c.fillStyle = "#e9b97a"; c.fillRect(0, 0, w, h); c.fillStyle = "#3a2a1c"; c.beginPath(); c.arc(64, 70, 42, 0, 7); c.fill();
+      if (eyes) { c.fillStyle = "#c6ff6b"; c.beginPath(); c.ellipse(48, 64, 8, 11, 0, 0, 7); c.ellipse(80, 64, 8, 11, 0, 0, 7); c.fill(); c.fillStyle = "#111"; c.fillRect(46, 60, 4, 8); c.fillRect(78, 60, 4, 8); } });
+    [-3.4, -1.1, 1.2, 3.5].forEach((dz, i) => { solid(CAT.x0 + 1.1, cz + dz, 2.2, 2.2, 0, 1.5, mat("#d9a565"), { name: "a cubby top" });
+      plane(cubbyFace(i === 2), 1.8, 1.3, CAT.x0 + 2.21, 0.75, cz + dz, Math.PI / 2, cat); });
+    solid(CAT.x0 + 1.2, cz, 2.4, 6, 4.0, 4.2, mat("#1c7ed6", { emissive: "#1c7ed6", emissiveIntensity: 0.15 }), { name: "the high ledge" }); rim(CAT.x0 + 1.2, cz, 2.4, 6, 4.2);
+    // ramp up the east wall onto a ledge (collision = small steps, visual = smooth slope)
+    const RH = 2.6, rx = CAT.x1 - 1.2;
+    for (let k = 0; k < 10; k++) solid(rx, cz + 5 - (k + 0.5) * 0.5, 2.0, 0.5, 0, RH * (k + 1) / 10, null, { name: "the ramp" });
+    const ramp = new THREE.Mesh(boxGeo, mat("#f6d26b")); const rl = Math.hypot(5, RH); ramp.scale.set(2.0, 0.12, rl); ramp.position.set(rx, RH / 2, cz + 2.5); ramp.rotation.x = Math.atan2(RH, 5); cat.add(ramp);
+    solid(CAT.x1 - 1.2, cz - 2, 2.4, 4, RH - 0.2, RH, mat("#2f9e44", { emissive: "#2f9e44", emissiveIntensity: 0.15 }), { name: "the ramp ledge" }); rim(CAT.x1 - 1.2, cz - 2, 2.4, 4, RH);
+    // bouncy cushions (launch you up)
+    const cushion = (x, z, y, r, col, v) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.05, 0.35, 16), mat(col, { roughness: 0.7 })); m.position.set(x, y + 0.175, z); cat.add(m);
+      return solid(x, z, r * 1.6, r * 1.6, y, y + 0.35, null, { bounce: v, mesh: m, name: "a bouncy cushion" }); };
+    cushion(CAT.x0 + 3.1, cz, 0, 0.75, "#ff6fa8", 12.5);
+    cushion(cx - 4.5, cz - 5.5, 0, 0.7, "#ffb347", 12);
+    cushion(cx + 4.6, cz + 5.6, 0, 0.7, "#9b7bff", 12);
+    cushion(CAT.x0 + 1.2, cz + 2, 4.2, 0.6, "#ff6fa8", 12.5);
+    [[cx - 5.5, cz - 6.4], [cx + 3.6, cz - 6.4]].forEach(([x, z]) => { post(x, z, 0.25, 0, 2.2, "a scratching post"); const b = new THREE.Mesh(new THREE.IcosahedronGeometry(0.35, 1), mat("#ff6fa8", { flatShading: true })); b.position.set(x, 2.5, z); cat.add(b); solid(x, z, 0.6, 0.6, 2.2, 2.75, null, { name: "a scratching-post ball (nice balance!)" }); });
+    // hanging dangly toy (moved clear of the catwalks)
+    const toy = new THREE.Group(); toy.position.set(cx + 5.3, CH, cz + 5.3); cat.add(toy);
+    const str = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 5.6, 4), mat("#f4efe2")); str.position.y = -2.8; toy.add(str);
+    const pom = new THREE.Mesh(new THREE.IcosahedronGeometry(0.32, 1), mat("#ff4f8b", { flatShading: true })); pom.position.y = -5.7; toy.add(pom);
+    ["#8cffd6", "#ffd93b", "#7fc7e8"].forEach((c, i) => { const f = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.6, 5), mat(c)); f.position.set(Math.sin(i * 2.1) * 0.15, -6.15, Math.cos(i * 2.1) * 0.15); f.rotation.set(Math.PI + Math.cos(i * 2.1) * 0.4, 0, -Math.sin(i * 2.1) * 0.4); toy.add(f); });
+    ceilFx.toy = toy;
+    // crown + sign on the perch
+    const crown = new THREE.Group(); crown.position.set(cx, PERCH + 0.75, cz - 0.9); cat.add(crown);
+    const gold = mat("#f5c542", { metalness: 0.6, roughness: 0.3, emissive: "#8a6400", emissiveIntensity: 0.4 });
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.27, 0.22, 10, 1, true), gold); band.material.side = THREE.DoubleSide; crown.add(band);
+    for (let i = 0; i < 5; i++) { const sp = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.24, 5), gold); const a = i * Math.PI * 2 / 5; sp.position.set(Math.sin(a) * 0.28, 0.22, Math.cos(a) * 0.28); crown.add(sp);
+      const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.04), mat(["#ff4f8b", "#7fc7e8", "#8fd19e"][i % 3], { emissive: "#333" })); gem.position.set(Math.sin(a) * 0.3, 0, Math.cos(a) * 0.3); crown.add(gem); }
+    const pillow = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.38, 0.2, 10), mat("#b9a2ea")); pillow.position.set(cx, PERCH + 0.1, cz - 0.9); cat.add(pillow);
+    ceilFx.crown = crown;
+    box(cx + 0.9, PERCH + 0.6, cz - 1.25, 0.06, 1.2, 0.06, mat(PAL.wood), cat);
+    plane(plate("You made it to the top!", "👑 Gremlin royalty", { w: 768, h: 220, bg: "#3b1f73", fg: "#fff", accent: "#f5c542" }), 1.5, 0.43, cx + 0.9, PERCH + 1.35, cz - 1.2, 0, cat);
+    plane(plate("The Cat House", "a climbing room for humans & gremlins", { w: 1024, h: 260, bg: "#e86a5c", fg: "#fff", accent: "#fbe7a1" }), 4.4, 1.12, cx - 4.9, 2.9, CAT.z0 + 0.02, 0, cat);
+    plane(plate("Bouncy floor", "falling never hurts · E or tap the swirl to go back", { w: 900, h: 180, bg: PAL.moss }), 2.4, 0.48, cx + 2.6, 2.6, CAT.z1 - 0.02, Math.PI, cat);
+
+    // ladders: one per wall, floor to ceiling (bright yellow rungs, red rails)
+    const railM = mat("#e03131", { emissive: "#c92a2a", emissiveIntensity: 0.3 });
+    function ladder(x, z, nx, nz) {
+      const W = 0.8, lx = x + nx * 0.12, lz = z + nz * 0.12, alongX = nz !== 0;
+      for (const s of [-1, 1]) box(alongX ? lx + s * W / 2 : lx, CH / 2, alongX ? lz : lz + s * W / 2, 0.09, CH, 0.09, railM, cat);
+      for (let y = 0.35; y < CH; y += 0.4) inst.rung.push([lx, y, lz, alongX ? W : 0.06, 0.06, alongX ? 0.06 : W]);
+      const d = 0.95; // climb zone depth in front of the ladder
+      ladders.push({ x, z, nx, nz, x0: alongX ? x - W / 2 : Math.min(x, x + nx * d), x1: alongX ? x + W / 2 : Math.max(x, x + nx * d), z0: alongX ? Math.min(z, z + nz * d) : z - W / 2, z1: alongX ? Math.max(z, z + nz * d) : z + W / 2 });
+      plane(plate("Ladder ↑", "to the catwalk", { w: 512, h: 160, bg: "#e03131", fg: "#fff", accent: "#ffd43b" }), 1.0, 0.31, alongX ? x + 0.95 : x + nx * 0.03, 2.1, alongX ? z + nz * 0.03 : z + 0.95, nz > 0 ? 0 : nz < 0 ? Math.PI : nx > 0 ? Math.PI / 2 : -Math.PI / 2, cat);
+    }
+    ladder(cx + 2.5, CAT.z0, 0, 1); ladder(cx - 2.5, CAT.z1, 0, -1); ladder(CAT.x0, cz - 6, 1, 0); ladder(CAT.x1, cz - 6, -1, 0);
+
+    // ceiling catwalks: a # grid wall to wall that interlocks over the middle; centre square is open (the drop hatch)
+    const walkM = mat("#4dabf7", { emissive: "#1c7ed6", emissiveIntensity: 0.2 }), WW = 0.9, WT = 0.15;
+    const walk = (xa, xb, za, zb) => { const x = (xa + xb) / 2, z = (za + zb) / 2, w = Math.abs(xb - xa), d = Math.abs(zb - za); solid(x, z, w, d, CW - WT, CW, walkM, { name: "the catwalk" }); rim(x, z, w, d, CW); };
+    const g = 2.5, hw = WW / 2;
+    walk(cx - g - hw, cx - g + hw, CAT.z0, CAT.z1 - 0.9);   // A (south ladder end)
+    walk(cx + g - hw, cx + g + hw, CAT.z0 + 0.9, CAT.z1);   // B (north ladder end)
+    walk(CAT.x0, CAT.x1, cz - g - hw, cz - g + hw);         // C
+    walk(CAT.x0, CAT.x1, cz + g - hw, cz + g + hw);         // D
+    walk(CAT.x0 + 0.9, cx - g, cz - 6 - hw, cz - 6 + hw);   // E (west ladder spur)
+    walk(cx + g, CAT.x1 - 0.9, cz - 6 - hw, cz - 6 + hw);   // F (east ladder spur)
+    // railings on some outer edges only (partly open, so you can step off on purpose)
+    const railTop = mat("#ffd43b", { emissive: "#f59f00", emissiveIntensity: 0.3 });
+    const railing = (xa, xb, za, zb) => { const x = (xa + xb) / 2, z = (za + zb) / 2, w = Math.max(0.06, Math.abs(xb - xa)), d = Math.max(0.06, Math.abs(zb - za)), len = Math.max(w, d);
+      solid(x, z, w, d, CW, CW + 1.0, null, { name: "a railing" }); box(x, CW + 0.95, z, w, 0.06, d, railTop, cat); box(x, CW + 0.5, z, w, 0.04, d, railTop, cat);
+      for (let t = 0; t <= len + 0.01; t += 1.2) inst.post.push([w > d ? xa + Math.min(t, len) * Math.sign(xb - xa) : x, CW + 0.5, w > d ? z : za + Math.min(t, len) * Math.sign(zb - za), 0.06, 1.0, 0.06]); };
+    const o = hw + 0.03, n = 2.95;
+    railing(cx - g - o, cx - g - o, CAT.z0, cz - 6.55); railing(cx - g - o, cx - g - o, cz - 5.45, cz - n); railing(cx - g - o, cx - g - o, cz + n, CAT.z1 - 0.9);
+    railing(cx + g + o, cx + g + o, CAT.z0 + 0.9, cz - 6.55); railing(cx + g + o, cx + g + o, cz - 5.45, cz - n); railing(cx + g + o, cx + g + o, cz + n, CAT.z1);
+    railing(CAT.x0, cx - n, cz - g - o, cz - g - o); railing(cx + n, CAT.x1, cz - g - o, cz - g - o);
+    railing(CAT.x0, cx - n, cz + g + o, cz + g + o); railing(cx + n, CAT.x1, cz + g + o, cz + g + o);
+    // drop-zone markings on the 4 hub edges + a hanging sign over the hatch
+    const hazard = canvasTex(512, 128, (c, w, h) => { for (let i = -2; i < 20; i++) { c.fillStyle = i % 2 ? "#111" : "#ffd43b"; c.beginPath(); c.moveTo(i * 32, 0); c.lineTo(i * 32 + 32, 0); c.lineTo(i * 32, h); c.lineTo(i * 32 - 32, h); c.fill(); }
+      c.fillStyle = "#fff"; c.fillRect(130, 34, 252, 60); c.fillStyle = "#c92a2a"; c.font = "bold 44px system-ui"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("DROP ZONE ↓", 256, 66); });
+    const hzM = new THREE.MeshStandardMaterial({ map: hazard, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2 });
+    [[cx - g, cz, Math.PI / 2], [cx + g, cz, -Math.PI / 2], [cx, cz - g, 0], [cx, cz + g, Math.PI]].forEach(([x, z, r]) => { const m = new THREE.Mesh(planeGeo, hzM); m.scale.set(3.6, 0.85, 1); m.rotation.set(-Math.PI / 2, 0, r); m.position.set(x, CW + 0.006, z); cat.add(m); });
+    const dz = new THREE.Mesh(boxGeo, new THREE.MeshStandardMaterial({ map: plate("↓ DROP ZONE ↓", "falling never hurts", { w: 640, h: 200, bg: "#c92a2a", fg: "#fff", accent: "#ffd43b" }), emissive: "#330000" }));
+    dz.scale.set(1.9, 0.6, 1.9); dz.position.set(cx, CH - 0.55, cz); cat.add(dz);
+    const sus = new THREE.Mesh(boxGeo, mat(PAL.ink)); sus.scale.set(0.03, 0.25, 0.03); sus.position.set(cx, CH - 0.12, cz); cat.add(sus);
+    // instanced rungs + railing posts (2 draw calls total)
+    const tmpM = new THREE.Matrix4(), q0 = new THREE.Quaternion();
+    for (const [key, m] of [["rung", mat("#ffd43b", { emissive: "#f59f00", emissiveIntensity: 0.4 })], ["post", railTop]]) {
+      const list = inst[key], im = new THREE.InstancedMesh(boxGeo, m, list.length);
+      list.forEach(([x, y, z, sx, sy, sz], i) => im.setMatrixAt(i, tmpM.compose(new THREE.Vector3(x, y, z), q0, new THREE.Vector3(sx, sy, sz)))); cat.add(im);
+    }
+    // landing puff (10 shared low-poly bits) + best-landing star
+    const puffM = new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0, depthWrite: false }), puffG = new THREE.IcosahedronGeometry(0.16, 0);
+    const puff = new THREE.Group(); puff.visible = false; cat.add(puff);
+    for (let i = 0; i < 10; i++) { const b = new THREE.Mesh(puffG, puffM); b.userData.a = i * Math.PI / 5; puff.add(b); }
+    ceilFx.puff = { g: puff, m: puffM, t: 9, s: 1 };
+    const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.28), mat("#ffd43b", { emissive: "#ffd43b", emissiveIntensity: 0.9 })); star.visible = false; cat.add(star); ceilFx.star = star;
+  }
+  const catPortal = makePortal(cat, CAT.cx, 1.5, CAT.z1 - 0.05, Math.PI, 0.65, "Back to the office");
+  portals.push(catPortal);
+  const CAT_SPAWN = { x: CAT.cx, z: CAT.z1 - 1.6, yaw: 0 };
+
   // ---------- photos & art textures (signed URLs, loaded lazily) ----------
   const loader = new THREE.TextureLoader(); loader.setCrossOrigin("anonymous");
   const applyTex = (mesh, url) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; mesh.material.map = t; mesh.material.color.set("#fff"); mesh.material.needsUpdate = true; });
@@ -304,7 +506,7 @@ export function startOffice(root, opts) {
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const top = el("div", "o3-top"); hud.appendChild(top);
   const where = el("div", "o3-where", "Your cubicle"); top.appendChild(where);
-  const exit = el("button", "o3-btn", "← Back to my desk"); exit.onclick = () => api.exit?.(); const tr = el("div", "o3-tr"); tr.appendChild(exit); top.appendChild(tr);
+  const exit = el("button", "o3-btn", "← Back to my desk"); exit.onclick = () => (mode === "cathouse" ? enterPortal(catPortal) : api.exit?.()); const tr = el("div", "o3-tr"); tr.appendChild(exit); top.appendChild(tr);
   const onl = el("div", "o3-online"); hud.appendChild(onl);
   function renderOnline(set) {
     onl.textContent = ""; onl.appendChild(el("b", null, `${set.size} online`));
@@ -313,7 +515,7 @@ export function startOffice(root, opts) {
   renderOnline(online);
   const actions = el("div", "o3-actions"); hud.appendChild(actions);
   const touch = matchMedia("(pointer:coarse)").matches;
-  const help = el("div", "o3-help", touch ? "Joystick to walk · drag to look · ? for help" : "WASD / arrows to walk · drag to look · ? for help"); hud.appendChild(help);
+  const help = el("div", "o3-help", touch ? "Joystick to walk · drag to look · ⤒ to jump · ? for help" : "WASD to walk · Q / ← → turn · drag or R / F to look up & down · Space to jump · E for portals · ? for help"); hud.appendChild(help);
   // every overlay: X (top right), Close button, Escape key, or click/tap outside closes it
   const backdrop = el("div", "o3-backdrop"); backdrop.hidden = true; hud.appendChild(backdrop);
   const panel = el("div", "o3-panel"); panel.hidden = true; panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true"); hud.appendChild(panel);
@@ -328,11 +530,11 @@ export function startOffice(root, opts) {
     setTimeout(() => x.focus({ preventScroll: true }), 0);
   }
   // how to move: first-visit overlay (remembered), reopen with "?"
-  const HELP_KEY = "desks.o3.howto.v1";
+  const HELP_KEY = "desks.o3.howto.v3";
   function openHelp() { openPanel("How to get around", (p) => {
     const ul = el("ul", "o3-howto");
-    (touch ? ["🕹 Walk: drag the round joystick, bottom left", "👆 Look around: drag anywhere on the screen", "🖼 Tap a painting or photo to see it up close", "Buttons for things you can do appear bottom right"]
-      : ["⌨️ Walk: W / S or ↑ / ↓ to go forward and back, A / D to step sideways", "↻ Turn: ← / → (or Q / E), or drag with the mouse to look around", "⇧ Hold Shift to walk faster", "🖼 Click a painting or photo to see it up close", "Buttons for things you can do appear bottom right · Esc closes any window"])
+    (touch ? ["🕹 Walk: drag the round joystick, bottom left", "👆 Look around: drag anywhere on the screen (drag down to look up at the ceiling)", "⤒ Jump: the round Jump button, bottom right", "🪜 Ladders (Cat House): walk into one, then push the joystick forward to climb, back to go down; tap Jump to hop off", "🤸 Drop off the catwalk: you bounce on the floor (never hurts) and can steer with the joystick while in the air", "🌀 Swirly portal: tap it, or tap the button that appears when you're close", "🖼 Tap a painting or photo to see it up close", "Buttons for things you can do appear bottom right"]
+      : ["⌨️ Walk: W / S or ↑ / ↓ to go forward and back, A / D to step sideways", "↻ Turn: ← / → (or Q), or drag with the mouse", "⇅ Look up / down: R / F (or Page Up / Page Down), or drag the mouse up and down. Try the ceiling!", "␣ Jump: Space", "🌀 Portal: walk up to it and press E (or click it). E only does portals", "🪜 Ladders (Cat House): walk into one, W / ↑ climbs, S / ↓ goes down, Space hops off", "🤸 Drop off the catwalk: you bounce on the floor (never hurts), steer with WASD in the air and try to land on something", "⇧ Hold Shift to walk faster", "🖼 Click a painting or photo to see it up close", "Buttons for things you can do appear bottom right · Esc closes any window"])
       .forEach((t) => ul.appendChild(el("li", null, t)));
     p.appendChild(ul);
   }, { closeText: "Got it", onClose: () => { try { localStorage.setItem(HELP_KEY, "1"); } catch {} } }); }
@@ -374,9 +576,21 @@ export function startOffice(root, opts) {
   const listBtn = Object.assign(el("button", "o3-btn ghost", `🖼 All art (${artMeshes.length})`), { onclick: artList });
   const fwd = new THREE.Vector3(), tmpV = new THREE.Vector3();
   function updateNear() {
-    if (curZone !== "gallery") return; cam.getWorldDirection(fwd); let best = null, bd = 1e9;
+    updatePortalNear(); if (curZone !== "gallery") return; cam.getWorldDirection(fwd); let best = null, bd = 1e9;
     artMeshes.forEach((m) => { tmpV.subVectors(m.wp, cam.position); const d = tmpV.length(); if (d < 7.5 && tmpV.normalize().dot(fwd) > 0.8 && d < bd) { bd = d; best = m; } });
     if (best !== nearArt) { nearArt = best; nearBtn.textContent = best ? `🔍 Look closer: ${best.a.title}` : ""; nearBtn.hidden = !best; }
+  }
+  // portal prompt (shows when you're close to a swirl) + jump button (touch) + warp overlay
+  const portalBtn = el("button", "o3-btn o3-portalbtn"); portalBtn.hidden = true; let nearPortal = null;
+  portalBtn.onclick = () => nearPortal && enterPortal(nearPortal);
+  const jumpBtn = el("button", "o3-jump", "⤒"); jumpBtn.setAttribute("aria-label", "Jump"); jumpBtn.title = "Jump (Space)"; hud.appendChild(jumpBtn);
+  jumpBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); e.stopPropagation(); jump(); });
+  const warpEl = el("div", "o3-warp"); hud.appendChild(warpEl);
+  const bounceEl = el("div", "o3-bounce"); const bLine = el("div", "o3-bline"), bBest = el("div", "o3-bbest"); bounceEl.append(bLine, bBest); hud.appendChild(bounceEl);
+  function readout(msg) { bLine.textContent = msg; bounceEl.classList.add("show"); clearTimeout(bounceEl._h); bounceEl._h = setTimeout(() => bounceEl.classList.remove("show"), 4500); }
+  function updatePortalNear() {
+    let best = null; for (const pt of portals) { if ((pt === catPortal) !== (mode === "cathouse")) continue; if (Math.hypot(pt.wp.x - pos.x, pt.wp.z - pos.z) < 2.6) best = pt; }
+    if (best !== nearPortal) { nearPortal = best; portalBtn.hidden = !best; portalBtn.textContent = best === catPortal ? "🌀 Back to the office" + (touch ? "" : " (E)") : "🌀 What's this?" + (touch ? "" : " (E)"); }
   }
   const toastEl = el("div", "o3-toast"); hud.appendChild(toastEl);
   function toast3(m) { toastEl.textContent = m; toastEl.classList.add("show"); clearTimeout(toastEl._h); toastEl._h = setTimeout(() => toastEl.classList.remove("show"), 3000); }
@@ -385,12 +599,14 @@ export function startOffice(root, opts) {
     const z = zoneAt(pos.x, pos.z); if (z === curZone && !force) return; curZone = z; actions.textContent = "";
     if (z === "own") { where.textContent = "Your cubicle"; actions.append(lockBtn(), notesBtn()); }
     else if (z === "hall") { where.textContent = "Hallway"; }
-    else if (z === "gallery") { where.textContent = "The Gallery"; nearArt = undefined; actions.append(nearBtn, listBtn, noticesBtn()); updateNear(); }
+    else if (z === "gallery") { where.textContent = "The Gallery"; nearArt = undefined; actions.append(portalBtn, nearBtn, listBtn, noticesBtn()); updateNear(); }
+    else if (z === "cathouse") { where.textContent = "🐾 The Cat House"; actions.append(portalBtn); }
     else if (z?.startsWith("room:")) { const p = floor.find((x) => "room:" + x.user_id === z); where.textContent = `${p.nickname || p.display_name}'s cubicle`; actions.append(leaveNoteBtn(p)); loadPhotos(rooms.find((r) => r.owner === p)); }
+    exit.textContent = z === "cathouse" ? "← Back to the office" : "← Back to my desk";
     // door state for own door mesh
     ownDoor.children[3] && (ownDoor.children[3].rotation.y = myLock ? 0 : 1.35);
   }
-  function zoneAt(x, z) { for (const r of walkable) if (r.room && x >= r.x0 - 0.01 && x <= r.x1 + 0.01 && z >= r.z0 - 0.01 && z <= r.z1 + 0.01) return r.room; return curZone; }
+  function zoneAt(x, z) { if (mode === "cathouse") return "cathouse"; for (const r of walkable) if (r.room && x >= r.x0 - 0.01 && x <= r.x1 + 0.01 && z >= r.z0 - 0.01 && z <= r.z1 + 0.01) return r.room; return curZone; }
   const inside = (x, z) => walkable.some((r) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
 
   // ---------- controls ----------
@@ -398,19 +614,77 @@ export function startOffice(root, opts) {
   if (opts.start) { pos.x = opts.start.x; pos.z = opts.start.z; yaw = opts.start.yaw ?? 0; pitch = opts.start.pitch ?? -0.05; }
   // own room faces desk at z=ROOM; start looking at the desk
   if (!opts.start) yaw = Math.PI;
-  const keys = {}; const kd = (e) => { if (e.key === "Escape" && !panel.hidden) { closePanel(); e.preventDefault(); return; } if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return; keys[e.key.toLowerCase()] = true; if (e.key.startsWith("Arrow")) e.preventDefault(); };
-  const ku = (e) => (keys[e.key.toLowerCase()] = false);
+  const PITCH_MAX = 1.45; // ~83°: straight-ish up at the ceiling / down at your feet, never flips
+  const clampPitch = (v) => Math.max(-PITCH_MAX, Math.min(PITCH_MAX, v));
+  // vertical physics: feet height, gravity, jumping, landing (office floor = 0; Cat House uses solids)
+  const STEP = 0.4, BODY = 1.75, GRAV = 18, JUMP_V = 6.6;
+  let mode = "office", feet = 0, vy = 0, onGround = true, wasTop = false, returnSpot = null, warp = null;
+  let climb = null, fallApex = 0, bounces = 0, floorLandings = 0, best = null, lastLanding = null;
+  // office: lower "ceiling" under the fan and the upside-down desk so a jump never puts your head in them
+  const lowCeil = [{ x: 0.2, z: 3.05, r: 0.85, h: H - 0.32 }, { x: -1.15, z: 2.3, r: 0.8, h: H - 0.55 }];
+  const overlaps = (s, x, z) => x + R > s.x0 && x - R < s.x1 && z + R > s.z0 && z - R < s.z1;
+  function blocked(x, z) {
+    if (mode === "office") return !inside(x, z);
+    if (x < CAT.x0 + R || x > CAT.x1 - R || z < CAT.z0 + R || z > CAT.z1 - R) return true;
+    for (const s of solids) if (overlaps(s, x, z) && feet < s.y1 - STEP && feet + BODY > s.y0) return true;
+    return false;
+  }
+  function groundAt(x, z) {
+    if (mode === "office") return { h: 0, src: null };
+    let h = 0, src = null; for (const s of solids) if (overlaps(s, x, z) && s.y1 <= feet + STEP && s.y1 > h) { h = s.y1; src = s; } return { h, src };
+  }
+  function ceilAt(x, z) {
+    if (mode === "office") { let c = H - 0.06; for (const l of lowCeil) if (Math.hypot(x - l.x, z - l.z) < l.r + R) c = Math.min(c, l.h); return c; }
+    let c = CAT.h - 0.05; for (const s of solids) if (overlaps(s, x, z) && s.y0 >= feet + BODY - 0.05 && s.y0 < c) c = s.y0; return c;
+  }
+  function jump() { if (warp || !panel.hidden) return;
+    if (climb) { const l = climb.l; tmpV.set(pos.x + l.nx * 0.5, 0, pos.z + l.nz * 0.5); climb = null; if (!blocked(tmpV.x, tmpV.z)) { pos.x = tmpV.x; pos.z = tmpV.z; } vy = 4; fallApex = feet; return; }
+    if (onGround) { vy = JUMP_V; onGround = false; } }
+  function ladderAt(x, z) { for (const l of ladders) if (x >= l.x0 && x <= l.x1 && z >= l.z0 && z <= l.z1) return l; return null; }
+  function doPuff(x, y, z, size) { const p = ceilFx.puff; if (!p) return; p.g.position.set(x, y + 0.05, z); p.t = 0; p.s = size; p.g.visible = true; }
+  function landed(src, h) {
+    if (!(fallApex - h > 1.4 || bounces > 0)) { bounces = 0; return; }
+    const name = src?.name || (floorLandings++ ? "the floor (again)" : "the floor");
+    lastLanding = { name, h }; doPuff(pos.x, h, pos.z, 0.7);
+    if (h > 0.05 && (!best || h > best.h)) { best = { name, h }; const st = ceilFx.star; st.visible = true; st.position.set(pos.x, h + 1.1, pos.z); bBest.textContent = `⭐ Best landing: ${name} (${h.toFixed(1)} m up)`; }
+    readout(`${bounces ? "Bounce! " : ""}Landed on: ${name}${h > 0.05 ? ` · ${h.toFixed(1)} m up` : ""}`); bounces = 0;
+  }
+  function enterPortal(pt) {
+    if (warp) return; Object.keys(keys).forEach((k) => (keys[k] = false));
+    warp = { t: 0, phase: 0, pt, toCat: pt !== catPortal, fromYaw: yaw, fromPitch: pitch };
+    // turn to face the swirl as you get pulled in
+    tmpV.subVectors(pt.wp, pos); warp.yaw = Math.atan2(-tmpV.x, -tmpV.z); warp.pitch = Math.atan2(tmpV.y, Math.hypot(tmpV.x, tmpV.z));
+    warp.start = pos.clone(); warpEl.classList.add("on");
+  }
+  function goCat() {
+    returnSpot = { x: pos.x, z: pos.z, yaw, pitch: 0 };
+    mode = "cathouse"; pos.x = CAT_SPAWN.x; pos.z = CAT_SPAWN.z; yaw = CAT_SPAWN.yaw; pitch = 0.05; feet = 0; vy = 0; onGround = true; wasTop = false; climb = null; fallApex = 0; bounces = 0;
+    updateActions(true); toast3("Welcome to The Cat House! Jump with " + (touch ? "the ⤒ button" : "Space") + ". The cushions are bouncy.");
+  }
+  function goOffice() {
+    mode = "office"; climb = null; bounceEl.classList.remove("show"); const r = returnSpot || { x: -gx + 2.4, z: nbPortal.wp.z, yaw: Math.PI / 2, pitch: 0 };
+    pos.x = r.x; pos.z = r.z; yaw = r.yaw; pitch = r.pitch; feet = 0; vy = 0; onGround = true; updateActions(true);
+  }
+  const keys = {}; const kd = (e) => { if (e.key === "Escape" && !panel.hidden) { closePanel(); e.preventDefault(); return; } if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
+    const k = e.key.toLowerCase();
+    if (k === " " || k === "spacebar") { e.preventDefault(); if (!e.repeat) jump(); return; }
+    if (k === "e") { if (nearPortal && panel.hidden) { e.preventDefault(); enterPortal(nearPortal); } return; } // E = portals only
+    keys[k] = true; if (e.key.startsWith("Arrow") || e.key.startsWith("Page")) e.preventDefault(); };
+  const ku = (e) => { const k = e.key.toLowerCase(); if (k === " ") { if (e.target.tagName !== "TEXTAREA" && e.target.tagName !== "INPUT") e.preventDefault(); return; } keys[k] = false; };
   addEventListener("keydown", kd); addEventListener("keyup", ku);
   const cv = renderer.domElement; cv.style.touchAction = "none";
   let drag = null;
   cv.addEventListener("pointerdown", (e) => { drag = { id: e.pointerId, x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY }; cv.setPointerCapture(e.pointerId); });
-  cv.addEventListener("pointermove", (e) => { if (!drag || drag.id !== e.pointerId) return; const s = e.pointerType === "touch" ? 0.006 : 0.004;
-    yaw -= (e.clientX - drag.x) * s; pitch = Math.max(-1.2, Math.min(1.2, pitch - (e.clientY - drag.y) * s)); drag.x = e.clientX; drag.y = e.clientY; });
+  cv.addEventListener("pointermove", (e) => { if (!drag || drag.id !== e.pointerId || warp) return; const s = e.pointerType === "touch" ? 0.006 : 0.004;
+    yaw -= (e.clientX - drag.x) * s; pitch = clampPitch(pitch - (e.clientY - drag.y) * s); drag.x = e.clientX; drag.y = e.clientY; });
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   const endDrag = (e) => { if (!drag || drag.id !== e.pointerId) return;
     const moved = Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0); drag = null;
-    if (e.type !== "pointerup" || moved > 6) return; // a tap/click (not a drag) on a painting or photo opens it
+    if (e.type !== "pointerup" || moved > 6 || warp) return; // a tap/click (not a drag) on a painting, photo or portal opens it
     const r = cv.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, cam); ray.far = 8;
+    const portalHit = ray.intersectObjects(portals.map((p) => p.disc), false)[0];
+    if (portalHit) { const pt = portals.find((p) => p.disc === portalHit.object); if (pt && portalHit.distance < 4.5) return enterPortal(pt); }
+    if (mode !== "office") return;
     const photos = rooms.flatMap((rm) => (rm.frames || []).filter((f) => f.url)); const targets = [...artMeshes.map((m) => m.pic), ...photos.map((f) => f.pic)];
     const hit = ray.intersectObjects(targets, false)[0]; if (!hit) return;
     const m = artMeshes.find((x) => x.pic === hit.object); if (m) return openArt(m); const f = photos.find((x) => x.pic === hit.object); if (f) openPhoto(f);
@@ -428,22 +702,76 @@ export function startOffice(root, opts) {
 
   function resize() { const w = root.clientWidth, h = root.clientHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
   const ro = new ResizeObserver(resize); ro.observe(root); resize();
-  let last = performance.now(), raf = 0, alive = true;
+  const ease = (t) => t * t * (3 - 2 * t);
+  let last = performance.now(), raf = 0, alive = true, roll = 0;
   function tick(now) {
     if (!alive) return; raf = requestAnimationFrame(tick);
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     let f = 0, s = 0;
-    if (keys.w || keys.arrowup) f += 1; if (keys.s || keys.arrowdown) f -= 1; if (keys.a) s -= 1; if (keys.d) s += 1;
-    if (keys.arrowleft || keys.q) yaw += 1.8 * dt; if (keys.arrowright || keys.e) yaw -= 1.8 * dt;
-    f += -jv.y; s += jv.x;
+    if (!warp) {
+      if (keys.w || keys.arrowup) f += 1; if (keys.s || keys.arrowdown) f -= 1; if (keys.a) s -= 1; if (keys.d) s += 1;
+      if (keys.arrowleft || keys.q) yaw += 1.8 * dt; if (keys.arrowright) yaw -= 1.8 * dt;
+      if (keys.r || keys.pageup) pitch = clampPitch(pitch + 1.5 * dt); if (keys.f || keys.pagedown) pitch = clampPitch(pitch - 1.5 * dt);
+      f += -jv.y; s += jv.x;
+    }
+    if (climb) { // on a ladder: forward/back = up/down, no sideways walking
+      feet = Math.max(0, Math.min(CAT.cw, feet + f * 2.4 * dt)); vy = 0; onGround = false; pos.x = climb.px; pos.z = climb.pz; if (f <= 0) climb.armed = true;
+      if (feet >= CAT.cw - 0.001 && f > 0 && climb.armed) { pos.x = climb.tx; pos.z = climb.tz; feet = CAT.cw; climb = null; onGround = true; fallApex = feet; toast3("You're on the catwalk! Walk to the middle and drop off."); }
+      else if (feet <= 0.001 && f < 0) { const l = climb.l; climb = null; onGround = true; feet = 0; pos.x = l.x + l.nx * 0.75; pos.z = l.z + l.nz * 0.75; }
+      f = s = 0;
+    }
     if (f || s) {
       const sp = (keys.shift ? 4.2 : 2.6) * dt, l = Math.max(1, Math.hypot(f, s));
       const dx = (-Math.sin(yaw) * f + Math.cos(yaw) * s) / l * sp, dz = (-Math.cos(yaw) * f - Math.sin(yaw) * s) / l * sp;
-      if (inside(pos.x + dx, pos.z)) pos.x += dx; if (inside(pos.x, pos.z + dz)) pos.z += dz;
+      if (!blocked(pos.x + dx, pos.z)) pos.x += dx; if (!blocked(pos.x, pos.z + dz)) pos.z += dz;
       updateActions();
+      if (mode === "cathouse" && f > 0 && !warp) { const L2 = ladderAt(pos.x, pos.z); // grab a ladder you walk into while facing it
+        if (L2 && -Math.sin(yaw) * -L2.nx + -Math.cos(yaw) * -L2.nz > 0.5) { climb = { l: L2, px: L2.x + L2.nx * 0.45, pz: L2.z + L2.nz * 0.45, tx: L2.x + L2.nx * 1.35, tz: L2.z + L2.nz * 1.35, armed: feet < CAT.cw - 0.05 }; vy = 0; if (!climb.armed) toast3(touch ? "On the ladder. Pull the joystick back to climb down." : "On the ladder. Press S / ↓ to climb down.");
+          if (!tick.ladderTip) { tick.ladderTip = 1; toast3(touch ? "Climbing! Joystick forward = up, back = down, Jump hops off." : "Climbing! W = up, S = down, Space hops off."); } } }
     }
-    pos.y = EYE + ((f || s) ? Math.sin(now / 140) * 0.02 : 0);
-    cam.position.copy(pos); cam.rotation.set(pitch, yaw, 0);
+    // gravity + landing (skipped while on a ladder)
+    const wasGround = onGround; if (!climb) { vy -= GRAV * dt; let nf = feet + vy * dt;
+    const g = groundAt(pos.x, pos.z);
+    if (wasGround && vy <= 0 && feet - g.h < 0.31 && feet >= g.h) nf = Math.min(nf, g.h); // walk down steps/ramps without hopping
+    if (nf <= g.h) {
+      const impact = -vy;
+      if (g.src?.bounce) { nf = g.h; vy = g.src.bounce; onGround = false; g.src.squash = 1; if (mode === "cathouse") { bounces++; fallApex = nf; doPuff(pos.x, nf, pos.z, 0.5); readout("Boing! Launched off a bouncy cushion"); } }
+      else if (mode === "cathouse" && !g.src && impact > 7.5) { // bouncy floor: bounce back ~72% of the speed, so each bounce is about half as high
+        nf = 0; vy = impact * 0.72; onGround = false; bounces++; fallApex = 0; doPuff(pos.x, 0, pos.z, Math.min(2, impact / 8)); readout(`Bounce! ×${bounces}  (steer to land on something)`); }
+      else { if (!wasGround && mode === "cathouse") landed(g.src, g.h); nf = g.h; vy = 0; onGround = true; }
+    } else { onGround = false; if (nf > fallApex) fallApex = nf; }
+    if (onGround) fallApex = nf;
+    const c = ceilAt(pos.x, pos.z); if (nf + BODY > c) { nf = Math.max(g.h, c - BODY); if (vy > 0) vy = 0; }
+    feet = nf; }
+    if (feet < -3) { feet = 0; vy = 0; pos.x = CAT_SPAWN.x; pos.z = CAT_SPAWN.z; } // safety respawn
+    if (mode === "cathouse") { const top = solids.find((q) => q.perch); const atTop = onGround && feet >= top.y1 - 0.01 && overlaps(top, pos.x, pos.z);
+      if (atTop && !wasTop) toast3("👑 You made it to the top! Gremlin royalty."); wasTop = atTop; }
+    hemi.intensity = mode === "cathouse" ? 1.6 : 1.25;
+    pos.y = feet + EYE + (onGround && (f || s) ? Math.sin(now / 140) * 0.02 : 0);
+    // portal suck-in: zoom + swirl + fade, then a quick spin-out on the other side
+    let fov = 70;
+    if (warp) {
+      warp.t += dt;
+      if (warp.phase === 0) { const k = ease(Math.min(1, warp.t / 0.9));
+        yaw = warp.fromYaw + (((warp.yaw - warp.fromYaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI) * Math.min(1, k * 2); pitch = warp.fromPitch + (warp.pitch - warp.fromPitch) * Math.min(1, k * 2);
+        pos.lerpVectors(warp.start, warp.pt.wp, k * 0.75); fov = 70 - 50 * k; roll = k * 4; warpEl.style.opacity = String(k);
+        if (warp.t >= 0.9) { warp.phase = 1; warp.t = 0; warp.toCat ? goCat() : goOffice(); }
+      } else { const k = ease(Math.min(1, warp.t / 0.7)); fov = 115 - 45 * k; roll = (1 - k) * -2.5; warpEl.style.opacity = String(1 - k);
+        if (warp.t >= 0.7) { warp = null; roll = 0; warpEl.classList.remove("on"); warpEl.style.opacity = ""; } }
+    }
+    if (cam.fov !== fov) { cam.fov = fov; cam.updateProjectionMatrix(); }
+    cam.position.copy(pos); cam.rotation.set(pitch, yaw, roll);
+    // little animations
+    const ts = now / 1000;
+    if (ceilFx.fan) ceilFx.fan.rotation.y = ts * 2.2;
+    portals.forEach((p) => { p.disc.rotation.z = -ts * 2.5; p.ring.scale.setScalar(1 + Math.sin(ts * 3 + p.t) * 0.04); p.glow.material.opacity = 0.7 + Math.sin(ts * 2 + p.t) * 0.3; });
+    if (mode === "cathouse") {
+      if (ceilFx.toy) { ceilFx.toy.rotation.z = Math.sin(ts * 1.3) * 0.12; ceilFx.toy.rotation.x = Math.sin(ts * 0.9) * 0.08; }
+      if (ceilFx.crown) { ceilFx.crown.rotation.y = ts; ceilFx.crown.position.y = solids.find((q) => q.perch).y1 + 0.75 + Math.sin(ts * 2) * 0.05; }
+      const pf = ceilFx.puff; if (pf && pf.t < 0.6) { pf.t += dt; const k = pf.t / 0.6; pf.m.opacity = 0.85 * (1 - k); pf.g.children.forEach((b) => { const r = (0.2 + k * 1.1) * pf.s; b.position.set(Math.cos(b.userData.a) * r, k * 0.35, Math.sin(b.userData.a) * r); b.scale.setScalar(0.6 + k * pf.s); }); if (pf.t >= 0.6) pf.g.visible = false; }
+      if (ceilFx.star?.visible) ceilFx.star.rotation.y = ts * 2;
+      solids.forEach((q) => { if (q.bounce && q.mesh) { q.squash = Math.max(0, (q.squash || 0) - dt * 3); q.mesh.scale.y = 1 - q.squash * 0.4; } });
+    }
     if (now - (tick.n || 0) > 200) { tick.n = now; updateNear(); }
     renderer.render(scene, cam);
   }
@@ -453,8 +781,13 @@ export function startOffice(root, opts) {
   return {
     setOnline: renderOnline,
     openHelp, openArtAt(i) { artMeshes[i] && openArt(artMeshes[i]); }, artList,
-    teleport(x, z, y, p = -0.05) { pos.x = x; pos.z = z; yaw = y; pitch = p; updateActions(true); },
-    layout: { L, gz0, gz1, hx, gx },
+    teleport(x, z, y, p = -0.05) { mode = "office"; feet = 0; vy = 0; pos.x = x; pos.z = z; yaw = y; pitch = clampPitch(p); updateActions(true); },
+    // demo/screenshot helpers (only reachable via window.__o3 in localhost demo mode)
+    enterCatHouse() { goCat(); returnSpot = null; },
+    catTeleport(x, z, y, p = 0, standOn = null) { mode = "cathouse"; climb = null; pos.x = CAT.cx + x; pos.z = CAT.cz + z; yaw = y; pitch = clampPitch(p); vy = 0; feet = standOn ?? 0; fallApex = feet; bounces = 0; onGround = true; updateActions(true); },
+    portalAt: () => ({ ...nbPortal.wp }),
+    layout: { L, gz0, gz1, hx, gx, cat: { ...CAT } },
+    state: () => ({ climbing: !!climb, bounces, lastLanding, best, vy, mode, feet, onGround, x: pos.x, z: pos.z, yaw, pitch, warp: !!warp, nearPortal: !!nearPortal }),
     destroy() { alive = false; cancelAnimationFrame(raf); ro.disconnect(); removeEventListener("keydown", kd); removeEventListener("keyup", ku); renderer.dispose(); root.innerHTML = ""; },
   };
 }
