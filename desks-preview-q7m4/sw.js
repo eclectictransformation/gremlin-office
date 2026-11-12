@@ -1,7 +1,7 @@
 // Desks service worker: caches the app shell ONLY.
 // Never caches Supabase (API, auth, storage/signed photo URLs) or any other cross-origin request.
-const CACHE = "desks-shell-v5";
-const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "office3d.js", "vendor/three.module.min.js", "manifest.webmanifest",
+const CACHE = "desks-shell-v6";
+const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "office3d.js", "annex.js", "annex-audio.js", "data/elsewhere-annex.json", "vendor/three.module.min.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "assets/bryan-avatar.webp",
   "assets/gallery/tea-under-the-old-oak.webp", "assets/gallery/still-life-with-tea-and-small-visitors.webp",
   "assets/gallery/healing-herbs-plate.webp", "assets/gallery/morning-check-in-highlands.webp", "assets/gallery/slow-hands.webp",
@@ -16,7 +16,7 @@ self.addEventListener("fetch", (e) => {
   const scopePath = new URL(self.registration.scope).pathname;
   if (!url.pathname.startsWith(scopePath)) return;
   const isHTML = req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
-  if (isHTML || /\.(js|css|webmanifest)$/.test(url.pathname)) {
+  if (isHTML || /\.(js|css|webmanifest|json)$/.test(url.pathname)) {
     // network-first so updates show up; cache only as offline fallback
     e.respondWith(fetch(req).then((r) => { if (r.ok) { const cp = r.clone(); caches.open(CACHE).then((c) => c.put(req, cp)); } return r; })
       .catch(() => caches.match(req).then((m) => m || caches.match("index.html"))));

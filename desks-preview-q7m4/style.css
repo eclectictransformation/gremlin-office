@@ -110,3 +110,17 @@ a.tlist{display:block;color:inherit;text-decoration:none}a.tlist.closed{opacity:
 /* Cat House bounce / landing readout */
 .o3-bounce{position:absolute;left:50%;top:7rem;transform:translateX(-50%);background:rgba(59,31,115,.92);color:#fff;border:2px solid #ffd43b;border-radius:12px;padding:.45rem .9rem;font-weight:700;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;max-width:92vw}
 .o3-bounce.show{opacity:1}.o3-bbest{font-weight:500;font-size:.85rem;color:#ffe58a}.o3-bbest:empty{display:none}
+/* ---- The Loose Stitch / Elsewhere Annex ---- */
+.o3-annexbtn{background:#8a3b2c;color:#fff8e6}
+.o3-thread{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:20;backdrop-filter:sepia(.7) saturate(.6);-webkit-backdrop-filter:sepia(.7) saturate(.6);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cg fill='none' stroke='%23b8483a' stroke-width='9' stroke-linecap='round' opacity='.85'%3E%3Cpath d='M-20 60 Q120 120 200 200'/%3E%3Cpath d='M420 40 Q300 150 200 200'/%3E%3Cpath d='M-30 340 Q110 250 200 200'/%3E%3Cpath d='M430 360 Q280 240 200 200'/%3E%3Cpath d='M200 -30 Q170 100 200 200'/%3E%3Cpath d='M200 430 Q240 300 200 200'/%3E%3C/g%3E%3Cg fill='none' stroke='%23efe3c2' stroke-width='4' opacity='.7'%3E%3Cpath d='M-20 200 Q100 170 200 200'/%3E%3Cpath d='M420 210 Q300 230 200 200'/%3E%3C/g%3E%3C/svg%3E") center/cover no-repeat,
+  radial-gradient(circle at 50% 50%,rgba(20,12,5,.95) 0,rgba(60,40,20,.75) 18%,rgba(232,214,160,.55) 55%,rgba(240,228,190,.85) 100%)}
+.o3-thread.on{animation:o3pull 1.6s ease-in}
+@keyframes o3pull{0%{background-size:180% 180%,100% 100%}50%{background-size:60% 60%,100% 100%}100%{background-size:140% 140%,100% 100%}}
+.o3-annexbanner{position:absolute;left:50%;top:5.4rem;transform:translateX(-50%);background:rgba(58,50,24,.9);color:#fbf3d0;border:2px solid #e6d07a;border-radius:12px;padding:.55rem 1.1rem;text-align:center;opacity:0;transition:opacity .6s;pointer-events:none;max-width:92vw;z-index:5}
+.o3-annexbanner.show{opacity:1}.o3-annexbanner b{display:block;font-family:var(--serif);font-size:1.3rem}.o3-annexbanner span{font-size:.92rem;font-style:italic}
+.o3-riddle{font-family:var(--serif);font-size:1.15rem;font-style:italic;color:var(--moss)}
+.o3-riddleform{display:flex;gap:.5rem;align-items:center}.o3-riddleform input{flex:1}.o3-riddleform .o3-btn{margin:0}
+.o3-riddleout{min-height:1.4em;font-weight:600}.o3-riddleout.no{color:#8a2a12}.o3-riddleout.ok{color:var(--forest)}
+.o3-prompts{display:flex;flex-wrap:wrap;gap:.2rem}.o3-prompts .o3-btn.small{margin:.2rem .2rem 0 0;font-size:.9rem;padding:.3rem .6rem}
+.o3-chatlog{max-height:34vh;overflow:auto;margin-top:.5rem}.o3-reply{border-left-color:#b8483a;font-style:italic}

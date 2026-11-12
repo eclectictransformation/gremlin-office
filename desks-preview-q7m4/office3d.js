@@ -1,5 +1,6 @@
 // Desks 3D office. Procedural geometry only; all text is drawn on canvases (never HTML).
 import * as THREE from "./vendor/three.module.min.js";
+import { createAnnex } from "./annex.js"; // The Loose Stitch -> Elsewhere Annex (Desks only)
 
 const PAL = { cream: "#E8E4D8", paper: "#F1EDE2", sage: "#A6B89A", forest: "#54664A", moss: "#3A4A33", ink: "#1A1A18", clay: "#B8775A", wood: "#9a7653", oak: "#c9a57a" };
 const THEME = { sage: "#cfdcc4", sunny: "#f6e2a6", lavender: "#d9cde8", sky: "#c6dceb", cocoa: "#d9c0a8", night: "#3e4660" };
@@ -183,7 +184,7 @@ export function startOffice(root, opts) {
     const theme = THEME[d.theme] || THEME.sage;
     const cx = (rm.x0 + rm.x1) / 2, cz = (rm.z0 + rm.z1) / 2;
     // back wall: for own room = z1 wall; for side rooms = outer x wall
-    const g = new THREE.Group(); scene.add(g);
+    const g = new THREE.Group(); scene.add(g); rm.g = g; // (the Annex can mount things on desk walls)
     if (mine) { g.position.set(cx, 0, rm.z1); g.rotation.y = Math.PI; }
     else { g.position.set(rm.side * (hx + ROOM), 0, cz); g.rotation.y = rm.side < 0 ? Math.PI / 2 : -Math.PI / 2; }
     // in g: back wall at z=0, room extends to +z (towards door). x across.
@@ -506,7 +507,7 @@ export function startOffice(root, opts) {
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const top = el("div", "o3-top"); hud.appendChild(top);
   const where = el("div", "o3-where", "Your cubicle"); top.appendChild(where);
-  const exit = el("button", "o3-btn", "← Back to my desk"); exit.onclick = () => (mode === "cathouse" ? enterPortal(catPortal) : api.exit?.()); const tr = el("div", "o3-tr"); tr.appendChild(exit); top.appendChild(tr);
+  const exit = el("button", "o3-btn", "← Back to my desk"); exit.onclick = () => (mode === "cathouse" ? enterPortal(catPortal) : mode === "annex" ? annex?.exitHome() : api.exit?.()); const tr = el("div", "o3-tr"); tr.appendChild(exit); top.appendChild(tr);
   const onl = el("div", "o3-online"); hud.appendChild(onl);
   function renderOnline(set) {
     onl.textContent = ""; onl.appendChild(el("b", null, `${set.size} online`));
@@ -515,7 +516,7 @@ export function startOffice(root, opts) {
   renderOnline(online);
   const actions = el("div", "o3-actions"); hud.appendChild(actions);
   const touch = matchMedia("(pointer:coarse)").matches;
-  const help = el("div", "o3-help", touch ? "Joystick to walk · drag to look · ⤒ to jump · ? for help" : "WASD to walk · Q / ← → turn · drag or R / F to look up & down · Space to jump · E for portals · ? for help"); hud.appendChild(help);
+  const help = el("div", "o3-help", touch ? "Joystick to walk · drag to look · ⤒ to jump · ? for help" : "WASD to walk · Q / ← → turn · drag or R / F to look up & down · Space to jump · E for portals & stitches · ? for help"); hud.appendChild(help);
   // every overlay: X (top right), Close button, Escape key, or click/tap outside closes it
   const backdrop = el("div", "o3-backdrop"); backdrop.hidden = true; hud.appendChild(backdrop);
   const panel = el("div", "o3-panel"); panel.hidden = true; panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true"); hud.appendChild(panel);
@@ -576,7 +577,7 @@ export function startOffice(root, opts) {
   const listBtn = Object.assign(el("button", "o3-btn ghost", `🖼 All art (${artMeshes.length})`), { onclick: artList });
   const fwd = new THREE.Vector3(), tmpV = new THREE.Vector3();
   function updateNear() {
-    updatePortalNear(); if (curZone !== "gallery") return; cam.getWorldDirection(fwd); let best = null, bd = 1e9;
+    updatePortalNear(); updateAnnexNear(); if (curZone !== "gallery") return; cam.getWorldDirection(fwd); let best = null, bd = 1e9;
     artMeshes.forEach((m) => { tmpV.subVectors(m.wp, cam.position); const d = tmpV.length(); if (d < 7.5 && tmpV.normalize().dot(fwd) > 0.8 && d < bd) { bd = d; best = m; } });
     if (best !== nearArt) { nearArt = best; nearBtn.textContent = best ? `🔍 Look closer: ${best.a.title}` : ""; nearBtn.hidden = !best; }
   }
@@ -597,12 +598,13 @@ export function startOffice(root, opts) {
   let curZone = null;
   function updateActions(force) {
     const z = zoneAt(pos.x, pos.z); if (z === curZone && !force) return; curZone = z; actions.textContent = "";
-    if (z === "own") { where.textContent = "Your cubicle"; actions.append(lockBtn(), notesBtn()); }
-    else if (z === "hall") { where.textContent = "Hallway"; }
-    else if (z === "gallery") { where.textContent = "The Gallery"; nearArt = undefined; actions.append(portalBtn, nearBtn, listBtn, noticesBtn()); updateNear(); }
+    if (z === "own") { where.textContent = "Your cubicle"; actions.append(annexBtn, lockBtn(), notesBtn()); }
+    else if (z === "hall") { where.textContent = "Hallway"; actions.append(annexBtn); }
+    else if (z === "gallery") { where.textContent = "The Gallery"; nearArt = undefined; actions.append(portalBtn, annexBtn, nearBtn, listBtn, noticesBtn()); updateNear(); }
+    else if (z?.startsWith("annex:")) { where.textContent = "🧵 " + annex.roomLabel(z); actions.append(annexBtn, ...annex.hudButtons()); applyAnnexAtmos(z); }
     else if (z === "cathouse") { where.textContent = "🐾 The Cat House"; actions.append(portalBtn); }
-    else if (z?.startsWith("room:")) { const p = floor.find((x) => "room:" + x.user_id === z); where.textContent = `${p.nickname || p.display_name}'s cubicle`; actions.append(leaveNoteBtn(p)); loadPhotos(rooms.find((r) => r.owner === p)); }
-    exit.textContent = z === "cathouse" ? "← Back to the office" : "← Back to my desk";
+    else if (z?.startsWith("room:")) { const p = floor.find((x) => "room:" + x.user_id === z); where.textContent = `${p.nickname || p.display_name}'s cubicle`; actions.append(annexBtn, leaveNoteBtn(p)); loadPhotos(rooms.find((r) => r.owner === p)); }
+    exit.textContent = z === "cathouse" || mode === "annex" ? "← Back to the office" : "← Back to my desk";
     // door state for own door mesh
     ownDoor.children[3] && (ownDoor.children[3].rotation.y = myLock ? 0 : 1.35);
   }
@@ -625,15 +627,18 @@ export function startOffice(root, opts) {
   const overlaps = (s, x, z) => x + R > s.x0 && x - R < s.x1 && z + R > s.z0 && z - R < s.z1;
   function blocked(x, z) {
     if (mode === "office") return !inside(x, z);
+    if (mode === "annex") return !inside(x, z) || !!annex?.blockedAt(x, z);
     if (x < CAT.x0 + R || x > CAT.x1 - R || z < CAT.z0 + R || z > CAT.z1 - R) return true;
     for (const s of solids) if (overlaps(s, x, z) && feet < s.y1 - STEP && feet + BODY > s.y0) return true;
     return false;
   }
   function groundAt(x, z) {
     if (mode === "office") return { h: 0, src: null };
+    if (mode === "annex") return { h: annexFloor(x, z), src: null };
     let h = 0, src = null; for (const s of solids) if (overlaps(s, x, z) && s.y1 <= feet + STEP && s.y1 > h) { h = s.y1; src = s; } return { h, src };
   }
   function ceilAt(x, z) {
+    if (mode === "annex") return annexFloor(x, z) + H - 0.06;
     if (mode === "office") { let c = H - 0.06; for (const l of lowCeil) if (Math.hypot(x - l.x, z - l.z) < l.r + R) c = Math.min(c, l.h); return c; }
     let c = CAT.h - 0.05; for (const s of solids) if (overlaps(s, x, z) && s.y0 >= feet + BODY - 0.05 && s.y0 < c) c = s.y0; return c;
   }
@@ -668,7 +673,7 @@ export function startOffice(root, opts) {
   const keys = {}; const kd = (e) => { if (e.key === "Escape" && !panel.hidden) { closePanel(); e.preventDefault(); return; } if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
     const k = e.key.toLowerCase();
     if (k === " " || k === "spacebar") { e.preventDefault(); if (!e.repeat) jump(); return; }
-    if (k === "e") { if (nearPortal && panel.hidden) { e.preventDefault(); enterPortal(nearPortal); } return; } // E = portals only
+    if (k === "e") { if (nearPortal && panel.hidden) { e.preventDefault(); enterPortal(nearPortal); } else if (nearAnnex && panel.hidden && !warp) { e.preventDefault(); nearAnnex.run(); } return; } // E = portals & stitches
     keys[k] = true; if (e.key.startsWith("Arrow") || e.key.startsWith("Page")) e.preventDefault(); };
   const ku = (e) => { const k = e.key.toLowerCase(); if (k === " ") { if (e.target.tagName !== "TEXTAREA" && e.target.tagName !== "INPUT") e.preventDefault(); return; } keys[k] = false; };
   addEventListener("keydown", kd); addEventListener("keyup", ku);
@@ -684,6 +689,7 @@ export function startOffice(root, opts) {
     const r = cv.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, cam); ray.far = 8;
     const portalHit = ray.intersectObjects(portals.map((p) => p.disc), false)[0];
     if (portalHit) { const pt = portals.find((p) => p.disc === portalHit.object); if (pt && portalHit.distance < 4.5) return enterPortal(pt); }
+    if (annex && panel.hidden) { const ah = ray.intersectObjects(annex.clickTargets(mode), false)[0]; if (ah && ah.distance < (ah.object.userData.maxD || 4.5)) return ah.object.userData.run?.(); }
     if (mode !== "office") return;
     const photos = rooms.flatMap((rm) => (rm.frames || []).filter((f) => f.url)); const targets = [...artMeshes.map((m) => m.pic), ...photos.map((f) => f.pic)];
     const hit = ray.intersectObjects(targets, false)[0]; if (!hit) return;
@@ -699,6 +705,45 @@ export function startOffice(root, opts) {
   joy.addEventListener("pointermove", (e) => e.pointerId === jid && jmove(e));
   const jend = (e) => { if (e.pointerId !== jid) return; jid = null; jv = { x: 0, y: 0 }; knob.style.transform = ""; };
   joy.addEventListener("pointerup", jend); joy.addEventListener("pointercancel", jend);
+
+  // ---------- The Loose Stitch -> Elsewhere Annex (data-driven; see annex.js + data/elsewhere-annex.json) ----------
+  const annexBtn = el("button", "o3-btn o3-annexbtn"); annexBtn.hidden = true; let nearAnnex = null;
+  annexBtn.onclick = () => nearAnnex && !warp && nearAnnex.run();
+  const threadEl = el("div", "o3-thread"); hud.appendChild(threadEl);
+  const OFFICE_ATMOS = { bg: "#dcd6c6", fog: [18, 45] }; let annexHemi = 1.2, zoomed = false;
+  const rectAt = (x, z) => walkable.find((r) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
+  const annexFloor = (x, z) => rectAt(x, z)?.y || 0;
+  function applyAtmos(a) { scene.background.set(a.bg); scene.fog.color.set(a.bg); scene.fog.near = a.fog[0]; scene.fog.far = a.fog[1]; }
+  function applyAnnexAtmos(z) { const a = annex?.atmos(z); if (a) { applyAtmos(a); annexHemi = a.hemi ?? 1.2; } if (z !== "annex:overlook") zoomed = false; }
+  function threadWarp({ target, swap, onK }) {
+    if (warp) return false; Object.keys(keys).forEach((k) => (keys[k] = false));
+    const wp = target ? target.clone() : new THREE.Vector3(pos.x - Math.sin(yaw) * 0.9, pos.y, pos.z - Math.cos(yaw) * 0.9);
+    warp = { t: 0, phase: 0, pt: { wp }, swap, onK, el: threadEl, fromYaw: yaw, fromPitch: pitch };
+    tmpV.subVectors(wp, pos); warp.yaw = Math.atan2(-tmpV.x, -tmpV.z); warp.pitch = Math.atan2(tmpV.y, Math.hypot(tmpV.x, tmpV.z));
+    warp.start = pos.clone(); threadEl.classList.add("on"); return true;
+  }
+  function updateAnnexNear() {
+    if (!annex) return; cam.getWorldDirection(fwd);
+    const t = warp || !panel.hidden ? null : annex.near({ mode, pos, feet, fwd, zone: curZone });
+    if ((t?.key || null) !== (nearAnnex?.key || null) || (t && t.label !== annexBtn.dataset.label)) { annexBtn.hidden = !t; annexBtn.dataset.label = t?.label || ""; annexBtn.textContent = t ? t.label + (touch ? "" : " (E)") : ""; }
+    nearAnnex = t;
+  }
+  let annex = null;
+  if (opts.annex) {
+    try {
+      annex = createAnnex({ THREE, scene, mat, box, plane, canvasTex, plate, wrap, fit, PAL, H, T, R, ROOM, walkable, planeGeo }, opts.annex, {
+        el, me, hud, layout: { L, gz0, gz1, hx, gx }, rooms, showAllEntrances: !!opts.annexShowAll,
+        state: () => ({ mode, pos, feet, yaw, busy: !!warp || !panel.hidden }),
+        openPanel, closePanel, toast: toast3, threadWarp, updateActions: () => updateActions(true),
+        placeAnnex: (p) => { pos.x = p.x; pos.z = p.z; feet = p.y || 0; yaw = p.yaw; pitch = clampPitch(p.pitch ?? 0); vy = 0; onGround = true; climb = null; updateActions(true); },
+        enterAnnexMode: () => { if (mode !== "annex" && warp) returnSpot = { x: warp.start.x, z: warp.start.z, yaw: warp.fromYaw, pitch: 0 }; mode = "annex"; cam.far = 130; cam.updateProjectionMatrix(); },
+        leaveAnnexMode: () => { mode = "office"; zoomed = false; cam.far = 50; cam.updateProjectionMatrix(); applyAtmos(OFFICE_ATMOS);
+          const r = returnSpot || { x: 2.85, z: gz1 + 1.8, yaw: 0, pitch: 0 }; pos.x = r.x; pos.z = r.z; yaw = r.yaw; pitch = r.pitch; feet = 0; vy = 0; onGround = true; updateActions(true); },
+        setZoom: (v) => { zoomed = !!v; }, zoomed: () => zoomed,
+      });
+      tr.prepend(annex.muteBtn);
+    } catch (err) { console.warn("Elsewhere Annex failed to load", err); annex = null; }
+  }
 
   function resize() { const w = root.clientWidth, h = root.clientHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
   const ro = new ResizeObserver(resize); ro.observe(root); resize();
@@ -746,7 +791,7 @@ export function startOffice(root, opts) {
     if (feet < -3) { feet = 0; vy = 0; pos.x = CAT_SPAWN.x; pos.z = CAT_SPAWN.z; } // safety respawn
     if (mode === "cathouse") { const top = solids.find((q) => q.perch); const atTop = onGround && feet >= top.y1 - 0.01 && overlaps(top, pos.x, pos.z);
       if (atTop && !wasTop) toast3("👑 You made it to the top! Gremlin royalty."); wasTop = atTop; }
-    hemi.intensity = mode === "cathouse" ? 1.6 : 1.25;
+    hemi.intensity = mode === "cathouse" ? 1.6 : mode === "annex" ? annexHemi : 1.25;
     pos.y = feet + EYE + (onGround && (f || s) ? Math.sin(now / 140) * 0.02 : 0);
     // portal suck-in: zoom + swirl + fade, then a quick spin-out on the other side
     let fov = 70;
@@ -754,11 +799,12 @@ export function startOffice(root, opts) {
       warp.t += dt;
       if (warp.phase === 0) { const k = ease(Math.min(1, warp.t / 0.9));
         yaw = warp.fromYaw + (((warp.yaw - warp.fromYaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI) * Math.min(1, k * 2); pitch = warp.fromPitch + (warp.pitch - warp.fromPitch) * Math.min(1, k * 2);
-        pos.lerpVectors(warp.start, warp.pt.wp, k * 0.75); fov = 70 - 50 * k; roll = k * 4; warpEl.style.opacity = String(k);
-        if (warp.t >= 0.9) { warp.phase = 1; warp.t = 0; warp.toCat ? goCat() : goOffice(); }
-      } else { const k = ease(Math.min(1, warp.t / 0.7)); fov = 115 - 45 * k; roll = (1 - k) * -2.5; warpEl.style.opacity = String(1 - k);
-        if (warp.t >= 0.7) { warp = null; roll = 0; warpEl.classList.remove("on"); warpEl.style.opacity = ""; } }
+        pos.lerpVectors(warp.start, warp.pt.wp, k * 0.75); fov = 70 - 50 * k; roll = k * (warp.el ? -2 : 4); (warp.el || warpEl).style.opacity = String(k); warp.onK?.(k);
+        if (warp.t >= 0.9) { warp.phase = 1; warp.t = 0; warp.swap ? warp.swap() : warp.toCat ? goCat() : goOffice(); }
+      } else { const k = ease(Math.min(1, warp.t / 0.7)); fov = 115 - 45 * k; roll = (1 - k) * -2.5; (warp.el || warpEl).style.opacity = String(1 - k);
+        if (warp.t >= 0.7) { const we = warp.el || warpEl; warp = null; roll = 0; we.classList.remove("on"); we.style.opacity = ""; updateAnnexNear(); } }
     }
+    if (zoomed && !warp) fov = 26;
     if (cam.fov !== fov) { cam.fov = fov; cam.updateProjectionMatrix(); }
     cam.position.copy(pos); cam.rotation.set(pitch, yaw, roll);
     // little animations
@@ -772,6 +818,7 @@ export function startOffice(root, opts) {
       if (ceilFx.star?.visible) ceilFx.star.rotation.y = ts * 2;
       solids.forEach((q) => { if (q.bounce && q.mesh) { q.squash = Math.max(0, (q.squash || 0) - dt * 3); q.mesh.scale.y = 1 - q.squash * 0.4; } });
     }
+    if (annex) annex.update(dt, ts, { mode, pos, feet, zone: curZone, busy: !!warp || !panel.hidden });
     if (now - (tick.n || 0) > 200) { tick.n = now; updateNear(); }
     renderer.render(scene, cam);
   }
@@ -787,6 +834,8 @@ export function startOffice(root, opts) {
     catTeleport(x, z, y, p = 0, standOn = null) { mode = "cathouse"; climb = null; pos.x = CAT.cx + x; pos.z = CAT.cz + z; yaw = y; pitch = clampPitch(p); vy = 0; feet = standOn ?? 0; fallApex = feet; bounces = 0; onGround = true; updateActions(true); },
     portalAt: () => ({ ...nbPortal.wp }),
     layout: { L, gz0, gz1, hx, gx, cat: { ...CAT } },
+    annex: annex ? { ...annex.debug, near: () => nearAnnex && { key: nearAnnex.key, label: nearAnnex.label }, run: () => nearAnnex?.run(), zoomed: () => zoomed } : null,
+    look(y, p) { yaw = y; pitch = clampPitch(p); },
     state: () => ({ climbing: !!climb, bounces, lastLanding, best, vy, mode, feet, onGround, x: pos.x, z: pos.z, yaw, pitch, warp: !!warp, nearPortal: !!nearPortal }),
     destroy() { alive = false; cancelAnimationFrame(raf); ro.disconnect(); removeEventListener("keydown", kd); removeEventListener("keyup", ku); renderer.dispose(); root.innerHTML = ""; },
   };

@@ -278,8 +278,10 @@ const signedFrom = async (bucket, paths) => { if (!paths?.length) return {}; con
 function demoData() {
   const mk = (id, n, nick, theme, locked, sign) => ({ user_id: id, display_name: n, nickname: nick, theme, locked, sign_text: sign, photos: [], is_admin: false });
   me = { id: "demo-me", display_name: "Demo Person", login_id: "demo@example.com", is_admin: false, active: true };
+  const asBryan = /[?&]as=bryan/.test(location.search), bryanOpen = /[?&]bryanopen=1/.test(location.search); // demo-only: be Bryan / unlock Bryan's demo office
+  if (asBryan) me = { id: "b", display_name: "Bryan Nolan", login_id: "bryan@example.com", is_admin: true, active: true };
   return { floor: [mk("demo-me", "Demo Person", "Desk Captain", "sage", false, "Powered by coffee and good intentions"), mk("a", "Vince", "Vinny", "sky", false, "Ask me about spreadsheets"),
-      mk("b", "Bryan Nolan", "The Boss", "sunny", true, null), mk("c", "Juhani", null, "lavender", false, "Back in 5"), mk("d", "Emily", "Em", "cocoa", true, null)],
+      mk("b", "Bryan Nolan", "The Boss", "sunny", !(bryanOpen || asBryan), null), mk("c", "Juhani", null, "lavender", false, "Back in 5"), mk("d", "Emily", "Em", "cocoa", true, null)],
     myDesk: { nickname: "Desk Captain", sign_text: "Powered by coffee and good intentions", theme: "sage", locked: false, photos: [] },
     notes: [{ id: 1, author_name: "Vinny", body: "Welcome to the new office! Love the plant." }, { id: 2, author_name: "Em", body: "Lunch on Friday?" }, { id: 3, author_name: "The Boss", body: "Great work this week 🎉" }],
     notices: [{ title: "Welcome to the 3D office!", body: "Walk around, visit unlocked cubicles, and leave a kind note.", pinned: true, created_at: new Date().toISOString() }, { title: "Friday", body: "Team call at 2pm.", pinned: false, created_at: new Date().toISOString() }],
@@ -295,10 +297,12 @@ screens.office = async () => {
       sb.rpc("my_desk_notes"), sb.from("notices").select("*").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(20), sb.from("gallery_art").select("*").order("position")]);
     data = { floor: floor || [], myDesk: myDesk || { theme: "sage", photos: [] }, notes: notes || [], notices: notices || [], art: art || [], online };
   }
+  // The Loose Stitch -> Elsewhere Annex: static data file (entrances, levels, riddle). Optional: the office works without it.
+  const annex = await fetch("data/elsewhere-annex.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   document.body.classList.add("in-office");
   app.innerHTML = `<div id="o3root"></div>`;
   const view = (location.search.match(/[?&]view=([a-z0-9]+)/) || [])[1];
-  office3d = mod.startOffice($("#o3root"), { ...data, me, demo: DEMO, api: {
+  office3d = mod.startOffice($("#o3root"), { ...data, me, demo: DEMO, annex, annexShowAll: DEMO && /[?&]annexdoors=1/.test(location.search), api: {
     exit: () => (location.hash = "#/desk"),
     photoUrls: DEMO ? null : (paths) => photoUrl(paths),
     artUrls: DEMO ? null : (paths) => signedFrom("gallery-art", paths),
@@ -319,6 +323,11 @@ screens.office = async () => {
   if (view === "catwalk") office3d.catTeleport(2.5, 6.6, 0.12, -0.62, 13); // up on the catwalk, looking over the hub and drop hatch
   if (view === "cathousewide") office3d.catTeleport(6.6, 6.6, Math.PI / 4, 0.32); // corner view of the big platforms
   if (view === "cathousetop") office3d.catTeleport(0.2, 0.9, 0.15, -0.05, 10.95); // standing on the top perch
+  if (view === "stitch") office3d.teleport(2.4, Lh.gz1 + 3.6, -0.12, 0.0); // The Loose Stitch on the gallery back wall
+  if (view === "secretstitch") { const e = office3d.annex?.state().entrances.find((x) => x.id === "stitch-bryan-office"); // stand in front of the tiny stitch, looking down at it
+    if (e) office3d.teleport(e.sx, e.sz, Math.atan2(e.sx - e.x, e.sz - e.z), -0.62); }
+  if (view === "annex") office3d.annex?.arrive("print-arrival");
+  if (view === "overlook") office3d.annex?.arrive("overlook-arrival");
   if (DEMO) window.__o3 = office3d; // screenshot helper (demo mode is localhost-only)
 };
 
