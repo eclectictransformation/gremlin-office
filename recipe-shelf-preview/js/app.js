@@ -969,14 +969,24 @@
       window.scrollTo(0, 0);
       var h1 = $("h1", main); if (h1 && route.ready) h1.focus({ preventScroll: true });
     }
+    var wasReady = route.ready;
     route.ready = true;
-    postHeight();
+    postHeight(wasReady && !keepScroll);
   }
 
-  function postHeight() {
-    if (window.parent !== window) {
-      try { window.parent.postMessage({ type: "et-recipes-height", height: document.documentElement.scrollHeight }, "*"); } catch (e) {}
-    }
+  var lastPosted = 0;
+  function postHeight(nav) {
+    if (window.parent === window) return;
+    var h = Math.ceil(Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0));
+    if (!nav && h === lastPosted) return;
+    lastPosted = h;
+    try { window.parent.postMessage({ type: "et-recipes-height", height: h, nav: !!nav }, "*"); } catch (e) {}
+  }
+  if (window.parent !== window) {
+    if (window.ResizeObserver) { new ResizeObserver(function () { postHeight(); }).observe(document.body); }
+    window.addEventListener("load", function () { postHeight(); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { postHeight(); });
+    window.setInterval(function () { postHeight(); }, 1500);
   }
 
   /* ---------- events ---------- */

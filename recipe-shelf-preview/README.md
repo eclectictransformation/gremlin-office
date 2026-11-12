@@ -119,7 +119,7 @@ Add an object to `categories[]` with `id`, `name`, a one-line `blurb`, `icon`, `
 - schema.org `Recipe` JSON-LD for the open recipe.
 - Print stylesheet: just the recipe at the chosen portion, with nav, tools, checkboxes, teaser and related links hidden. A separate Print list mode prints only the still-need list.
 - Accessibility: skip link, visible focus, focus moves to the heading on navigation, 44px tap targets (including pantry checkboxes), live region for the scaled list and the still-need count, reduced-motion support, forced-colors support, and AA text contrast.
-- If embedded in an iframe, it posts `{type:"et-recipes-height"}` messages so the host can auto-size.
+- If embedded in an iframe, it posts `{type:"et-recipes-height", height, nav}` messages (on load, resize, content changes, and route changes; nav=true means the host should scroll to the top of the frame) so the host can auto-size the iframe and let the outer page scroll.
 
 ## Proposed go-live path (for Bryan's approval later, not done)
 1. Create a new, separate public repo, **`eclectictransformation/et-recipes`**, and push this folder with GitHub Pages on `main` /root. URL: `https://eclectictransformation.github.io/et-recipes/`. Remove `test_shots.py`/`screens/` or keep them; they're harmless. Switch `<meta name="robots" content="noindex">` off only when Bryan wants it findable.
