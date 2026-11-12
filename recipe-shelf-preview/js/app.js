@@ -285,6 +285,7 @@
           if (s.stove.electric) lines.push("   Electric: " + s.stove.electric);
           if (s.stove.gas) lines.push("   Gas: " + s.stove.gas);
         }
+        (s.callouts || []).forEach(function (c) { lines.push("   " + c.label + ": " + c.text); });
       });
     }
     function pushItems(items) {
@@ -699,7 +700,8 @@
       var title = s.title ? '<p class="step-title">' + esc(s.title) + "</p>" : "";
       var body = s.text ? "<p>" + esc(s.text) + "</p>" : "";
       var look = s.lookFor ? '<p class="look-for"><span class="st-k">What to look for</span> ' + esc(s.lookFor) + "</p>" : "";
-      return "<li>" + title + body + look + stove + "</li>";
+      var calls = (s.callouts || []).map(function (c) { return '<p class="look-for"><span class="st-k">' + esc(c.label) + "</span> " + esc(c.text) + "</p>"; }).join("");
+      return "<li>" + title + body + look + stove + calls + "</li>";
     }).join("");
   }
   function renderServeItems(items) {
@@ -923,6 +925,7 @@
       recipeInstructions: r.steps.map(function (s) {
         var tx = (s.title ? s.title + " " : "") + (s.text || "");
         if (s.lookFor) tx += " What to look for: " + s.lookFor;
+        (s.callouts || []).forEach(function (c) { tx += " " + c.label + ": " + c.text; });
         return { "@type": "HowToStep", text: tx };
       }),
       author: { "@type": "Organization", name: "Eclectic Transformation", url: "https://eclectictransformation.com" },

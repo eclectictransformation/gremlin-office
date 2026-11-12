@@ -129,3 +129,4 @@ Add an object to `categories[]` with `id`, `name`, a one-line `blurb`, `icon`, `
 
 ## Book style
 Set `"style": "intuitive"` on a book to show the "Amounts are what I used this time / I cook by feel" note on its recipes. Books without it (exact recipes) show no such note; scaled amounts just get a short "rounded" note.
+- Steps may carry `callouts: [{label, text}]`, shown as boxes like "What to look for".

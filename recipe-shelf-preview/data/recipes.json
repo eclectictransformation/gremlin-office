@@ -237,7 +237,13 @@
           "stove": {
             "electric": "If you're on an electric stove, and I strongly dislike cooking on electric stoves, turn it down to about two to three, normally. Let it come down to a boil, and check it in about ten minutes, and double check if it's got a nice little simmer going. If not, crank it up a little bit.",
             "gas": "If you're on a gas one, it means you already know how to cook with the stove. Just turn it down until you start seeing it calm down from a boil, down to a simmer, and hold it there. Normally it's maybe a little under medium at first, and it goes down to in between low and medium, so about a three or four. For those of you who are just learning to cook, this may matter. For someone who is cooking for a while, you probably kinda get what I mean, how every stove is a little bit different, but the gas one is much easier to adjust down to a simmer."
-          }
+          },
+          "callouts": [
+            {
+              "label": "Stir it",
+              "text": "During the time where it's simmering and boiling, you have to make sure you stir it occasionally. Probably every five to eight minutes-ish. Just a quick little stir, and double check to make sure nothing's boiling over. It shouldn't boil over too much with the greens."
+            }
+          ]
         },
         {
           "title": "Simmer about an hour, and watch the color.",
