@@ -2,27 +2,27 @@
   "_business": "Eclectic Transformation",
   "_readme": "Single source of truth for the Recipes area. The page reads this file; adding a category, book, or recipe never needs a page edit. Items with \"example\": true only render while showExamples is true. To strip examples: delete every item with example:true and set showExamples to false.",
   "version": 2,
-  "showExamples": true,
+  "showExamples": false,
   "books": [
     {
-      "id": "big-batch",
-      "example": true,
-      "title": "Untitled big-batch book",
-      "workingTitle": true,
-      "subtitle": "Chilis, stews & soups, vegan and not, that taste even better after the freezer",
+      "id": "storing-for-the-storm",
+      "aliases": [
+        "big-batch"
+      ],
+      "title": "Storing for the Storm",
+      "subtitle": "A good, hearty meal ready when you're overwhelmed",
       "cover": {
         "color": "#2F4A3A",
         "accent": "#E4CCAD",
         "art": "pot"
       },
       "status": "available-sample",
-      "blurb": "The first cookbook, still being written and still unnamed. It's built around big pots you make once and eat from for weeks: chilis, stews and soups, vegan and non-vegan, that taste better after they've been frozen and thawed. I cook these by feel, so the amounts are what I used that time.",
+      "blurb": "Prep ahead so you don't have to worry about it — a quick, good, hearty meal in the freezer or the pantry, ready for when you're overwhelmed.",
+      "intro": "This is a cookbook where I'm going to tie in psychology and the concept of stressful eating, and the things we can prep in advance so that we don't have to worry about it. We just have a quick, good, easy meal in the freezer or the pantry, ready to go. It's a collection of recipes, some for larger groups of people, some for a couple people, but all with the intention of making a really good, hearty meal that, when you're overwhelmed, is exactly what hits the spot.\n\nThe Green Goddess Goup is the first recipe in this one.",
       "sampleSlugs": [
-        "example-white-bean-kale-stew",
-        "example-beef-barley-stew",
-        "example-three-bean-vegan-chili"
+        "green-goddess-goup"
       ],
-      "printTeaser": "Want the full book? These are just a few of the recipes from it.",
+      "printTeaser": "Want the full book? Green Goddess Goup is the first recipe from it.",
       "formats": {
         "pdf": {
           "available": false,
@@ -42,460 +42,160 @@
       "defaultSort": "quarts-desc",
       "categoryId": "cooking",
       "style": "intuitive"
-    },
-    {
-      "id": "everyday",
-      "example": true,
-      "title": "Everyday Small Pots",
-      "workingTitle": true,
-      "subtitle": "Normal-size meals for 2 to 4",
-      "cover": {
-        "color": "#B7795A",
-        "accent": "#FBF8F2",
-        "art": "leaf"
-      },
-      "status": "coming-soon",
-      "blurb": "Everyday cooking for two, three or four people. Regular-size pots.",
-      "sampleSlugs": [
-        "example-lemony-chickpea-skillet"
-      ],
-      "printTeaser": "This one's still simmering. Here's a sneak peek, and more will show up first right here.",
-      "formats": {
-        "pdf": {
-          "available": false,
-          "url": null
-        }
-      },
-      "sortOptions": [
-        "az",
-        "serves",
-        "time"
-      ],
-      "defaultSort": "az",
-      "categoryId": "cooking"
-    },
-    {
-      "id": "broths-teas",
-      "example": true,
-      "title": "Broths, Teas & Tonics",
-      "workingTitle": true,
-      "subtitle": "Warm things in mugs and jars",
-      "cover": {
-        "color": "#4F6B52",
-        "accent": "#ECE4D4",
-        "art": "jar"
-      },
-      "status": "coming-soon",
-      "blurb": "Bone broths, veggie broths and simple teas to keep on hand.",
-      "sampleSlugs": [
-        "example-ginger-lemon-evening-tea"
-      ],
-      "printTeaser": "This one's still steeping. Here's a sneak peek, and more will show up first right here.",
-      "formats": {
-        "pdf": {
-          "available": false,
-          "url": null
-        },
-        "print": {
-          "available": false,
-          "url": null
-        }
-      },
-      "sortOptions": [
-        "az",
-        "serves",
-        "time"
-      ],
-      "defaultSort": "az",
-      "categoryId": "teas"
-    },
-    {
-      "id": "kitchen-herbal",
-      "categoryId": "herbalism",
-      "example": true,
-      "title": "A Kitchen Herbal",
-      "workingTitle": true,
-      "subtitle": "Jars of dried plants from the cupboard",
-      "cover": {
-        "color": "#3E5A44",
-        "accent": "#E4CCAD",
-        "art": "herb"
-      },
-      "status": "coming-soon",
-      "blurb": "A small book of dried blends to keep on the shelf. These are kitchen recipes, not medical advice.",
-      "sampleSlugs": [
-        "example-lemon-balm-mint-jar"
-      ],
-      "printTeaser": "This book is still being gathered. Here's a sneak peek.",
-      "formats": {
-        "pdf": {
-          "available": false,
-          "url": null
-        }
-      },
-      "sortOptions": [
-        "az",
-        "time"
-      ],
-      "defaultSort": "az"
-    },
-    {
-      "id": "simple-tinctures",
-      "categoryId": "tinctures",
-      "example": true,
-      "title": "Simple Tinctures",
-      "workingTitle": true,
-      "subtitle": "Glycerin extracts in small bottles",
-      "cover": {
-        "color": "#6B4F3A",
-        "accent": "#F6F1E7",
-        "art": "dropper"
-      },
-      "status": "coming-soon",
-      "blurb": "A few extracts made with vegetable glycerin. These are kitchen recipes, not medical advice.",
-      "sampleSlugs": [
-        "example-glycerin-ginger-extract"
-      ],
-      "printTeaser": "This book is still being gathered. Here's a sneak peek.",
-      "formats": {
-        "pdf": {
-          "available": false,
-          "url": null
-        }
-      },
-      "sortOptions": [
-        "az",
-        "time"
-      ],
-      "defaultSort": "az"
-    },
-    {
-      "id": "evening-glasses",
-      "categoryId": "cocktails",
-      "example": true,
-      "title": "Evening Glasses",
-      "workingTitle": true,
-      "subtitle": "A mocktail first, a cocktail if you want one",
-      "cover": {
-        "color": "#3D4A4A",
-        "accent": "#E4CCAD",
-        "art": "glass"
-      },
-      "status": "coming-soon",
-      "blurb": "Drinks for gathering. Each recipe starts as a mocktail. Any drink with alcohol is marked for adults only.",
-      "sampleSlugs": [
-        "example-ginger-lime-sparkler"
-      ],
-      "printTeaser": "This book is still being gathered. Here's a sneak peek.",
-      "formats": {
-        "pdf": {
-          "available": false,
-          "url": null
-        }
-      },
-      "sortOptions": [
-        "az",
-        "serves",
-        "time"
-      ],
-      "defaultSort": "az"
     }
   ],
   "recipes": [
     {
-      "slug": "example-white-bean-kale-stew",
-      "example": true,
+      "slug": "green-goddess-goup",
       "status": "approved",
-      "title": "White Bean & Kale Freezer Stew",
-      "book": "big-batch",
-      "section": "Stews",
-      "summary": "A big, forgiving pot of beans and greens. It's even better after a stint in the freezer.",
+      "title": "Green Goddess Goup",
+      "book": "storing-for-the-storm",
+      "section": "Big-pot stew base",
+      "quote": "A lot of it is intuitive cooking, and I kinda wanna teach people to do intuitive cooking through this process... we're trained that we have to know the exact recipe. That's one of the biggest things to understand here.",
+      "summary": "So I've done this dish many times, but I always forget to write stuff down. The Green Goddess Goup is the stock. This is not the full meal, this is the stock that you make that then you put the stuff in. It's very simplistic. These do not have to be exact. You can use whatever you want. This is just the portions I'm using while writing this recipe. It changes every single time.",
+      "yieldType": "quarts",
       "yield": {
-        "batchQuarts": 8,
-        "basis": "about 8 quarts in the pot",
+        "batchQuarts": 11,
+        "basis": "this batch came out to 11 quarts exactly; it was exactly what I thought it would be",
         "finishedQuarts": null,
-        "servings": 16,
-        "servingsUnit": "bowls"
+        "servings": null,
+        "servingsUnit": null
       },
       "time": {
-        "rough": "About 1 1/2 hours",
-        "totalMinutes": 90
+        "rough": "about 2 to 2½ hours, mostly hands-off",
+        "totalMinutes": 135
       },
       "photo": null,
+      "amountsRough": true,
       "storage": [
-        "Freezer: cool fully, then fill quart containers, leaving about an inch of headroom."
+        "A good one for the freezer and storage."
       ],
       "ingredients": [
         {
-          "amount": 3,
-          "unit": "tbsp",
-          "item": "olive oil",
-          "prep": null,
+          "amount": 12,
+          "unit": "quart",
+          "item": "water",
+          "prep": "I may have used a little less",
           "optional": false,
-          "thisTime": false
+          "thisTime": false,
+          "approx": true
         },
         {
           "amount": 2,
           "unit": null,
-          "item": "large onions",
-          "prep": "diced",
+          "item": "(1-pound) bags frozen spinach",
+          "prep": "fresh or frozen; the one pound is often one bag",
           "optional": false,
           "thisTime": false,
-          "itemSingular": "large onion"
-        },
-        {
-          "amount": 6,
-          "unit": "clove",
-          "item": "garlic",
-          "prep": "minced",
-          "optional": false,
-          "thisTime": true
-        },
-        {
-          "amount": 4,
-          "unit": "can",
-          "item": "white beans (15-oz cans)",
-          "prep": "drained and rinsed",
-          "optional": false,
-          "thisTime": false
+          "itemSingular": "(1-pound) bag frozen spinach"
         },
         {
           "amount": 2,
-          "unit": "bunch",
-          "item": "kale",
-          "prep": "stems removed, chopped",
+          "unit": null,
+          "item": "(1-pound) bags kale",
+          "prep": null,
           "optional": false,
-          "thisTime": false
+          "thisTime": false,
+          "itemSingular": "(1-pound) bag kale"
         },
         {
           "amount": 1,
-          "unit": "cup",
-          "item": "small dried pasta (egg-free)",
-          "prep": null,
-          "optional": true,
-          "thisTime": false
-        },
-        {
-          "amount": 4,
-          "unit": "quart",
-          "item": "vegetable broth or water",
+          "unit": null,
+          "item": "(1-pound) bag collard greens",
           "prep": null,
           "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 2,
-          "unit": "tsp",
-          "item": "dried thyme",
-          "prep": null,
-          "optional": false,
-          "thisTime": true
+          "thisTime": false,
+          "itemSingular": "(1-pound) bag collard greens"
         },
         {
           "amount": 1,
-          "unit": "tsp",
-          "item": "salt",
-          "prep": "to start, then taste",
+          "unit": null,
+          "item": "(2-pound) bag broccoli florets",
+          "prep": null,
           "optional": false,
-          "thisTime": true
+          "thisTime": false,
+          "itemSingular": "(2-pound) bag broccoli florets"
+        },
+        {
+          "amount": 1,
+          "unit": null,
+          "item": "(1-pound) bag sweet peas",
+          "prep": null,
+          "optional": false,
+          "thisTime": false,
+          "itemSingular": "(1-pound) bag sweet peas"
         },
         {
           "amount": null,
           "unit": null,
-          "item": "black pepper",
-          "prep": "to taste",
-          "optional": false,
-          "thisTime": false
-        }
-      ],
-      "steps": [
-        {
-          "text": "Warm the oil in your biggest pot and soften the onions, about 8 minutes.",
-          "stove": {
-            "electric": "Around 6, then turn it down sooner than you think. Electric holds heat.",
-            "gas": "Medium flame."
-          }
-        },
-        {
-          "text": "Add the garlic and thyme for a minute until it smells good."
-        },
-        {
-          "text": "Add the broth and beans and bring it up to a boil.",
-          "stove": {
-            "electric": "High, and walk away for a while.",
-            "gas": "High."
-          }
-        },
-        {
-          "text": "Drop to a simmer and add the kale. Simmer about 45 minutes.",
-          "stove": {
-            "electric": "About 3. Check it after 10 minutes.",
-            "gas": "Low-medium."
-          }
-        },
-        {
-          "text": "Add the pasta for the last 10 minutes if you're using it. Taste and season."
-        }
-      ],
-      "notes": [
-        {
-          "kind": "aside",
-          "text": "EXAMPLE NOTE: Bryan's own asides will go here, word for word."
-        },
-        {
-          "kind": "substitution",
-          "text": "EXAMPLE: Swap in spinach or collards for the kale."
-        },
-        {
-          "kind": "sourcing",
-          "text": "EXAMPLE: Any canned white bean works (cannellini, great northern or navy)."
-        }
-      ],
-      "shopping": [
-        {
-          "group": "produce",
-          "items": [
-            {
-              "amount": 2,
-              "unit": null,
-              "item": "large onions",
-              "itemSingular": "large onion"
-            },
-            {
-              "amount": 1,
-              "unit": "head",
-              "item": "garlic"
-            },
-            {
-              "amount": 2,
-              "unit": "bunch",
-              "item": "kale"
-            }
-          ]
-        },
-        {
-          "group": "pantry",
-          "items": [
-            {
-              "amount": 4,
-              "unit": "can",
-              "item": "white beans (15 oz)"
-            },
-            {
-              "amount": 4,
-              "unit": "quart",
-              "item": "vegetable broth"
-            },
-            {
-              "amount": 1,
-              "unit": "cup",
-              "item": "small dried pasta (optional)"
-            },
-            {
-              "amount": null,
-              "unit": null,
-              "item": "olive oil, dried thyme, salt, pepper"
-            }
-          ]
-        },
-        {
-          "group": "equipment",
-          "items": [
-            {
-              "amount": null,
-              "unit": null,
-              "item": "large stockpot (12 qt or bigger)",
-              "scale": false
-            },
-            {
-              "amount": null,
-              "unit": null,
-              "item": "quart freezer containers",
-              "scale": false
-            }
-          ]
-        }
-      ],
-      "related": [
-        "example-three-bean-vegan-chili",
-        "example-beef-barley-stew"
-      ],
-      "yieldType": "quarts",
-      "diet": [
-        "vegan"
-      ]
-    },
-    {
-      "slug": "example-beef-barley-stew",
-      "example": true,
-      "status": "approved",
-      "title": "Big-Batch Beef & Barley",
-      "book": "big-batch",
-      "section": "Stews",
-      "summary": "A stick-to-your-ribs pot that fills the freezer for weeks.",
-      "yield": {
-        "batchQuarts": 12,
-        "basis": "about 12 quarts in the pot",
-        "finishedQuarts": null,
-        "servings": 24,
-        "servingsUnit": "bowls"
-      },
-      "time": {
-        "rough": "About 2 1/2 hours",
-        "totalMinutes": 150
-      },
-      "photo": null,
-      "storage": [
-        "Freezer: barley keeps soaking up liquid, so add a splash of water when you reheat."
-      ],
-      "ingredients": [
-        {
-          "amount": 3,
-          "unit": "lb",
-          "item": "beef chuck",
-          "prep": "cut into bite-size cubes",
+          "item": "any of your green stuff in the freezer",
+          "prep": "broccoli stalks, asparagus stalks",
           "optional": false,
           "thisTime": false
         },
         {
           "amount": 2,
           "unit": "tbsp",
-          "item": "oil",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 3,
-          "unit": null,
-          "item": "onions",
-          "prep": "chopped",
+          "item": "garam masala",
+          "prep": "depending on how bitter you want it",
           "optional": false,
           "thisTime": false,
-          "itemSingular": "onion"
+          "amountMax": 3
         },
         {
           "amount": 2,
-          "unit": "bag",
-          "item": "frozen mixed vegetables (1-lb bags)",
+          "unit": "tbsp",
+          "item": "granulated or ground onion",
           "prep": null,
-          "optional": false,
-          "thisTime": true
-        },
-        {
-          "amount": 1.5,
-          "unit": "cup",
-          "item": "pearl barley",
-          "prep": "rinsed",
           "optional": false,
           "thisTime": false
         },
         {
-          "amount": 6,
-          "unit": "quart",
-          "item": "beef broth",
+          "amount": 2,
+          "unit": "tbsp",
+          "item": "salt",
           "prep": null,
           "optional": false,
+          "thisTime": false
+        },
+        {
+          "amount": 1,
+          "unit": "tbsp",
+          "item": "coriander",
+          "prep": null,
+          "optional": false,
+          "thisTime": false
+        },
+        {
+          "amount": 1,
+          "unit": "tbsp",
+          "item": "garlic powder",
+          "prep": null,
+          "optional": false,
+          "thisTime": false
+        },
+        {
+          "amount": 1,
+          "unit": "tbsp",
+          "item": "smoked paprika",
+          "prep": "either will work",
+          "optional": false,
+          "thisTime": false
+        },
+        {
+          "amount": 0.5,
+          "unit": "tbsp",
+          "item": "cayenne pepper",
+          "prep": null,
+          "optional": false,
+          "thisTime": false
+        },
+        {
+          "amount": 2,
+          "unit": "tbsp",
+          "item": "white miso paste",
+          "prep": null,
+          "optional": true,
           "thisTime": false
         },
         {
@@ -508,356 +208,280 @@
           "itemSingular": "bay leaf"
         },
         {
-          "amount": 1,
-          "unit": "tbsp",
-          "item": "Worcestershire sauce",
-          "prep": null,
-          "optional": true,
-          "thisTime": true
+          "amount": 0.25,
+          "unit": "cup",
+          "item": "cilantro, loose, stems and all",
+          "prep": "a little handful, whatever you have on hand",
+          "optional": false,
+          "thisTime": false,
+          "approx": true
         },
         {
-          "amount": null,
-          "unit": null,
-          "item": "salt and pepper",
-          "prep": "to taste",
+          "amount": 2,
+          "unit": "can",
+          "item": "coconut milk",
+          "prep": null,
           "optional": false,
-          "thisTime": false
+          "thisTime": false,
+          "itemSingular": "can coconut milk"
         }
       ],
       "steps": [
         {
-          "text": "Brown the beef in batches in the oil. Don't crowd the pot.",
+          "title": "Load up the pot and bring it to a boil.",
+          "text": "You take a big pot of water, and I'm using about, let's say, 12 quarts of water in this pot. Put in your greens and whatever else green you have in the freezer you gotta get rid of. It's okay if it's a little freezer burn. Just dump it right in, put the moisture in there, don't worry about it. Cook it on high and bring it to a boil."
+        },
+        {
+          "title": "Boil, then turn it down to a simmer.",
+          "text": "When it boils for about three to five minutes, turn it down to a simmer. If you let it boil too long, it's not going to hurt it. It will change the flavor slightly, it will bring it down a little bit so it's a deeper kind of flavor, and you don't want to over-salt it at that point, so if you forget about it, just know to be careful in the salt.",
           "stove": {
-            "electric": "Medium-high, around 7. Give it time to come up.",
-            "gas": "Medium-high."
+            "electric": "If you're on an electric stove, and I strongly dislike cooking on electric stoves, turn it down to about two to three, normally. Let it come down to a boil, and check it in about ten minutes, and double check if it's got a nice little simmer going. If not, crank it up a little bit.",
+            "gas": "If you're on a gas one, it means you already know how to cook with the stove. Just turn it down until you start seeing it calm down from a boil, down to a simmer, and hold it there. Normally it's maybe a little under medium at first, and it goes down to in between low and medium, so about a three or four. For those of you who are just learning to cook, this may matter. For someone who is cooking for a while, you probably kinda get what I mean, how every stove is a little bit different, but the gas one is much easier to adjust down to a simmer."
           }
         },
         {
-          "text": "Add the onions and cook until soft."
+          "title": "Simmer about an hour, and watch the color.",
+          "lookFor": "the color dramatically changes to a darker green, not as bright green.",
+          "text": "You let that cook for about an hour. Around, say, 45 minutes-ish, you should see the color dramatically change to a darker green color, not as bright green. That's how you know the fibers are broken down. We don't wanna break down the fibers all the way to mush, that's why we don't overboil it, but you want it broken down enough that the immersion blender grabs it and purees it. Sometimes things are a little thicker, but you'll see it turn that color."
         },
         {
-          "text": "Add the broth, bay leaves and Worcestershire. Bring to a boil, then simmer 1 hour.",
-          "stove": {
-            "electric": "About 3 once it boils.",
-            "gas": "Low."
-          }
+          "title": "Blend it.",
+          "text": "Take out your immersion blender, or if you're doing it in a blender on the counter, just dump it in carefully. Do not hurt yourself. Blend that all together."
         },
         {
-          "text": "Add the barley and frozen vegetables and simmer about 45 minutes more, until the barley is tender."
+          "title": "Season it, add the bay leaves and cilantro, and cook another 30 to 45 minutes.",
+          "text": "After we puree it, we add all those spices to it and the bay leaves, plus a little handful of cilantro with stems, whatever you have on hand, right on the top of it, and we let it cook another half hour to forty-five minutes. A little bit longer makes a little bit deeper flavor. The miso is optional. It adds a tang to it. I like it."
         },
         {
-          "text": "Take out the bay leaves, then taste and season."
+          "title": "Pull the bay leaves, add the coconut milk, and blend again.",
+          "text": "Take out the bay leaves. Add in two cans of coconut milk, puree that again, and let it cook for about another five to ten minutes. We can always add a little bit more water. This is about consistency."
+        },
+        {
+          "title": "Cool it down and quart it out.",
+          "text": "Turn it off and let it cool until you're ready to quart it out."
+        }
+      ],
+      "parts": [
+        {
+          "id": "the-goup",
+          "title": "Part 1: The Green Goddess Goup",
+          "ingredientsHeading": "Ingredients (what I used this time)",
+          "useIngredients": true,
+          "useSteps": true
+        },
+        {
+          "id": "make-it-your-stew",
+          "title": "Part 2: Make it your stew",
+          "lede": "Here's what you can add to it to make your dish delicious, whenever you take it out of the freezer. Depending on how they're prepped, they need to get cooked and then added into it. If something requires longer cooking time, put it in there for longer. Most things coming out of a can, you can just dump them right in.",
+          "items": [
+            {
+              "text": "Sweet corn",
+              "aside": "I always like sweet corn in there."
+            },
+            {
+              "text": "Rice cakes, the chewy Korean kind (tteok)",
+              "aside": "delicious",
+              "after": "; now my favorite. Usually at Asian markets."
+            },
+            {
+              "text": "Chickpeas",
+              "aside": "great"
+            },
+            {
+              "text": "Any type of beans, really, especially kidney beans",
+              "aside": "I don't like black beans in as much, but you can try it."
+            },
+            {
+              "text": "Tofu, fried, cubed, anything like that"
+            }
+          ],
+          "subsections": [
+            {
+              "title": "Tom's picks to try",
+              "items": [
+                {
+                  "title": "Mushrooms",
+                  "text": "oyster, shiitake, button, trumpet, any of them really. Try different mushrooms inside of this. That's one of the most delicious ways to try them, along with the GGG."
+                },
+                {
+                  "title": "Potatoes",
+                  "text": "canned work: just dump them in"
+                },
+                {
+                  "title": "Red lentils",
+                  "text": "dry, from the pantry; simmer in the thawed goop about 20 minutes and they melt in and thicken it"
+                },
+                {
+                  "text": "Frozen cubed butternut squash"
+                },
+                {
+                  "text": "To finish: a squeeze of lime, chili crisp or hot sauce, a handful of cashews"
+                }
+              ]
+            },
+            {
+              "title": "Optional, for a little more meat to it",
+              "items": [
+                {
+                  "text": "Rice"
+                },
+                {
+                  "text": "Ramen noodles, specifically ones that are not plastic. I'm being literal: don't eat the plastic ones, the ones with weird chemicals. Grab one like Lotus Ramen, that's a brown rice millet flour, that's a good one. There's other ones that are organic flour that aren't weird chemicals."
+                }
+              ]
+            }
+          ],
+          "closing": "Pretty much, you can put almost anything you want in here. That's just a few. See what else tastes good. This is a stew that you get to make yourself. A bisque of the green goop."
         }
       ],
       "notes": [
         {
           "kind": "aside",
-          "text": "EXAMPLE NOTE: Bryan's own asides will go here, word for word."
+          "text": "\"Any of your green stuff in your freezer, throw it in there. It won't change the flavor that much, it'll probably make it taste better. But the whole point is, Green Goddess Goup, all that good green in there, let's get the green. But not other veggies outside of that.\" Broccoli stalks, or asparagus stalks you were saving for a cream of asparagus soup and forgot about."
         },
         {
-          "kind": "substitution",
-          "text": "EXAMPLE: Farro or brown rice can stand in for the barley."
+          "kind": "aside",
+          "text": "Frozen veggies bring water from the ice on them, plus their own water content, so it won't cook down too much. It might be a little different when it's fresh."
+        },
+        {
+          "kind": "aside",
+          "text": "The why: \"The whole point of this is to get the GGG, the goop, through the system. You want it broken down. Sometimes you wanna have the food more fibrous, tougher, like the connective tissue when you're eating kale... good for the tougher parts of the body. This is to nourish the entire body, to keep it warm and full and cozy when you're camping, when you're a little cold, and just in general warm the heart. All those greens go to that core area to warm it.\""
         }
       ],
       "shopping": [
-        {
-          "group": "produce",
-          "items": [
-            {
-              "amount": 3,
-              "unit": null,
-              "item": "onions",
-              "itemSingular": "onion"
-            }
-          ]
-        },
         {
           "group": "frozen",
           "items": [
             {
               "amount": 2,
-              "unit": "bag",
-              "item": "mixed vegetables (1 lb)"
-            }
-          ]
-        },
-        {
-          "group": "pantry",
-          "items": [
-            {
-              "amount": 1.5,
-              "unit": "cup",
-              "item": "pearl barley"
-            },
-            {
-              "amount": 6,
-              "unit": "quart",
-              "item": "beef broth"
-            },
-            {
-              "amount": null,
-              "unit": null,
-              "item": "bay leaves, Worcestershire, oil, salt, pepper"
-            }
-          ]
-        },
-        {
-          "group": "meat",
-          "items": [
-            {
-              "amount": 3,
               "unit": "lb",
-              "item": "beef chuck"
-            }
-          ]
-        },
-        {
-          "group": "equipment",
-          "items": [
+              "item": "spinach"
+            },
             {
-              "amount": null,
-              "unit": null,
-              "item": "large stockpot (16 qt or bigger)",
-              "scale": false
+              "amount": 2,
+              "unit": "lb",
+              "item": "kale"
+            },
+            {
+              "amount": 1,
+              "unit": "lb",
+              "item": "collard greens"
+            },
+            {
+              "amount": 2,
+              "unit": "lb",
+              "item": "broccoli florets"
+            },
+            {
+              "amount": 1,
+              "unit": "lb",
+              "item": "sweet peas"
             }
           ]
-        }
-      ],
-      "related": [
-        "example-white-bean-kale-stew",
-        "example-three-bean-vegan-chili"
-      ],
-      "yieldType": "quarts",
-      "diet": []
-    },
-    {
-      "slug": "example-three-bean-vegan-chili",
-      "example": true,
-      "status": "approved",
-      "title": "Three-Bean Vegan Chili",
-      "book": "big-batch",
-      "section": "Chilis",
-      "yieldType": "quarts",
-      "diet": [
-        "vegan"
-      ],
-      "summary": "A deep, smoky chili that gets better once it's been frozen and thawed.",
-      "yield": {
-        "batchQuarts": 10,
-        "basis": "about 10 quarts in the pot",
-        "finishedQuarts": null,
-        "servings": 20,
-        "servingsUnit": "bowls"
-      },
-      "time": {
-        "rough": "About 2 hours",
-        "totalMinutes": 120
-      },
-      "photo": null,
-      "storage": [
-        "Freezer: cool fully, then fill quart containers. Thaw overnight in the fridge. The flavors settle in."
-      ],
-      "ingredients": [
-        {
-          "amount": 3,
-          "unit": "tbsp",
-          "item": "olive oil",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
         },
-        {
-          "amount": 3,
-          "unit": null,
-          "item": "onions",
-          "itemSingular": "onion",
-          "prep": "diced",
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 2,
-          "unit": null,
-          "item": "bell peppers",
-          "itemSingular": "bell pepper",
-          "prep": "diced",
-          "optional": false,
-          "thisTime": true
-        },
-        {
-          "amount": 8,
-          "unit": "clove",
-          "item": "garlic",
-          "prep": "minced",
-          "optional": false,
-          "thisTime": true
-        },
-        {
-          "amount": 3,
-          "unit": "can",
-          "item": "black beans (15-oz cans)",
-          "prep": "drained",
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 3,
-          "unit": "can",
-          "item": "kidney beans (15-oz cans)",
-          "prep": "drained",
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 3,
-          "unit": "can",
-          "item": "pinto beans (15-oz cans)",
-          "prep": "drained",
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 2,
-          "unit": "can",
-          "item": "crushed tomatoes (28-oz cans)",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 1,
-          "unit": "cup",
-          "item": "bulgur",
-          "prep": "for a hearty texture",
-          "optional": true,
-          "thisTime": false
-        },
-        {
-          "amount": 0.25,
-          "unit": "cup",
-          "item": "chili powder",
-          "prep": null,
-          "optional": false,
-          "thisTime": true
-        },
-        {
-          "amount": 2,
-          "unit": "tbsp",
-          "item": "ground cumin",
-          "prep": null,
-          "optional": false,
-          "thisTime": true
-        },
-        {
-          "amount": 1,
-          "unit": "tbsp",
-          "item": "smoked paprika",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 2,
-          "unit": "quart",
-          "item": "vegetable broth or water",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": null,
-          "unit": null,
-          "item": "salt",
-          "prep": "to taste",
-          "optional": false,
-          "thisTime": false
-        }
-      ],
-      "steps": [
-        {
-          "text": "Soften the onions and peppers in the oil, about 10 minutes.",
-          "stove": {
-            "electric": "Around 6, then turn it down early. Electric holds heat.",
-            "gas": "Medium."
-          }
-        },
-        {
-          "text": "Add the garlic and spices and stir for a minute."
-        },
-        {
-          "text": "Add the beans, tomatoes, broth and bulgur. Bring it up to a bubble.",
-          "stove": {
-            "electric": "High until it bubbles, then about 3.",
-            "gas": "High, then low."
-          }
-        },
-        {
-          "text": "Simmer about 1 1/2 hours, stirring now and then so the bottom doesn't catch."
-        },
-        {
-          "text": "Taste and season. It'll taste even better after the freezer."
-        }
-      ],
-      "notes": [
-        {
-          "kind": "aside",
-          "text": "EXAMPLE NOTE: Bryan's own asides will go here, word for word."
-        },
-        {
-          "kind": "substitution",
-          "text": "EXAMPLE: Any mix of beans works. Use what's in the pantry."
-        }
-      ],
-      "shopping": [
         {
           "group": "produce",
           "items": [
             {
-              "amount": 3,
+              "amount": null,
               "unit": null,
-              "item": "onions",
-              "itemSingular": "onion"
-            },
+              "item": "a little cilantro"
+            }
+          ]
+        },
+        {
+          "group": "refrigerated",
+          "items": [
             {
-              "amount": 2,
+              "amount": null,
               "unit": null,
-              "item": "bell peppers",
-              "itemSingular": "bell pepper"
-            },
-            {
-              "amount": 1,
-              "unit": "head",
-              "item": "garlic"
+              "item": "white miso paste (usually near the tofu)",
+              "optional": true,
+              "scale": false
             }
           ]
         },
         {
           "group": "pantry",
+          "label": "Pantry (check first)",
           "items": [
             {
-              "amount": 9,
-              "unit": "can",
-              "item": "beans (15 oz): black, kidney, pinto"
-            },
-            {
               "amount": 2,
               "unit": "can",
-              "item": "crushed tomatoes (28 oz)"
-            },
-            {
-              "amount": 2,
-              "unit": "quart",
-              "item": "vegetable broth"
-            },
-            {
-              "amount": 1,
-              "unit": "cup",
-              "item": "bulgur (optional)"
+              "item": "coconut milk",
+              "itemSingular": "can coconut milk"
             },
             {
               "amount": null,
               "unit": null,
-              "item": "chili powder, cumin, smoked paprika, olive oil, salt"
+              "item": "garam masala, granulated onion, coriander, garlic powder, smoked paprika, cayenne, salt, bay leaves",
+              "scale": false
+            }
+          ]
+        },
+        {
+          "group": "add-ins",
+          "label": "Stew add-ins (for serving day, pick what you like)",
+          "items": [
+            {
+              "amount": null,
+              "unit": null,
+              "item": "sweet corn",
+              "scale": false
+            },
+            {
+              "amount": null,
+              "unit": null,
+              "item": "rice cakes",
+              "scale": false
+            },
+            {
+              "amount": null,
+              "unit": null,
+              "item": "chickpeas",
+              "scale": false
+            },
+            {
+              "amount": null,
+              "unit": null,
+              "item": "kidney or other beans",
+              "scale": false
+            },
+            {
+              "amount": null,
+              "unit": null,
+              "item": "tofu",
+              "scale": false
+            },
+            {
+              "amount": null,
+              "unit": null,
+              "item": "mushrooms",
+              "scale": false
+            },
+            {
+              "amount": null,
+              "unit": null,
+              "item": "potatoes",
+              "scale": false
+            },
+            {
+              "amount": null,
+              "unit": null,
+              "item": "red lentils",
+              "scale": false
+            },
+            {
+              "amount": null,
+              "unit": null,
+              "item": "rice",
+              "scale": false
+            },
+            {
+              "amount": null,
+              "unit": null,
+              "item": "ramen noodles",
+              "scale": false
             }
           ]
         },
@@ -867,615 +491,27 @@
             {
               "amount": null,
               "unit": null,
-              "item": "large stockpot (12 qt or bigger)",
+              "item": "very large stockpot",
               "scale": false
             },
             {
               "amount": null,
               "unit": null,
-              "item": "quart freezer containers",
+              "item": "immersion blender",
+              "scale": false
+            },
+            {
+              "amount": null,
+              "unit": null,
+              "item": "quart containers",
               "scale": false
             }
           ]
         }
       ],
       "related": [
-        "example-white-bean-kale-stew",
         "cream-of-asparagus-soup"
       ]
-    },
-    {
-      "slug": "example-lemony-chickpea-skillet",
-      "example": true,
-      "status": "approved",
-      "title": "Lemony Chickpea & Spinach Skillet",
-      "book": "everyday",
-      "section": "Weeknight one-pan",
-      "yieldType": "servings",
-      "diet": [
-        "vegan"
-      ],
-      "summary": "A quick weeknight pan for two.",
-      "yield": {
-        "batchQuarts": null,
-        "basis": null,
-        "finishedQuarts": null,
-        "servings": 2,
-        "servingsUnit": null
-      },
-      "time": {
-        "rough": "About 25 minutes",
-        "totalMinutes": 25
-      },
-      "photo": null,
-      "storage": [],
-      "ingredients": [
-        {
-          "amount": 2,
-          "unit": "tbsp",
-          "item": "olive oil",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 1,
-          "unit": null,
-          "item": "small onion",
-          "prep": "sliced",
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 2,
-          "unit": "clove",
-          "item": "garlic",
-          "prep": "sliced",
-          "optional": false,
-          "thisTime": true
-        },
-        {
-          "amount": 1,
-          "unit": "can",
-          "item": "chickpeas (15-oz can)",
-          "prep": "drained",
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 4,
-          "unit": "cup",
-          "item": "baby spinach",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 1,
-          "unit": "tsp",
-          "item": "ground cumin",
-          "prep": null,
-          "optional": false,
-          "thisTime": true
-        },
-        {
-          "amount": 1,
-          "unit": null,
-          "item": "lemon",
-          "prep": "juiced",
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": null,
-          "unit": null,
-          "item": "salt and pepper",
-          "prep": "to taste",
-          "optional": false,
-          "thisTime": false
-        }
-      ],
-      "steps": [
-        {
-          "text": "Warm the oil in a skillet and soften the onion, about 5 minutes.",
-          "stove": {
-            "electric": "Around 5.",
-            "gas": "Medium."
-          }
-        },
-        {
-          "text": "Add the garlic, cumin and chickpeas and let them crisp a little, about 8 minutes."
-        },
-        {
-          "text": "Stir in the spinach until it wilts, then finish with lemon, salt and pepper."
-        }
-      ],
-      "notes": [
-        {
-          "kind": "aside",
-          "text": "EXAMPLE NOTE: Bryan's own asides will go here, word for word."
-        }
-      ],
-      "shopping": [
-        {
-          "group": "produce",
-          "items": [
-            {
-              "amount": 1,
-              "unit": null,
-              "item": "small onion"
-            },
-            {
-              "amount": 4,
-              "unit": "cup",
-              "item": "baby spinach"
-            },
-            {
-              "amount": 1,
-              "unit": null,
-              "item": "lemon"
-            }
-          ]
-        },
-        {
-          "group": "pantry",
-          "items": [
-            {
-              "amount": 1,
-              "unit": "can",
-              "item": "chickpeas (15 oz)"
-            },
-            {
-              "amount": null,
-              "unit": null,
-              "item": "olive oil, garlic, cumin, salt, pepper"
-            }
-          ]
-        },
-        {
-          "group": "equipment",
-          "items": [
-            {
-              "amount": null,
-              "unit": null,
-              "item": "large skillet",
-              "scale": false
-            }
-          ]
-        }
-      ],
-      "related": []
-    },
-    {
-      "slug": "example-ginger-lemon-evening-tea",
-      "example": true,
-      "status": "approved",
-      "title": "Ginger-Lemon Evening Tea",
-      "book": "broths-teas",
-      "section": "Teas",
-      "yieldType": "servings",
-      "diet": [
-        "vegan"
-      ],
-      "summary": "A simple pot of ginger and lemon for two mugs.",
-      "yield": {
-        "batchQuarts": null,
-        "basis": null,
-        "finishedQuarts": null,
-        "servings": 2,
-        "servingsUnit": "mugs"
-      },
-      "time": {
-        "rough": "About 15 minutes",
-        "totalMinutes": 15
-      },
-      "photo": null,
-      "storage": [],
-      "ingredients": [
-        {
-          "amount": 3,
-          "unit": "cup",
-          "item": "water",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 1,
-          "unit": null,
-          "item": "thumb of fresh ginger",
-          "prep": "sliced",
-          "optional": false,
-          "thisTime": true,
-          "itemSingular": "thumb of fresh ginger"
-        },
-        {
-          "amount": 0.5,
-          "unit": null,
-          "item": "lemon",
-          "prep": "sliced",
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 1,
-          "unit": "tbsp",
-          "item": "honey",
-          "prep": null,
-          "optional": true,
-          "thisTime": false
-        }
-      ],
-      "steps": [
-        {
-          "text": "Bring the water and ginger to a gentle simmer and let it steep about 10 minutes.",
-          "stove": {
-            "electric": "Around 3 or 4.",
-            "gas": "Low to medium-low."
-          }
-        },
-        {
-          "text": "Take it off the heat, add the lemon, and pour into mugs. Stir in honey if you want it."
-        }
-      ],
-      "notes": [
-        {
-          "kind": "aside",
-          "text": "EXAMPLE NOTE: Bryan's own asides will go here, word for word."
-        }
-      ],
-      "shopping": [
-        {
-          "group": "produce",
-          "items": [
-            {
-              "amount": 1,
-              "unit": null,
-              "item": "fresh ginger"
-            },
-            {
-              "amount": 1,
-              "unit": null,
-              "item": "lemon"
-            }
-          ]
-        },
-        {
-          "group": "pantry",
-          "items": [
-            {
-              "amount": null,
-              "unit": null,
-              "item": "honey (optional)"
-            }
-          ]
-        },
-        {
-          "group": "equipment",
-          "items": [
-            {
-              "amount": null,
-              "unit": null,
-              "item": "small saucepan",
-              "scale": false
-            }
-          ]
-        }
-      ],
-      "related": []
-    },
-    {
-      "slug": "example-lemon-balm-mint-jar",
-      "example": true,
-      "status": "approved",
-      "title": "Lemon Balm & Mint Jar",
-      "book": "kitchen-herbal",
-      "section": "Jars",
-      "yieldType": "servings",
-      "diet": [
-        "vegan"
-      ],
-      "summary": "A pint jar of dried lemon balm and mint to keep in the cupboard.",
-      "advisory": "Check with your doctor if pregnant, nursing, or on medication.",
-      "yield": {
-        "batchQuarts": null,
-        "basis": "fills about 1 pint jar",
-        "finishedQuarts": null,
-        "servings": 1,
-        "servingsUnit": "pint jar"
-      },
-      "time": {
-        "rough": "About 20 minutes, plus drying time",
-        "totalMinutes": 20
-      },
-      "photo": null,
-      "storage": [
-        "Keep the jar in a dark cupboard, sealed, and use within a year."
-      ],
-      "ingredients": [
-        {
-          "amount": 1,
-          "unit": "cup",
-          "item": "dried lemon balm leaves",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 1,
-          "unit": "cup",
-          "item": "dried mint leaves",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
-        }
-      ],
-      "steps": [
-        {
-          "text": "If your leaves are still on the stem, crumble them off and pick out any tough bits."
-        },
-        {
-          "text": "Toss the lemon balm and mint together and funnel them into a clean, dry pint jar."
-        },
-        {
-          "text": "Label the jar and store it in a dark cupboard."
-        }
-      ],
-      "notes": [
-        {
-          "kind": "aside",
-          "text": "This is a kitchen recipe for a dried jar blend, not a treatment or cure."
-        }
-      ],
-      "shopping": [
-        {
-          "group": "produce",
-          "items": [
-            {
-              "amount": 1,
-              "unit": "cup",
-              "item": "dried lemon balm leaves"
-            },
-            {
-              "amount": 1,
-              "unit": "cup",
-              "item": "dried mint leaves"
-            }
-          ]
-        },
-        {
-          "group": "equipment",
-          "items": [
-            {
-              "amount": 1,
-              "unit": null,
-              "item": "pint jar with a lid",
-              "scale": false
-            }
-          ]
-        }
-      ],
-      "related": []
-    },
-    {
-      "slug": "example-glycerin-ginger-extract",
-      "example": true,
-      "status": "approved",
-      "title": "Glycerin Ginger Extract",
-      "book": "simple-tinctures",
-      "section": "Glycerites",
-      "yieldType": "servings",
-      "diet": [
-        "vegan"
-      ],
-      "summary": "A small bottle of ginger steeped in vegetable glycerin. No alcohol.",
-      "advisory": "Check with your doctor if pregnant, nursing, or on medication.",
-      "yield": {
-        "batchQuarts": null,
-        "basis": "fills about 1 cup",
-        "finishedQuarts": null,
-        "servings": 1,
-        "servingsUnit": "cup"
-      },
-      "time": {
-        "rough": "About 20 minutes, plus a few weeks to steep",
-        "totalMinutes": 20
-      },
-      "photo": null,
-      "storage": [
-        "Keep the finished bottle in a dark cupboard."
-      ],
-      "ingredients": [
-        {
-          "amount": 1,
-          "unit": "cup",
-          "item": "fresh ginger",
-          "prep": "peeled and sliced",
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 1,
-          "unit": "cup",
-          "item": "vegetable glycerin",
-          "prep": null,
-          "optional": false,
-          "thisTime": false
-        }
-      ],
-      "steps": [
-        {
-          "text": "Pack the ginger into a clean jar and pour in enough vegetable glycerin to cover it by about an inch."
-        },
-        {
-          "text": "Seal the jar, label it, and let it sit in a dark cupboard for three to four weeks, turning it now and then."
-        },
-        {
-          "text": "Strain into a clean bottle and label it."
-        }
-      ],
-      "notes": [
-        {
-          "kind": "aside",
-          "text": "This is a kitchen recipe for a glycerin extract, not a treatment or cure."
-        },
-        {
-          "kind": "sourcing",
-          "text": "Look for food-grade vegetable glycerin."
-        }
-      ],
-      "shopping": [
-        {
-          "group": "produce",
-          "items": [
-            {
-              "amount": 1,
-              "unit": "cup",
-              "item": "fresh ginger"
-            }
-          ]
-        },
-        {
-          "group": "pantry",
-          "items": [
-            {
-              "amount": 1,
-              "unit": "cup",
-              "item": "vegetable glycerin"
-            }
-          ]
-        },
-        {
-          "group": "equipment",
-          "items": [
-            {
-              "amount": 1,
-              "unit": null,
-              "item": "half-pint jar and a small bottle",
-              "scale": false
-            }
-          ]
-        }
-      ],
-      "related": []
-    },
-    {
-      "slug": "example-ginger-lime-sparkler",
-      "example": true,
-      "status": "approved",
-      "title": "Ginger-Lime Sparkler",
-      "book": "evening-glasses",
-      "section": "Mocktails",
-      "yieldType": "servings",
-      "diet": [
-        "vegan"
-      ],
-      "summary": "A lime and ginger mocktail for two. The recipe itself has no alcohol.",
-      "yield": {
-        "batchQuarts": null,
-        "basis": null,
-        "finishedQuarts": null,
-        "servings": 2,
-        "servingsUnit": "glasses"
-      },
-      "time": {
-        "rough": "About 10 minutes",
-        "totalMinutes": 10
-      },
-      "photo": null,
-      "storage": [],
-      "ingredients": [
-        {
-          "amount": 1,
-          "unit": null,
-          "item": "lime",
-          "prep": "juiced",
-          "optional": false,
-          "thisTime": false
-        },
-        {
-          "amount": 1,
-          "unit": "tsp",
-          "item": "grated fresh ginger",
-          "prep": null,
-          "optional": false,
-          "thisTime": true
-        },
-        {
-          "amount": 1,
-          "unit": "tsp",
-          "item": "honey or maple syrup",
-          "prep": null,
-          "optional": true,
-          "thisTime": false
-        },
-        {
-          "amount": 12,
-          "unit": "oz",
-          "item": "sparkling water",
-          "prep": "chilled",
-          "optional": false,
-          "thisTime": false
-        }
-      ],
-      "steps": [
-        {
-          "text": "Stir the lime juice, ginger and honey or maple, if using, in a small pitcher."
-        },
-        {
-          "text": "Add ice, top with sparkling water, and pour into two glasses."
-        }
-      ],
-      "notes": [
-        {
-          "kind": "aside",
-          "text": "This is the mocktail version. An adults-only variation can add a splash of rum; alcohol is for adults only."
-        }
-      ],
-      "shopping": [
-        {
-          "group": "produce",
-          "items": [
-            {
-              "amount": 1,
-              "unit": null,
-              "item": "lime"
-            },
-            {
-              "amount": null,
-              "unit": null,
-              "item": "fresh ginger"
-            }
-          ]
-        },
-        {
-          "group": "pantry",
-          "items": [
-            {
-              "amount": null,
-              "unit": null,
-              "item": "honey or maple syrup (optional)"
-            },
-            {
-              "amount": 12,
-              "unit": "oz",
-              "item": "sparkling water"
-            }
-          ]
-        },
-        {
-          "group": "equipment",
-          "items": [
-            {
-              "amount": null,
-              "unit": null,
-              "item": "small pitcher and two glasses",
-              "scale": false
-            }
-          ]
-        }
-      ],
-      "related": []
     }
   ],
   "comingSoonTitles": {

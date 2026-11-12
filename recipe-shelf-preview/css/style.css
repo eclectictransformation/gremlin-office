@@ -221,7 +221,28 @@ small{font-size:.8em;color:var(--muted)}
 .need-print pre{font:12pt/1.45 var(--sans);white-space:pre-wrap;margin:0}
 
 .empty{background:var(--paper);border:1px dashed var(--line);border-radius:var(--r);padding:30px;text-align:center}
+.soon-line{color:var(--muted);max-width:50ch;margin:22px 0 10px;font-size:1.05rem}
+
 .saved-view .btn.quiet{margin-top:18px}
+.soon-card{align-items:center}
+.soon-card .rcard-body{padding:8px 0}
+.rel.soon{padding-right:4px;gap:8px}
+
+.r-quote{margin:0 0 1.15em;padding:2px 0 2px 16px;border-left:3px solid var(--clay);font-family:var(--serif);font-style:italic;font-size:1.12rem;line-height:1.45;color:var(--ink);max-width:60ch}
+.r-quote p{margin:0}
+.r-part{margin-top:8px}
+.r-part > h2{font-size:1.7rem;margin:0 0 .5em}
+.r-part .r-grid{margin-top:18px}
+.r-part .lede,.r-part > p{max-width:65ch}
+.step-title{font-family:var(--serif);font-size:1.12rem;font-weight:500;margin:0 0 .35em;color:var(--ink);line-height:1.25}
+.look-for{background:var(--paper);border-left:4px solid var(--sage);padding:8px 12px;border-radius:0 10px 10px 0;font-size:.95rem;margin:0 0 .7em;max-width:60ch}
+.serve-list{margin:0 0 1.1em;padding-left:1.25em}
+.serve-list li{margin:0 0 .6em;max-width:65ch}
+.serve-aside{color:var(--muted);font-style:italic}
+.serve-after{color:var(--muted)}
+.r-after{margin-top:32px;max-width:65ch}
+.book-view .page.left p{max-width:46ch}
+
 
 .foot{max-width:1120px;margin:50px auto 0;padding:26px 20px 40px;border-top:1px solid var(--line);font-size:.88rem;color:var(--muted);text-align:center}
 
@@ -309,6 +330,10 @@ small{font-size:.8em;color:var(--muted)}
   .ing li.have .ing-text{color:#000}
   .photo img{max-height:180pt}
   h1{font-size:22pt}
+  .r-quote{border-left:2px solid #000;font-size:12pt}
+  .look-for{background:none;border-left:2px solid #000}
+  .r-part{break-inside:avoid}
+  .step-title{font-size:12.5pt}
   body.print-need .top,body.print-need .preview-note,body.print-need .foot,body.print-need #main,body.print-need .skip,body.print-need .toast{display:none!important}
   body.print-need .need-print,body.print-need .need-print[hidden]{display:block!important}
   body.print-need .need-print h1{font-size:18pt;margin:0 0 12pt}

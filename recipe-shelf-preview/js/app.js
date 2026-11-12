@@ -15,8 +15,9 @@
     serves: "Fewest servings first", "serves-desc": "Most servings first", time: "Quickest first"
   };
   var GROUPS = [
-    ["produce", "Produce"], ["meat", "Meat & fish"], ["frozen", "Frozen"],
-    ["dairy-eggs", "Dairy & eggs"], ["pantry", "Pantry"], ["equipment", "Equipment"]
+    ["produce", "Produce"], ["frozen", "Frozen"], ["refrigerated", "Refrigerated"],
+    ["meat", "Meat & fish"], ["dairy-eggs", "Dairy & eggs"], ["pantry", "Pantry"],
+    ["add-ins", "Stew add-ins"], ["equipment", "Equipment"]
   ];
   var NOTE_KIND = { aside: "From Bryan", substitution: "Swap it", sourcing: "Where to find it" };
   var sortState = {}; // per list: "home", "saved", "book:<id>", "cat:<id>"
@@ -85,10 +86,30 @@
     return q.text + (ul ? " " + ul : "");
   }
   function itemName(it, f) {
-    if (it.itemSingular && it.amount != null) { var q = scaleQty(it.amount, it.unit, f); if (!q.unit && q.value != null && q.value <= 1) return it.itemSingular; }
+    if (it.itemSingular && it.amount != null) {
+      var q = scaleQty(it.amountMax != null ? it.amountMax : it.amount, it.unit, f);
+      if (!q.unit && q.value != null && q.value <= 1) return it.itemSingular;
+    }
     return it.item;
   }
-  window.ETR = { scaleQty: scaleQty, qtyText: qtyText };
+  function ingQty(it, f) {
+    var approx = it.approx ? "about " : "";
+    if (it.amount == null && it.amountMax == null) return "";
+    if (it.amountMax != null && it.amount != null) {
+      var a = scaleQty(it.amount, it.unit, f);
+      var b = scaleQty(it.amountMax, it.unit, f);
+      if (a.pinch && b.pinch) return "a pinch";
+      var aTxt = a.pinch ? "a pinch" : a.text;
+      var bTxt = b.pinch ? "a pinch" : b.text;
+      var aU = a.pinch ? "" : unitLabel(a.unit, a.value);
+      var bU = b.pinch ? "" : unitLabel(b.unit, b.value);
+      if (aU === bU) return approx + aTxt + "–" + bTxt + (aU ? " " + aU : "");
+      return approx + (aTxt + (aU ? " " + aU : "")) + "–" + (bTxt + (bU ? " " + bU : ""));
+    }
+    var t = qtyText(it.amount, it.unit, f);
+    return t ? approx + t : "";
+  }
+  window.ETR = { scaleQty: scaleQty, qtyText: qtyText, ingQty: ingQty };
 
   /* ---------- saved (visitor's own browser only) ---------- */
   function getSaved() {
@@ -103,7 +124,7 @@
     return i === -1;
   }
   function updateSavedCount() {
-    var n = getSaved().filter(function (s) { return recipeBySlug(s); }).length;
+    var n = getSaved().filter(function (s) { return recipeBySlug(s) || comingSoonTitle(s); }).length;
     var c = document.getElementById("saved-count");
     c.textContent = n; c.setAttribute("aria-label", n + " saved recipe" + (n === 1 ? "" : "s"));
   }
@@ -167,7 +188,7 @@
     return parts[0] === "r" ? parts[2] : "";
   }
   function ingLine(it, f, withPrep) {
-    var amt = qtyText(it.amount, it.unit, f);
+    var amt = ingQty(it, f);
     var line = (amt ? amt + " " : "") + itemName(it, f);
     if (withPrep && it.prep) line += ", " + it.prep;
     if (it.optional) line += " (optional)";
@@ -249,21 +270,53 @@
     var p = resolvedPortion(r, portion);
     var f = PORTIONS[p].f;
     var lines = [r.title, "(" + portionPhrase(p) + ")", ""];
+    if (r.quote) lines.push('"' + r.quote + '"', "");
     if (r.summary) lines.push(r.summary, "");
     if (yType(r) === "servings" && servings(r)) lines.push("Serves " + roundFrac(servings(r) * f).text);
     if (quarts(r)) lines.push("Makes about " + roundFrac(quarts(r) * f).text + " qt");
     if (r.time && r.time.rough) lines.push("Time: " + r.time.rough);
     if (r.advisory) { lines.push("", r.advisory); }
-    lines.push("", "Ingredients");
-    r.ingredients.forEach(function (it) { lines.push("- " + ingLine(it, f, true)); });
-    lines.push("", "Steps");
-    r.steps.forEach(function (s, i) {
-      lines.push((i + 1) + ". " + s.text);
-      if (s.stove) {
-        if (s.stove.electric) lines.push("   Electric: " + s.stove.electric);
-        if (s.stove.gas) lines.push("   Gas: " + s.stove.gas);
-      }
-    });
+    function pushSteps(arr) {
+      arr.forEach(function (s, i) {
+        var head = (s.title ? s.title + " " : "") + (s.text || "");
+        lines.push((i + 1) + ". " + head);
+        if (s.lookFor) lines.push("   What to look for: " + s.lookFor);
+        if (s.stove) {
+          if (s.stove.electric) lines.push("   Electric: " + s.stove.electric);
+          if (s.stove.gas) lines.push("   Gas: " + s.stove.gas);
+        }
+      });
+    }
+    function pushItems(items) {
+      (items || []).forEach(function (it) {
+        var line = "- " + (it.title ? it.title + (it.text ? ": " + it.text : "") : (it.text || ""));
+        if (it.aside) line += ' "' + it.aside + '"';
+        if (it.after) line += " " + it.after;
+        lines.push(line);
+      });
+    }
+    if (r.parts && r.parts.length) {
+      r.parts.forEach(function (part) {
+        if (part.title) lines.push("", part.title, "");
+        if (part.lede) lines.push(part.lede, "");
+        if (part.useIngredients) {
+          lines.push(part.ingredientsHeading || "Ingredients");
+          r.ingredients.forEach(function (it) { lines.push("- " + ingLine(it, f, true)); });
+        }
+        if (part.useSteps) { lines.push("", "Steps"); pushSteps(r.steps); }
+        pushItems(part.items);
+        (part.subsections || []).forEach(function (sub) {
+          if (sub.title) lines.push("", sub.title);
+          pushItems(sub.items);
+        });
+        if (part.closing) lines.push("", part.closing);
+      });
+    } else {
+      lines.push("", "Ingredients");
+      r.ingredients.forEach(function (it) { lines.push("- " + ingLine(it, f, true)); });
+      lines.push("", "Steps");
+      pushSteps(r.steps);
+    }
     if (r.storage && r.storage.length) {
       lines.push("", "Storing it");
       r.storage.forEach(function (s) { lines.push("- " + s); });
@@ -365,8 +418,14 @@
     return null;
   }
   function bookById(id) {
-    for (var i = 0; i < DB.books.length; i++) if (DB.books[i].id === id) return DB.books[i];
+    for (var i = 0; i < DB.books.length; i++) {
+      var b = DB.books[i];
+      if (b.id === id || (b.aliases && b.aliases.indexOf(id) !== -1)) return b;
+    }
     return null;
+  }
+  function comingSoonTitle(s) {
+    return (DB.comingSoonTitles && DB.comingSoonTitles[s]) || "";
   }
   function categoryById(id) {
     for (var i = 0; i < DB.categories.length; i++) if (DB.categories[i].id === id) return DB.categories[i];
@@ -589,7 +648,7 @@
       '<p class="lede">' + esc(c.blurb || "") + "</p>" +
       '<p class="surprise-row">' + surpriseBtn(c.id) + "</p>";
     if (books.length) html += bookShelf(books);
-    else html += '<div class="empty"><p>Books for this category will show up here.</p><a class="btn quiet" href="#/">Back to the shelf</a></div>';
+    else html += "<p class=\"soon-line\">Coming soon. Recipes for this category will show up here when they're ready.</p>";
     if (recs.length) html += sampleList(recs, "cat:" + c.id);
     html += "</section>";
     return { html: html, title: c.name + " · Recipes" };
@@ -602,10 +661,11 @@
     var soon = b.status === "coming-soon";
     var recs0 = bookRecipes(b), bo = sortOptionsFor(recs0, b), bs = currentSort("book:" + b.id, bo, b);
     var recs = sortRecipes(recs0, bs);
-    var left = '<div class="page left"><p class="eyebrow">' + (soon ? "Coming soon" : "A few recipes from") + "</p>" +
+    var left = '<div class="page left"><p class="eyebrow">' + (soon ? "Coming soon" : (recs0.length === 1 ? "A recipe from" : "A few recipes from")) + "</p>" +
       '<h1 tabindex="-1">' + esc(b.title) + "</h1>" +
       '<div class="tags">' + exBadge(b) + wtBadge(b) + "</div>" +
-      '<p class="sub">' + esc(b.subtitle || "") + "</p><p>" + esc(b.blurb || "") + "</p>" + teaser(b) + "</div>";
+      (b.subtitle ? '<p class="sub">' + esc(b.subtitle) + "</p>" : "") +
+      paras(b.intro || b.blurb || "") + teaser(b) + "</div>";
     var right = '<div class="page right">';
     if (!recs.length) {
       right += '<div class="soon-page"><span class="soon-art" style="--c:' + esc(b.cover.color) + '">' + coverArt(b.cover.art) + "</span>" +
@@ -626,6 +686,91 @@
     return { html: html, title: b.title + " · Recipes" };
   }
 
+  function paras(text) {
+    return String(text || "").split(/\n\n+/).filter(Boolean).map(function (para) { return "<p>" + esc(para) + "</p>"; }).join("");
+  }
+  function renderSteps(steps) {
+    return (steps || []).map(function (s) {
+      var stove = "";
+      if (s.stove) {
+        stove = '<div class="stove">' + (s.stove.electric ? '<p><span class="st-k">Electric</span> ' + esc(s.stove.electric) + "</p>" : "") +
+          (s.stove.gas ? '<p><span class="st-k">Gas</span> ' + esc(s.stove.gas) + "</p>" : "") + "</div>";
+      }
+      var title = s.title ? '<p class="step-title">' + esc(s.title) + "</p>" : "";
+      var body = s.text ? "<p>" + esc(s.text) + "</p>" : "";
+      var look = s.lookFor ? '<p class="look-for"><span class="st-k">What to look for</span> ' + esc(s.lookFor) + "</p>" : "";
+      return "<li>" + title + body + look + stove + "</li>";
+    }).join("");
+  }
+  function renderServeItems(items) {
+    if (!items || !items.length) return "";
+    return '<ul class="serve-list">' + items.map(function (it) {
+      var lead = it.title ? "<strong>" + esc(it.title) + "</strong>" + (it.text ? ": " + esc(it.text) : "") : esc(it.text || "");
+      var aside = it.aside ? ' <span class="serve-aside">“' + esc(it.aside) + '”</span>' : "";
+      var after = it.after ? ' <span class="serve-after">' + esc(it.after) + "</span>" : "";
+      return "<li>" + lead + aside + after + "</li>";
+    }).join("") + "</ul>";
+  }
+  function amountNoteHtml(r, p, b) {
+    var rough = r.amountsRough || (b && b.style === "intuitive");
+    if (rough) {
+      var msg = r.amountsRough
+        ? "<b>Amounts are what I used this time, and they're rough on purpose.</b> I cook by feel, so treat them as a guide"
+        : "<b>Amounts are what I used this time.</b> I cook by feel, so treat them as a guide";
+      if (p !== "full") msg += ", and scaled amounts are rounded";
+      return '<p class="thistime" role="note">' + msg + ". Taste as you go.</p>";
+    }
+    return p !== "full" ? '<p class="thistime" role="note">Scaled amounts are rounded to friendly measurements.</p>' : "";
+  }
+  function ingredientsBlock(r, p, f, yt, serves, have, ing, shop, headingTag, headingText) {
+    var tag = headingTag || "h2";
+    var label = headingText || "Ingredients";
+    var small = (yt === "servings" && serves ? "serves " + esc(serves) : PORTIONS[p].label.toLowerCase() + " batch");
+    return '<' + tag + ' id="ing-h">' + esc(label) + " <small>" + small + "</small></" + tag + ">" +
+      '<ul class="ing" aria-live="polite">' + ing + "</ul>" +
+      '<p class="ing-foot no-print"><span class="ing-hint">Tick what you already have.</span>' +
+      '<button type="button" class="clear-checks" data-clear-have' + (have.length ? "" : " hidden") + '>Clear checks</button></p>' +
+      needPanelHtml(r, p) +
+      (shop ? '<details class="shop no-print" open><summary><h3>Shopping list</h3></summary><div class="shop-grid">' + shop + "</div></details>" : "");
+  }
+  function recipeBodyHtml(r, p, f, yt, serves, have, ing, steps, shop, storage, notes) {
+    var after = (storage ? "<h3>Storing it</h3><ul class=\"storage\">" + storage + "</ul>" : "") +
+      (notes ? "<h3>Notes</h3><ul class=\"notes\">" + notes + "</ul>" : "");
+    if (r.parts && r.parts.length) {
+      var html = "";
+      r.parts.forEach(function (part, idx) {
+        html += '<section class="r-part" id="' + esc(part.id || ("part-" + (idx + 1))) + '" aria-labelledby="part-h-' + idx + '">';
+        if (part.title) html += '<h2 id="part-h-' + idx + '">' + esc(part.title) + "</h2>";
+        if (part.lede) html += paras(part.lede);
+        if (part.useIngredients || part.useSteps) {
+          html += '<div class="r-grid">';
+          if (part.useIngredients) {
+            html += '<section class="col-a" aria-labelledby="ing-h">' +
+              ingredientsBlock(r, p, f, yt, serves, have, ing, shop, "h3", part.ingredientsHeading || "Ingredients") +
+              "</section>";
+          }
+          if (part.useSteps) {
+            html += '<section class="col-b" aria-labelledby="steps-h"><h3 id="steps-h">Steps</h3><ol class="steps">' + steps + "</ol></section>";
+          }
+          html += "</div>";
+        }
+        html += renderServeItems(part.items);
+        (part.subsections || []).forEach(function (sub, si) {
+          if (sub.title) html += '<h3 id="sub-' + idx + "-" + si + '">' + esc(sub.title) + "</h3>";
+          html += renderServeItems(sub.items);
+        });
+        if (part.closing) html += paras(part.closing);
+        html += "</section>";
+      });
+      if (after) html += '<section class="r-after">' + after + "</section>";
+      return html;
+    }
+    return '<div class="r-grid"><section class="col-a" aria-labelledby="ing-h">' +
+      ingredientsBlock(r, p, f, yt, serves, have, ing, shop, "h2", "Ingredients") +
+      "</section>" +
+      '<section class="col-b" aria-labelledby="steps-h"><h2 id="steps-h">Steps</h2><ol class="steps">' + steps + "</ol>" +
+      after + "</section></div>";
+  }
   function viewRecipe(slug, portion, showTry) {
     var r = recipeBySlug(slug);
     if (!r || r.status !== "approved" || !visible(r)) return notFound("That recipe isn't on the shelf", "It may not be published yet.");
@@ -646,7 +791,7 @@
 
     var have = getHave(r.slug);
     var ing = r.ingredients.map(function (it, i) {
-      var amt = qtyText(it.amount, it.unit, f);
+      var amt = ingQty(it, f);
       var checked = have.indexOf(i) !== -1;
       return '<li' + (checked ? ' class="have"' : "") + '><label class="ing-check">' +
         '<input type="checkbox" data-have data-ing="' + i + '"' + (checked ? " checked" : "") + ">" +
@@ -663,21 +808,15 @@
     var shop = GROUPS.map(function (g) {
       var grp = (r.shopping || []).filter(function (s) { return s.group === g[0]; })[0];
       if (!grp || !grp.items.length) return "";
-      return '<div class="shop-g"><h4>' + g[1] + "</h4><ul>" + grp.items.map(function (it) {
-        var sc = g[0] === "equipment" || it.scale === false ? 1 : f;
-        var amt = qtyText(it.amount, it.unit, sc);
-        return '<li><span class="box" aria-hidden="true"></span>' + (amt ? '<span class="amt">' + esc(amt) + "</span> " : "") + esc(itemName(it, sc)) + "</li>";
+      var label = grp.label || g[1];
+      return '<div class="shop-g"><h4>' + esc(label) + "</h4><ul>" + grp.items.map(function (it) {
+        var sc = g[0] === "equipment" || g[0] === "add-ins" || it.scale === false ? 1 : f;
+        var amt = ingQty(it, sc);
+        return '<li><span class="box" aria-hidden="true"></span>' + (amt ? '<span class="amt">' + esc(amt) + "</span> " : "") + esc(itemName(it, sc)) + (it.optional ? ' <span class="tag opt">optional</span>' : "") + "</li>";
       }).join("") + "</ul></div>";
     }).join("");
 
-    var steps = r.steps.map(function (s) {
-      var stove = "";
-      if (s.stove) {
-        stove = '<div class="stove">' + (s.stove.electric ? '<p><span class="st-k">Electric</span> ' + esc(s.stove.electric) + "</p>" : "") +
-          (s.stove.gas ? '<p><span class="st-k">Gas</span> ' + esc(s.stove.gas) + "</p>" : "") + "</div>";
-      }
-      return "<li><p>" + esc(s.text) + "</p>" + stove + "</li>";
-    }).join("");
+    var steps = renderSteps(r.steps);
 
     var notes = (r.notes || []).map(function (n) {
       return '<li><span class="note-k">' + esc(NOTE_KIND[n.kind] || "Note") + "</span> " + esc(n.text) + "</li>";
@@ -689,8 +828,8 @@
       if (rr && rr.status === "approved" && visible(rr)) {
         return '<li class="rel"><a href="#/r/' + esc(rr.slug) + '">' + esc(rr.title) + ' <small>' + (yType(rr) === "quarts" ? quarts(rr) + " qt" : "serves " + (servings(rr) || "a few")) + "</small></a>" + saveBtn(rr.slug, true) + "</li>";
       }
-      var t = (DB.comingSoonTitles || {})[s];
-      return t ? '<li class="rel soon"><span>' + esc(t) + '</span> <span class="tag">coming soon</span></li>' : "";
+      var t = comingSoonTitle(s);
+      return t ? '<li class="rel soon"><span>' + esc(t) + '</span> <span class="tag">coming soon</span>' + saveBtn(s, true) + "</li>" : "";
     }).join("");
 
     var seg = popts.map(function (k) {
@@ -713,6 +852,7 @@
       '<header class="r-head"><p class="eyebrow">' + esc(r.section || "") + "</p>" +
       '<h1 tabindex="-1">' + esc(r.title) + "</h1>" +
       '<div class="tags">' + exBadge(r) + dietBadges(r) + (r.adultsOnly ? '<span class="badge adult">Adults only</span>' : "") + "</div>" +
+      (r.quote ? '<blockquote class="r-quote"><p>“' + esc(r.quote) + '”</p></blockquote>' : "") +
       (r.summary ? '<p class="lede">' + esc(r.summary) + "</p>" : "") +
       '<ul class="facts">' + (yt === "servings" && serves ? '<li class="lead"><span>Serves</span> ' + esc(serves) + "</li>" : "") + makes + fin +
       (yt === "quarts" && serves ? "<li><span>Serves</span> " + esc(serves) + "</li>" : "") +
@@ -731,17 +871,9 @@
           '<button type="button" class="text-act" data-print title="Opens the print dialog. Choose Save as PDF there.">Save as PDF</button></div>';
       }()) +
       '<p class="print-only print-portion">Portion: ' + PORTIONS[p].label + " batch</p>" +
-      (((bookById(r.book) || {}).style === "intuitive") ? '<p class="thistime" role="note"><b>Amounts are what I used this time.</b> I cook by feel, so treat them as a guide' + (p !== "full" ? ", and scaled amounts are rounded" : "") + ". Taste as you go.</p>" : (p !== "full" ? '<p class="thistime" role="note">Scaled amounts are rounded to friendly measurements.</p>' : "")) + "</header>" +
+      amountNoteHtml(r, p, b) + "</header>" +
       photo +
-      '<div class="r-grid"><section class="col-a" aria-labelledby="ing-h"><h2 id="ing-h">Ingredients <small>' + (yt === "servings" && serves ? "serves " + esc(serves) : PORTIONS[p].label.toLowerCase() + " batch") + "</small></h2>" +
-      '<ul class="ing" aria-live="polite">' + ing + "</ul>" +
-      '<p class="ing-foot no-print"><span class="ing-hint">Tick what you already have.</span>' +
-      '<button type="button" class="clear-checks" data-clear-have' + (have.length ? "" : " hidden") + '>Clear checks</button></p>' +
-      needPanelHtml(r, p) +
-      (shop ? '<details class="shop no-print" open><summary><h3>Shopping list</h3></summary><div class="shop-grid">' + shop + "</div></details>" : "") + "</section>" +
-      '<section class="col-b" aria-labelledby="steps-h"><h2 id="steps-h">Steps</h2><ol class="steps">' + steps + "</ol>" +
-      (storage ? '<h3>Storing it</h3><ul class="storage">' + storage + "</ul>" : "") +
-      (notes ? '<h3>Notes</h3><ul class="notes">' + notes + "</ul>" : "") + "</section></div>" +
+      recipeBodyHtml(r, p, f, yt, serves, have, ing, steps, shop, storage, notes) +
       (related ? '<section class="related no-print" aria-labelledby="rel-h"><h2 id="rel-h">Goes well with</h2><ul>' + related + "</ul></section>" : "") +
       tryAnother +
       (b ? '<p class="back-book no-print"><a href="#/b/' + esc(b.id) + '">Back to ' + esc(b.title) + "</a></p>" : "") +
@@ -751,15 +883,26 @@
   }
 
   function viewSaved() {
-    var list = getSaved().map(recipeBySlug).filter(function (r) { return r && r.status === "approved" && visible(r); });
+    var slugs = getSaved();
+    var list = slugs.map(recipeBySlug).filter(function (r) { return r && r.status === "approved" && visible(r); });
+    var soon = slugs.filter(function (s) { return comingSoonTitle(s) && !recipeBySlug(s); });
     var html = '<section class="wrap saved-view">' +
       crumbs([{ href: "#/", label: "Reading Corner", backLabel: "the shelf" }, { label: "Saved" }]) +
       '<p class="eyebrow">Saved for later</p><h1 tabindex="-1">Your saved recipes</h1>' +
       '<p class="lede">These are kept only in this browser on this device. No account needed.</p>';
-    if (!list.length) html += '<div class="empty"><p>Nothing saved yet. Tap ☆ on any recipe to keep it here.</p><a class="btn" href="#/">Browse the shelf</a></div>';
-    else { var so = sortOptionsFor(list), ss = currentSort("saved", so);
-      html += sortControl("saved", so, ss) + '<ul class="rlist">' + sortRecipes(list, ss).map(function (r) { return recipeCard(r, true); }).join("") + "</ul>" +
-      '<button type="button" class="btn quiet" data-clear-saved>Clear saved list</button>'; }
+    if (!list.length && !soon.length) html += '<div class="empty"><p>Nothing saved yet. Tap ☆ on any recipe to keep it here.</p><a class="btn" href="#/">Browse the shelf</a></div>';
+    else {
+      if (list.length) {
+        var so = sortOptionsFor(list), ss = currentSort("saved", so);
+        html += sortControl("saved", so, ss) + '<ul class="rlist">' + sortRecipes(list, ss).map(function (r) { return recipeCard(r, true); }).join("") + "</ul>";
+      }
+      if (soon.length) {
+        html += '<ul class="rlist soon-saved">' + soon.map(function (s) {
+          return '<li class="rcard soon-card"><span class="rcard-body"><span class="rcard-title">' + esc(comingSoonTitle(s)) + '</span><span class="tag">coming soon</span></span>' + saveBtn(s, true) + "</li>";
+        }).join("") + "</ul>";
+      }
+      html += '<button type="button" class="btn quiet" data-clear-saved>Clear saved list</button>';
+    }
     html += "</section>";
     return { html: html, title: "Saved recipes" };
   }
@@ -776,11 +919,12 @@
       recipeYield: yType(r) === "quarts" ? quarts(r) + " quarts" : (servings(r) ? servings(r) + " servings" : undefined),
       suitableForDiet: (r.diet || []).indexOf("vegan") !== -1 ? "https://schema.org/VeganDiet" : undefined,
       totalTime: r.time && r.time.totalMinutes ? "PT" + r.time.totalMinutes + "M" : undefined,
-      recipeIngredient: r.ingredients.map(function (it) {
-        var a = qtyText(it.amount, it.unit, 1);
-        return (a ? a + " " : "") + it.item + (it.prep ? ", " + it.prep : "") + (it.optional ? " (optional)" : "");
+      recipeIngredient: r.ingredients.map(function (it) { return ingLine(it, 1, true); }),
+      recipeInstructions: r.steps.map(function (s) {
+        var tx = (s.title ? s.title + " " : "") + (s.text || "");
+        if (s.lookFor) tx += " What to look for: " + s.lookFor;
+        return { "@type": "HowToStep", text: tx };
       }),
-      recipeInstructions: r.steps.map(function (s) { return { "@type": "HowToStep", text: s.text }; }),
       author: { "@type": "Organization", name: "Eclectic Transformation", url: "https://eclectictransformation.com" },
       image: r.photo && r.photo.src ? r.photo.src : undefined,
       isPartOf: b ? { "@type": "Book", name: b.title } : undefined
@@ -837,13 +981,14 @@
     var sb = e.target.closest("[data-save]");
     if (sb) {
       e.preventDefault();
-      var slug = sb.getAttribute("data-save"), now = toggleSave(slug), r = recipeBySlug(slug);
+      var slug = sb.getAttribute("data-save"), now = toggleSave(slug);
+      var title = (recipeBySlug(slug) || {}).title || comingSoonTitle(slug) || slug;
       $all('[data-save="' + slug.replace(/"/g, "") + '"]').forEach(function (b) {
         b.setAttribute("aria-pressed", now);
         $(".save-ico", b).textContent = now ? "★" : "☆";
         $(".save-txt", b).textContent = now ? "Saved" : "Save for later";
       });
-      toast(now ? "Saved “" + (r ? r.title : slug) + "”. Find it under Saved." : "Removed from Saved.");
+      toast(now ? "Saved “" + title + "”. Find it under Saved." : "Removed from Saved.");
       if (!now && parseHash()[0] === "saved") route();
       return;
     }

@@ -6,9 +6,9 @@ The shelf is organized in three levels: **Category → Book → Recipe**. A reci
 
 Categories, in this order: (1) **Teas** — *Simple brews for slowing down* (coming soon). (2) **Cooking** — *Pots for the table and the freezer*. (3) **Herbalism** — *Dried plants and simple blends* (coming soon). (4) **Tinctures** — *Extracts to keep on the shelf* (coming soon). (5) **Cocktails & Mocktails** — *Drinks for gathering, with or without alcohol* (coming soon). More categories can be added later as JSON entries.
 
-Books right now: **Cooking** holds (1) **Untitled big-batch book** (working title): chilis, stews & soups, vegan and non-vegan, that taste better after freezing and thawing, with 3 example recipes (2 vegan); and (2) **Everyday Small Pots** (working title, coming soon): normal meals for 2–4, with 1 example sneak-peek recipe (serves 2). **Broths, Teas & Tonics** (working title, coming soon) lives under **Teas** (moved there from Cooking, because it is warm drinks in mugs and jars; one sneak-peek tea recipe was added so the category isn't empty). **Herbalism**, **Tinctures**, and **Cocktails & Mocktails** each have one placeholder book and one example recipe so the flow is visible.
+The only published book is **Storing for the Storm** (Cooking; worded with Vesper from Bryan's words): prep-ahead meals for the freezer and the pantry, with the first approved recipe, **Green Goddess Goup** (about 11 quarts). Its PDF and hard-copy buttons stay as quiet "Coming soon." **Teas**, **Herbalism**, **Tinctures**, and **Cocktails & Mocktails** are on the shelf as simple Coming soon category cards; they open to a calm "Coming soon" line, with no placeholder books or example recipes. New books and categories can still be added later as JSON entries, the same way as before.
 
-Status: **local prototype only.** Nothing is on GitHub or Remixer yet. All books and recipes are **EXAMPLE** placeholders. There are no approved recipes yet.
+Status: **local prototype only.** Nothing is pushed in this change. The first real, approved recipe is Green Goddess Goup, in Storing for the Storm. There are no example or placeholder recipes on the shelf.
 
 ## What's here
 ```
@@ -30,7 +30,7 @@ Older links still work: `#/book/<id>` and `#/recipe/<slug>[/portion]`.
 ## Data model (data/recipes.json)
 Top level: `showExamples` (bool), `categories[]`, `books[]`, `recipes[]`, `comingSoonTitles{slug: title}` (named future recipes that related links can mention before they exist).
 
-**Example content:** every placeholder has `"example": true` and only renders while `showExamples` is `true`. To strip the examples, delete every item that has `example: true` and set `showExamples: false`.
+**Example content:** if a draft placeholder is ever needed, give it `"example": true`. It only renders while `showExamples` is `true`. The shelf currently has no example items, and `showExamples` is `false`.
 
 ### Category
 A new category is just one object in `categories[]` plus any books that point at it. There are no sub-categories.
@@ -49,13 +49,13 @@ The landing layout is a roomy card grid that holds about 6–8 categories comfor
 ### Book
 | field | notes |
 |---|---|
-| `id` | url id, e.g. `big-batch` |
+| `id` | url id, e.g. `storing-for-the-storm`. Optional `aliases[]` still open older hashes (the Storm book also answers `#/b/big-batch`). |
 | `categoryId` | must match a `categories[].id` |
 | `title`, `subtitle`, `workingTitle` | `workingTitle: true` shows a "Working title" badge |
 | `cover` | `{color, accent, art}`; art is `pot` / `leaf` / `jar` / `cup` / `herb` / `dropper` / `glass` (simple built-in SVGs) |
 | `status` | `available-sample` or `coming-soon`. Coming-soon books stay on the shelf, styled quietly, and may include a sneak-peek recipe. |
 | `sortOptions[]`, `defaultSort` | the sorts this book offers: `quarts-desc`, `quarts-asc`, `az`, `serves`, `serves-desc`, `time`. A big-batch/freezer book defaults to `quarts-desc`; an everyday book defaults to `az` with `["az","serves","time"]`. The sort menu hides when a book has fewer than 2 recipes. |
-| `blurb`, `printTeaser` | teaser text. The PDF/print offer is one quiet line **on the book page only**, never on a recipe and never a pop-up, with no urgency or prices. |
+| `blurb`, `intro`, `printTeaser` | `blurb` is the short shelf-card line. `intro` is the book-page text, used as written (paragraphs). If there's no `intro`, the book page uses `blurb`. The PDF/print offer is one quiet line **on the book page only**, never on a recipe and never a pop-up, with no urgency or prices. |
 | `sampleSlugs[]` | which recipes show inside the book (a coming-soon book may have a sneak-peek recipe) |
 | `formats` | `{pdf:{available,url}, print:{available,url}}`. **Leave a format key out entirely if the book will never have it**, and no button shows for it. If the key is there with `available:false`, it shows a disabled "Coming soon" button. If it has `available:true` plus a `url`, it becomes a real link. No prices, checkout or email collection exist anywhere. |
 
@@ -73,7 +73,10 @@ The landing layout is a roomy card grid that holds about 6–8 categories comfor
 | `steps[]` | numbered steps → `{text, stove?:{electric, gas}}` |
 | `notes[]` | "Bryan's notes" → `{kind: aside / substitution / sourcing, text}`, verbatim |
 | `storage[]` | freezer / Mylar / canning notes (optional) |
-| `shopping[]` | `{group: produce / meat / frozen / dairy-eggs / pantry / equipment, items:[{amount, unit, item, scale?}]}`. Equipment never scales. |
+| `ingredients[]` extra | `approx: true` prefixes the amount with "about". `amountMax` makes a range (e.g. 2–3 tbsp) that scales on both ends. `amountsRough: true` on the recipe changes the scale note to say amounts are rough on purpose. |
+| `parts[]` | optional two-part (or more) layout. A part can use the recipe's ingredients and steps (`useIngredients`, `useSteps`, `ingredientsHeading`) and/or have `lede`, `items`, `subsections`, and `closing` for serving-day material that does not scale. Recipes without `parts` still use the original ingredients/steps layout. |
+| `quote` | optional verbatim headnote quote, shown as a blockquote. |
+| `shopping[]` | `{group: produce / frozen / refrigerated / meat / dairy-eggs / pantry / add-ins / equipment, label?, items:[{amount, unit, item, scale?, optional?}]}`. Equipment and add-ins never scale. A group may set `label` to override the default heading (e.g. "Pantry (check first)"). |
 | `related[]` | slugs. If a slug isn't published yet but appears in `comingSoonTitles`, it shows as "coming soon". |
 | `advisory` | optional quiet note under the facts. Herbal and tincture examples use: "Check with your doctor if pregnant, nursing, or on medication." |
 | `adultsOnly` | optional; shows an "Adults only" badge. Use for any recipe that itself contains alcohol. The Cocktails & Mocktails example is a mocktail, so this is omitted; the adults-only variation is mentioned in a note instead. |
@@ -108,7 +111,7 @@ Add an object to `categories[]` with `id`, `name`, a one-line `blurb`, `icon`, `
 - Category page: that category's books, plus a "Sample recipes" list when it has any, sortable A–Z / fewest servings / quickest, plus "Most quarts" only when a big-batch recipe is in the list.
 - Book spread: blurb, one quiet full-book line with PDF / hard copy buttons for the formats that book has (all disabled "Coming soon"), and contents sorted by that book's own `sortOptions`/`defaultSort`. A coming-soon book can show a "Sneak peek" recipe.
 - Recipe page: the recipe comes first (title, summary, facts). Scaling and Save sit in one small toolbar as simple step buttons (not a text box). Big-batch recipes get Full / Half / Quarter; everyday recipes get Double / Full / Half (`aria-pressed`). A quiet text row under the toolbar offers Share recipe (native share sheet when the browser supports it, otherwise Copy link), Email recipe, and Save as PDF. Also: the "this time" note on intuitive books, electric vs. gas stove notes, storage, notes, related links with in-place save. The book PDF/print offer is not shown on recipe pages.
-- Save for later: stored in `localStorage` (`et-recipes-saved-v1`) on the visitor's own device, with no account and no sign-up nag. Saved view, a count in the header, and a toast confirmation.
+- Save for later: stored in `localStorage` (`et-recipes-saved-v1`) on the visitor's own device, with no account and no sign-up nag. Saved view, a count in the header, and a toast confirmation. Coming-soon related recipes (like Cream of Asparagus Soup) can be saved without leaving the page; they show as an unlinked "coming soon" card under Saved.
 - Pantry checklist: each ingredient is a tappable "I have this" checkbox (44px row, accessible label). Checks are stored per recipe in `localStorage` (`et-recipes-have-v1`) on this device, and a quiet "Clear checks" link appears once something is ticked. Checks stay put when the portion is scaled.
 - What I still need: a quiet panel under the ingredients builds a plain-text list of unchecked items at the current portion (title and portion, optional items marked "(optional)", grouped by the recipe's shopping groups when they match, and the recipe URL at the end). Actions: **Share** (only when `navigator.share` is available — on a phone this opens Notes, Messages or Mail), **Copy** (clipboard, with a fallback, and a "Copied" toast), **Email** (`mailto:` with subject `Shopping list: <title>` and the list as the URL-encoded body), and **Print list** (prints only that list). If every item is ticked, the panel just says "You've got everything!"
 - Send the recipe: **Share recipe** uses the native share sheet with the title, a short line, and the URL (falls back to copying the link). **Email recipe** is a `mailto:` of the full recipe as plain text (ingredients, steps, storage, advisory — not notes, draft status, or cursing) plus the link. **Save as PDF** opens the browser print dialog; a toast says to choose "Save as PDF" there. The print stylesheet is a clean one- or two-page recipe at the chosen portion: tools, checkboxes, the still-need panel and the on-page shopping list are hidden, and every ingredient still prints.
