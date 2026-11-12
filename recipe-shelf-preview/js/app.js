@@ -3,6 +3,7 @@
   "use strict";
   var DATA_URL = "data/recipes.json";
   var SAVE_KEY = "et-recipes-saved-v1";
+  var HAVE_KEY = "et-recipes-have-v1";
   var main = document.getElementById("main");
   var ld = document.getElementById("ld-json");
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -119,6 +120,244 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2600);
   }
 
+  /* ---------- pantry checks & sharing (visitor's own device only) ---------- */
+  function getHaveMap() {
+    try {
+      var o = JSON.parse(localStorage.getItem(HAVE_KEY) || "{}");
+      return o && typeof o === "object" && !Array.isArray(o) ? o : {};
+    } catch (e) { return {}; }
+  }
+  function getHave(slug) {
+    var a = getHaveMap()[slug];
+    if (!Array.isArray(a)) return [];
+    return a.map(function (n) { return +n; }).filter(function (n) { return n >= 0 && n % 1 === 0; });
+  }
+  function setHave(slug, idxs) {
+    try {
+      var o = getHaveMap();
+      var clean = [];
+      (idxs || []).forEach(function (n) {
+        n = +n;
+        if (n >= 0 && n % 1 === 0 && clean.indexOf(n) === -1) clean.push(n);
+      });
+      clean.sort(function (a, b) { return a - b; });
+      if (!clean.length) delete o[slug]; else o[slug] = clean;
+      localStorage.setItem(HAVE_KEY, JSON.stringify(o));
+    } catch (e) {}
+  }
+  function hasNativeShare(data) {
+    if (!navigator.share) return false;
+    if (typeof navigator.canShare !== "function") return true;
+    try { return data ? !!navigator.canShare(data) : true; } catch (e) { return false; }
+  }
+  function recipePageUrl(slug, portion) {
+    var hash = "#/r/" + encodeURIComponent(slug) + (portion && portion !== "full" ? "/" + portion : "");
+    return location.href.split("#")[0] + hash;
+  }
+  function portionPhrase(p) {
+    return PORTIONS[p] ? PORTIONS[p].label.toLowerCase() + " batch" : "full batch";
+  }
+  function resolvedPortion(r, portion) {
+    var yt = yType(r);
+    var popts = (r.portions && r.portions.length ? r.portions : DEFAULT_PORTIONS[yt]).filter(function (k) { return PORTIONS[k]; });
+    return popts.indexOf(portion) !== -1 ? portion : "full";
+  }
+  function hashPortion() {
+    var parts = parseHash();
+    return parts[0] === "r" ? parts[2] : "";
+  }
+  function ingLine(it, f, withPrep) {
+    var amt = qtyText(it.amount, it.unit, f);
+    var line = (amt ? amt + " " : "") + itemName(it, f);
+    if (withPrep && it.prep) line += ", " + it.prep;
+    if (it.optional) line += " (optional)";
+    return line;
+  }
+  function normShopParts(s) {
+    return String(s || "").toLowerCase().replace(/\([^)]*\)/g, " ").split(/[,:;]| and /)
+      .map(function (p) { return p.replace(/\s+/g, " ").trim(); })
+      .filter(function (p) { return p.length >= 3; });
+  }
+  function groupIdForIng(it, r) {
+    var nameCore = (it.item || "").toLowerCase().replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+    var skip = { or: 1, and: 1, the: 1, for: 1, with: 1, of: 1, can: 1, cans: 1, oz: 1 };
+    var list = r.shopping || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].group === "equipment") continue;
+      var items = list[i].items || [];
+      for (var j = 0; j < items.length; j++) {
+        var s = (items[j].item || "").toLowerCase();
+        var sCore = s.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+        if (nameCore && sCore && (sCore.indexOf(nameCore) !== -1 || nameCore.indexOf(sCore) !== -1)) return list[i].group;
+        var parts = normShopParts(s);
+        for (var k = 0; k < parts.length; k++) {
+          var part = parts[k];
+          if (skip[part]) continue;
+          if (nameCore.indexOf(part) !== -1 || part.indexOf(nameCore) !== -1) return list[i].group;
+          var words = part.split(/\s+/);
+          for (var w = 0; w < words.length; w++) {
+            if (words[w].length < 4 || skip[words[w]]) continue;
+            if (nameCore.indexOf(words[w]) !== -1) return list[i].group;
+          }
+        }
+      }
+    }
+    return "";
+  }
+  function groupLabel(id) {
+    for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i][0] === id) return GROUPS[i][1];
+    return "";
+  }
+  function stillNeedText(slug, portion) {
+    var r = recipeBySlug(slug);
+    if (!r) return "";
+    var p = resolvedPortion(r, portion);
+    var f = PORTIONS[p].f;
+    var have = getHave(r.slug);
+    var byGroup = {};
+    var left = 0;
+    r.ingredients.forEach(function (it, i) {
+      if (have.indexOf(i) !== -1) return;
+      left++;
+      var g = groupIdForIng(it, r) || "";
+      if (!byGroup[g]) byGroup[g] = [];
+      byGroup[g].push("- " + ingLine(it, f, false));
+    });
+    if (!left) return "";
+    var lines = [r.title + " (" + portionPhrase(p) + ")", ""];
+    var ids = GROUPS.map(function (g) { return g[0]; }).filter(function (id) { return byGroup[id] && byGroup[id].length; });
+    if (byGroup[""] && byGroup[""].length) ids.push("");
+    var grouped = ids.some(function (g) { return g; });
+    ids.forEach(function (g) {
+      if (grouped) lines.push(groupLabel(g) || "Also");
+      Array.prototype.push.apply(lines, byGroup[g]);
+      if (grouped) lines.push("");
+    });
+    if (!grouped) lines.push("");
+    lines.push(recipePageUrl(r.slug, p));
+    return lines.join("\n").replace(/\n{3,}/g, "\n\n").replace(/\s+$/, "") + "\n";
+  }
+  function recipeShareText(slug, portion) {
+    var r = recipeBySlug(slug);
+    if (!r) return "";
+    var p = resolvedPortion(r, portion);
+    return r.title + " (" + portionPhrase(p) + ")\n\nA recipe from the Eclectic Transformation Reading Corner.\n\n" + recipePageUrl(r.slug, p);
+  }
+  function recipeEmailText(slug, portion) {
+    var r = recipeBySlug(slug);
+    if (!r) return "";
+    var p = resolvedPortion(r, portion);
+    var f = PORTIONS[p].f;
+    var lines = [r.title, "(" + portionPhrase(p) + ")", ""];
+    if (r.summary) lines.push(r.summary, "");
+    if (yType(r) === "servings" && servings(r)) lines.push("Serves " + roundFrac(servings(r) * f).text);
+    if (quarts(r)) lines.push("Makes about " + roundFrac(quarts(r) * f).text + " qt");
+    if (r.time && r.time.rough) lines.push("Time: " + r.time.rough);
+    if (r.advisory) { lines.push("", r.advisory); }
+    lines.push("", "Ingredients");
+    r.ingredients.forEach(function (it) { lines.push("- " + ingLine(it, f, true)); });
+    lines.push("", "Steps");
+    r.steps.forEach(function (s, i) {
+      lines.push((i + 1) + ". " + s.text);
+      if (s.stove) {
+        if (s.stove.electric) lines.push("   Electric: " + s.stove.electric);
+        if (s.stove.gas) lines.push("   Gas: " + s.stove.gas);
+      }
+    });
+    if (r.storage && r.storage.length) {
+      lines.push("", "Storing it");
+      r.storage.forEach(function (s) { lines.push("- " + s); });
+    }
+    lines.push("", recipePageUrl(r.slug, p));
+    return lines.join("\n");
+  }
+  function mailtoHref(subject, body) {
+    return "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  }
+  function copyText(text) {
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;left:-9999px;top:0";
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+      toast(ok ? "Copied" : "Select the list and copy it yourself.");
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast("Copied"); }).catch(fallback);
+    } else fallback();
+  }
+  function nativeShare(data, fallbackText) {
+    if (data && hasNativeShare(data)) {
+      navigator.share(data).catch(function (err) {
+        if (err && err.name === "AbortError") return;
+        if (fallbackText) copyText(fallbackText);
+      });
+      return;
+    }
+    if (fallbackText) copyText(fallbackText);
+  }
+  function recipeShareData(slug, portion) {
+    var r = recipeBySlug(slug);
+    if (!r) return { data: null, fallback: "" };
+    var p = resolvedPortion(r, portion);
+    var url = recipePageUrl(r.slug, p);
+    var title = r.title;
+    var short = r.title + " (" + portionPhrase(p) + ")\n\nA recipe from the Eclectic Transformation Reading Corner.";
+    var withUrl = { title: title, text: short, url: url };
+    var textOnly = { title: title, text: short + "\n\n" + url };
+    if (hasNativeShare(withUrl)) return { data: withUrl, fallback: textOnly.text };
+    if (hasNativeShare(textOnly)) return { data: textOnly, fallback: textOnly.text };
+    return { data: null, fallback: textOnly.text };
+  }
+  function needPanelHtml(r, p) {
+    var text = stillNeedText(r.slug, p);
+    var have = getHave(r.slug);
+    var total = r.ingredients.length;
+    var haveN = have.filter(function (i) { return i < total; }).length;
+    var left = total - haveN;
+    var allHave = total > 0 && left === 0;
+    var status = allHave ? "You've got everything!" : (left === 1 ? "1 item" : left + " items");
+    var shareData = { title: "Shopping list: " + r.title, text: text };
+    var html = '<div class="need no-print" id="need-panel">' +
+      '<div class="need-head"><h3 id="need-h">What I still need</h3></div>' +
+      '<p class="need-status" id="need-status" aria-live="polite">' + status + "</p>";
+    if (!allHave) {
+      html += '<pre class="need-preview" id="need-text">' + esc(text) + "</pre>";
+      html += '<div class="need-actions">';
+      if (hasNativeShare(shareData)) html += '<button type="button" class="text-act" data-need-share>Share</button>';
+      html += '<button type="button" class="text-act" data-need-copy>Copy</button>';
+      html += '<a class="text-act" data-need-email href="' + esc(mailtoHref("Shopping list: " + r.title, text)) + '">Email</a>';
+      html += '<button type="button" class="text-act" data-need-print>Print list</button></div>';
+      html += '<p class="need-hint">Nothing leaves this device unless you choose to send it.</p>';
+    }
+    return html + "</div>";
+  }
+  function paintNeed(art) {
+    if (!art) return;
+    var r = recipeBySlug(art.dataset.slug);
+    if (!r) return;
+    var p = resolvedPortion(r, hashPortion());
+    var mount = document.getElementById("need-panel");
+    if (mount) {
+      var wrap = document.createElement("div");
+      wrap.innerHTML = needPanelHtml(r, p);
+      mount.parentNode.replaceChild(wrap.firstChild, mount);
+    }
+    var have = getHave(r.slug);
+    var clear = art.querySelector("[data-clear-have]");
+    if (clear) clear.hidden = !have.length;
+  }
+  function endListPrint() {
+    document.body.classList.remove("print-need");
+    var box = document.getElementById("need-print");
+    if (box) { box.hidden = true; box.innerHTML = ""; }
+  }
+
   /* ---------- data ---------- */
   function visible(item) { return !item.example || DB.showExamples; }
   function recipeBySlug(s) {
@@ -214,6 +453,12 @@
   }
   window.ETR.surprisePool = surprisePool;
   window.ETR.goSurprise = goSurprise;
+  window.ETR.stillNeedText = stillNeedText;
+  window.ETR.recipeShareText = recipeShareText;
+  window.ETR.recipeEmailText = recipeEmailText;
+  window.ETR.mailtoHref = mailtoHref;
+  window.ETR.hasNativeShare = hasNativeShare;
+  window.ETR.recipePageUrl = recipePageUrl;
 
   /* ---------- small UI parts ---------- */
   function exBadge(item) { return item.example ? '<span class="badge ex" title="Placeholder content, not a real recipe yet">Example</span>' : ""; }
@@ -399,12 +644,20 @@
     if (quarts(r)) makes = '<li><span>Makes</span> about ' + qt + " qt" + (r.yield.basis && p === "full" ? " <small>(" + esc(r.yield.basis) + ")</small>" : "") + "</li>";
     var fin = r.yield && r.yield.finishedQuarts != null ? '<li><span>Finished</span> about ' + roundFrac(r.yield.finishedQuarts * f).text + " qt</li>" : "";
 
-    var ing = r.ingredients.map(function (it) {
+    var have = getHave(r.slug);
+    var ing = r.ingredients.map(function (it, i) {
       var amt = qtyText(it.amount, it.unit, f);
-      return "<li>" + (amt ? '<span class="amt">' + esc(amt) + "</span> " : "") +
-        '<span class="item">' + esc(itemName(it, f)) + "</span>" + (it.prep ? '<span class="prep">, ' + esc(it.prep) + "</span>" : "") +
+      var checked = have.indexOf(i) !== -1;
+      return '<li' + (checked ? ' class="have"' : "") + '><label class="ing-check">' +
+        '<input type="checkbox" data-have data-ing="' + i + '"' + (checked ? " checked" : "") + ">" +
+        '<span class="tick" aria-hidden="true"></span>' +
+        '<span class="ing-text"><span class="sr">I have </span>' +
+        (amt ? '<span class="amt">' + esc(amt) + "</span> " : "") +
+        '<span class="item">' + esc(itemName(it, f)) + "</span>" +
+        (it.prep ? '<span class="prep">, ' + esc(it.prep) + "</span>" : "") +
         (it.optional ? ' <span class="tag opt">optional</span>' : "") +
-        (it.thisTime ? ' <span class="tag tt" title="This amount changes from batch to batch">this time</span>' : "") + "</li>";
+        (it.thisTime ? ' <span class="tag tt" title="This amount changes from batch to batch">this time</span>' : "") +
+        "</span></label></li>";
     }).join("");
 
     var shop = GROUPS.map(function (g) {
@@ -466,13 +719,26 @@
       (r.time && r.time.rough ? "<li><span>Time</span> " + esc(r.time.rough) + "</li>" : "") + "</ul>" +
       (r.advisory ? '<p class="advisory" role="note">' + esc(r.advisory) + "</p>" : "") +
       '<div class="r-tools no-print" role="toolbar" aria-label="Recipe tools"><div class="seg" role="group" aria-label="Portion size">' + seg + "</div>" +
-      saveBtn(r.slug) + '<button type="button" class="btn quiet" data-print>Print</button></div>' +
+      saveBtn(r.slug) + "</div>" +
+      (function () {
+        var info = recipeShareData(r.slug, p);
+        var emailBody = recipeEmailText(r.slug, p);
+        return '<div class="r-share no-print">' +
+          (info.data
+            ? '<button type="button" class="text-act" data-share-recipe>Share recipe</button>'
+            : '<button type="button" class="text-act" data-copy-link>Copy link</button>') +
+          '<a class="text-act" data-email-recipe href="' + esc(mailtoHref(r.title, emailBody)) + '">Email recipe</a>' +
+          '<button type="button" class="text-act" data-print title="Opens the print dialog. Choose Save as PDF there.">Save as PDF</button></div>';
+      }()) +
       '<p class="print-only print-portion">Portion: ' + PORTIONS[p].label + " batch</p>" +
       (((bookById(r.book) || {}).style === "intuitive") ? '<p class="thistime" role="note"><b>Amounts are what I used this time.</b> I cook by feel, so treat them as a guide' + (p !== "full" ? ", and scaled amounts are rounded" : "") + ". Taste as you go.</p>" : (p !== "full" ? '<p class="thistime" role="note">Scaled amounts are rounded to friendly measurements.</p>' : "")) + "</header>" +
       photo +
       '<div class="r-grid"><section class="col-a" aria-labelledby="ing-h"><h2 id="ing-h">Ingredients <small>' + (yt === "servings" && serves ? "serves " + esc(serves) : PORTIONS[p].label.toLowerCase() + " batch") + "</small></h2>" +
       '<ul class="ing" aria-live="polite">' + ing + "</ul>" +
-      (shop ? '<details class="shop" open><summary><h3>Shopping list</h3></summary><div class="shop-grid">' + shop + "</div></details>" : "") + "</section>" +
+      '<p class="ing-foot no-print"><span class="ing-hint">Tick what you already have.</span>' +
+      '<button type="button" class="clear-checks" data-clear-have' + (have.length ? "" : " hidden") + '>Clear checks</button></p>' +
+      needPanelHtml(r, p) +
+      (shop ? '<details class="shop no-print" open><summary><h3>Shopping list</h3></summary><div class="shop-grid">' + shop + "</div></details>" : "") + "</section>" +
       '<section class="col-b" aria-labelledby="steps-h"><h2 id="steps-h">Steps</h2><ol class="steps">' + steps + "</ol>" +
       (storage ? '<h3>Storing it</h3><ul class="storage">' + storage + "</ul>" : "") +
       (notes ? '<h3>Notes</h3><ul class="notes">' + notes + "</ul>" : "") + "</section></div>" +
@@ -597,7 +863,74 @@
       var nb = $('[data-portion="' + pb.dataset.portion + '"]'); if (nb) nb.focus();
       return;
     }
-    if (e.target.closest("[data-print]")) { window.print(); return; }
+    if (e.target.closest("[data-clear-have]")) {
+      var artH = e.target.closest(".recipe");
+      if (!artH) return;
+      e.preventDefault();
+      setHave(artH.dataset.slug, []);
+      $all("[data-have]", artH).forEach(function (inp) {
+        inp.checked = false;
+        var li = inp.closest("li"); if (li) li.classList.remove("have");
+      });
+      paintNeed(artH);
+      var first = artH.querySelector("[data-have]");
+      if (first) first.focus();
+      return;
+    }
+    if (e.target.closest("[data-need-copy]")) {
+      e.preventDefault();
+      var artC = e.target.closest(".recipe");
+      copyText(stillNeedText(artC.dataset.slug, hashPortion()));
+      return;
+    }
+    if (e.target.closest("[data-need-share]")) {
+      e.preventDefault();
+      var artS = e.target.closest(".recipe");
+      var needText = stillNeedText(artS.dataset.slug, hashPortion());
+      var rec = recipeBySlug(artS.dataset.slug);
+      nativeShare({ title: "Shopping list: " + (rec ? rec.title : ""), text: needText }, needText);
+      return;
+    }
+    if (e.target.closest("[data-need-print]")) {
+      e.preventDefault();
+      var artP = e.target.closest(".recipe");
+      var listText = stillNeedText(artP.dataset.slug, hashPortion());
+      var box = document.getElementById("need-print");
+      if (box) {
+        box.innerHTML = "";
+        var h = document.createElement("h1");
+        h.textContent = "What I still need";
+        var pre = document.createElement("pre");
+        pre.textContent = listText;
+        box.appendChild(h);
+        box.appendChild(pre);
+        box.hidden = false;
+      }
+      document.body.classList.add("print-need");
+      window.print();
+      return;
+    }
+    if (e.target.closest("[data-share-recipe]")) {
+      e.preventDefault();
+      var artR = e.target.closest(".recipe");
+      var info = recipeShareData(artR.dataset.slug, hashPortion());
+      if (info.data) nativeShare(info.data, info.fallback);
+      else copyText(info.fallback);
+      return;
+    }
+    if (e.target.closest("[data-copy-link]")) {
+      e.preventDefault();
+      var artL = e.target.closest(".recipe");
+      var recL = recipeBySlug(artL.dataset.slug);
+      copyText(recipePageUrl(artL.dataset.slug, resolvedPortion(recL, hashPortion())));
+      return;
+    }
+    if (e.target.closest("[data-print]")) {
+      endListPrint();
+      toast("Choose \"Save as PDF\" in the print dialog.");
+      window.setTimeout(function () { window.print(); }, 80);
+      return;
+    }
     if (e.target.closest("[data-clear-saved]")) { setSaved([]); route(); toast("Saved list cleared."); return; }
     var bk = e.target.closest(".book[data-book]");
     if (bk && !reduceMotion && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
@@ -608,6 +941,21 @@
     }
   });
   document.addEventListener("change", function (e) {
+    if (e.target.matches("[data-have]")) {
+      var art = e.target.closest(".recipe");
+      if (!art) return;
+      var i = +e.target.getAttribute("data-ing");
+      var haveNow = getHave(art.dataset.slug);
+      var on = e.target.checked;
+      var at = haveNow.indexOf(i);
+      if (on && at === -1) haveNow.push(i);
+      if (!on && at !== -1) haveNow.splice(at, 1);
+      setHave(art.dataset.slug, haveNow);
+      var li = e.target.closest("li");
+      if (li) li.classList.toggle("have", on);
+      paintNeed(art);
+      return;
+    }
     if (e.target.matches("[data-sort]")) {
       var ctx = e.target.getAttribute("data-sort"), id = e.target.id;
       sortState[ctx] = e.target.value; route.keepScroll = true; route();
@@ -616,6 +964,7 @@
   });
   window.addEventListener("hashchange", route);
   window.addEventListener("resize", postHeight);
+  window.addEventListener("afterprint", endListPrint);
 
   /* ---------- boot ---------- */
   fetch(DATA_URL, { cache: "no-cache" }).then(function (r) {

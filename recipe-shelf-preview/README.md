@@ -14,7 +14,7 @@ Status: **local prototype only.** Nothing is on GitHub or Remixer yet. All books
 ```
 index.html          the page (hash routes below)
 css/style.css       ET look: Fraunces + DM Sans, forest #2F4A3A / cream #F6F1E7 / clay #B7795A, plus print styles
-js/app.js           rendering, portion scaling, save-for-later, JSON-LD, Surprise me (plain JS, no build, no CDNs)
+js/app.js           rendering, portion scaling, pantry checklist, share/copy/email/PDF, save-for-later, JSON-LD, Surprise me (plain JS, no build, no CDNs)
 fonts/              self-hosted Fraunces + DM Sans (SIL Open Font License)
 data/recipes.json   THE ONLY CONTENT FILE: categories[] + books[] + recipes[]
 screens/            headless-Chrome screenshots + print PDF
@@ -107,11 +107,15 @@ Add an object to `categories[]` with `id`, `name`, a one-line `blurb`, `icon`, `
 - A cover-opening animation, and an open-book spread whose page turns in. With reduced motion, you get instant navigation and no animation.
 - Category page: that category's books, plus a "Sample recipes" list when it has any, sortable A–Z / fewest servings / quickest, plus "Most quarts" only when a big-batch recipe is in the list.
 - Book spread: blurb, one quiet full-book line with PDF / hard copy buttons for the formats that book has (all disabled "Coming soon"), and contents sorted by that book's own `sortOptions`/`defaultSort`. A coming-soon book can show a "Sneak peek" recipe.
-- Recipe page: the recipe comes first (title, summary, facts). Scaling, Save and Print sit in one small toolbar as simple step buttons (not a text box). Big-batch recipes get Full / Half / Quarter; everyday recipes get Double / Full / Half (`aria-pressed`). Also: the "this time" note, electric vs. gas stove notes, storage, notes, related links with in-place save. The PDF/print offer is not shown on recipe pages.
+- Recipe page: the recipe comes first (title, summary, facts). Scaling and Save sit in one small toolbar as simple step buttons (not a text box). Big-batch recipes get Full / Half / Quarter; everyday recipes get Double / Full / Half (`aria-pressed`). A quiet text row under the toolbar offers Share recipe (native share sheet when the browser supports it, otherwise Copy link), Email recipe, and Save as PDF. Also: the "this time" note on intuitive books, electric vs. gas stove notes, storage, notes, related links with in-place save. The book PDF/print offer is not shown on recipe pages.
 - Save for later: stored in `localStorage` (`et-recipes-saved-v1`) on the visitor's own device, with no account and no sign-up nag. Saved view, a count in the header, and a toast confirmation.
+- Pantry checklist: each ingredient is a tappable "I have this" checkbox (44px row, accessible label). Checks are stored per recipe in `localStorage` (`et-recipes-have-v1`) on this device, and a quiet "Clear checks" link appears once something is ticked. Checks stay put when the portion is scaled.
+- What I still need: a quiet panel under the ingredients builds a plain-text list of unchecked items at the current portion (title and portion, optional items marked "(optional)", grouped by the recipe's shopping groups when they match, and the recipe URL at the end). Actions: **Share** (only when `navigator.share` is available — on a phone this opens Notes, Messages or Mail), **Copy** (clipboard, with a fallback, and a "Copied" toast), **Email** (`mailto:` with subject `Shopping list: <title>` and the list as the URL-encoded body), and **Print list** (prints only that list). If every item is ticked, the panel just says "You've got everything!"
+- Send the recipe: **Share recipe** uses the native share sheet with the title, a short line, and the URL (falls back to copying the link). **Email recipe** is a `mailto:` of the full recipe as plain text (ingredients, steps, storage, advisory — not notes, draft status, or cursing) plus the link. **Save as PDF** opens the browser print dialog; a toast says to choose "Save as PDF" there. The print stylesheet is a clean one- or two-page recipe at the chosen portion: tools, checkboxes, the still-need panel and the on-page shopping list are hidden, and every ingredient still prints.
+- Privacy: no accounts, no email collection, and no server. Saved recipes and pantry checks never leave this browser. The only data that goes out is what the visitor chooses to share, copy, email or print.
 - schema.org `Recipe` JSON-LD for the open recipe.
-- Print stylesheet: just the recipe at the chosen portion, with nav, teaser and related links hidden.
-- Accessibility: skip link, visible focus, focus moves to the heading on navigation, 44px tap targets, live region for the scaled list, reduced-motion support, forced-colors support, and AA text contrast.
+- Print stylesheet: just the recipe at the chosen portion, with nav, tools, checkboxes, teaser and related links hidden. A separate Print list mode prints only the still-need list.
+- Accessibility: skip link, visible focus, focus moves to the heading on navigation, 44px tap targets (including pantry checkboxes), live region for the scaled list and the still-need count, reduced-motion support, forced-colors support, and AA text contrast.
 - If embedded in an iframe, it posts `{type:"et-recipes-height"}` messages so the host can auto-size.
 
 ## Proposed go-live path (for Bryan's approval later, not done)
