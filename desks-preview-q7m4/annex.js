@@ -1,8 +1,10 @@
-// The Elsewhere Annex v2 (behind The Loose Stitch). Eclectic Transformation · Gremlin Desks only.
+// The Elsewhere Annex v3 (behind The Loose Stitch). Eclectic Transformation · Gremlin Desks only.
 // A Backrooms-inspired side world, now procedural: a seeded grid of cells streamed in around you and thrown away
 // behind you. Each section (data.sections) has a crystal plaza at its center cell; every other cell joins the nearest
 // section and gets SAFE hallways plus rooms off them. Grabbers and the rare almost-people only ever live inside rooms.
 // Sections slowly rearrange (rooms re-roll, hallway walls slide) around their crystal. Progress is per player in localStorage.
+// v3: Grenshol (a big, curious creature the Gremlins let out of a portal), its flitters, lights-change mode, Escher stairwells,
+// silly TVs, and the glimpse world (glimpse.js + data/glimpse-world.json).
 import { createAnnexAudio } from "./annex-audio.js";
 
 export function createAnnex(kit, data, host) {
@@ -26,7 +28,7 @@ export function createAnnex(kit, data, host) {
   // ---------- progress (localStorage, same JSON shape as a future seam_progress row) ----------
   const KEY = "et-desks-annex-v1:" + (host.me?.id || "anon");
   let prog = { waystones: {}, curiosities: [], flags: {} };
-  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && typeof s === "object") prog = { waystones: s.waystones || {}, curiosities: s.curiosities || [], flags: s.flags || {} }; } catch {}
+  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && typeof s === "object") prog = { waystones: s.waystones || {}, curiosities: s.curiosities || [], flags: s.flags || {}, glimpse: s.glimpse || {} }; } catch {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ ...prog, updated_at: new Date().toISOString() })); } catch {} };
   const goal = data.goal?.curiosities || 3;
 
@@ -86,7 +88,11 @@ export function createAnnex(kit, data, host) {
         let grab = null, npc = null;
         if (!cu && !dz && S.grabbers?.length && hsh(i, j, qi, "grab", e) < (S.grabberChance ?? 0)) grab = pickH(S.grabbers, hsh(i, j, qi, "gt", e));
         if (!cu && !grab && !dz && S.npcs?.length && depthOf(i, j) >= (GR.npcMinDepth ?? 4) && hsh(i, j, qi, "npc", e) < (S.npcChance ?? 0)) npc = pickH(S.npcs, hsh(i, j, qi, "nt", e));
-        rooms.push({ qi, sx, sz, x0, x1, z0, z1, door, type, grab, npc, curio: cu?.id || null });
+        let stair = null, tv = false, sw = false; // v3 (own hash keys, so v2 rolls are unchanged)
+        if (!cu && !grab && !npc && hsh(i, j, qi, "stair", e) < (S.stairChance ?? 0)) stair = pickStair(hsh(i, j, qi, "stk", e));
+        if (!cu && !stair && (data.tvs?.roomTypes || []).includes(type) && hsh(i, j, qi, "tv", e) < (data.tvs?.chance ?? 0)) tv = true;
+        if (!cu && !grab && !npc && !stair && !dz && creatureOK(i, j) && hsh(i, j, qi, "sw", e) < (data.aliveMode?.switchChance ?? 0)) sw = true;
+        rooms.push({ qi, sx, sz, x0, x1, z0, z1, door, type, grab, npc, curio: cu?.id || null, stair, tv, sw });
       });
     }
     return { i, j, key, S, dead: dz, center, arms, hs, blk, rooms, ep };
@@ -138,10 +144,11 @@ export function createAnnex(kit, data, host) {
   const exitTex = plate("EXIT →", "(probably)", { w: 900, h: 320, bg: "#2f6b3a", fg: "#fbf3d0", accent: "#cfe6b8" });
   const servingTex = plate("NOW SERVING", "—", { w: 900, h: 320, bg: "#2d3a33", fg: "#ff6b5a", accent: "#8f9f88" });
   const snaksTex = plate("SNAKS", "no buttons", { w: 512, h: 150, bg: "#2d3a33", fg: "#cfe6b8", accent: "#8f9f88" });
+  let curTwitch = null; const twk = (o) => { if (curTwitch && o) { o.userData.ry0 = o.rotation.y; o.userData.rz0 = o.rotation.z; curTwitch.push(o); } return o; }; // props that twitch in lights-change mode
   const P = {
     plant(g, x, z, s = 1) { box(x, 0.22 * s, z, 0.4 * s, 0.44 * s, 0.4 * s, mat(PAL.clay), g);
-      const m = new THREE.Mesh(once("geo:plant", () => new THREE.IcosahedronGeometry(0.38, 1)), mat("#6f7f45", { flatShading: true })); m.scale.setScalar(s); m.position.set(x, 0.75 * s, z); g.add(m); },
-    chair(g, x, z, ry, color = PAL.forest) { const c = new THREE.Group(); c.position.set(x, 0, z); c.rotation.y = ry; g.add(c);
+      const m = new THREE.Mesh(once("geo:plant", () => new THREE.IcosahedronGeometry(0.38, 1)), mat("#6f7f45", { flatShading: true })); m.scale.setScalar(s); m.position.set(x, 0.75 * s, z); g.add(m); twk(m); },
+    chair(g, x, z, ry, color = PAL.forest) { const c = new THREE.Group(); c.position.set(x, 0, z); c.rotation.y = ry; g.add(c); twk(c);
       box(0, 0.48, 0, 0.55, 0.08, 0.55, mat(color), c); box(0, 0.8, -0.26, 0.55, 0.6, 0.06, mat(color), c); box(0, 0.24, 0, 0.06, 0.45, 0.06, mat(PAL.ink), c); },
     table(g, x, z, big) { const w = big ? 1.4 : 1.1, d = big ? 0.9 : 0.7; box(x, 0.82, z, w, 0.06, d, mat("#b89a6a"), g); [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => box(x + a * (w / 2 - 0.06), 0.4, z + b * (d / 2 - 0.06), 0.05, 0.8, 0.05, mat(PAL.wood), g)); },
     boxes(g, x, z) { const cm = mat("#b08a5a", { roughness: 1 }); box(x, 0.22, z, 0.5, 0.44, 0.45, cm, g); box(x + 0.05, 0.62, z - 0.02, 0.4, 0.36, 0.38, cm, g); box(x + 0.48, 0.18, z + 0.1, 0.36, 0.36, 0.36, cm, g); },
@@ -152,10 +159,10 @@ export function createAnnex(kit, data, host) {
       box(-0.95, 1.1, 0, 0.06, 2.2, 0.5, sm, s); box(0.95, 1.1, 0, 0.06, 2.2, 0.5, sm, s);
       for (let i = 0; i < 4; i++) { box(0, 0.25 + i * 0.6, 0, 1.9, 0.04, 0.5, sm, s); for (let k = 0; k < 3; k++) if (Math.random() < 0.75) box(-0.6 + k * 0.6 + rnd(-0.1, 0.1), 0.41 + i * 0.6, rnd(-0.05, 0.05), rnd(0.25, 0.45), 0.28, 0.32, bm, s); }
       recs.push({ g: s, bx: s.position.x, bz: s.position.z, ax: Math.abs(Math.sin(sp.ry)) > 0.5 ? "z" : "x" }); },
-    frame(g, sp) { const f = new THREE.Group(); f.position.set(sp.x, sp.y, sp.z); f.rotation.y = sp.ry; g.add(f);
+    frame(g, sp) { const f = new THREE.Group(); f.position.set(sp.x, sp.y, sp.z); f.rotation.y = sp.ry; g.add(f); twk(f);
       box(0, 0, 0, 1.28, 1.48, 0.06, mat("#2c2a24", { roughness: 0.5 }), f); cplane(frameTex, 1.1, 1.3, 0, 0, 0.035, 0, f); cplane(frameLabel, 1.1, 0.2, 0, -0.98, 0.01, 0, f); },
     sign(g, sp, tex, w = 1.4, h = 0.5) { cplane(tex, w, h, sp.x, sp.y, sp.z, sp.ry, g); },
-    poster(g, sp) { cplane(posterTex, 0.62, 0.87, sp.x, sp.y, sp.z, sp.ry, g); },
+    poster(g, sp) { twk(cplane(posterTex, 0.62, 0.87, sp.x, sp.y, sp.z, sp.ry, g)); },
     water(g, r) { const m = once("mat:water", () => new THREE.MeshStandardMaterial({ color: "#8fd8d0", transparent: true, opacity: 0.45, roughness: 0.1, metalness: 0.2, emissive: "#5fb8b0", emissiveIntensity: 0.15 }));
       const wv = new THREE.Mesh(planeGeo, m); wv.rotation.x = -Math.PI / 2; wv.scale.set(r.x1 - r.x0 - 1.4, r.z1 - r.z0 - 1.4, 1); wv.position.set((r.x0 + r.x1) / 2, 0.05, (r.z0 + r.z1) / 2); g.add(wv); return wv; },
   };
@@ -342,7 +349,7 @@ export function createAnnex(kit, data, host) {
 
   function buildCell(pl) {
     const g = new THREE.Group(), lx = pl.i * C, lz = pl.j * C; g.position.set(lx, 0, lz); root.add(g);
-    const ch = { key: pl.key, i: pl.i, j: pl.j, pl, g, lx, lz, walk: [], blockers: [], grabbers: [], npcs: [], curios: [], stones: [], exits: [], receders: [], disp: [] };
+    const ch = { key: pl.key, i: pl.i, j: pl.j, pl, g, lx, lz, walk: [], blockers: [], grabbers: [], npcs: [], curios: [], stones: [], exits: [], receders: [], disp: [], stairs: [], tvs: [], switches: [], twitch: [] };
     const M = secMats(pl.S, !!pl.dead), mk = pl.S.id + (pl.dead ? ":dead" : ""), hs = pl.hs;
     const Wk = (x0, x1, z0, z1, room) => { const r = { x0: AX + lx + x0, x1: AX + lx + x1, z0: AZ + lz + z0, z1: AZ + lz + z1, room, y: 0, chunk: pl.key }; walkable.push(r); ch.walk.push(r); };
     const zH = `annex:c:${pl.key}:h`;
@@ -389,7 +396,10 @@ export function createAnnex(kit, data, host) {
       const dd = rm.door; if (dd.line === "x") Wk(dd.at - 0.6, dd.at + 0.6, dd.c - dd.w / 2 + 0.15, dd.c + dd.w / 2 - 0.15, null); else Wk(dd.c - dd.w / 2 + 0.15, dd.c + dd.w / 2 - 0.15, dd.at - 0.6, dd.at + 0.6, null);
       if ((rt.lights ?? 1) && !pl.dead) { const w = rm.x1 - rm.x0, d = rm.z1 - rm.z0, nx = w > 4.6 ? 2 : 1, nz = d > 4.6 ? 2 : 1;
         for (let a = 0; a < nx; a++) for (let b = 0; b < nz; b++) lightPanel(g, rm.x0 + (a + 0.5) * w / nx, rm.z0 + (b + 0.5) * d / nz, M, a + b === 1 && Math.random() < 0.5); }
-      furnish(g, rm, ch);
+      curTwitch = ch.twitch; furnish(g, rm, ch); curTwitch = null;
+      if (rm.stair) ch.stairs.push(makeStairs(g, rm, ch, M));
+      if (rm.tv) ch.tvs.push(makeTV(g, rm, ch));
+      if (rm.sw) ch.switches.push(makeSwitch(g, rm, ch));
       if (rm.grab) ch.grabbers.push(makeGrabberRt(rm, zR, ch, g));
       if (rm.npc) ch.npcs.push(makeNpcRt(rm, zR, ch, g));
       if (rm.curio) { const cd = curioDefs.find((c) => c.id === rm.curio); if (cd) ch.curios.push(makeCurio(cd, g, rm.sx > 0 ? rm.x1 - 0.7 : rm.x0 + 0.7, rm.sz > 0 ? rm.z1 - 0.7 : rm.z0 + 0.7, ch)); }
@@ -554,12 +564,13 @@ export function createAnnex(kit, data, host) {
       corner: [rm.sx > 0 ? rect.x1 : rect.x0, rm.sz > 0 ? rect.z1 : rect.z0] };
   }
   function openTalk(n) {
-    n.talking = true; const lines = data.npcLines[n.d.type] || [];
+    n.talking = true; const possd = !!n.poss; const lines = possd ? (data.npcPrompts || []).map(() => data.minions?.lines || ["We are curious."]) : data.npcLines[n.d.type] || [];
     host.openPanel(`💬 ${n.d.name[0].toUpperCase() + n.d.name.slice(1)}`, (pn) => {
-      pn.appendChild(el("p", "o3-small", n.d.quirk === "late" ? "It looks almost like someone, a few seconds behind. Say something:" : "It looks almost like someone. Say something:"));
+      if (possd) pn.appendChild(el("p", "o3-small", fill(data.minions?.talkIntro || "Its eyes are glowing. Something small and fluttery is doing the talking.")));
+      else pn.appendChild(el("p", "o3-small", n.d.quirk === "late" ? "It looks almost like someone, a few seconds behind. Say something:" : "It looks almost like someone. Say something:"));
       const log = el("div", "o3-chatlog"); const row = el("div", "o3-prompts");
       (data.npcPrompts || []).forEach((q, qi) => { const b = el("button", "o3-btn ghost small", q); b.onclick = () => {
-        const useQ = n.d.quirk === "late" ? n.lastQ : qi; n.lastQ = qi; // the Late Arrival answers the question you asked before
+        const useQ = n.d.quirk === "late" && !possd ? n.lastQ : qi; n.lastQ = qi; // the Late Arrival answers the question you asked before
         const reply = fill(useQ == null ? (lines[0]?.[0] || "…") : pick(lines[useQ] || ["…"]));
         const a = el("div", "o3-note"); a.appendChild(el("b", null, "You: ")); a.appendChild(document.createTextNode(q)); const r = el("div", "o3-note o3-reply"); r.appendChild(el("b", null, n.d.name.replace(/^(a|an|the) /, "") + ": ")); r.appendChild(document.createTextNode(reply));
         log.append(a, r); log.scrollTop = 1e6; audio.sfx("blip"); }; row.appendChild(b); });
@@ -599,7 +610,7 @@ export function createAnnex(kit, data, host) {
   function place(sp, toast) { if (!sp) return; lastP = { x: sp.x, z: sp.z }; stream(lastP, true);
     host.placeAnnex({ x: AX + sp.x, z: AZ + sp.z, y: sp.y || 0, yaw: sp.yaw || 0, pitch: sp.pitch ?? 0 }); if (toast) host.toast(toast); }
   function arrive(sp, spawnId, e) {
-    visitFrom = e?.id || null; timeIn = 0; lostT = 0; hinted = false; inAnnexNow = true;
+    visitFrom = e?.id || null; timeIn = 0; lostT = 0; hinted = false; inAnnexNow = true; cleanupGlimpse(); endAlive(true); crHide(); flipT = 0; audio.setMood("annex");
     if (data.shuffleOnEnter) { unloadAll(); sections.forEach((S) => (epochs[S.id] = Math.floor(Math.random() * 100000))); } // never quite the same twice (hallways stay put; rooms re-roll)
     host.enterAnnexMode(); place(sp); audio.start(); muteBtn.hidden = false; renderMute();
     const firstCrystal = !prog.flags.homeCrystal; if (firstCrystal) { prog.flags.homeCrystal = new Date().toISOString(); save(); }
@@ -609,7 +620,7 @@ export function createAnnex(kit, data, host) {
   }
   function exitHome(target, kit, quick) {
     audio.sfx("zip"); host.setZoom(false);
-    host.threadWarp({ target: target || null, onK: (k) => kit?.yawn?.(k), swap: () => { kit?.yawn?.(0); audio.stop(); muteBtn.hidden = true; inAnnexNow = false; host.leaveAnnexMode(); unloadAll(); if (!quick) host.toast("You're back in the office. The stitch is still there, if you want it."); } });
+    host.threadWarp({ target: target || null, onK: (k) => kit?.yawn?.(k), swap: () => { kit?.yawn?.(0); cleanupGlimpse(); endAlive(true); crHide(); flipT = 0; audio.setMood("annex"); audio.stop(); muteBtn.hidden = true; inAnnexNow = false; host.leaveAnnexMode(); unloadAll(); if (!quick) host.toast("You're back in the office. The stitch is still there, if you want it."); } });
   }
 
   // ---------- HUD bits ----------
@@ -619,6 +630,7 @@ export function createAnnex(kit, data, host) {
   const bannerEl = el("div", "o3-annexbanner"); const bT = el("b"), bS = el("span"); bannerEl.append(bT, bS); host.hud.appendChild(bannerEl);
   function banner(t, s) { bT.textContent = t; bS.textContent = s; bannerEl.classList.add("show"); clearTimeout(bannerEl._h); bannerEl._h = setTimeout(() => bannerEl.classList.remove("show"), 5200); }
   function hudButtons() {
+    if (G.active) return [];
     const out = [Object.assign(el("button", "o3-btn ghost o3-home", `${data.homeCrystal?.icon || "🏠"} ${data.homeCrystal?.name || "Home crystal"}`), { onclick: useHome, title: "Back to the start (where the Loose Stitch lets out)" })];
     const nStones = stoneDefs.filter((s) => attuned(s.id)).length;
     if (nStones) out.push(Object.assign(el("button", "o3-btn ghost", `💎 Waystones (${nStones})`), { onclick: () => openTravel(null) }));
@@ -637,8 +649,9 @@ export function createAnnex(kit, data, host) {
         cand(en.key, d, en.e.near || 2.4, en.e.prompt || "🧵 Touch the stitch", () => useEntrance(en)); });
       return best;
     }
-    if (mode !== "annex") return null;
+    if (mode !== "annex" || G.active) return null;
     const p = local(pos), lv = (y) => Math.abs((y || 0) - feet) < 2.5;
+    if (cr.st === "frozen" && feet < 1 && Math.hypot(cr.x - p.x, cr.z - p.z) < (CRD?.tagRadius ?? 2)) return { key: "cr:tag", label: `✋ Tag ${CRD.name}!`, run: () => { if (cr.st === "frozen") crTagged(); } };
     const stoneCand = (s) => { if (!lv(s.y)) return; cand("ws:" + s.w.id, Math.hypot(s.lx - p.x, s.lz - p.z), 2.0, attuned(s.w.id) ? "💎 Crystal: travel" : "💎 Attune to this crystal", () => useStone(s)); };
     if (ovStone) stoneCand(ovStone);
     chunks.forEach((ch) => {
@@ -646,6 +659,8 @@ export function createAnnex(kit, data, host) {
       if (feet > 1) return;
       ch.curios.forEach((c) => { if (c.g.visible) cand("cu:" + c.c.id, Math.hypot(c.lx - p.x, c.lz - p.z), 1.6, `✋ Pick up ${c.ty.name}`, () => pickUp(c)); });
       ch.exits.forEach((ex) => { const locked = ex.x.requires && !reqMet(ex.x); cand("ex:" + ex.x.id + (locked ? ":l" : ""), Math.hypot(ex.lx - p.x, ex.lz - p.z), 2.2, locked ? ex.x.lockedPrompt : ex.x.prompt, () => useExit(ex)); });
+      ch.stairs.forEach((st) => cand("st:" + st.cell + ":" + st.rm.qi, Math.hypot(st.lx - p.x, st.lz - p.z), 1.7, st.up ? "🪜 Climb the stairs" : "🪜 Go down the stairs", () => useStair(st)));
+      ch.switches.forEach((sw) => cand("sw:" + ch.key + ":" + sw.rm.qi, Math.hypot(sw.lx - p.x, sw.lz - p.z), 1.8, alive.on ? "💡 The switch won't budge (the lights are already changed)" : "💡 " + (data.aliveMode?.switchLabel || "A light switch that wasn't here before"), () => { if (!alive.on) openSwitch(); }));
       ch.npcs.forEach((n) => cand("npc:" + n.zone, Math.hypot(ch.lx + n.g.position.x - p.x, ch.lz + n.g.position.z - p.z), 2.4, `💬 Say something to ${n.d.name}`, () => openTalk(n)));
     });
     descend.forEach((ex) => { if (lv(ex.ly)) cand("ex:" + ex.x.id, Math.hypot(ex.lx - p.x, ex.lz - p.z), 2.2, ex.x.prompt, () => useExit(ex)); });
@@ -676,8 +691,9 @@ export function createAnnex(kit, data, host) {
   function update(dt, ts, st) {
     stitches.forEach((s) => s.anim(ts));
     if (st.mode !== "annex") return;
+    if (G.active) { tickGlimpse(dt, ts); return; }
     const p = local(st.pos), zone = st.zone, busy = st.busy; lastP = p;
-    timeIn += dt; lostT += dt;
+    timeIn += dt; lostT += dt; flipT = Math.max(0, flipT - dt);
     if (!busy) stream(p, false);
     tickShift(dt, p, busy);
     cache.forEach((v, k) => { if (v && v.flick && k.startsWith("sm:")) { v.ft += dt; v.flick.emissiveIntensity = (Math.sin(v.ft * 0.7) > -0.9 || Math.random() < 0.3) ? v.lightBase : 0.12; } });
@@ -694,9 +710,13 @@ export function createAnnex(kit, data, host) {
       ch.npcs.forEach((n) => tickNpc(n, dt, ts, px, pz, st.feet, fx, fz));
       ch.grabbers.forEach((gr) => tickGrabber(gr, dt, ts, px, pz, zone, busy));
     });
+    const deep = st.feet < 1 && creatureOK(...cellOf(p.x, p.z));
+    tickCreature(dt, ts, p, st.feet, busy); tickFlitters(dt, ts, p, deep, busy); tickAlive(dt, p, deep, busy); crDim();
     if (!hinted && !busy && lostT > (data.lostHintSeconds || 240)) { hinted = true; host.toast(data.lostHint || "Lost? Try your home crystal."); }
   }
   function tickNpc(n, dt, ts, px, pz, feet, fx, fz) {
+    if (n.poss) { if (!n.talking) tickPossessed(n, dt, px, pz); return; }
+    if (n.homing) return tickHoming(n, dt);
     const gp = n.g.position, dp = Math.hypot(gp.x - px, gp.z - pz), q = n.d.quirk;
     const face = (want, k = 4) => { n.g.rotation.y += angDiff(want, n.g.rotation.y) * Math.min(1, dt * k); };
     if (q === "corner" && !n.talking) { // stands in the corner; only turns round when you're not looking at it
@@ -734,19 +754,316 @@ export function createAnnex(kit, data, host) {
   const OVPAL = { bg: "#2b3340", fog: [30, 95], hemi: 1.15 };
   function atmos(zone) {
     if (zone === "annex:overlook") return OVPAL;
+    if (zone === "annex:glimpse") return { bg: "#0e2a2c", fog: [5, 60], hemi: 1.2 };
     const zc = zoneCell(zone); if (!zc) return null; const S = sectionOf(zc.i, zc.j), dead = deadCells.has(ck(zc.i, zc.j));
     const v = (prog.flags.sections ||= []); if (!v.includes(S.id)) { v.push(S.id); save(); }
+    if (alive.on && S.id === alive.section) return { ...palOf(S, dead), ...(data.aliveMode?.palette || { bg: "#1a2a3a", fog: [2, 16], hemi: 0.75 }) };
     return palOf(S, dead);
   }
   function roomLabel(zone) {
     if (zone === "annex:overlook") return "The Gremlins' Overlook (secret)";
+    if (zone === "annex:glimpse") return `${GW?.name || "Somewhere else"} · ${G.active === "tour" ? "seen through " + (CRD?.name || "its") + "'s eyes" : "exploring (you caught " + (CRD?.name || "it") + ")"}`;
     const zc = zoneCell(zone); if (!zc) return data.name; const S = sectionOf(zc.i, zc.j), dz = deadCells.get(ck(zc.i, zc.j));
     if (dz) return `${S.name} · ${dz.z.name} (🚫 no crystal signal)`;
     if (centerOf.get(ck(zc.i, zc.j)) === S) return `${S.name} · crystal plaza`;
-    if (zc.room == null) return S.name;
+    if (zc.room == null) return S.name + (alive.on && S.id === alive.section ? " · 💡 the lights have changed" : "");
     const rm = chunks.get(ck(zc.i, zc.j))?.pl.rooms.find((r) => r.qi === zc.room);
     return `${S.name} · ${data.roomTypes?.[rm?.type]?.label || "a room"}`;
   }
+
+  // =====================================================================================================
+  // v3: Grenshol (the creature), its flitters (minions), lights-change mode, the glimpse world, Escher stairwells, silly TVs.
+  // Lore: the Gremlins found a portal deep in the Annex, poked it to see what it was, and accidentally let Grenshol out.
+  // =====================================================================================================
+  const CRD = data.creature || null, MND = data.minions || {}, ALD = data.aliveMode || {}, STD = data.stairwells || {}, TVD = data.tvs || {}, GLD = data.glimpse || {};
+  const rr = (a) => (Array.isArray(a) ? rnd(a[0], a[1]) : a);
+  let calm = false; // demo/tests only: no spontaneous creature visits, possessions or light changes
+  function creatureOK(i, j) { if (!CRD) return false; const S = sectionOf(i, j); return !(CRD.excludeSections || []).includes(S.id) && depthOf(i, j) >= (CRD.minDepth ?? 3); }
+  const walkOK = (x, z) => { const wx = AX + x, wz = AZ + z; return walkable.some((r) => r.chunk && r.chunk !== "glimpse" && (r.y || 0) < 1 && wx >= r.x0 && wx <= r.x1 && wz >= r.z0 && wz <= r.z1) && !blockedLocal(x, z); };
+  const fwdOf = () => { const y = host.state().yaw; return [-Math.sin(y), -Math.cos(y)]; };
+  const looking = (x, z, p, dot) => { const dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz) || 1, [fx, fz] = fwdOf(); return (dx * fx + dz * fz) / d > dot; };
+  function allLightMats(fn) { cache.forEach((v, k) => { if (v && v.light && k.startsWith("sm:") && !k.startsWith("sm:stone") && !k.startsWith("sm:ring")) fn(v); }); }
+
+  // ---------- Grenshol ----------
+  const cr = (() => { const g = new THREE.Group(); g.visible = false; root.add(g); const hk = (CRD?.height || 3.3) / 3.3;
+    const sil = new THREE.MeshBasicMaterial({ color: CRD?.color || "#130e1b", fog: false }), eyeM = new THREE.MeshBasicMaterial({ color: CRD?.eyes || "#ffe9a8", fog: false });
+    const body = new THREE.Group(); body.scale.setScalar(hk); g.add(body);
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.62, 2.3, 7), sil); torso.position.y = 1.35; body.add(torso);
+    const head = new THREE.Group(); head.position.y = 2.75; body.add(head);
+    const hm = new THREE.Mesh(new THREE.IcosahedronGeometry(0.46, 0), sil); hm.scale.set(1, 1.15, 0.9); head.add(hm);
+    const eyes = [-0.16, 0.16].map((x) => { const e = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 6), eyeM); e.position.set(x, 0.05, 0.4); head.add(e); return e; });
+    [-1, 1].forEach((s) => { const a = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.75, 0.03), sil); a.position.set(s * 0.22, 0.75, 0.05); a.rotation.z = -s * 0.5; head.add(a);
+      const f = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.12, 0.02), sil); f.position.set(s * 0.42, 1.08, 0.05); f.rotation.z = -s * 0.7; head.add(f); }); // feathery antennae, like a very tall moth
+    const arms = [-1, 1].map((s) => { const pv = new THREE.Group(); pv.position.set(s * 0.42, 2.3, 0); body.add(pv); const a = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.9, 0.1), sil); a.position.y = -0.95; pv.add(a); pv.rotation.z = s * 0.12; return pv; });
+    return { g, body, head, eyes, arms, st: "away", t: 0, timer: rr(CRD?.appearEvery || [25, 45]), x: 0, z: 0, stuck: 0, ph: 0, seenAt: 0, fade: 1, sfxT: 0, count: 0 }; })();
+  let lastCatch = null, lastCaught = null;
+  function crSay(kind) { const L = CRD?.lines?.[kind]; if (L?.length) host.toast(fill(pick(L)).replaceAll("{creature}", CRD.name)); }
+  function crShow(x, z, p) { cr.x = x; cr.z = z; cr.g.position.set(x, 0, z); cr.g.rotation.y = Math.atan2(p.x - x, p.z - z); cr.g.visible = true; cr.fade = 1; cr.body.scale.y = (CRD?.height || 3.3) / 3.3; cr.stuck = 0; }
+  function crHide(next) { cr.st = "away"; cr.g.visible = false; cr.timer = next ?? rr(alive.on ? (CRD?.aliveAppearEvery || [6, 14]) : (CRD?.appearEvery || [25, 45])); }
+  function crSpawn(p, opt = {}) { // pick a hallway end (the next junction along an open corridor) or a cell edge, in a creature-allowed cell
+    const [ci, cj] = cellOf(p.x, p.z), cand = [];
+    DIRS.forEach((d) => { if (!edgeOpen(ci, cj, d)) return; const [dx, dz] = DV[d];
+      [[ci + dx, cj + dz, 1], [ci, cj, 0.5]].forEach(([i, j, k]) => { const x = ci * C + C2 + dx * C * k, z = cj * C + C2 + dz * C * k, dist = Math.hypot(x - p.x, z - p.z);
+        if (!creatureOK(i, j) || !walkOK(x, z) || dist < (opt.min ?? 6) || dist > (opt.max ?? 26)) return;
+        const aligned = Math.abs(x - p.x) < 1.6 || Math.abs(z - p.z) < 1.6; cand.push({ x, z, dist, aligned, ahead: looking(x, z, p, 0.6) }); }); });
+    let pool = cand.filter((c) => c.aligned); if (opt.ahead) pool = pool.filter((c) => c.ahead).length ? pool.filter((c) => c.ahead) : pool; if (!pool.length) pool = cand;
+    const c = pick(pool); if (!c) return false;
+    crShow(c.x, c.z, p); cr.st = "peek"; cr.t = rr(CRD.peekSeconds || [5, 9]); cr.count++; audio.sfx("creak");
+    if (!prog.flags.metGrenshol) { prog.flags.metGrenshol = new Date().toISOString(); save(); banner(CRD.name, fill(data.lore?.firstSighting || "Something tall is watching from the end of the hall.")); }
+    else crSay("appear");
+    return true; }
+  function crBlink(p) { // reappear somewhere behind you (it's playing)
+    const [fx, fz] = fwdOf(); for (let t = 0; t < 24; t++) { const a = Math.random() * Math.PI * 2, r = rnd(4, 7), x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r;
+      if ((Math.cos(a) * fx + Math.sin(a) * fz) > -0.2 || !walkOK(x, z) || !creatureOK(...cellOf(x, z))) continue; crShow(x, z, p); cr.st = "sneak"; audio.sfx("peek"); crSay("blink"); return true; }
+    return false; }
+  function crStep(p, sp, dt) { const dx = p.x - cr.x, dz = p.z - cr.z, d = Math.hypot(dx, dz) || 1, s = sp * dt, nx = cr.x + dx / d * s, nz = cr.z + dz / d * s;
+    if (walkOK(nx, nz)) { cr.x = nx; cr.z = nz; cr.stuck = 0; } else if (walkOK(nx, cr.z)) { cr.x = nx; cr.stuck = 0; } else if (walkOK(cr.x, nz)) { cr.z = nz; cr.stuck = 0; } else cr.stuck += dt;
+    cr.g.position.set(cr.x, 0, cr.z); cr.g.rotation.y = Math.atan2(dx, dz); }
+  function tickCreature(dt, ts, p, feet, busy) {
+    if (!CRD) return;
+    const [ci, cj] = cellOf(p.x, p.z), ok = inAnnexNow && !G.active && feet < 1 && creatureOK(ci, cj);
+    if (cr.st !== "away" && (!ok)) { crHide(); return; }
+    // animation (it sways and peeks around corners)
+    if (cr.g.visible) { cr.ph += dt; cr.head.rotation.z = Math.sin(cr.ph * 1.3) * 0.35; cr.head.rotation.y = Math.sin(cr.ph * 0.7) * 0.25; cr.arms.forEach((a, i) => (a.rotation.x = Math.sin(cr.ph * (cr.st === "sneak" ? 4 : 1.2) + i * Math.PI) * (cr.st === "sneak" ? 0.35 : 0.08)));
+      cr.body.position.x = cr.st === "peek" ? Math.sin(cr.ph * 0.9) * 0.45 : 0; cr.eyes.forEach((e) => (e.visible = Math.sin(ts * 0.9 + 1.7) > -0.96)); }
+    if (busy) return;
+    const dist = Math.hypot(cr.x - p.x, cr.z - p.z), seen = cr.g.visible && dist < 30 && looking(cr.x, cr.z, p, CRD.lookDot ?? 0.93);
+    if (cr.st === "away") { if (!ok || calm) return; cr.timer -= dt; if (cr.timer <= 0) { if (!crSpawn(p)) cr.timer = 3; } return; }
+    if (cr.st === "peek" || cr.st === "sneak") {
+      if (seen && !(alive.on && cr.st === "sneak" && Math.random() < 0.35 * dt * 4)) { cr.st = "frozen"; cr.t = (CRD.freezeSeconds ?? 2.6) * (alive.on ? 0.8 : 1); audio.sfx("peek"); crSay("freeze"); return; }
+      if (cr.st === "peek") { cr.t -= dt; cr.g.rotation.y = Math.atan2(p.x - cr.x, p.z - cr.z); if (cr.t <= 0) cr.st = "sneak"; return; }
+      if (!seen || alive.on) crStep(p, (alive.on ? CRD.huntSpeed : CRD.sneakSpeed) * (seen ? 0.35 : 1) || 1.5, dt);
+      if (cr.stuck > 2.2) { if (!crBlink(p)) crHide(); return; }
+      if (Math.hypot(cr.x - p.x, cr.z - p.z) < (CRD.catchRadius ?? 0.9)) return crCaught();
+      cr.sfxT -= dt; if (cr.sfxT < 0) { cr.sfxT = rnd(5, 9); if (dist > 4) audio.sfx("creak"); }
+      return; }
+    if (cr.st === "frozen") { cr.t -= dt; cr.g.rotation.y = Math.atan2(p.x - cr.x, p.z - cr.z);
+      if (dist < (CRD.catchRadius ?? 0.9) + 0.5) return crTagged();
+      if (cr.t <= 0) { if (alive.on && Math.random() < 0.5 && crBlink(p)) return; cr.st = "flee"; cr.t = 0.9; crSay("flee"); audio.sfx("peek"); } return; }
+    if (cr.st === "flee") { cr.t -= dt; cr.body.scale.y = Math.max(0.01, cr.body.scale.y - dt * 1.2); cr.g.position.y -= dt * 0.2; if (cr.t <= 0) { cr.g.position.y = 0; crHide(); } }
+  }
+  function crDim() { // lights near Grenshol go dim (and change colour in lights-change mode)
+    const d = cr.g.visible ? Math.hypot(cr.x - lastP.x, cr.z - lastP.z) : 99, k = cr.g.visible ? Math.max(0.22, Math.min(1, (d - 2) / (CRD?.dimRadius || 10))) : 1;
+    const warn = Object.values(shiftSt).some((s) => s.warnT >= 0);
+    allLightMats((M) => { if (warn && M === secMats(curSection(), false)) return; M.light.emissiveIntensity = M.lightBase * k * (alive.on ? 0.8 : 1); });
+    return k; }
+  function crCaught() { const from = curSection(); cr.st = "held"; cr.g.visible = false; lastCaught = { from: from.id, at: Date.now() };
+    const gm = gmem(); gm.caughtBy = (gm.caughtBy || 0) + 1; save(); audio.sfx("flump"); host.toast(fill(CRD.caught || "Grenshol got you!"));
+    enterGlimpse("tour"); }
+  function crTagged() { cr.st = "held"; const gm = gmem(), first = !(gm.catches > 0); gm.catches = (gm.catches || 0) + 1; save(); audio.sfx("chime"); lastCatch = { first, at: Date.now() };
+    host.toast(fill(CRD.tagged || "You tagged Grenshol!"));
+    if (!first && gm.discovered?.length) return openGlimpseChoice(); enterGlimpse("explore", null); }
+
+  // ---------- flitters (Grenshol's little helpers) + possession ----------
+  const flit = (() => { const out = [], wm = new THREE.MeshBasicMaterial({ color: MND.color || "#d9cbe8", side: THREE.DoubleSide, transparent: true, opacity: 0.9 }), bm = new THREE.MeshBasicMaterial({ color: "#3a2f4a" }), em = new THREE.MeshBasicMaterial({ color: MND.eye || "#9cf7ff", fog: false });
+    const wg = new THREE.PlaneGeometry(0.16, 0.12), bg = new THREE.BoxGeometry(0.035, 0.035, 0.12), eg = new THREE.SphereGeometry(0.014, 5, 4);
+    for (let i = 0; i < Math.max(MND.aliveCount || 7, MND.count || 2); i++) { const g = new THREE.Group(); g.visible = false; root.add(g); g.add(new THREE.Mesh(bg, bm));
+      const w = [-1, 1].map((s) => { const pv = new THREE.Group(); g.add(pv); const m = new THREE.Mesh(wg, wm); m.position.x = s * 0.08; pv.add(m); return pv; });
+      [-1, 1].forEach((s) => { const e = new THREE.Mesh(eg, em); e.position.set(s * 0.015, 0.012, 0.06); g.add(e); });
+      out.push({ g, w, st: "off", tx: 0, ty: 2.4, tz: 0, ph: rnd(0, 6), npc: null }); }
+    return out; })();
+  let possT = rr(MND.possessEvery || [25, 50]), lastPossess = null;
+  const npcWorld = (n) => ({ x: n.ch.lx + n.g.position.x, z: n.ch.lz + n.g.position.z });
+  const allNpcs = () => [...chunks.values()].flatMap((ch) => ch.npcs);
+  function possTint() { return once("mat:poss", () => mat(MND.tint || "#7d6aa8", { emissive: MND.tint || "#7d6aa8", emissiveIntensity: 0.35 })); }
+  function possess(n, secs) {
+    if (n.poss) return; n.poss = { t: secs ?? rr(MND.possessSeconds || [12, 22]), line: 1.5 }; n.homing = false;
+    n.origM = []; n.body.traverse((o) => { if (o.isMesh && o.material?.color && !o.material.map) { n.origM.push([o, o.material]); o.material = possTint(); } });
+    if (!n.peyes) { n.peyes = [-0.08, 0.08].map((x) => { const e = new THREE.Mesh(once("geo:peye", () => new THREE.SphereGeometry(0.035, 6, 5)), once("mat:peye", () => new THREE.MeshBasicMaterial({ color: MND.eye || "#9cf7ff", fog: false }))); e.position.set(x, 0.02, 0.18); n.head.add(e); return e; }); }
+    n.peyes.forEach((e) => (e.visible = true)); audio.sfx("flutter"); lastPossess = { id: n.d.id, cell: n.ch.key, at: Date.now() };
+    const w = npcWorld(n); if (Math.hypot(w.x - lastP.x, w.z - lastP.z) < 12) host.toast(fill(pick(MND.possessed || ["A flitter lands on its head. Its eyes go a very bright blue."]))); }
+  function release(n) { if (!n.poss) return; n.poss = null; (n.origM || []).forEach(([o, m]) => (o.material = m)); n.origM = null; n.peyes?.forEach((e) => (e.visible = false)); n.homing = true;
+    const f = flit.find((q) => q.st === "off"); if (f) { const w = npcWorld(n); f.g.position.set(w.x, 1.9, w.z); f.g.visible = true; f.st = "wander"; f.tx = w.x + rnd(-4, 4); f.tz = w.z + rnd(-4, 4); }
+    const w = npcWorld(n); if (Math.hypot(w.x - lastP.x, w.z - lastP.z) < 10) host.toast(fill(pick(MND.release || ["It blinks. \"Sorry. What was I saying?\""]))); }
+  function tickPossessed(n, dt, px, pz) { // follows you around (gently), says creature-ish things, then lets go
+    const gp = n.g.position; n.poss.t -= dt; if (n.poss.t <= 0) return release(n);
+    const dx = px - gp.x, dz = pz - gp.z, d = Math.hypot(dx, dz) || 1; n.g.rotation.y += angDiff(Math.atan2(dx, dz), n.g.rotation.y) * Math.min(1, dt * 5);
+    if (d > 1.6 && d < 20) { const s = Math.min(d - 1.5, (n.d.speed + 0.5) * dt), nx = gp.x + dx / d * s, nz = gp.z + dz / d * s;
+      if (walkOK(n.ch.lx + nx, n.ch.lz + nz)) { gp.x = nx; gp.z = nz; } else if (walkOK(n.ch.lx + nx, n.ch.lz + gp.z)) gp.x = nx; else if (walkOK(n.ch.lx + gp.x, n.ch.lz + nz)) gp.z = nz; }
+    n.body.position.y = Math.abs(Math.sin(n.poss.t * 9)) * 0.03; n.head.rotation.z = Math.sin(n.poss.t * 2.3) * 0.4;
+    n.poss.line -= dt; if (d < 3.2 && n.poss.line <= 0 && !n.talking) { n.poss.line = rnd(6, 10); host.toast(`${n.d.name[0].toUpperCase() + n.d.name.slice(1)} (glowing eyes): "${fill(pick(MND.lines || ["We are curious."]))}"`); }
+  }
+  function tickHoming(n, dt) { const gp = n.g.position, cx = (n.rect.x0 + n.rect.x1) / 2, cz = (n.rect.z0 + n.rect.z1) / 2, dx = cx - gp.x, dz = cz - gp.z, d = Math.hypot(dx, dz);
+    if (gp.x >= n.rect.x0 && gp.x <= n.rect.x1 && gp.z >= n.rect.z0 && gp.z <= n.rect.z1) { n.homing = false; n.tgt.set(gp.x, gp.z); return; }
+    const s = Math.min(d, n.d.speed * dt * 1.5), nx = gp.x + dx / d * s, nz = gp.z + dz / d * s; if (walkOK(n.ch.lx + nx, n.ch.lz + nz)) { gp.x = nx; gp.z = nz; } else { gp.x = cx; gp.z = cz; } // snaps home if it's stuck (nobody's looking)
+    n.g.rotation.y = Math.atan2(dx, dz); }
+  function tickFlitters(dt, ts, p, deep, busy) {
+    const want = deep && !G.active ? (alive.on ? MND.aliveCount || 7 : MND.count || 2) : 0; let on = 0;
+    flit.forEach((f) => { if (f.st === "off") return; on++;
+      if (f.st === "toNpc" && f.npc) { const w = npcWorld(f.npc); f.tx = w.x; f.tz = w.z; f.ty = 1.75 * (f.npc.d.quirk === "tall" ? 1.2 : 1); }
+      const dx = f.tx - f.g.position.x, dy = f.ty - f.g.position.y, dz = f.tz - f.g.position.z, d = Math.hypot(dx, dy, dz) || 1, sp = (f.st === "toNpc" ? 3.2 : 1.6) * dt;
+      f.g.position.x += dx / d * Math.min(d, sp); f.g.position.y += dy / d * Math.min(d, sp) + Math.sin(ts * 7 + f.ph) * 0.006; f.g.position.z += dz / d * Math.min(d, sp); f.g.rotation.y = Math.atan2(dx, dz);
+      f.w[0].rotation.y = Math.sin(ts * 28 + f.ph) * 0.9; f.w[1].rotation.y = -Math.sin(ts * 28 + f.ph) * 0.9;
+      if (f.st === "toNpc" && d < 0.25) { possess(f.npc); f.npc = null; f.st = "off"; f.g.visible = false; return; }
+      if (f.st === "wander" && d < 0.4) { const a = Math.random() * 6.28, r = rnd(3, 9); f.tx = p.x + Math.cos(a) * r; f.tz = p.z + Math.sin(a) * r; f.ty = rnd(1.6, 2.8); }
+      if (f.st === "wander" && (Math.hypot(f.g.position.x - p.x, f.g.position.z - p.z) > 22 || on > want)) { f.st = "off"; f.g.visible = false; on--; } });
+    if (on < want && Math.random() < dt * 2) { const f = flit.find((q) => q.st === "off"); if (f) { const a = Math.random() * 6.28; f.g.position.set(p.x + Math.cos(a) * 8, 2.6, p.z + Math.sin(a) * 8); f.st = "wander"; f.tx = p.x; f.tz = p.z; f.ty = 2.2; f.g.visible = true; } }
+    if (!busy && !calm && deep) { possT -= dt * (alive.on ? 3 : 1); if (possT <= 0) { possT = rr(MND.possessEvery || [25, 50]); sendFlitter(); } }
+  }
+  function sendFlitter(n) { n = n || allNpcs().filter((q) => !q.poss && !q.talking).sort((a, b) => { const A = npcWorld(a), B = npcWorld(b); return Math.hypot(A.x - lastP.x, A.z - lastP.z) - Math.hypot(B.x - lastP.x, B.z - lastP.z); })[0];
+    if (!n) return false; const w = npcWorld(n); if (Math.hypot(w.x - lastP.x, w.z - lastP.z) > (MND.possessRange || 22)) return false;
+    const f = flit.find((q) => q.st === "off") || flit.find((q) => q.st === "wander"); if (!f) return false;
+    if (f.st === "off") { f.g.position.set(w.x + rnd(-5, 5), 2.6, w.z + rnd(-5, 5)); f.g.visible = true; } f.st = "toNpc"; f.npc = n; audio.sfx("flutter"); return true; }
+
+  // ---------- lights-change mode ----------
+  const alive = { on: false, t: 0, section: null, by: null, count: 0, roll: 0 };
+  const lightColors = new Map();
+  function startAlive(by) {
+    if (alive.on || G.active) return false; const S = curSection(); alive.on = true; alive.t = ALD.seconds || 75; alive.section = S.id; alive.by = by; alive.count++;
+    allLightMats((M) => { if (!lightColors.has(M)) lightColors.set(M, M.light.emissive.getHex()); M.light.emissive.set(ALD.light || "#9cf7ff"); M.flick.emissive.set(ALD.light || "#9cf7ff"); });
+    audio.setMood("alive"); audio.sfx("creak"); host.toast(fill(ALD.on || "The lights change. Everything wakes up a little.")); host.updateActions();
+    cr.timer = Math.min(cr.timer, rr(CRD?.aliveAppearEvery || [6, 14])); possT = Math.min(possT, 4); return true; }
+  function endAlive(quiet) {
+    if (!alive.on) return; alive.on = false; lightColors.forEach((hex, M) => { M.light.emissive.setHex(hex); M.flick.emissive.setHex(hex); }); lightColors.clear();
+    chunks.forEach((ch) => ch.twitch.forEach((o) => { o.rotation.y = o.userData.ry0; o.rotation.z = o.userData.rz0; }));
+    if (!G.active) audio.setMood("annex"); if (!quiet) host.toast(fill(ALD.off || "The lights settle. Everything pretends nothing happened.")); host.updateActions(); }
+  function tickAlive(dt, p, deep, busy) {
+    if (alive.on) { alive.t -= dt; if (alive.t <= 0 || curSection().id !== alive.section) return endAlive();
+      chunks.forEach((ch) => { if (ch.pl.S.id !== alive.section) return; ch.twitch.forEach((o) => { if (Math.random() < dt * 1.2) { o.rotation.y = o.userData.ry0 + rnd(-0.3, 0.3); o.rotation.z = o.userData.rz0 + rnd(-0.12, 0.12); } }); });
+      return; }
+    if (!deep || busy || calm || G.active) return; alive.roll += dt; if (alive.roll >= 1) { alive.roll = 0; if (Math.random() < (ALD.randomPerMinute ?? 0.05) / 60) startAlive("random"); }
+  }
+  function openSwitch() { host.openPanel("💡 " + (ALD.switchTitle || "A light switch that wasn't here before"), (pn) => {
+    pn.appendChild(el("p", null, ALD.prompt || "See what happens when the lights change?"));
+    const row = el("div", "o3-prompts"), yes = el("button", "o3-btn", ALD.yes || "Flip it"), no = el("button", "o3-btn ghost", ALD.no || "Leave it");
+    yes.dataset.alive = "yes"; no.dataset.alive = "no"; yes.onclick = () => { host.closePanel(); audio.sfx("click"); startAlive("switch"); }; no.onclick = () => { host.closePanel(); host.toast(fill(ALD.decline || "You leave it. The switch looks a little disappointed.")); };
+    row.append(yes, no); pn.appendChild(row); pn.appendChild(el("p", "o3-small", ALD.small || "Nothing bad happens. Things just get… livelier for a while."));
+  }); }
+  function makeSwitch(g, rm, ch) { const doorWall = rm.door.line === "x" ? (rm.door.at <= rm.x0 + 0.01 ? "w" : "e") : (rm.door.at <= rm.z0 + 0.01 ? "s" : "n");
+    const sp = wallSpot(rm, doorWall, rm.door.c + (rm.door.c - wallMid(rm, doorWall) > 0 ? -1.0 : 1.0), 1.25), s = new THREE.Group(); s.position.set(sp.x, sp.y, sp.z); s.rotation.y = sp.ry; g.add(s);
+    box(0, 0, 0, 0.14, 0.22, 0.02, mat("#efe6c8"), s); const k = box(0, 0.03, 0.02, 0.04, 0.07, 0.03, mat("#9cf7ff", { emissive: "#5fd8e8", emissiveIntensity: 0.8 }), s);
+    return { g: s, k, lx: ch.lx + sp.x, lz: ch.lz + sp.z, rm }; }
+
+  // ---------- Escher stairwells ----------
+  const stairKinds = Object.keys(STD.weights || { up: 3, down: 3, loop: 2, flip: 1 });
+  function pickStair(u) { const W = STD.weights || { up: 3, down: 3, loop: 2, flip: 1 }, tot = stairKinds.reduce((a, k) => a + W[k], 0); let x = u * tot; for (const k of stairKinds) { x -= W[k]; if (x < 0) return k; } return stairKinds[0]; }
+  let lastStair = null, flipT = 0, loops = 0;
+  function makeStairs(g, rm, ch, M) {
+    const doorWall = rm.door.line === "x" ? (rm.door.at <= rm.x0 + 0.01 ? "w" : "e") : (rm.door.at <= rm.z0 + 0.01 ? "s" : "n");
+    const far = { n: "s", s: "n", e: "w", w: "e" }[doorWall], dir = { n: [0, 1], s: [0, -1], e: [1, 0], w: [-1, 0] }[far];
+    const cx = (rm.x0 + rm.x1) / 2, cz = (rm.z0 + rm.z1) / 2, half = dir[0] ? (rm.x1 - rm.x0) / 2 : (rm.z1 - rm.z0) / 2, L = half - 0.15, n = 7, kind = rm.stair;
+    const sm = once("mat:stair", () => mat("#9a9078", { roughness: 0.9 })), dark = once("mat:stairdark", () => new THREE.MeshBasicMaterial({ color: "#0b0906" }));
+    const down = kind === "down" || kind === "flip", up = !down;
+    const stepAt = (k, y, hgt, parent = g) => { const a = (k + 0.5) * L / n, x = cx + dir[0] * a, z = cz + dir[1] * a; return box(x, y, z, dir[0] ? L / n : 1.2, hgt, dir[0] ? 1.2 : L / n, sm, parent); };
+    if (up) { for (let k = 0; k < n; k++) stepAt(k, (k + 1) * 0.36 / 2, (k + 1) * 0.36); // a flight up into a dark hole in the ceiling
+      box(cx + dir[0] * (L - 0.6), H - 0.004, cz + dir[1] * (L - 0.6), dir[0] ? 1.3 : 1.3, 0.01, dir[0] ? 1.3 : 1.3, dark, g); }
+    else { const hole = box(cx + dir[0] * L / 2, 0.012, cz + dir[1] * L / 2, dir[0] ? L : 1.25, 0.01, dir[0] ? 1.25 : L, dark, g); // a dark stairwell going down
+      for (let k = 0; k < 3; k++) { const a = (k + 0.5) * 0.45, s = box(cx + dir[0] * a, 0.016, cz + dir[1] * a, dir[0] ? 0.4 : 1.15, 0.01, dir[0] ? 1.15 : 0.4, sm, g); s.material = once("mat:stairfade" + k, () => mat("#9a9078", { transparent: true, opacity: 0.8 - k * 0.25 })); }
+      const rail = once("mat:rail", () => mat("#5a4e3a")); [-0.68, 0.68].forEach((o) => box(cx + dir[0] * L / 2 + dir[1] * o, 0.5, cz + dir[1] * L / 2 + dir[0] * o, dir[0] ? L : 0.04, 0.04, dir[0] ? 0.04 : L, rail, g)); }
+    if (kind === "flip") for (let k = 0; k < n; k++) { const s = stepAt(k, H - (k + 1) * 0.36 / 2, (k + 1) * 0.36); s.material = sm; } // the same stairs, hanging off the ceiling
+    if (kind === "loop") P.poster(g, { ...wallSpot(rm, far, wallMid(rm, far), 2.5), y: 2.6 });
+    const foot = { x: cx - dir[0] * 0.4, z: cz - dir[1] * 0.4 }, top = up ? { x: cx + dir[0] * L * 0.9, y: 2.6, z: cz + dir[1] * L * 0.9 } : { x: cx + dir[0] * L * 0.8, y: -1.2, z: cz + dir[1] * L * 0.8 };
+    return { rm, kind, up, lx: ch.lx + foot.x, lz: ch.lz + foot.z, yaw: Math.atan2(-dir[0], -dir[1]), top: new THREE.Vector3(AX + ch.lx + top.x, top.y, AZ + ch.lz + top.z), cell: ch.key, i: ch.i, j: ch.j }; }
+  function useStair(st) {
+    if (host.state().busy) return; audio.sfx("steps"); host.setZoom(false);
+    host.threadWarp({ target: st.top, swap: () => {
+      const from = curSection(), K = STD.kinds?.[st.kind] || {};
+      if (st.kind === "loop") { loops++; place({ x: st.lx, z: st.lz, yaw: st.yaw }, fill(pick(K.messages || ["You climb up. You are at the bottom of the same stairs."])) + (loops >= 3 ? " " + fill(STD.loopNote || "") : ""));
+        lastStair = { kind: "loop", from: { cell: st.cell, section: from.id }, to: { cell: st.cell, section: from.id }, loops }; return; }
+      const other = Math.random() < (STD.otherSectionChance ?? 0.4), S = other ? otherSection(from) : from; let sp = null;
+      for (let t = 0; t < 10 && !sp; t++) { const c = dropIn(S, false); if (!c.cell || ck(c.cell[0], c.cell[1]) !== st.cell) sp = c; } sp = sp || plazaSpawn(S);
+      const msg = fill(pick(K.messages || ["The stairs go somewhere else."])).replace("{section}", S.name);
+      if (st.kind === "flip") { flipT = STD.flipSeconds || 9; } place(sp, msg);
+      lastStair = { kind: st.kind, from: { cell: st.cell, section: from.id }, to: { cell: sp.cell ? ck(sp.cell[0], sp.cell[1]) : "plaza", section: S.id } }; } }); }
+
+  // ---------- silly TVs (procedural cartoons, ~8 fps, paused when off-screen) ----------
+  const TVW = 128, TVH = 96;
+  const CART = {
+    stamper(c, f) { c.fillStyle = "#c8b98a"; c.fillRect(0, 70, TVW, 26); const up = f % 4 < 2; c.fillStyle = "#3a3328"; c.beginPath(); c.arc(40, 34, 8, 0, 7); c.fill(); c.fillRect(33, 42, 14, 24);
+      c.save(); c.translate(46, 46); c.rotate(up ? -0.9 : 0.4); c.fillRect(0, -2, 20, 5); c.fillStyle = "#b03a2e"; c.fillRect(18, -5, 7, 11); c.restore();
+      const px = 64 + ((f % 8) < 2 ? (2 - (f % 8)) * 18 : 0); c.fillStyle = "#fffdf5"; c.fillRect(px, 62, 26, 8); if (f % 8 >= 2) { c.fillStyle = "#b03a2e"; c.fillRect(px + 9, 63, 8, 5); }
+      const pile = Math.floor(f / 8) % 10; c.fillStyle = "#fffdf5"; for (let i = 0; i < pile; i++) c.fillRect(96, 66 - i * 3, 26, 2); c.fillStyle = "#3a3328"; c.font = "8px monospace"; c.fillText("FORM " + (100 + Math.floor(f / 8)), 4, 92); },
+    sunclock(c, f) { c.fillStyle = "#7fb6d8"; c.fillRect(0, 14, TVW, 82); c.fillStyle = "#6f9a5a"; c.fillRect(0, 80, TVW, 16); const ph = f % 32, x = ph < 12 ? 10 + ph * 5 : ph < 20 ? 70 : 70 - (ph - 20) * 5;
+      c.fillStyle = "#ffd45a"; c.beginPath(); c.arc(x, 56, 12, 0, 7); c.fill(); c.strokeStyle = "#ffd45a"; c.lineWidth = 2; for (let a = 0; a < 8; a++) { c.beginPath(); c.moveTo(x + Math.cos(a + f * 0.3) * 15, 56 + Math.sin(a + f * 0.3) * 15); c.lineTo(x + Math.cos(a + f * 0.3) * 19, 56 + Math.sin(a + f * 0.3) * 19); c.stroke(); }
+      c.fillStyle = "#3a2a1a"; c.fillRect(x - 5, 52, 2, 2); c.fillRect(x + 3, 52, 2, 2); c.beginPath(); c.arc(x, 58, 5, 0.2, Math.PI - 0.2); c.stroke();
+      c.fillStyle = "#555"; c.fillRect(90, 38, 26, 34); c.fillStyle = "#e9f2d0"; c.fillRect(93, 41, 20, 12); c.fillStyle = "#222"; c.font = "8px monospace"; c.fillText("9:00", 94, 50); if (ph >= 12 && ph < 20) { c.fillStyle = "#fff"; c.fillRect(84, 58 + (ph % 2) * 3, 10, 6); } },
+    queue(c, f) { c.fillStyle = "#d8d0bc"; c.fillRect(0, 14, TVW, 82); c.fillStyle = "#8a6f4e"; c.fillRect(8, 50, 20, 26); c.fillStyle = "#222"; c.font = "7px monospace"; c.fillText(f % 16 < 8 ? "NEXT" : "CLOSED", 7, 46);
+      const sh = (f % 8) / 8; for (let i = 0; i < 6; i++) { const x = 36 + i * 14 - sh * 14; c.fillStyle = ["#b48cff", "#7cf7d4", "#ffd37a", "#ff8a7a", "#6fd0ff", "#c9a57a"][(i + Math.floor(f / 8)) % 6]; c.beginPath(); c.arc(x, 66 - (i === 0 ? Math.abs(Math.sin(f)) * 3 : 0), 6, 0, 7); c.fill(); c.fillRect(x - 5, 66, 10, 10); } },
+    survey(c, f) { c.fillStyle = "#20302a"; c.fillRect(0, 14, TVW, 82); c.fillStyle = "#cfe6b8"; c.font = "8px monospace"; c.fillText("HOW CALM ARE YOU?", 14, 30); const ph = f % 24;
+      for (let i = 1; i <= 5; i++) { const dodge = i < 5 && ph > i * 3 ? (ph - i * 3) * 4 : 0; c.fillStyle = i === 5 ? "#7cf7d4" : "#556"; c.fillRect(12 + (i - 1) * 22, 44 + dodge, 16, 14); c.fillStyle = "#111"; c.fillText(String(i), 17 + (i - 1) * 22, 54 + dodge); }
+      const cx = 20 + Math.min(ph, 18) * 5, cy = 70 - Math.min(ph, 18); c.fillStyle = "#fff"; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + 6, cy + 9); c.lineTo(cx + 2, cy + 8); c.fill(); if (ph > 19) { c.fillStyle = "#cfe6b8"; c.fillText("THANK YOU. AGAIN?", 14, 88); } },
+    coffee(c, f) { c.fillStyle = "#e9e1cc"; c.fillRect(0, 14, TVW, 82); const ph = f % 28, big = Math.floor(f / 28) % 4, w = 18 + big * 6, h = 20 + big * 6, x = 64 - w / 2, y = 84 - h;
+      c.fillStyle = "#666"; c.fillRect(54, 16, 20, 12); c.fillStyle = "#5a3a22"; if (ph < 22) c.fillRect(63, 28, 2, y - 28); const lvl = Math.min(h - 2, ph * h / 18); c.fillRect(x + 2, 84 - lvl, w - 4, lvl);
+      if (ph > 18 && ph < 24) { c.fillRect(x - 6, 84, w + 12, 3); } c.strokeStyle = "#333"; c.lineWidth = 2; c.strokeRect(x, y, w, h); c.fillStyle = "#b03a2e"; c.font = "7px monospace"; c.fillText("MORE", x + 2, y + h / 2 + 3); if (ph > 24) { c.fillStyle = "#f2c9a0"; c.fillRect(100 - (ph - 24) * 8, 70, 14, 6); } },
+  };
+  const tvList = () => [...chunks.values()].flatMap((ch) => ch.tvs);
+  function makeTV(g, rm, ch) {
+    const doorWall = rm.door.line === "x" ? (rm.door.at <= rm.x0 + 0.01 ? "w" : "e") : (rm.door.at <= rm.z0 + 0.01 ? "s" : "n"), wall = ["n", "e", "s", "w"].find((w) => w !== doorWall && w !== { n: "s", s: "n", e: "w", w: "e" }[doorWall]) || "n";
+    const sp = wallSpot(rm, wall, wallMid(rm, wall), 2.05), t = new THREE.Group(); t.position.set(sp.x, sp.y, sp.z); t.rotation.y = sp.ry; g.add(t);
+    box(0, 0, 0.06, 0.92, 0.66, 0.12, once("mat:tvcase", () => mat("#2b2b30", { roughness: 0.5 })), t); box(0, 0.42, 0.02, 0.06, 0.2, 0.04, once("mat:tvcase", () => mat("#2b2b30")), t);
+    const cv = document.createElement("canvas"); cv.width = TVW; cv.height = TVH; const c = cv.getContext("2d"); const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.generateMipmaps = false;
+    const sm = new THREE.MeshBasicMaterial({ map: tex }); const scr = new THREE.Mesh(planeGeo, sm); scr.scale.set(0.8, 0.56, 1); scr.position.z = 0.125; t.add(scr); ch.disp.push(tex, sm);
+    const names = (TVD.cartoons || Object.keys(CART)).filter((k) => CART[k]), u = hsh(ch.i, ch.j, rm.qi, "tvc", ch.pl.ep), name = names[Math.floor(u * names.length)] || "stamper";
+    const caps = TVD.captions || ["PLEASE BE SEATED"], cap = caps[Math.floor(hsh(ch.i, ch.j, rm.qi, "tvcap", ch.pl.ep) * caps.length)];
+    const wp = new THREE.Vector3(AX + ch.lx + sp.x, sp.y, AZ + ch.lz + sp.z); const tvo = { name, cap, c, tex, frames: 0, last: -1, f: Math.floor(u * 100), wp, visible: false, cell: ch.key, qi: rm.qi };
+    drawTV(tvo); return tvo; }
+  function drawTV(tv) { const c = tv.c; c.fillStyle = "#111"; c.fillRect(0, 0, TVW, TVH); try { CART[tv.name](c, tv.f); } catch {}
+    c.fillStyle = "#000"; c.fillRect(0, 0, TVW, 14); c.fillStyle = tv.f % 10 < 8 ? "#ff6b5a" : "#ffb0a5"; c.font = "bold 9px monospace"; c.textAlign = "center"; c.fillText(tv.cap, TVW / 2, 10); c.textAlign = "left";
+    c.fillStyle = "rgba(255,255,255,0.06)"; for (let y = 0; y < TVH; y += 3) c.fillRect(0, y, TVW, 1); tv.tex.needsUpdate = true; tv.frames++; }
+  const frustum = new THREE.Frustum(), pm = new THREE.Matrix4();
+  function tickTVs(cam, ts) { const list = tvList(); if (!list.length) return; cam.updateMatrixWorld(); pm.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse); frustum.setFromProjectionMatrix(pm);
+    const fps = TVD.fps || 8, range = TVD.range || 16;
+    list.forEach((tv) => { tv.visible = tv.wp.distanceTo(cam.position) < range && frustum.containsPoint(tv.wp); if (!tv.visible) return; if (ts - tv.last < 1 / fps) return; tv.last = ts; tv.f++; drawTV(tv); }); }
+
+  // ---------- the glimpse world (separate module; loaded in the background, built the first time you need it) ----------
+  const G = { active: null, spot: null, t: 0, tour: null, warnDone: false, lastSec: -1 };
+  let GW = null, gwMod = null, gwData = null, lens = null;
+  const gwReady = Promise.all([import("./glimpse.js"), fetch(GLD.data || "data/glimpse-world.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null))])
+    .then(([m, d]) => { gwMod = m; gwData = d; }).catch(() => { gwMod = null; });
+  function glimpseWorld() { if (!GW && gwMod && gwData) { GW = gwMod.createGlimpse(THREE, gwData, { origin: GLD.origin }); lens = gwMod.createLens(THREE); } return GW; }
+  function gmem() { const g = (prog.glimpse ||= {}); g.catches ||= 0; g.caughtBy ||= 0; g.seen ||= []; g.discovered ||= []; g.visits ||= 0; return g; }
+  const gbar = el("div", "o3-glimpsebar"); gbar.hidden = true; host.hud.appendChild(gbar);
+  function openGlimpseChoice() { const gm = gmem(), W = glimpseWorld();
+    host.openPanel("🦕 " + (GLD.chooseTitle || "Grenshol holds still. Where to?"), (pn) => {
+      pn.appendChild(el("p", null, fill(GLD.chooseText || "It remembers you. It can take you back somewhere you've already been, or somewhere new.")));
+      const row = el("div", "o3-prompts");
+      (W?.spots || []).filter((s) => gm.discovered.includes(s.id)).forEach((s) => { const b = el("button", "o3-btn ghost small", "📍 " + s.name); b.dataset.spot = s.id; b.onclick = () => { host.closePanel(); enterGlimpse("explore", s.id); }; row.appendChild(b); });
+      const nb = el("button", "o3-btn small", "✨ Somewhere new"); nb.dataset.spot = "new"; nb.onclick = () => { host.closePanel(); enterGlimpse("explore", null); }; row.appendChild(nb); pn.appendChild(row); }, { onClose: () => { if (cr.st === "held" && !G.active && !host.state().warp) crHide(); } }); }
+  function tourPlan(W) { const T = W.data.tour || {}, n = Math.round(rnd(...(T.views || [4, 6]))), views = [...W.views].sort(() => Math.random() - 0.5).slice(0, n);
+    let durs = views.map(() => rnd(T.min ?? 1.4, T.max ?? 5.5)); const sum = durs.reduce((a, b) => a + b, 0), k = (T.total || 20) / sum; durs = durs.map((d) => d * k);
+    let at = 0; return { segs: views.map((v, i) => { const s = { v, t0: at, d: durs[i] }; at += durs[i]; return s; }), total: at, t: 0, idx: -1 }; }
+  function enterGlimpse(kind, spotId) {
+    const W = glimpseWorld(); if (!W) { const S = otherSection(curSection()); cr.st = "away"; crHide(); return host.threadWarp({ swap: () => place(dropIn(S, false), "Grenshol tried to show you something, but the way was stuck. You land in " + S.name + ".") }); }
+    audio.sfx("whoosh"); host.setZoom(false); const gm = gmem();
+    let spot = W.spots.find((s) => s.id === spotId); if (!spot) { const fresh = W.spots.filter((s) => !gm.discovered.includes(s.id)); spot = pick(fresh.length ? fresh : W.spots); }
+    host.threadWarp({ swap: () => {
+      endAlive(true); crHide(); G.active = kind; G.spot = spot.id; G.t = 0; G.warnDone = false; G.lastSec = -1; gm.visits++;
+      walkable.push(...W.walk); audio.setMood("glimpse");
+      host.placeAnnex({ x: spot.wx, z: spot.wz, y: 0, yaw: spot.yaw || 0, pitch: 0 });
+      if (kind === "tour") { G.tour = tourPlan(W); host.setFreeze(true); banner(W.name, fill(GLD.tourText || "You see through Grenshol's eyes…")); }
+      else { G.tour = null; G.dur = W.data.explore?.seconds || 75; discover(spot); banner(W.name, fill(GLD.exploreText || "You caught Grenshol! It lets you look around its home for a bit.")); }
+      save(); host.updateActions(); } });
+  }
+  function discover(s) { const gm = gmem(); if (gm.discovered.includes(s.id)) return; gm.discovered.push(s.id); if (!gm.seen.includes(s.id)) gm.seen.push(s.id); save(); host.toast(`📍 ${s.name}. ${s.blurb || ""} (Grenshol will remember you liked it.)`); }
+  function cleanupGlimpse() { if (!G.active) return; G.active = null; G.tour = null; for (let n = walkable.length - 1; n >= 0; n--) if (walkable[n].chunk === "glimpse") walkable.splice(n, 1); host.setFreeze(false); gbar.hidden = true; }
+  let lastReturn = null;
+  function leaveGlimpse() { if (!G.active || host.state().warp) return; const S = pick(sections), was = G.active;
+    host.threadWarp({ swap: () => { cleanupGlimpse(); audio.setMood("annex"); const sp = dropIn(S, false); lastReturn = { from: was, to: S.id, at: Date.now() }; crHide(); place(sp, fill(GLD.returnText || "…and you're back in the Annex: {section}.").replace("{section}", S.name)); } }); }
+  function tickGlimpse(dt, ts) {
+    const W = GW; if (!W) return; W.update(dt, ts); if (host.state().warp) return; G.t += dt;
+    if (G.active === "tour") { const tp = G.tour; tp.t += dt; const i = tp.segs.findIndex((s) => tp.t >= s.t0 && tp.t < s.t0 + s.d);
+      if (i !== tp.idx && i >= 0) { tp.idx = i; const sp = tp.segs[i].v.spot; if (sp) { const gm = gmem(); if (!gm.seen.includes(sp)) { gm.seen.push(sp); save(); } } }
+      if (tp.t >= tp.total) leaveGlimpse(); return; }
+    if (G.active === "explore") { const p = host.state().pos, left = Math.max(0, Math.ceil(G.dur - G.t));
+      W.spots.forEach((s) => { if (Math.hypot(s.wx - p.x, s.wz - p.z) < (W.data.spotRadius || 9)) discover(s); });
+      if (left !== G.lastSec) { G.lastSec = left; gbar.hidden = false; gbar.textContent = `🦕 ${W.name} · ${left}s before Grenshol sends you back`; }
+      if (!G.warnDone && left <= (W.data.explore?.warn || 10)) { G.warnDone = true; host.toast(fill(GLD.thinText || "The glimpse is thinning…")); }
+      if (G.t >= G.dur) leaveGlimpse(); }
+  }
+  const tmpQ = new THREE.Vector3();
+  function render(renderer, cam, mainScene, dt, ts) {
+    if (G.active && GW && lens) {
+      const U = lens.uniforms; U.uTime.value = ts; const far = cam.far, fov = cam.fov; cam.far = 220;
+      if (G.active === "tour" && G.tour) { const tp = G.tour, s = tp.segs[Math.max(0, tp.idx)], v = s.v, k = Math.min(1, Math.max(0, (tp.t - s.t0) / s.d)), O = GW.origin;
+        cam.position.set(O.x + v.pos[0] + (v.drift?.[0] || 0) * k, v.pos[1] + (v.drift?.[1] || 0) * k, O.z + v.pos[2] + (v.drift?.[2] || 0) * k);
+        tmpQ.set(O.x + v.look[0] + Math.sin(ts * 0.7) * 0.6, v.look[1] + Math.sin(ts * 0.9) * 0.3, O.z + v.look[2]); cam.lookAt(tmpQ); cam.rotation.z += Math.sin(ts * 0.6) * 0.06; cam.fov = 82;
+        const into = tp.t - s.t0, out = s.t0 + s.d - tp.t; U.uBlink.value = into < 0.3 ? 0.02 + into / 0.3 : out < 0.22 ? 0.02 + out / 0.22 : 0;
+        U.uK.value = 0.55; U.uAb.value = 0.035; U.uWob.value = 0.02; U.uVig.value = 1.15; }
+      else { U.uBlink.value = 0; U.uK.value = 0.22; U.uAb.value = 0.012; U.uWob.value = 0.005; U.uVig.value = 0.95; }
+      cam.updateProjectionMatrix(); lens.render(renderer, GW.scene, cam, GLD.lensScale || 0.6); cam.far = far; cam.fov = fov; cam.updateProjectionMatrix(); return true; }
+    tickTVs(cam, ts);
+    if (flipT > 0) { const z = cam.rotation.z, k = Math.min(1, flipT / 1.5); cam.rotation.z = z + Math.PI * k; renderer.render(mainScene, cam); cam.rotation.z = z; return true; }
+    return false; }
 
   (data.entrances || []).forEach(placeEntrance);
 
@@ -759,12 +1076,15 @@ export function createAnnex(kit, data, host) {
       if (pl.center || (f.dead != null && !!pl.dead !== f.dead)) continue;
       if (f.grab) { const rm = pl.rooms.find((q) => q.grab && (f.grab === true || q.grab === f.grab)); if (rm) return { i, j, qi: rm.qi, grab: rm.grab }; continue; }
       if (f.npc) { const rm = pl.rooms.find((q) => q.npc); if (rm) return { i, j, qi: rm.qi, npc: rm.npc }; continue; }
+      if (f.stair) { const rm = pl.rooms.find((q) => q.stair && (f.stair === true || q.stair === f.stair)); if (rm) return { i, j, qi: rm.qi, stair: rm.stair }; continue; }
+      if (f.tv) { const rm = pl.rooms.find((q) => q.tv); if (rm) return { i, j, qi: rm.qi, type: rm.type }; continue; }
+      if (f.sw) { const rm = pl.rooms.find((q) => q.sw); if (rm) return { i, j, qi: rm.qi }; continue; }
       if (f.arms && DIRS.filter((d) => pl.arms[d]).length < f.arms) continue;
       if (f.armDir && !pl.arms[f.armDir]) continue;
       return { i, j }; }
     return null; }
   const planSummary = (pl) => ({ i: pl.i, j: pl.j, section: pl.S.id, dead: !!pl.dead, center: pl.center, arms: pl.arms, blk: pl.blk, ep: pl.ep,
-    rooms: pl.rooms.map((r) => ({ qi: r.qi, type: r.type, grab: r.grab, npc: r.npc, curio: r.curio, x0: r.x0, x1: r.x1, z0: r.z0, z1: r.z1, door: r.door })) });
+    rooms: pl.rooms.map((r) => ({ qi: r.qi, type: r.type, grab: r.grab, npc: r.npc, curio: r.curio, stair: r.stair, tv: r.tv, sw: r.sw, x0: r.x0, x1: r.x1, z0: r.z0, z1: r.z1, door: r.door })) });
   const debug = {
     state: () => { const h = inAnnexNow ? here() : null; return { prog: JSON.parse(JSON.stringify(prog)), audio: audio.state(), timeIn, epochs: { ...epochs },
       cell: h && { i: h.i, j: h.j, section: h.S.id, dead: !!h.dead },
@@ -773,7 +1093,12 @@ export function createAnnex(kit, data, host) {
       npcs: [...chunks.values()].flatMap((ch) => ch.npcs.map((n) => ({ id: n.d.id, quirk: n.d.quirk, cell: ch.key, zone: n.zone, ...W3(ch.lx + n.g.position.x, 0, ch.lz + n.g.position.z) }))),
       grabbers: [...chunks.values()].flatMap((ch) => ch.grabbers.map((g) => ({ type: g.type, state: g.state, cell: ch.key, zone: g.zone, ...W3(ch.lx + g.g.position.x, 0, ch.lz + g.g.position.z) }))),
       entrances: officeEntrances.map((e) => ({ id: e.e.id, x: e.wp.x, y: e.wp.y, z: e.wp.z, nx: e.nrm.x, nz: e.nrm.z, sx: e.stand.x, sz: e.stand.z })),
-      lastGrab, lastMisfire, lastShift, lastFizzle }; },
+      lastGrab, lastMisfire, lastShift, lastFizzle,
+      creature: { name: CRD?.name, st: cr.st, visible: cr.g.visible, count: cr.count, timer: +cr.timer.toFixed(2), ...W3(cr.x, 0, cr.z) }, lastCatch, lastCaught, lastPossess, lastStair, lastReturn, flipT: +flipT.toFixed(2), loops,
+      alive: { on: alive.on, t: +alive.t.toFixed(1), section: alive.section, by: alive.by, count: alive.count },
+      glimpse: { active: G.active, spot: G.spot, t: +G.t.toFixed(2), ready: !!(gwMod && gwData), built: !!GW, tour: G.tour && { idx: G.tour.idx, n: G.tour.segs.length, total: +G.tour.total.toFixed(2), durs: G.tour.segs.map((q) => +q.d.toFixed(2)) }, mem: JSON.parse(JSON.stringify(gmem())) },
+      flitters: flit.filter((f) => f.st !== "off").length, possessed: allNpcs().filter((n) => n.poss).length,
+      tvs: tvList().map((t) => ({ name: t.name, cap: t.cap, frames: t.frames, visible: t.visible, cell: t.cell, x: t.wp.x, y: t.wp.y, z: t.wp.z })) }; },
     plan: (i, j) => planSummary(planCell(i, j, epOf(i, j))),
     scan: (r = 3, ci = startSec.center[0], cj = startSec.center[1]) => { const out = { cells: 0, rooms: 0, grabbers: 0, npcs: [], sections: {} };
       for (let i = ci - r; i <= ci + r; i++) for (let j = cj - r; j <= cj + r; j++) { const pl = planCell(i, j, epOf(i, j)); out.cells++; out.sections[pl.S.id] = (out.sections[pl.S.id] || 0) + 1;
@@ -795,7 +1120,22 @@ export function createAnnex(kit, data, host) {
     gotoLocal: (x, z, yaw = 0, y = 0, pitch = 0) => place({ x, z, yaw, y, pitch }),
     home: useHome, shift: (id) => { const S = secById[id]; if (S) startShift(S); }, epoch: (id) => epochs[id],
     blockedLocal, misfireNext: (v = true) => { forceMisfire = v; }, lastMisfire: () => lastMisfire, lastGrab: () => lastGrab, cell: C,
-    reset: () => { prog = { waystones: {}, curiosities: [], flags: {} }; save(); chunks.forEach((ch) => { ch.stones.forEach(refreshStone); ch.curios.forEach((c) => (c.g.visible = true)); }); if (ovStone) refreshStone(ovStone); refreshSeals(); },
+    calm: (v = true) => { calm = !!v; if (calm) crHide(); }, creatureOK: (i, j) => creatureOK(i, j),
+    creatureScan: (r = 14) => { const out = { ok: 0, bySection: {}, minDepth: 99, start: 0 }; for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) if (creatureOK(i, j)) { const S = sectionOf(i, j).id; out.ok++; out.bySection[S] = (out.bySection[S] || 0) + 1; out.minDepth = Math.min(out.minDepth, +depthOf(i, j).toFixed(2)); if (S === startSec.id) out.start++; } return out; },
+    summon: (opt = {}) => { cr.timer = 0; const ok = crSpawn(lastP, opt); return ok && { st: cr.st, ...W3(cr.x, 0, cr.z) }; },
+    creaturePut: (x, z, st = "sneak") => { crShow(x - AX, z - AZ, lastP); cr.st = st; cr.t = st === "frozen" ? (CRD?.freezeSeconds ?? 2.6) : 3; return true; },
+    creatureTimer: (t) => { cr.timer = t; }, freezeLonger: (t) => { cr.t = t; },
+    possess: (secs) => { const n = allNpcs().sort((a, b) => { const A = npcWorld(a), B = npcWorld(b); return Math.hypot(A.x - lastP.x, A.z - lastP.z) - Math.hypot(B.x - lastP.x, B.z - lastP.z); })[0]; if (!n) return null; possess(n, secs); return { id: n.d.id, ...W3(npcWorld(n).x, 0, npcWorld(n).z) }; },
+    sendFlitter: () => sendFlitter(), npcInfo: () => allNpcs().map((n) => ({ id: n.d.id, poss: !!n.poss, homing: !!n.homing, eyes: !!n.peyes?.[0]?.visible, mat: n.body.children[2]?.material?.color?.getHexString(), ...W3(npcWorld(n).x, 0, npcWorld(n).z) })),
+    alive: (v = true, by = "test") => (v ? startAlive(by) : endAlive()), aliveTime: (t) => { alive.t = t; }, twitchSample: () => { const out = []; chunks.forEach((ch) => ch.twitch.slice(0, 40).forEach((o) => out.push(+(o.rotation.y - o.userData.ry0).toFixed(3) + +(o.rotation.z - o.userData.rz0).toFixed(3)))); return out; },
+    lightK: () => { let v = null; allLightMats((M) => { if (v == null) v = +(M.light.emissiveIntensity / M.lightBase).toFixed(3); }); return v; },
+    glimpse: (kind = "tour", spot = null) => enterGlimpse(kind, spot), glimpseEnd: () => leaveGlimpse(), glimpseTime: (t) => { if (G.active === "explore") G.dur = G.t + t; else if (G.tour) G.tour.t = G.tour.total - t; },
+    glimpseInfo: () => GW && { name: GW.name, spots: GW.spots.map((s) => ({ id: s.id, x: s.wx, z: s.wz })), stats: GW.stats(), dinos: GW.dinoInfo() }, glimpseLoaded: () => gwReady.then(() => !!(gwMod && gwData)),
+    stairAt: (i, j, qi) => { const ch = chunks.get(ck(i, j)); const st = ch?.stairs.find((q) => q.rm.qi === qi); return st && { ...W3(st.lx, 0, st.lz), yaw: st.yaw, kind: st.kind }; },
+    stairForce: (v) => { STD.otherSectionChance = v; },
+    tvAt: (i, j, qi) => { const tv = tvList().find((t) => t.cell === ck(i, j) && t.qi === qi); return tv && { x: tv.wp.x, y: tv.wp.y, z: tv.wp.z, frames: tv.frames, name: tv.name }; },
+    switchAt: (i, j, qi) => { const sw = chunks.get(ck(i, j))?.switches.find((q) => q.rm.qi === qi); return sw && { ...W3(sw.lx, 0, sw.lz) }; },
+    reset: () => { prog = { waystones: {}, curiosities: [], flags: {}, glimpse: {} }; save(); chunks.forEach((ch) => { ch.stones.forEach(refreshStone); ch.curios.forEach((c) => (c.g.visible = true)); }); if (ovStone) refreshStone(ovStone); refreshSeals(); },
   };
-  return { near, clickTargets, update, blockedAt: (x, z) => blockedLocal(x - AX, z - AZ), hudButtons, atmos, roomLabel, exitHome: () => exitHome(null, null), muteBtn, debug, audio };
+  return { near, clickTargets, update, render, blockedAt: (x, z) => (G.active && GW ? GW.blockedLocal(x - GW.origin.x, z - GW.origin.z) : blockedLocal(x - AX, z - AZ)), hudButtons, atmos, roomLabel, exitHome: () => exitHome(null, null), muteBtn, debug, audio };
 }

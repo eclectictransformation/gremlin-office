@@ -621,7 +621,7 @@ export function startOffice(root, opts) {
   const clampPitch = (v) => Math.max(-PITCH_MAX, Math.min(PITCH_MAX, v));
   // vertical physics: feet height, gravity, jumping, landing (office floor = 0; Cat House uses solids)
   const STEP = 0.4, BODY = 1.75, GRAV = 18, JUMP_V = 6.6;
-  let mode = "office", feet = 0, vy = 0, onGround = true, wasTop = false, returnSpot = null, warp = null;
+  let mode = "office", feet = 0, vy = 0, onGround = true, wasTop = false, returnSpot = null, warp = null, frozen = false; // frozen: the Annex holds the camera (Grenshol's glimpse tour)
   let climb = null, fallApex = 0, bounces = 0, floorLandings = 0, best = null, lastLanding = null;
   // office: lower "ceiling" under the fan and the upside-down desk so a jump never puts your head in them
   const lowCeil = [{ x: 0.2, z: 3.05, r: 0.85, h: H - 0.32 }, { x: -1.15, z: 2.3, r: 0.8, h: H - 0.55 }];
@@ -741,6 +741,7 @@ export function startOffice(root, opts) {
         leaveAnnexMode: () => { mode = "office"; zoomed = false; cam.far = 50; cam.updateProjectionMatrix(); applyAtmos(OFFICE_ATMOS);
           const r = returnSpot || { x: 2.85, z: gz1 + 1.8, yaw: 0, pitch: 0 }; pos.x = r.x; pos.z = r.z; yaw = r.yaw; pitch = r.pitch; feet = 0; vy = 0; onGround = true; updateActions(true); },
         setZoom: (v) => { zoomed = !!v; }, zoomed: () => zoomed,
+        setFreeze: (v) => { frozen = !!v; Object.keys(keys).forEach((k) => (keys[k] = false)); }, warping: () => !!warp,
       });
       tr.prepend(annex.muteBtn);
     } catch (err) { console.warn("Elsewhere Annex failed to load", err); annex = null; }
@@ -754,7 +755,7 @@ export function startOffice(root, opts) {
     if (!alive) return; raf = requestAnimationFrame(tick);
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     let f = 0, s = 0;
-    if (!warp) {
+    if (!warp && !frozen) {
       if (keys.w || keys.arrowup) f += 1; if (keys.s || keys.arrowdown) f -= 1; if (keys.a) s -= 1; if (keys.d) s += 1;
       if (keys.arrowleft || keys.q) yaw += 1.8 * dt; if (keys.arrowright) yaw -= 1.8 * dt;
       if (keys.r || keys.pageup) pitch = clampPitch(pitch + 1.5 * dt); if (keys.f || keys.pagedown) pitch = clampPitch(pitch - 1.5 * dt);
@@ -821,7 +822,7 @@ export function startOffice(root, opts) {
     }
     if (annex) annex.update(dt, ts, { mode, pos, feet, zone: curZone, busy: !!warp || !panel.hidden });
     if (now - (tick.n || 0) > 200) { tick.n = now; updateNear(); }
-    renderer.render(scene, cam);
+    if (!(annex && annex.render && mode === "annex" && annex.render(renderer, cam, scene, dt, ts))) renderer.render(scene, cam); // the Annex may draw through its lens / flip the camera
   }
   updateActions(true); raf = requestAnimationFrame(tick);
   let seen = false; try { seen = !!localStorage.getItem(HELP_KEY); } catch {}

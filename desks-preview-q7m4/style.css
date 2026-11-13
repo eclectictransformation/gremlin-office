@@ -124,3 +124,5 @@ a.tlist{display:block;color:inherit;text-decoration:none}a.tlist.closed{opacity:
 .o3-riddleout{min-height:1.4em;font-weight:600}.o3-riddleout.no{color:#8a2a12}.o3-riddleout.ok{color:var(--forest)}
 .o3-prompts{display:flex;flex-wrap:wrap;gap:.2rem}.o3-prompts .o3-btn.small{margin:.2rem .2rem 0 0;font-size:.9rem;padding:.3rem .6rem}
 .o3-chatlog{max-height:34vh;overflow:auto;margin-top:.5rem}.o3-reply{border-left-color:#b8483a;font-style:italic}
+/* Elsewhere Annex v3: glimpse-world countdown */
+.o3-glimpsebar{position:absolute;left:50%;bottom:5.2rem;transform:translateX(-50%);background:rgba(14,42,44,.88);color:#cffff2;border:2px solid #7cf7d4;border-radius:999px;padding:.35rem .9rem;font-size:.9rem;pointer-events:none;z-index:6;white-space:nowrap}

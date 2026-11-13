@@ -1,0 +1,42 @@
+{
+ "_about": "The Glimpse World (ET · Gremlin Desks). Grenshol's home on the other side of the portal the Gremlins found. Own module (glimpse.js) + this file, so it can grow into Bryan's bigger world later. Coordinates are metres, local to the world's center. Everything here is low-poly and procedural (no image assets).",
+ "version": 1,
+ "id": "glimpse-underwood",
+ "name": "The Underwood",
+ "_name": "Working name. Change freely; it only shows in the HUD and toasts.",
+ "tagline": "A rainforest under everything. Grenshol's home.",
+ "seed": 7741,
+ "size": 120,
+ "walkHalf": 54,
+ "palette": { "bg": "#0e2a2c", "fog": "#123638", "fogDensity": 0.022, "ground": "#1f4a33", "ground2": "#2c5e3a", "hemiSky": "#7fe0d0", "hemiGround": "#2a1840", "hemi": 1.35, "ambient": 0.35, "shaft": "#cfffe8" },
+ "cavern": { "radius": 78, "height": 46, "stalactites": 70, "glowworms": 900, "glowwormColor": "#9ffcff", "shafts": [[-18, -10], [22, 14], [4, 30]] },
+ "plants": { "trees": 46, "glowcaps": 70, "ferns": 140, "flowers": 40, "vines": 30, "clearRadius": 6, "glowColors": ["#7cf7d4", "#b78cff", "#ffd37a", "#6fd0ff"] },
+ "water": { "lake": { "x": 16, "z": -18, "r": 13 }, "falls": { "x": 27, "z": -31, "w": 5, "h": 26 } },
+ "mist": { "count": 22, "height": [0.4, 2.2], "color": "#bff5ea", "opacity": 0.12 },
+ "dinos": [
+  { "id": "longneck", "name": "a long-neck", "kind": "longneck", "count": 2, "speed": 0.9, "scale": 1.0, "color": "#6f8f6a", "belly": "#a7b98d", "path": [[-30, 10], [-10, 30], [20, 26], [34, 4], [8, -2], [-22, -6]] },
+  { "id": "runner", "name": "little runners", "kind": "runner", "count": 4, "speed": 4.2, "scale": 1.0, "color": "#c98a4b", "belly": "#f0d29a", "path": [[-8, -30], [10, -38], [30, -10], [12, 8], [-14, -4], [-30, -22]] },
+  { "id": "grazer", "name": "a big grazer", "kind": "grazer", "count": 2, "speed": 0.7, "scale": 1.0, "color": "#8a6f5a", "belly": "#c3a98c", "frill": "#c96a4a", "path": [[-36, 30], [-42, 0], [-30, -34], [-10, -44], [-20, 0]] }
+ ],
+ "spots": [
+  { "id": "fern-cathedral", "name": "Fern Cathedral", "x": -24, "z": 18, "yaw": 0.6, "blurb": "Ferns taller than doors, arched like a ceiling." },
+  { "id": "still-lake", "name": "The Still Lake", "x": 3, "z": -12, "yaw": -2.1, "blurb": "Water so flat the glowworms think it's more sky." },
+  { "id": "longneck-crossing", "name": "Long-neck Crossing", "x": 6, "z": 22, "yaw": 2.6, "blurb": "Something very tall walks through here every few minutes." },
+  { "id": "runner-flats", "name": "Runner Flats", "x": 16, "z": -2, "yaw": 3.6, "blurb": "Little feet, very fast, very nosy." },
+  { "id": "glowcap-grove", "name": "Glowcap Grove", "x": -36, "z": -16, "yaw": 0.9, "blurb": "Mushrooms that light up when you whisper." },
+  { "id": "falling-water", "name": "Falling Water", "x": 18, "z": -36, "yaw": -0.4, "blurb": "A waterfall that comes out of the ceiling, from nowhere." }
+ ],
+ "spotRadius": 9,
+ "views": [
+  { "id": "v-lake-low", "spot": "still-lake", "pos": [2, 0.6, -6], "look": [18, 1, -20], "drift": [1.2, 0.2, -1] },
+  { "id": "v-longneck-under", "spot": "longneck-crossing", "pos": [4, 1.2, 18], "look": [10, 9, 26], "drift": [-1, 0.6, 0.5] },
+  { "id": "v-canopy", "spot": "fern-cathedral", "pos": [-20, 14, 6], "look": [-26, 2, 22], "drift": [0, -1.5, 2] },
+  { "id": "v-runners", "spot": "runner-flats", "pos": [20, 0.7, 2], "look": [10, 0.6, -6], "drift": [-2, 0, -1] },
+  { "id": "v-grove", "spot": "glowcap-grove", "pos": [-30, 1.4, -10], "look": [-40, 0.5, -22], "drift": [-1, 0.4, -1.5] },
+  { "id": "v-falls", "spot": "falling-water", "pos": [12, 3, -24], "look": [27, 14, -31], "drift": [1, 1, -1] },
+  { "id": "v-high", "spot": null, "pos": [0, 30, 40], "look": [0, 0, -10], "drift": [6, -2, -4] },
+  { "id": "v-grazers", "spot": null, "pos": [-28, 2.5, 8], "look": [-40, 1.5, -10], "drift": [1.5, 0, -2] }
+ ],
+ "tour": { "total": 20, "min": 1.4, "max": 5.5, "views": [4, 6] },
+ "explore": { "seconds": 75, "warn": 10 }
+}

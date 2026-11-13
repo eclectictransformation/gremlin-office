@@ -1,8 +1,80 @@
 {
  "_about": "Elsewhere Annex v2 (ET · Gremlin Desks only). The world is procedural: a seeded grid of cells. Each section has a crystal plaza at its 'center' cell; every other cell belongs to the nearest section and gets hallways (always safe) plus rooms off them (where grabbers and the rare almost-people live). To add a section: copy a row in 'sections', give it a new id, center [cellX, cellZ] a few cells from the others, palette, crystal and room mix. Cells are grid.cell metres square.",
- "version": 2,
+ "version": 3,
  "name": "The Elsewhere Annex",
  "tagline": "The Gremlins found it. They're still mapping it.",
+ "lore": {
+  "grenshol": "Deep in the Annex the Gremlins found a portal. They poked it, prodded it, licked it (of course) and generally tried to figure out what it was. Something tall and curious came out. Its name is Grenshol. It isn't mad about it. It just wants to know what everything is, especially you.",
+  "firstSighting": "A gremlin note, taped to nothing: \"we opened a portal to see what it was. something tall came out. it's called Grenshol. it seems nice?? if it catches you it shows you where it came from. if YOU catch IT, it lets you look around.\"",
+  "clues": {
+   "enabled": false,
+   "_future": "Lore-clue system (NOT built yet). Collectible clue notes about Grenshol, the portal and the Gremlins' mistake. Planned row shape: {id, title, text, section, cell:[di,dj], quad, requires:{clues:n}?}. Planned behaviour: spawn like curiosities, show under a 'Clues' tab in Pockets, save to progress.clues (same localStorage key, later the Desks database).",
+   "notes": [
+    {
+     "id": "clue-portal-1",
+     "title": "Survey page, torn",
+     "text": "Day 3. Found a round thing in the wall. It hums in B flat. Pip says it's a portal. Grimble says it's a very confident puddle.",
+     "section": "night",
+     "cell": [
+      2,
+      1
+     ],
+     "quad": 1,
+     "_example": true
+    }
+   ]
+  }
+ },
+ "characters": {
+  "enabled": false,
+  "_future": "Character/stats system (NOT built yet). Players would get a few stats (rolled or chosen) and some doors would ask for a dice roll against one. Planned: progress.character = {stats:{nerve,luck,curiosity,knack}}, diceDoors rows {id, section, cell:[di,dj], quad, stat, dc, dice, success:{to, text}, fail:{to, text}}. A failed roll never hurts; it just sends you somewhere sillier.",
+  "dice": "d20",
+  "stats": [
+   {
+    "id": "nerve",
+    "name": "Nerve",
+    "about": "walking toward the tall thing anyway"
+   },
+   {
+    "id": "luck",
+    "name": "Luck",
+    "about": "waystones misfire in your favour"
+   },
+   {
+    "id": "curiosity",
+    "name": "Curiosity",
+    "about": "finding things nobody put there"
+   },
+   {
+    "id": "knack",
+    "name": "Knack",
+    "about": "doors, switches, vending machines"
+   }
+  ],
+  "diceDoors": [
+   {
+    "id": "dice-door-example",
+    "section": "waiting",
+    "cell": [
+     2,
+     -1
+    ],
+    "quad": 0,
+    "stat": "luck",
+    "dc": 12,
+    "dice": "d20",
+    "success": {
+     "to": "section:shallows",
+     "text": "The door clicks open onto somewhere damp and pleasant."
+    },
+    "fail": {
+     "to": "section:print",
+     "text": "The door opens onto… the start. The Gremlins applaud politely."
+    },
+    "_example": true
+   }
+  ]
+ },
  "origin": {
   "x": -200,
   "z": 0
@@ -189,7 +261,8 @@
      "sign": "CRYSTALS DON'T WORK HERE",
      "signSub": "we tried. we licked it. — the Gremlins"
     }
-   ]
+   ],
+   "stairChance": 0.03
   },
   {
    "id": "turn",
@@ -242,7 +315,8 @@
     "warning": "The hum changes pitch… a hallway is rearranging itself.",
     "done": "Something shifted. The Annex That Turns isn't quite the same shape now."
    },
-   "deadZones": []
+   "deadZones": [],
+   "stairChance": 0.08
   },
   {
    "id": "stock",
@@ -296,7 +370,8 @@
     "warning": "Cardboard creaks… the aisles are rearranging.",
     "done": "Something shifted. The stockroom moved its aisles again."
    },
-   "deadZones": []
+   "deadZones": [],
+   "stairChance": 0.05
   },
   {
    "id": "waiting",
@@ -352,7 +427,8 @@
     "warning": "A ticket machine dings… the floor is rearranging.",
     "done": "Something shifted. Your number has been called somewhere else."
    },
-   "deadZones": []
+   "deadZones": [],
+   "stairChance": 0.06
   },
   {
    "id": "shallows",
@@ -405,7 +481,8 @@
     "warning": "Water drips upward for a second… the tiles are rearranging.",
     "done": "Something shifted. The pools are somewhere else now."
    },
-   "deadZones": []
+   "deadZones": [],
+   "stairChance": 0.05
   },
   {
    "id": "night",
@@ -474,7 +551,8 @@
      "sign": "NO CRYSTALS PAST THIS POINT",
      "signSub": "the microwave ate the signal — mgmt (gremlins)"
     }
-   ]
+   ],
+   "stairChance": 0.07
   }
  ],
  "roomTypes": {
@@ -879,9 +957,212 @@
    "The Waiting Floor ✓ (still waiting)",
    "The Tiled Shallows ✓ (bring socks)",
    "The Night Shift ✓ (lights off)",
+   "Grenshol: ??? (our fault, sorry)",
    "Everything else: still mapping…"
   ],
   "master": true,
   "_master": "The Overlook crystal is the Gremlins' master stone: from it you can hop to ANY section's plaza, even ones you haven't attuned."
+ },
+ "_about_v3": "v3 adds: lore (Grenshol + hooks for future clue notes), characters (hook for a future stats/dice-door system; not built), creature (Grenshol), minions (flitters), aliveMode (lights-change), stairwells (per-section stairChance), tvs, glimpse (the world behind the portal: glimpse.js + data/glimpse-world.json). Change names/lines freely; everything is read from here.",
+ "creature": {
+  "id": "grenshol",
+  "name": "Grenshol",
+  "_name": "Bryan named it. Change here and it changes everywhere.",
+  "about": "A large, curious being from the other side of the portal. Never evil, never hurts anyone, never kills. It plays: peeks round corners, stands at the far end of hallways, sneaks up when you're not looking, and freezes like a cat on the counter when you look right at it.",
+  "excludeSections": [
+   "print"
+  ],
+  "minDepth": 3,
+  "_where": "Only in deeper sections: never in excludeSections (the start), and never closer than minDepth cells to the entrance.",
+  "appearEvery": [
+   25,
+   45
+  ],
+  "aliveAppearEvery": [
+   6,
+   14
+  ],
+  "peekSeconds": [
+   5,
+   9
+  ],
+  "sneakSpeed": 1.5,
+  "huntSpeed": 2.6,
+  "lookDot": 0.93,
+  "freezeSeconds": 2.6,
+  "tagRadius": 2.0,
+  "catchRadius": 0.9,
+  "dimRadius": 10,
+  "height": 3.3,
+  "color": "#130e1b",
+  "eyes": "#ffe9a8",
+  "lines": {
+   "appear": [
+    "Far down the hall, something very tall is standing very still.",
+    "The lights at the end of the hallway dim. Something is having a look at you.",
+    "A long, curious hum, somewhere close. Grenshol is around."
+   ],
+   "freeze": [
+    "Grenshol freezes, like a cat caught on the counter. Quick! Tag it!",
+    "It goes completely still. It thinks you can't see it if it doesn't move.",
+    "It stops mid-step and pretends to be a coat rack."
+   ],
+   "flee": [
+    "…and it folds itself into a doorway that wasn't there. Gone. For now.",
+    "It giggles like a kettle and slides away round the corner.",
+    "It ducks away. You hear it bump into something, very politely."
+   ],
+   "blink": [
+    "It's behind you now. It wants to play.",
+    "A cool little breeze on your neck. Grenshol moved."
+   ]
+  },
+  "caught": "Grenshol got you! Long cool fingers, a curious hum, and the Annex folds away like a paper fan…",
+  "tagged": "You tagged Grenshol! It goes very still, then laughs like a kettle and opens the way to its home for you."
+ },
+ "minions": {
+  "name": "flitters",
+  "single": "a flitter",
+  "about": "Grenshol's little moth-ish helpers. Mostly they flutter about. Sometimes one lands on an almost-person and drives it for a bit.",
+  "count": 2,
+  "aliveCount": 7,
+  "possessEvery": [
+   25,
+   50
+  ],
+  "possessSeconds": [
+   12,
+   22
+  ],
+  "possessRange": 22,
+  "color": "#d9cbe8",
+  "eye": "#9cf7ff",
+  "tint": "#7d6aa8",
+  "possessed": [
+   "A flitter lands on an almost-person's head. Its eyes go a very bright blue.",
+   "Something small and fluttery climbs into an almost-person's ear. It straightens up and turns towards you."
+  ],
+  "lines": [
+   "We are curious about your hands.",
+   "Hello, {nameOff}. Grenshol says hello. Grenshol says hello again.",
+   "What is a Tuesday. Show us a Tuesday.",
+   "Do you have a portal? We came out of one. It was very rude.",
+   "We like your walking. Do more walking.",
+   "Tag! No. Not tag. Hello."
+  ],
+  "release": [
+   "It blinks. \"Sorry. What was I saying? Was I saying?\"",
+   "Its eyes go back to normal. A flitter bumbles off towards the ceiling.",
+   "It shakes its head like a wet dog and wanders back to its room."
+  ],
+  "talkIntro": "Its eyes are glowing blue. Something small and fluttery is doing the talking."
+ },
+ "aliveMode": {
+  "prompt": "See what happens when the lights change?",
+  "switchTitle": "A light switch that wasn't here before",
+  "switchLabel": "A light switch that wasn't here before",
+  "yes": "Flip it",
+  "no": "Leave it",
+  "small": "Nothing bad happens. Things just get… livelier for a while.",
+  "switchChance": 0.06,
+  "randomPerMinute": 0.05,
+  "seconds": 75,
+  "palette": {
+   "bg": "#162636",
+   "fog": [
+    2,
+    15
+   ],
+   "hemi": 0.7
+  },
+  "light": "#9cf7ff",
+  "on": "Click. The lights go a strange blue. The chairs shuffle. Somewhere, something tall perks up.",
+  "off": "The lights settle back to yellow. Everything pretends nothing happened.",
+  "decline": "You leave it. The switch looks a little disappointed."
+ },
+ "stairwells": {
+  "_about": "Rooms in a section roll stairChance (per section row) for a stairwell. Kinds: up/down land you in another cell (or, otherSectionChance of the time, another section); loop puts you back at the bottom of the same stairs; flip lands you on an upside-down landing for a few seconds.",
+  "weights": {
+   "up": 3,
+   "down": 3,
+   "loop": 2,
+   "flip": 1
+  },
+  "otherSectionChance": 0.4,
+  "flipSeconds": 9,
+  "kinds": {
+   "up": {
+    "messages": [
+     "You climb fourteen steps up and come out… on the same floor? Somewhere else, anyway: {section}.",
+     "Up, up, up. The stairs let out somewhere in {section}. Your ears pop politely."
+    ]
+   },
+   "down": {
+    "messages": [
+     "Down the dark stairs, round a corner that shouldn't fit, and out into {section}.",
+     "You go down. And down. And come out on a floor that is definitely higher than where you started. {section}."
+    ]
+   },
+   "loop": {
+    "messages": [
+     "You climb up. You arrive at the bottom of the same stairs.",
+     "Up the stairs… and you're standing at the foot of them again. The poster looks smug.",
+     "You go up. The stairs go round. You are, once again, at the start of the stairs."
+    ]
+   },
+   "flip": {
+    "messages": [
+     "You come out on a landing that's upside down. The ceiling is the floor now. ({section}) Give it a moment.",
+     "Down the stairs and… everything's upside down. Your coffee isn't. ({section})"
+    ]
+   }
+  },
+  "loopNote": "A gremlin note on the banister: \"we went round 41 times. it's very good exercise.\""
+ },
+ "tvs": {
+  "_about": "Rooms of these types roll chance for a little TV. Each plays one procedural cartoon (picked by the room's hash) at fps frames per second, and only while it's on screen and within range metres.",
+  "roomTypes": [
+   "chairs",
+   "vending",
+   "table"
+  ],
+  "chance": 0.55,
+  "fps": 8,
+  "range": 16,
+  "captions": [
+   "PLEASE BE SEATED",
+   "YOUR TURN IS ALMOST",
+   "REMAIN DELIGHTED",
+   "NOW SERVING: SOON",
+   "SMILE IS MANDATORY*"
+  ],
+  "cartoons": [
+   "stamper",
+   "sunclock",
+   "queue",
+   "survey",
+   "coffee"
+  ],
+  "_cartoons": {
+   "stamper": "a little figure stamping forms forever",
+   "sunclock": "a smiling sun clocking in at 9:00, again",
+   "queue": "a queue where the front person goes to the back",
+   "survey": "a calm survey where only '5' stays still",
+   "coffee": "a mug labelled MORE that keeps getting bigger"
+  }
+ },
+ "glimpse": {
+  "data": "data/glimpse-world.json",
+  "origin": {
+   "x": 5000,
+   "z": 5000
+  },
+  "lensScale": 0.6,
+  "tourText": "You're seeing through Grenshol's eyes. It's showing you where it came from.",
+  "exploreText": "You caught Grenshol! It lets you wander its home for a little while.",
+  "chooseTitle": "Grenshol holds still. Where to?",
+  "chooseText": "It remembers you. It can take you back somewhere you've been, or somewhere new.",
+  "thinText": "The glimpse is thinning… Grenshol is about to send you back.",
+  "returnText": "…and Grenshol sets you down, very gently, in the Annex: {section}."
  }
 }
