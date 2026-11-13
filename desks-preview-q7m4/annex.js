@@ -5,7 +5,9 @@
 // Sections slowly rearrange (rooms re-roll, hallway walls slide) around their crystal. Progress is per player in localStorage.
 // v3: Grenshol (a big, curious creature the Gremlins let out of a portal), its flitters, lights-change mode, Escher stairwells,
 // silly TVs, and the glimpse world (glimpse.js + data/glimpse-world.json).
+// v4: Annex characters, d20 combat, gear, quests, dice doors and party-portal instances live in rpg.js (+ data/annex-rpg.json).
 import { createAnnexAudio } from "./annex-audio.js";
+import { createRPG } from "./rpg.js";
 
 export function createAnnex(kit, data, host) {
   const { THREE, scene, mat, box, plane, canvasTex, plate, wrap, PAL, H, T, R, ROOM, walkable, planeGeo } = kit;
@@ -21,8 +23,10 @@ export function createAnnex(kit, data, host) {
   const W3 = (x, y, z) => ({ x: AX + x, y, z: AZ + z }); // root-local -> world
 
   // ---------- player names (the almost-people get yours slightly wrong) ----------
-  const first = String(host.me?.display_name || "you").trim().split(/\s+/)[0] || "you";
-  const nameOff = (() => { const s = first; if (s.length < 3) return s + s.slice(-1); const a = s.split(""); const i = a.length - 2; [a[i], a[i + 1]] = [a[i + 1], a[i]]; return a.join(""); })();
+  const deskFirst = String(host.me?.display_name || "you").trim().split(/\s+/)[0] || "you";
+  const offOf = (s) => { if (s.length < 3) return s + s.slice(-1); const a = s.split(""); const i = a.length - 2; [a[i], a[i + 1]] = [a[i + 1], a[i]]; return a.join(""); };
+  let first = deskFirst, nameOff = offOf(first);
+  const setPlayerName = (n) => { first = n ? (String(n).trim().split(/\s+/)[0] || deskFirst) : deskFirst; nameOff = offOf(first); }; // v4: while you're your Annex character, the almost-people (mis)use that name
   const fill = (t) => String(t).replaceAll("{name}", first).replaceAll("{nameOff}", nameOff);
 
   // ---------- progress (localStorage, same JSON shape as a future seam_progress row) ----------
@@ -340,7 +344,7 @@ export function createAnnex(kit, data, host) {
   const ovStone = ovStoneDef ? Object.assign(makeStone(ovStoneDef, root, ovStoneDef.x, ovStoneDef.y || 0, ovStoneDef.z, true), { lx: ovStoneDef.x, lz: ovStoneDef.z }) : null;
 
   // ---------- chunk streaming ----------
-  const chunks = new Map(); let blockers = [];
+  const chunks = new Map(); let blockers = []; let rpg = null;
   const stats = { built: 0, roomsBuilt: 0, cellsSeen: new Set(), roomsSeen: new Set() };
   let lastP = { x: 0, z: 0 }, inAnnexNow = false;
   const cellOf = (x, z) => [Math.floor(x / C), Math.floor(z / C)];
@@ -424,6 +428,7 @@ export function createAnnex(kit, data, host) {
     if (pl.dead) { const dz = pl.dead.z, tex = once("tex:dead:" + dz.id, () => plate(dz.sign || "NO SIGNAL", dz.signSub || "", { w: 900, h: 320, bg: "#3a2f4a", fg: "#f3d98b", accent: "#b48cff" }));
       P.sign(g, { x: C2 - HW + T + 0.012, y: 1.8, z: C2 + HW + 2.2, ry: Math.PI / 2 }, tex, 1.6, 0.56); P.sign(g, { x: C2 + HW - T - 0.012, y: 1.8, z: C2 - HW - 2.2, ry: -Math.PI / 2 }, tex, 1.6, 0.56);
       lightPanel(g, C2, C2, M, true); }
+    if (rpg) rpg.onCell(ch); // v4: critters, dice doors, boxes, party portals (rooms only; hallways stay safe)
     stats.built++; stats.cellsSeen.add(pl.key);
     return ch;
   }
@@ -462,7 +467,8 @@ export function createAnnex(kit, data, host) {
 
   // ---------- travel: crystals, misfires, the home crystal, grabs -> a new section ----------
   function useStone(s) {
-    if (!attuned(s.w.id)) { prog.waystones[s.w.id] = new Date().toISOString(); save(); chunks.forEach((ch) => ch.stones.forEach(refreshStone)); if (ovStone) refreshStone(ovStone); audio.sfx("chime");
+    rpg?.event("crystal", s.w.id);
+    if (!attuned(s.w.id)) { rpg?.event("attune", s.w.id); prog.waystones[s.w.id] = new Date().toISOString(); save(); chunks.forEach((ch) => ch.stones.forEach(refreshStone)); if (ovStone) refreshStone(ovStone); audio.sfx("chime");
       host.toast(`💎 Attuned: ${s.w.name}. You can always travel back here.`); host.updateActions(); return; }
     openTravel(s.w.id);
   }
@@ -490,11 +496,11 @@ export function createAnnex(kit, data, host) {
     const chance = d.misfireChance ?? data.misfire?.chance ?? 0, fm = forceMisfire; forceMisfire = null;
     if (fm !== false && (fm || Math.random() < chance)) { const S = otherSection(d.sec || null); lastMisfire = S.id;
       return host.threadWarp({ swap: () => place(dropIn(S, false), "💥 " + pick(data.misfire?.messages || ["Misfire!"]) + ` (${S.name})`) }); }
-    host.threadWarp({ swap: () => place(d.spawnFn(), `You arrive at ${d.name}.`) }); }
+    host.threadWarp({ swap: () => { place(d.spawnFn(), `You arrive at ${d.name}.`); rpg?.event("crystal", d.id); } }); }
   function useHome() {
     if (host.state().busy) return; if (here().dead) return fizzle();
     audio.sfx("zip"); host.setZoom(false); prog.flags.homeUses = (prog.flags.homeUses || 0) + 1; save(); lostT = 0;
-    host.threadWarp({ swap: () => place(arrivalSpawn(), data.homeCrystal?.used || "Back to the start.") });
+    host.threadWarp({ swap: () => { place(arrivalSpawn(), data.homeCrystal?.used || "Back to the start."); rpg?.event("crystal", "home"); } });
   }
   function grab(gr) {
     gr.state = "cool"; gr.cool = 14; gr.told = false; audio.sfx("flump");
@@ -515,7 +521,7 @@ export function createAnnex(kit, data, host) {
     g.visible = !prog.curiosities.includes(c.id);
     return { c, ty, g, item, spark, t: rnd(0, 6), lx: ch.lx + x, lz: ch.lz + z }; }
   function pickUp(cu) {
-    if (prog.curiosities.includes(cu.c.id)) return; prog.curiosities.push(cu.c.id); save(); cu.g.visible = false; audio.sfx("pick"); refreshSeals();
+    if (prog.curiosities.includes(cu.c.id)) return; prog.curiosities.push(cu.c.id); save(); cu.g.visible = false; audio.sfx("pick"); refreshSeals(); rpg?.event("curio", cu.c.id);
     const n = prog.curiosities.length;
     host.openPanel(`${cu.ty.icon} You found ${cu.ty.name}`, (pn) => { pn.appendChild(el("p", null, fill(cu.ty.text))); pn.appendChild(el("p", "o3-small", `Pockets: ${n} curiosit${n === 1 ? "y" : "ies"}` + (n < goal ? ` · the Gremlins think ${goal} is a good start (optional)` : " ✓"))); });
     if (n === goal) setTimeout(() => host.toast(data.goal?.message || "Goal reached!"), 400);
@@ -574,7 +580,7 @@ export function createAnnex(kit, data, host) {
         const reply = fill(useQ == null ? (lines[0]?.[0] || "…") : pick(lines[useQ] || ["…"]));
         const a = el("div", "o3-note"); a.appendChild(el("b", null, "You: ")); a.appendChild(document.createTextNode(q)); const r = el("div", "o3-note o3-reply"); r.appendChild(el("b", null, n.d.name.replace(/^(a|an|the) /, "") + ": ")); r.appendChild(document.createTextNode(reply));
         log.append(a, r); log.scrollTop = 1e6; audio.sfx("blip"); }; row.appendChild(b); });
-      pn.append(row, log);
+      pn.append(row, log); rpg?.talkExtras(pn, n);
     }, { onClose: () => { n.talking = false; n.wait = rnd(1, 3); } });
   }
 
@@ -612,7 +618,7 @@ export function createAnnex(kit, data, host) {
   function arrive(sp, spawnId, e) {
     visitFrom = e?.id || null; timeIn = 0; lostT = 0; hinted = false; inAnnexNow = true; cleanupGlimpse(); endAlive(true); crHide(); flipT = 0; audio.setMood("annex");
     if (data.shuffleOnEnter) { unloadAll(); sections.forEach((S) => (epochs[S.id] = Math.floor(Math.random() * 100000))); } // never quite the same twice (hallways stay put; rooms re-roll)
-    host.enterAnnexMode(); place(sp); audio.start(); muteBtn.hidden = false; renderMute();
+    host.enterAnnexMode(); place(sp); audio.start(); muteBtn.hidden = false; renderMute(); rpg?.onArrive(spawnId);
     const firstCrystal = !prog.flags.homeCrystal; if (firstCrystal) { prog.flags.homeCrystal = new Date().toISOString(); save(); }
     if (spawnId === "overlook-arrival") { prog.flags.foundOverlook = true; save(); banner("aha! this is where we found it.", "The Gremlins' Overlook · a secret way into the Elsewhere Annex"); }
     else banner(data.name, data.tagline);
@@ -620,7 +626,7 @@ export function createAnnex(kit, data, host) {
   }
   function exitHome(target, kit, quick) {
     audio.sfx("zip"); host.setZoom(false);
-    host.threadWarp({ target: target || null, onK: (k) => kit?.yawn?.(k), swap: () => { kit?.yawn?.(0); cleanupGlimpse(); endAlive(true); crHide(); flipT = 0; audio.setMood("annex"); audio.stop(); muteBtn.hidden = true; inAnnexNow = false; host.leaveAnnexMode(); unloadAll(); if (!quick) host.toast("You're back in the office. The stitch is still there, if you want it."); } });
+    host.threadWarp({ target: target || null, onK: (k) => kit?.yawn?.(k), swap: () => { kit?.yawn?.(0); cleanupGlimpse(); endAlive(true); crHide(); flipT = 0; audio.setMood("annex"); audio.stop(); muteBtn.hidden = true; inAnnexNow = false; rpg?.onLeave(); host.leaveAnnexMode(); unloadAll(); if (!quick) host.toast("You're back in the office. The stitch is still there, if you want it."); } });
   }
 
   // ---------- HUD bits ----------
@@ -631,6 +637,7 @@ export function createAnnex(kit, data, host) {
   function banner(t, s) { bT.textContent = t; bS.textContent = s; bannerEl.classList.add("show"); clearTimeout(bannerEl._h); bannerEl._h = setTimeout(() => bannerEl.classList.remove("show"), 5200); }
   function hudButtons() {
     if (G.active) return [];
+    if (rpg?.inInstance()) return rpg.instButtons();
     const out = [Object.assign(el("button", "o3-btn ghost o3-home", `${data.homeCrystal?.icon || "🏠"} ${data.homeCrystal?.name || "Home crystal"}`), { onclick: useHome, title: "Back to the start (where the Loose Stitch lets out)" })];
     const nStones = stoneDefs.filter((s) => attuned(s.id)).length;
     if (nStones) out.push(Object.assign(el("button", "o3-btn ghost", `💎 Waystones (${nStones})`), { onclick: () => openTravel(null) }));
@@ -651,6 +658,7 @@ export function createAnnex(kit, data, host) {
     }
     if (mode !== "annex" || G.active) return null;
     const p = local(pos), lv = (y) => Math.abs((y || 0) - feet) < 2.5;
+    if (rpg?.inInstance()) { rpg.near(p, feet, cand); return best; }
     if (cr.st === "frozen" && feet < 1 && Math.hypot(cr.x - p.x, cr.z - p.z) < (CRD?.tagRadius ?? 2)) return { key: "cr:tag", label: `✋ Tag ${CRD.name}!`, run: () => { if (cr.st === "frozen") crTagged(); } };
     const stoneCand = (s) => { if (!lv(s.y)) return; cand("ws:" + s.w.id, Math.hypot(s.lx - p.x, s.lz - p.z), 2.0, attuned(s.w.id) ? "💎 Crystal: travel" : "💎 Attune to this crystal", () => useStone(s)); };
     if (ovStone) stoneCand(ovStone);
@@ -665,9 +673,10 @@ export function createAnnex(kit, data, host) {
     });
     descend.forEach((ex) => { if (lv(ex.ly)) cand("ex:" + ex.x.id, Math.hypot(ex.lx - p.x, ex.lz - p.z), 2.2, ex.x.prompt, () => useExit(ex)); });
     overlookSpots.forEach((o) => { if (!lv(o.y)) return; const lab = o.label(); cand("ov:" + o.key + lab, Math.hypot(o.x - p.x, o.z - p.z), 1.9, lab, o.run); });
+    rpg?.near(p, feet, cand);
     return best;
   }
-  const clickTargets = (mode) => { if (mode === "office") return officeEntrances.map((e) => e.kit.hit); const out = []; chunks.forEach((ch) => ch.exits.forEach((x) => out.push(x.kit.hit))); return out; };
+  const clickTargets = (mode) => { if (mode === "office") return officeEntrances.map((e) => e.kit.hit); const out = []; if (!rpg?.inInstance()) chunks.forEach((ch) => ch.exits.forEach((x) => out.push(x.kit.hit))); if (rpg && !G.active) out.push(...rpg.clickTargets()); return out; };
 
   // ---------- shifting: each section slowly rearranges around its crystal ----------
   const shiftSt = {}; sections.forEach((S) => (shiftSt[S.id] = { t: 0, warnT: -1 }));
@@ -693,6 +702,7 @@ export function createAnnex(kit, data, host) {
     if (st.mode !== "annex") return;
     if (G.active) { tickGlimpse(dt, ts); return; }
     const p = local(st.pos), zone = st.zone, busy = st.busy; lastP = p;
+    if (rpg?.inInstance()) { timeIn += dt; rpg.update(dt, ts, p, st); return; } // party instance: no streaming, shifting, Grenshol or flitters
     timeIn += dt; lostT += dt; flipT = Math.max(0, flipT - dt);
     if (!busy) stream(p, false);
     tickShift(dt, p, busy);
@@ -713,6 +723,7 @@ export function createAnnex(kit, data, host) {
     const deep = st.feet < 1 && creatureOK(...cellOf(p.x, p.z));
     tickCreature(dt, ts, p, st.feet, busy); tickFlitters(dt, ts, p, deep, busy); tickAlive(dt, p, deep, busy); crDim();
     if (!hinted && !busy && lostT > (data.lostHintSeconds || 240)) { hinted = true; host.toast(data.lostHint || "Lost? Try your home crystal."); }
+    rpg?.update(dt, ts, p, st);
   }
   function tickNpc(n, dt, ts, px, pz, feet, fx, fz) {
     if (n.poss) { if (!n.talking) tickPossessed(n, dt, px, pz); return; }
@@ -754,6 +765,7 @@ export function createAnnex(kit, data, host) {
   const OVPAL = { bg: "#2b3340", fog: [30, 95], hemi: 1.15 };
   function atmos(zone) {
     if (zone === "annex:overlook") return OVPAL;
+    if (String(zone).startsWith("annex:inst") && rpg) return rpg.atmos(zone);
     if (zone === "annex:glimpse") return { bg: "#0e2a2c", fog: [5, 60], hemi: 1.2 };
     const zc = zoneCell(zone); if (!zc) return null; const S = sectionOf(zc.i, zc.j), dead = deadCells.has(ck(zc.i, zc.j));
     const v = (prog.flags.sections ||= []); if (!v.includes(S.id)) { v.push(S.id); save(); }
@@ -762,6 +774,7 @@ export function createAnnex(kit, data, host) {
   }
   function roomLabel(zone) {
     if (zone === "annex:overlook") return "The Gremlins' Overlook (secret)";
+    if (String(zone).startsWith("annex:inst") && rpg) return rpg.roomLabel(zone);
     if (zone === "annex:glimpse") return `${GW?.name || "Somewhere else"} · ${G.active === "tour" ? "seen through " + (CRD?.name || "its") + "'s eyes" : "exploring (you caught " + (CRD?.name || "it") + ")"}`;
     const zc = zoneCell(zone); if (!zc) return data.name; const S = sectionOf(zc.i, zc.j), dz = deadCells.get(ck(zc.i, zc.j));
     if (dz) return `${S.name} · ${dz.z.name} (🚫 no crystal signal)`;
@@ -1085,7 +1098,17 @@ export function createAnnex(kit, data, host) {
     return null; }
   const planSummary = (pl) => ({ i: pl.i, j: pl.j, section: pl.S.id, dead: !!pl.dead, center: pl.center, arms: pl.arms, blk: pl.blk, ep: pl.ep,
     rooms: pl.rooms.map((r) => ({ qi: r.qi, type: r.type, grab: r.grab, npc: r.npc, curio: r.curio, stair: r.stair, tv: r.tv, sw: r.sw, x0: r.x0, x1: r.x1, z0: r.z0, z1: r.z1, door: r.door })) });
+  // ---------- v4: the character + combat layer ----------
+  rpg = createRPG({ THREE, mat, box, canvasTex, plate, cplane, planeGeo, root, host, el, audio, AX, AZ, C, C2, HW, R, walkable, hsh, ck, depthOf, startSec, secById, sectionOf, refreshBlockers, chunks, fill, setPlayerName,
+    deskName: () => host.me?.display_name || "you", OV, hubSpawn, place: (sp, t) => place(sp, t),
+    placeRaw: (sp) => host.placeAnnex({ x: AX + sp.x, z: AZ + sp.z, y: sp.y || 0, yaw: sp.yaw || 0, pitch: sp.pitch ?? 0 }),
+    safeSpawn: (id) => (id && id !== "home" && stoneById[id] ? stoneById[id].spawnFn() : arrivalSpawn()) });
   const debug = {
+    rpg: rpg.debug,
+    rpgPlan: (i, j) => rpg.debug.plan(planCell(i, j, epOf(i, j))),
+    rpgFind: (what, r = 10, minD = 0, sec = null) => { const c0 = startSec.center, cells = []; for (let i = c0[0] - r; i <= c0[0] + r; i++) for (let j = c0[1] - r; j <= c0[1] + r; j++) cells.push([i, j]);
+      cells.sort((a, b) => depthOf(...a) - depthOf(...b)); for (const [i, j] of cells) { if (depthOf(i, j) < minD || (sec && sectionOf(i, j).id !== sec)) continue; const pl = planCell(i, j, epOf(i, j)), P = rpg.debug.plan(pl), x = P[what];
+        if (!x || x.cleared || x.open || x.taken) continue; const rm = x.qi != null ? pl.rooms.find((q) => q.qi === x.qi) : null; return { i, j, ...x, room: rm && { x0: rm.x0, x1: rm.x1, z0: rm.z0, z1: rm.z1, door: rm.door, sx: rm.sx, sz: rm.sz } }; } return null; },
     state: () => { const h = inAnnexNow ? here() : null; return { prog: JSON.parse(JSON.stringify(prog)), audio: audio.state(), timeIn, epochs: { ...epochs },
       cell: h && { i: h.i, j: h.j, section: h.S.id, dead: !!h.dead },
       stats: { loaded: chunks.size, built: stats.built, roomsBuilt: stats.roomsBuilt, roomsSeen: stats.roomsSeen.size, cellsSeen: stats.cellsSeen.size, walkRects: walkable.filter((r) => r.chunk).length,

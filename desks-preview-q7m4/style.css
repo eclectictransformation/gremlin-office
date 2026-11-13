@@ -126,3 +126,37 @@ a.tlist{display:block;color:inherit;text-decoration:none}a.tlist.closed{opacity:
 .o3-chatlog{max-height:34vh;overflow:auto;margin-top:.5rem}.o3-reply{border-left-color:#b8483a;font-style:italic}
 /* Elsewhere Annex v3: glimpse-world countdown */
 .o3-glimpsebar{position:absolute;left:50%;bottom:5.2rem;transform:translateX(-50%);background:rgba(14,42,44,.88);color:#cffff2;border:2px solid #7cf7d4;border-radius:999px;padding:.35rem .9rem;font-size:.9rem;pointer-events:none;z-index:6;white-space:nowrap}
+/* Elsewhere Annex v4: Annex character bar, dice log, popups, creator, transform + knockout overlays */
+.o3-rpgbar{position:absolute;top:3.7rem;left:.7rem;background:rgba(58,50,24,.9);color:#fbf3d0;border:2px solid #e6d07a;border-radius:12px;padding:.4rem .55rem;width:min(250px,60vw);font-size:.82rem;z-index:5}
+.o3-rpgname{font-family:var(--serif);font-weight:700;font-size:.98rem;margin-bottom:.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.o3-rpghp,.o3-rpgxp{position:relative;height:16px;background:#2a2418;border:1px solid #1a1a18;border-radius:8px;overflow:hidden;margin:.15rem 0}
+.o3-rpghp i,.o3-rpgxp i{position:absolute;left:0;top:0;bottom:0;background:#c8452e;transition:width .25s}.o3-rpgxp i{background:#d8b44a}
+.o3-rpghp span,.o3-rpgxp span{position:relative;display:block;text-align:center;font-size:.72rem;line-height:16px;font-weight:700;color:#fff;text-shadow:0 1px 1px #000}
+.o3-rpgbtns{display:flex;gap:.3rem;margin-top:.3rem}.o3-rpgb{width:40px;height:40px;padding:0;font-size:1.1rem;border-radius:10px;box-shadow:1px 1px 0 var(--ink)}
+.o3-rpgb.armed{background:#f3d98b}.o3-rpgb:disabled{opacity:.45}
+.o3-dicelog{position:absolute;left:.7rem;top:12.2rem;width:min(300px,62vw);display:flex;flex-direction:column;gap:.2rem;pointer-events:none!important;z-index:4}
+.o3-dl{background:rgba(26,26,24,.78);color:#fff;font-size:.76rem;padding:.2rem .5rem;border-radius:7px;border-left:4px solid #8f9f88;transition:opacity 1.5s}
+.o3-dl.old{opacity:.35}.o3-dl.hit{border-left-color:#7fc86a}.o3-dl.crit{border-left-color:#ffd43b;font-weight:700}.o3-dl.miss{border-left-color:#9a958a}.o3-dl.ouch{border-left-color:#d8452e}
+.o3-dl.xp,.o3-dl.lvl{border-left-color:#d8b44a}.o3-dl.loot{border-left-color:#a8c8e8}.o3-dl.quest{border-left-color:#b48cff}.o3-dl.heal{border-left-color:#7fc8a0}.o3-dl.sys{border-left-color:#e6d07a}
+.o3-panel .o3-dl{opacity:1;margin:.15rem 0}
+.o3-dicepop{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.8);background:rgba(26,26,24,.85);color:#fff;font-weight:800;font-size:1.25rem;padding:.4rem 1rem;border-radius:12px;border:2px solid #e6d07a;opacity:0;pointer-events:none!important;transition:opacity .2s,transform .2s;z-index:6;white-space:nowrap}
+.o3-dicepop.show{opacity:1;transform:translate(-50%,-60%) scale(1)}.o3-dicepop.crit{border-color:#ffd43b;color:#ffe58a}.o3-dicepop.miss{border-color:#9a958a;color:#ddd}.o3-dicepop.ouch{border-color:#d8452e}.o3-dicepop.lvl{border-color:#ffd43b;font-size:1.6rem;color:#ffe58a}
+.o3-transform{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none!important;opacity:0;z-index:22;background:radial-gradient(circle,rgba(255,240,190,.0) 0,rgba(255,216,106,.55) 30%,rgba(184,72,58,.75) 70%,rgba(58,50,24,.95) 100%)}
+.o3-transform b{font-family:var(--serif);font-size:2rem;color:#fbf3d0;text-shadow:0 2px 6px #000}
+.o3-transform.on{animation:o3become 1.5s ease-out}
+@keyframes o3become{0%{opacity:0;filter:hue-rotate(0)}25%{opacity:1}70%{opacity:1;filter:hue-rotate(40deg)}100%{opacity:0}}
+.o3-ko{position:absolute;inset:0;display:grid;place-items:center;background:rgba(20,16,28,.94);opacity:0;pointer-events:none!important;transition:opacity .8s;z-index:23}
+.o3-ko.on{opacity:1;pointer-events:auto!important}.o3-ko p{max-width:min(520px,86vw);color:#e9e1f5;font-family:var(--serif);font-size:1.25rem;font-style:italic;text-align:center;line-height:1.5}
+.o3-hurt{position:absolute;inset:0;pointer-events:none!important;opacity:0;box-shadow:inset 0 0 90px 30px rgba(200,40,20,.75);z-index:3}.o3-hurt.on{animation:o3hurt .45s ease-out}
+@keyframes o3hurt{0%{opacity:1}100%{opacity:0}}
+.o3-creator .o3-wide{display:block;width:100%;text-align:left;margin:.35rem 0}
+.o3-paths{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin:.6rem 0}
+.o3-pathcard{display:flex;flex-direction:column;gap:.2rem;text-align:left;background:#fffdf0;color:var(--ink);border:2px solid var(--ink);border-radius:10px;padding:.45rem;font:inherit;font-size:.78rem;cursor:pointer;box-shadow:none}
+.o3-pathcard b{font-size:.95rem}.o3-pathcard.on{background:var(--sage);box-shadow:2px 2px 0 var(--ink)}
+.o3-stats{margin:.4rem 0}.o3-statrow{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.2rem 0;border-bottom:1px dashed #c9c2a2}
+.o3-sname{min-width:6.5rem;font-weight:700}.o3-statrow select{width:auto;padding:.2rem .4rem}.o3-sfinal{color:var(--moss);font-weight:600}.o3-sabout{flex-basis:100%;margin-left:.2rem}
+.o3-statrow .o3-btn.small{margin:0;min-width:32px;min-height:32px}
+.o3-credits{margin-top:.8rem;font-size:.7rem;line-height:1.35}
+.o3-gnote{border-left-color:#5b2db8;font-family:'Comic Sans MS','Marker Felt',system-ui;font-size:1.05rem}
+.o3-quest.done{opacity:.7;border-left-color:var(--forest)}
+@media (pointer:coarse){.o3-rpgbar{top:5.6rem}.o3-dicelog{top:14rem}.o3-paths{grid-template-columns:1fr}}

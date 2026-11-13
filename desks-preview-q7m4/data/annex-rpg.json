@@ -1,0 +1,182 @@
+{
+  "_about": "Elsewhere Annex v4: Annex characters, d20 checks, silly gear, mobs, quests, dice doors, party portals. Eclectic Transformation · Gremlin Desks only. Everything here is original; d20 math follows SRD 5.2.1 (modifier = floor((score-10)/2), proficiency, d20 + mod vs DC/AC). Rules engine: rpg.js. Add rows to quests/items/enemies/riddles to extend.",
+  "version": 4,
+  "attribution": "This work includes material from the System Reference Document 5.2.1 (\"SRD 5.2.1\") by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.",
+  "compatLine": "Compatible with fifth edition.",
+  "stats": [
+    { "id": "luck", "name": "Luck", "icon": "🍀", "about": "loot, odd devices, the Annex breaking its own rules in your favour", "export": "CHA (and a small luck pool)" },
+    { "id": "nerve", "name": "Nerve", "icon": "🫀", "about": "hit points, staying put when something giggles, heavy swings", "export": "CON / WIS" },
+    { "id": "wits", "name": "Wits", "icon": "🧠", "about": "riddles, odd locks, aiming a stapler", "export": "INT" },
+    { "id": "stride", "name": "Stride", "icon": "👟", "about": "armor class, dodging, most weapons", "export": "DEX / STR" }
+  ],
+  "creation": {
+    "standardArray": [15, 14, 12, 10],
+    "pointBuy": { "points": 22, "min": 8, "max": 15, "cost": { "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5, "14": 7, "15": 9 } },
+    "aiHook": "Future: an AI-assisted creator (free text -> suggested build + one-line backstory). The player still edits and must approve before it saves.",
+    "quiz": [
+      { "q": "A door in the Annex is humming at you. You…", "a": [
+        { "t": "read the tiny print on the doorframe first", "path": "archivist" },
+        { "t": "are already through it, obviously", "path": "wanderer" },
+        { "t": "unscrew the hum to see how it works", "path": "tinkerer" } ] },
+      { "q": "Your desk drawer contains…", "a": [
+        { "t": "labelled folders, colour-coded, sorry", "path": "archivist" },
+        { "t": "a map of a place that doesn't exist", "path": "wanderer" },
+        { "t": "one spring, three batteries and a mystery key", "path": "tinkerer" } ] },
+      { "q": "Something giggles in the vents. You…", "a": [
+        { "t": "take notes", "path": "archivist" },
+        { "t": "walk the other way, briskly", "path": "wanderer" },
+        { "t": "giggle back", "path": "tinkerer" } ] }
+    ],
+    "nameIdeas": ["{name} the Slightly Lost", "Assistant to the Regional {name}", "{name} of the Damp Carpet", "Temp #{n}", "{name}, Keeper of Staplers"]
+  },
+  "paths": {
+    "archivist": { "name": "Archivist", "icon": "📚", "main": "wits", "order": ["wits", "nerve", "luck", "stride"], "prof": ["wits", "nerve"], "weapon": "stapler",
+      "blurb": "Reads the fine print. Remembers which door was which. Aims a stapler like it owes them money.",
+      "ability": { "id": "footnote", "name": "Footnote", "icon": "📝", "text": "Your next attack or door check rolls two d20s and keeps the higher. Attacks also add +1d4 damage. Once per scuffle (and once per door)." } },
+    "wanderer": { "name": "Wanderer", "icon": "🧭", "main": "stride", "order": ["stride", "nerve", "wits", "luck"], "prof": ["stride", "luck"], "weapon": "umbrella",
+      "blurb": "Always three hallways ahead. Owns an umbrella for weather that never comes.",
+      "ability": { "id": "secondwind", "name": "Second Wind (Lost Edition)", "icon": "🌬", "text": "Catch your breath: heal 1d8 + your level. Once per scuffle." } },
+    "tinkerer": { "name": "Tinkerer", "icon": "🔧", "main": "luck", "order": ["luck", "wits", "stride", "nerve"], "prof": ["luck", "wits"], "weapon": "chicken",
+      "blurb": "Fixes things by making them weirder. Waystones like them. So do vending machines.",
+      "ability": { "id": "gizmo", "name": "Spring-Loaded Gizmo", "icon": "🪀", "text": "Fling a gadget: 2d6 damage to the nearest foe, no attack roll needed. Once per scuffle." } }
+  },
+  "levels": {
+    "_about": "House XP curve for a short browser game (cumulative XP to reach each level). SRD 5.2.1's own curve (0/300/900/2,700/6,500) is far too slow here; Annex level n reads as a tier-1 level n character on a 5E sheet.",
+    "xp": [0, 100, 250, 450, 700],
+    "prof": [2, 2, 2, 2, 3],
+    "hpBase": 8, "hpPerLevel": 5,
+    "statUpAt": [3, 5],
+    "statMax": 20
+  },
+  "xp": { "curio": 25, "riddle": 20, "door": 15, "attune": 10 },
+  "items": {
+    "fists":    { "name": "Polite Fists", "slot": "weapon", "die": 4, "stat": "stride", "value": 0, "keep": true, "text": "Always with you. Very apologetic." },
+    "newspaper":{ "name": "Rolled-Up Newspaper", "slot": "weapon", "die": 4, "stat": "stride", "value": 1, "text": "Yesterday's news. Hits like it." },
+    "stapler":  { "name": "Office Stapler", "slot": "weapon", "die": 6, "stat": "wits", "value": 2, "text": "Ka-chunk. Aim carefully." },
+    "chicken":  { "name": "Rubber Chicken Flail", "slot": "weapon", "die": 6, "stat": "luck", "value": 2, "text": "Squeaks on every hit. Enemies find this confusing." },
+    "ruler":    { "name": "Forty-Centimetre Ruler", "slot": "weapon", "die": 6, "stat": "stride", "hit": 1, "value": 3, "text": "Longer than it has any right to be. +1 to hit." },
+    "umbrella": { "name": "Umbrella of Mild Weather", "slot": "weapon", "die": 8, "stat": "stride", "value": 3, "text": "Opens with a whump. Mostly for drama." },
+    "punch":    { "name": "Three-Hole Punch", "slot": "weapon", "die": 8, "stat": "wits", "value": 4, "text": "Leaves very tidy dents." },
+    "lamp":     { "name": "Desk Lamp Mace", "slot": "weapon", "die": 8, "stat": "nerve", "value": 4, "text": "Still plugged into something. Don't ask what." },
+    "mop":      { "name": "Mop of Destiny", "slot": "weapon", "die": 10, "stat": "stride", "value": 6, "text": "Chosen by a puddle. Hums faintly." },
+    "tape":     { "name": "Tape Dispenser Morningstar", "slot": "weapon", "die": 10, "stat": "luck", "value": 5, "text": "Heavy. Sticky. Unwise." },
+    "jug":      { "name": "Water Cooler Jug", "slot": "weapon", "die": 12, "stat": "nerve", "value": 6, "text": "Two-handed. Glug." },
+    "cardigan": { "name": "Cardigan of Mild Protection", "slot": "armor", "ac": 1, "value": 1, "text": "+1 AC. Elbow patches." },
+    "bubble":   { "name": "Bubble-Wrap Vest", "slot": "armor", "ac": 2, "value": 3, "text": "+2 AC. Pops when you're hit, which is satisfying." },
+    "cardboard":{ "name": "Cardboard Plate Armour", "slot": "armor", "ac": 3, "value": 5, "text": "+3 AC. THIS SIDE UP." },
+    "cone":     { "name": "Traffic Cone Helm", "slot": "head", "ac": 1, "value": 2, "text": "+1 AC. You can hear the ocean." },
+    "visor":    { "name": "Accountant's Visor", "slot": "head", "check": { "wits": 1 }, "value": 2, "text": "+1 to Wits checks. Very green." },
+    "badge":    { "name": "Laminated Name Badge", "slot": "trinket", "check": { "luck": 1 }, "value": 2, "text": "+1 to Luck checks. The name on it is almost yours." },
+    "keyring":  { "name": "Key Ring of Many Doors", "slot": "trinket", "door": 2, "value": 3, "text": "+2 to dice-door checks. None of the keys fit anything." },
+    "mint":     { "name": "Lucky Breath Mint", "slot": "trinket", "hit": 1, "value": 3, "text": "+1 to hit. Fresh confidence." },
+    "clips":    { "name": "Paperclip Chainmail Scarf", "slot": "trinket", "ac": 1, "value": 3, "text": "+1 AC. Jingles." },
+    "soup":     { "name": "Vending Machine Soup", "slot": "use", "heal": [2, 4, 2], "value": 1, "text": "Heals 2d4+2. Flavour: 'soup'." },
+    "parcel":   { "name": "A Mislabelled Parcel", "slot": "quest", "value": 0, "text": "Addressed to 'The Annex, Over There'. Drop it in the Gremlins' outbox by the entrance circle." }
+  },
+  "startGear": ["cardigan"],
+  "loot": {
+    "_about": "Weighted tables by depth tier (0 = near the entrance, 4 = very deep). Mobs drop on a group clear (chance), boxes and dice-door rooms always give one.",
+    "tiers": [
+      [["soup", 4], ["newspaper", 2], ["badge", 2], ["cone", 2], ["ruler", 1], ["visor", 1]],
+      [["soup", 3], ["ruler", 2], ["bubble", 2], ["cone", 2], ["mint", 1], ["keyring", 1], ["punch", 1]],
+      [["soup", 3], ["punch", 2], ["lamp", 2], ["bubble", 2], ["clips", 1], ["mint", 1], ["keyring", 1]],
+      [["soup", 2], ["lamp", 2], ["tape", 1], ["cardboard", 1], ["clips", 2], ["jug", 1]],
+      [["soup", 2], ["tape", 2], ["jug", 2], ["cardboard", 2], ["mop", 1]]
+    ],
+    "mobDropChance": 0.45
+  },
+  "enemies": {
+    "dust":    { "name": "Dust Bunny", "icon": "🐇", "hp": 5, "ac": 10, "atk": 2, "die": 4, "xp": 15, "speed": 1.6, "every": 2.2, "hitText": ["sneezes on you", "nibbles your shoelace", "rolls into your shin"], "dieText": "poofs into a small grey cloud." },
+    "moth":    { "name": "Static Moth", "icon": "🦋", "hp": 6, "ac": 12, "atk": 3, "die": 4, "xp": 20, "speed": 2.0, "every": 2.0, "fly": true, "hitText": ["zaps your earlobe", "crackles at you", "sticks your hair up"], "dieText": "flickers off like an old monitor." },
+    "sock":    { "name": "Sock Wraith", "icon": "🧦", "hp": 9, "ac": 11, "atk": 3, "die": 6, "xp": 30, "speed": 1.2, "every": 2.4, "hitText": ["wraps around your ankle", "whispers 'where's my pair'", "smells faintly of dryer"], "dieText": "finds its pair and floats away, happy." },
+    "wisp":    { "name": "Hold-Music Wisp", "icon": "🎵", "hp": 8, "ac": 12, "atk": 3, "die": 6, "xp": 25, "speed": 1.4, "every": 2.3, "fly": true, "hitText": ["plays the same four bars at you", "says 'your call is important'", "hums smugly"], "dieText": "is finally connected to a representative." },
+    "cabinet": { "name": "Feral Filing Cabinet", "icon": "🗄", "hp": 14, "ac": 13, "atk": 4, "die": 6, "xp": 45, "speed": 0.8, "every": 2.6, "hitText": ["chomps you with its top drawer", "files you under 'misc.'", "slams a drawer on your fingers"], "dieText": "goes very still and alphabetises itself." },
+    "sprite":  { "name": "Paper-Cut Sprite", "icon": "📄", "hp": 6, "ac": 11, "atk": 3, "die": 4, "xp": 10, "speed": 1.8, "every": 2.0, "fly": true, "hitText": ["gives you a tiny paper cut", "flaps itself at you"], "dieText": "folds into a paper crane and leaves." }
+  },
+  "mobs": {
+    "_about": "One small group per seeded cell, only in rooms (never hallways, plazas, curiosity nooks, grabber/almost-person/stair/switch rooms). A cleared cell is remembered in localStorage and never spawns again, so mobs can't be camped. Stats scale with depth tier = floor(depth / tierEvery), capped at 4. Overworld groups are always solo (party size never applies outside party-portal instances).",
+    "minDepth": 1.5, "chance": 0.22, "chancePerDepth": 0.012, "chanceMax": 0.4, "tierEvery": 3,
+    "count": [1, 3],
+    "scale": { "hpPerTier": 0.3, "acPerTwoTiers": 1, "atkPerTier": 0.5, "dmgPerTier": 0.5, "xpPerTier": 0.3 },
+    "bySection": {
+      "print": ["dust", "dust", "moth"],
+      "turn": ["moth", "dust", "wisp"],
+      "stock": ["sock", "dust", "cabinet"],
+      "waiting": ["wisp", "sock", "moth"],
+      "shallows": ["moth", "sock", "wisp"],
+      "night": ["cabinet", "wisp", "sock"]
+    },
+    "reach": 2.6, "playerCooldown": 0.85, "mobReach": 1.25,
+    "regenEvery": 3, "fumbles": ["You swing so hard you spin all the way round. Dizzy!", "Your weapon slips out of your hand and boops you on the nose.", "You trip over absolutely nothing. The carpet looks smug.", "You apologise mid-swing. It throws off your aim."],
+    "crits": ["CRITICAL! A swing so good the lights flicker in applause.", "CRITICAL! Somewhere, a Gremlin cheers.", "CRITICAL! That one's going in the survey."]
+  },
+  "doors": {
+    "_about": "A few room doorways are shut by a dice door. Roll d20 + stat modifier (+ proficiency if your path has it) vs the DC. Fail = a funny consequence and a short wait, never a permanent lockout. DCs barely climb with depth.",
+    "minDepth": 1.5, "chance": 0.12, "dc": [10, 12, 12, 13, 14], "retrySeconds": 4,
+    "stats": ["wits", "wits", "nerve", "stride", "luck"],
+    "labels": { "wits": "This door has a riddle carved in it. It's mostly about doors.", "nerve": "The door is breathing. Gently. Put your hand on it anyway?", "stride": "The handle keeps moving down the door. Catch it.", "luck": "The door is a coin-operated door. You have no coins. Try anyway?" },
+    "fails": ["The door blows a raspberry at you. Rude.", "The door opens… onto another closed door, which then closes the first one.", "You're covered in a light dusting of glitter. The door seems pleased.", "The door says 'Nope' in your own voice.", "The handle comes off in your hand, then reattaches itself, offended.", "A tiny slot opens and a gremlin hand gives you a sticker that says TRY AGAIN."],
+    "success": "The door sighs, clicks, and swings open. There's something in here."
+  },
+  "boxes": { "chance": 0.1, "minDepth": 1 },
+  "quests": [
+    { "id": "sign-in", "name": "Sign In, Please", "type": "flag", "flag": "transformed", "count": 1, "xp": 20, "text": "Step into the stitched circle at the entrance and become your Annex self." },
+    { "id": "lost-found", "name": "Lost & Found", "type": "curio", "count": 1, "xp": 40, "text": "Find a curiosity. They're usually in little nooks near a crystal." },
+    { "id": "return-sender", "name": "Return to Sender", "type": "fetch", "item": "parcel", "count": 1, "xp": 60, "loot": "badge", "text": "Somewhere in a cardboard box there's a mislabelled parcel. Bring it back to the Gremlins' outbox by the entrance circle." },
+    { "id": "small-talk", "name": "Small Talk", "type": "riddle", "count": 1, "xp": 40, "text": "Answer one of an almost-person's weird questions correctly." },
+    { "id": "dust-mgmt", "name": "Dust Management", "type": "kill", "count": 3, "xp": 60, "loot": "mint", "text": "Defeat 3 Annex critters. They live in rooms, never in the hallways." },
+    { "id": "sesame", "name": "Open Sesame-ish", "type": "door", "count": 1, "xp": 40, "text": "Get a dice door open." },
+    { "id": "big-filing", "name": "The Big Filing", "type": "boss", "boss": "records", "count": 1, "xp": 150, "hidden": true, "text": "Step through a party portal and calm the Grand Feral Filing Cabinet." }
+  ],
+  "riddles": [
+    { "id": "r-stairs", "q": "What goes up and down but never moves?", "a": ["Stairs", "An elevator", "Your mood"], "ok": 0, "yes": "\"Correct. Unless they're the Escher ones. Then: also correct.\"", "no": "\"Close. Not really. But close.\"" },
+    { "id": "r-towel", "q": "What gets wetter the more it dries?", "a": ["A sponge", "A towel", "The carpet in here"], "ok": 1, "yes": "\"Yes. The carpet ALSO counts, but don't tell it.\"", "no": "\"That's damp of you. Try again sometime.\"" },
+    { "id": "r-name", "q": "What belongs to you, but other people use it more than you do?", "a": ["Your name", "Your stapler", "Your chair"], "ok": 0, "yes": "\"Yes, {name}. Or is it {nameOff}? We use it a lot.\"", "no": "\"No, but I will be borrowing that.\"" },
+    { "id": "r-keys", "q": "What has keys but can't open a single door?", "a": ["A janitor", "A keyboard", "This door"], "ok": 1, "yes": "\"Correct. I tried every key. Nothing.\"", "no": "\"Oh, a janitor can open doors. That's their whole thing.\"" },
+    { "id": "r-hole", "q": "The more you take, the more you leave behind. What are they?", "a": ["Footsteps", "Snacks", "Meetings"], "ok": 0, "yes": "\"Footsteps! I've been following yours.\"", "no": "\"Meetings DO leave a lot behind, but no.\"" }
+  ],
+  "knockout": {
+    "_about": "0 HP never kills. Grenshol carries you back to the last crystal you touched (or the entrance), you lose 10% of this level's XP progress (never drops a level) and get ONE silly consequence.",
+    "xpLossPct": 0.1,
+    "fade": "Everything goes soft and grey and smells faintly of moths…",
+    "carry": "Something tall scoops you up like a misplaced umbrella. Long, careful steps. A hum you almost recognise. Then: somewhere safe.",
+    "consequences": [
+      { "id": "steal", "weight": 4, "note": ["\"borrowed your {item}. it looked lonely. — G\"", "\"i am keeping the {item} safe. from you. — G\"", "\"{item}: very interesting. will give back (maybe). — G\""] },
+      { "id": "lampshade", "weight": 2, "text": "You wake up wearing a lampshade. It suits you, honestly.", "status": "Wearing a lampshade (until you touch a crystal)" },
+      { "id": "boots", "weight": 2, "text": "Your shoes are on the wrong feet. Stride −1 until you touch a crystal.", "status": "Shoes on the wrong feet (−1 Stride)", "statMod": { "stride": -1 } },
+      { "id": "glitter", "weight": 1, "text": "Your pockets are full of glitter. All of them. Even the ones you didn't know about.", "status": "Glittery (cosmetic)" },
+      { "id": "hair", "weight": 1, "text": "Grenshol has combed your hair. Very carefully. Into a shape.", "status": "New hairdo (cosmetic)" }
+    ],
+    "noteTitle": "A note, tucked into your collar"
+  },
+  "partyPortals": [
+    { "id": "pp-print", "section": "print", "cell": [0, 2], "instance": "records", "label": "A swirly door marked 'GROUP BOOKINGS ONLY (1–3)'" },
+    { "id": "pp-stock", "section": "stock", "cell": [0, -2], "instance": "records", "label": "A swirly door marked 'TEAM-BUILDING EXERCISE (1–3)'" }
+  ],
+  "party": {
+    "_about": "Max party size is 3. Normal Annex exploration is always SOLO (no scaling). Parties only form at party portals, which lead to separate instanced rooms; mobs and the boss scale by partySize (1–3). Real multiplayer later = a Supabase realtime channel per instance filling party.members; the debug URL flag &party=N (clamped to 3) fakes extra members for testing.",
+    "max": 3
+  },
+  "instances": {
+    "records": {
+      "name": "The Records Room (party instance)", "size": 14,
+      "palette": { "wall": "#c9c2a2", "floor": "#6f7458", "ceil": "#e9e3c8", "bg": "#3a3a2c", "fog": [6, 40], "hemi": 1.1 },
+      "intro": "A huge, echoing records room. Every drawer is labelled 'MISC.' One of the cabinets is breathing.",
+      "boss": { "name": "The Grand Feral Filing Cabinet", "icon": "🗄", "hp": 40, "ac": 13, "atk": 4, "die": 8, "xp": 150, "speed": 0.7, "every": 2.6,
+        "hitText": ["files you under 'P' for 'Pending'", "chomps you with its bottom drawer", "slams four drawers at once"],
+        "special": { "every": 3, "name": "Paperwork Avalanche", "stat": "stride", "dc": 12, "dice": [2, 6], "text": "It flings a blizzard of forms!" },
+        "dieText": "lets out a long, papery sigh and lies down. All its drawers slide shut. It's purring.", "loot": "mop" },
+      "minion": "sprite",
+      "scale": { "hpPerExtra": 0.6, "dmgPerExtra": 1, "minionsPerMember": 1 },
+      "done": "The Grand Feral Filing Cabinet is asleep. (It'll wake for a new party once Desks multiplayer is on.)"
+    }
+  },
+  "nudge": { "every": 30, "text": "🧵 The stitched circle at the entrance is still glowing. Step in to become your Annex character. (Until then the critters are asleep and the dice doors ignore you.)" },
+  "circle": {
+    "label": "✨ Step into the stitched circle",
+    "sign": "STEP IN", "signSub": "become your Annex self",
+    "become": "The thread pulls tight around your ankles, spins once, and lets go. You're {char} now.",
+    "unbecome": "The stitch lets you out and you're you again (Desks you). Your Annex self waits by the circle."
+  },
+  "outbox": { "label": "📮 Drop the parcel in the Gremlins' outbox", "done": "The outbox burps politely. 'Thanks!' says a muffled gremlin voice." }
+}
