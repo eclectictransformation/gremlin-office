@@ -1,15 +1,31 @@
 {
- "_about": "Elsewhere Annex (Eclectic Transformation · Gremlin Desks only). All entrances, levels, people, grabbers, stones and curiosities are data. Shape matches future Supabase tables (seam_entrances, seam_progress).",
- "version": 1,
+ "_about": "Elsewhere Annex v2 (ET · Gremlin Desks only). The world is procedural: a seeded grid of cells. Each section has a crystal plaza at its 'center' cell; every other cell belongs to the nearest section and gets hallways (always safe) plus rooms off them (where grabbers and the rare almost-people live). To add a section: copy a row in 'sections', give it a new id, center [cellX, cellZ] a few cells from the others, palette, crystal and room mix. Cells are grid.cell metres square.",
+ "version": 2,
  "name": "The Elsewhere Annex",
  "tagline": "The Gremlins found it. They're still mapping it.",
  "origin": {
   "x": -200,
   "z": 0
  },
+ "seed": 20261112,
+ "shuffleOnEnter": true,
+ "grid": {
+  "cell": 16,
+  "hall": 2.4,
+  "plazaMargin": 2,
+  "roomGap": 0.3,
+  "loadRadius": 1,
+  "unloadRadius": 2,
+  "spokes": 2,
+  "npcMinDepth": 5,
+  "_about": "cell = size of one generated block (m). hall = corridor width. Chunks within loadRadius cells of you are built; beyond unloadRadius they're thrown away. spokes = corridors forced open out of each crystal plaza. npcMinDepth = almost-people never appear closer than this many cells to the entrance."
+ },
+ "start": {
+  "section": "print"
+ },
  "goal": {
   "curiosities": 3,
-  "message": "Three curiosities! The Gremlins scribble on their survey: \"they're getting the hang of it.\" The stitch in the Soft Stockroom has come undone."
+  "message": "Three curiosities! The Gremlins scribble on their survey: \"they're getting the hang of it.\" The sewn-shut stitch in the Soft Stockroom plaza has come undone."
  },
  "entrances": [
   {
@@ -82,347 +98,428 @@
    "_todo": "Bryan will write the real riddle. Change prompt + answers only; matching is trimmed and case-insensitive."
   }
  },
- "palettes": {
-  "print": {
-   "wall": "#ebdc98",
-   "floor": "#b6a466",
-   "ceil": "#f6edc2",
-   "trim": "#a8964f",
-   "light": 1.7,
-   "bg": "#e6d891",
-   "fog": [
-    3,
-    20
-   ],
-   "hemi": 1.25
-  },
-  "turn": {
-   "wall": "#ddd29d",
-   "floor": "#9d9467",
-   "ceil": "#efe6bd",
-   "trim": "#8f8650",
-   "light": 1.4,
-   "bg": "#d6c987",
-   "fog": [
-    2.5,
-    15
-   ],
-   "hemi": 1.15
-  },
-  "stock": {
-   "wall": "#b3a985",
-   "floor": "#6c634d",
-   "ceil": "#9f977b",
-   "trim": "#5f573f",
-   "light": 0.8,
-   "bg": "#4a4434",
-   "fog": [
-    2,
-    13
-   ],
-   "hemi": 0.72
-  },
-  "overlook": {
-   "wall": "#3f4b3a",
-   "floor": "#8a6f4e",
-   "ceil": "#3f4b3a",
-   "trim": "#2c3328",
-   "light": 1.0,
-   "bg": "#2b3340",
-   "fog": [
-    30,
-    95
-   ],
-   "hemi": 1.15
-  }
+ "homeCrystal": {
+  "icon": "🏠",
+  "name": "Home crystal",
+  "given": "The Gremlins pressed a little 🏠 home crystal into your hand. Squeeze it any time to go back to the start.",
+  "used": "The home crystal tugs a thread and reels you back to the start.",
+  "fizzle": [
+   "🫧 Your home crystal fizzles like flat soda. Something about this spot. Walk a little and try again.",
+   "🫧 Pfft. The crystal makes a sad kazoo noise. No signal here.",
+   "🫧 The crystal just… shrugs. A gremlin note nearby says \"we tried. we licked it. nothing.\""
+  ]
  },
- "levels": [
+ "lostHintSeconds": 240,
+ "lostHint": "Lost? Good, that's the fun part. Your 🏠 home crystal still works (mostly).",
+ "deadPalette": {
+  "wall": "#b9b2c4",
+  "floor": "#6f6878",
+  "ceil": "#9a93a6",
+  "trim": "#5d5668",
+  "light": 0.25,
+  "bg": "#2a2633",
+  "fog": [
+   2,
+   11
+  ],
+  "hemi": 0.6
+ },
+ "sections": [
   {
    "id": "print",
    "name": "The Wrong Print",
-   "waystone": "ws-print"
+   "center": [
+    0,
+    0
+   ],
+   "blurb": "Yellow rooms, damp carpet, empty frames. Where the Loose Stitch lets out.",
+   "palette": {
+    "wall": "#ebdc98",
+    "floor": "#b6a466",
+    "ceil": "#f6edc2",
+    "trim": "#a8964f",
+    "light": 1.7,
+    "bg": "#e6d891",
+    "fog": [
+     3,
+     22
+    ],
+    "hemi": 1.25
+   },
+   "floorStyle": "carpet",
+   "crystal": {
+    "id": "ws-print",
+    "name": "The Wrong Print (crystal plaza)",
+    "color": "#8fe3ff"
+   },
+   "openness": 0.72,
+   "roomChance": 0.5,
+   "roomTypes": [
+    "frames",
+    "frames",
+    "empty",
+    "exitsign",
+    "chairs",
+    "plants"
+   ],
+   "grabberChance": 0.14,
+   "grabbers": [
+    "hem",
+    "courtesy"
+   ],
+   "npcChance": 0,
+   "npcs": [],
+   "shift": {
+    "every": 150,
+    "warn": 2.5,
+    "blockChance": 0.1,
+    "warning": "The hum changes pitch… somewhere nearby, rooms are swapping places.",
+    "done": "Something shifted. The Wrong Print isn't quite the same shape now."
+   },
+   "deadZones": [
+    {
+     "id": "dz-nook",
+     "name": "The No-Signal Nook",
+     "cells": [
+      [
+       2,
+       2
+      ]
+     ],
+     "sign": "CRYSTALS DON'T WORK HERE",
+     "signSub": "we tried. we licked it. — the Gremlins"
+    }
+   ]
   },
   {
    "id": "turn",
    "name": "The Annex That Turns",
-   "waystone": "ws-turn"
+   "center": [
+    7,
+    -1
+   ],
+   "blurb": "Hallways that rearrange themselves when you're not looking.",
+   "palette": {
+    "wall": "#ddd29d",
+    "floor": "#9d9467",
+    "ceil": "#efe6bd",
+    "trim": "#8f8650",
+    "light": 1.4,
+    "bg": "#d6c987",
+    "fog": [
+     2.5,
+     18
+    ],
+    "hemi": 1.15
+   },
+   "floorStyle": "carpet",
+   "crystal": {
+    "id": "ws-turn",
+    "name": "The Annex That Turns (crystal plaza)",
+    "color": "#a8ffb0"
+   },
+   "openness": 0.64,
+   "roomChance": 0.42,
+   "roomTypes": [
+    "empty",
+    "chairs",
+    "exitsign",
+    "table"
+   ],
+   "grabberChance": 0.18,
+   "grabbers": [
+    "courtesy"
+   ],
+   "npcChance": 0.04,
+   "npcs": [
+    "onhold",
+    "reprint"
+   ],
+   "shift": {
+    "every": 50,
+    "warn": 2.5,
+    "blockChance": 0.28,
+    "warning": "The hum changes pitch… a hallway is rearranging itself.",
+    "done": "Something shifted. The Annex That Turns isn't quite the same shape now."
+   },
+   "deadZones": []
   },
   {
    "id": "stock",
    "name": "The Soft Stockroom",
-   "waystone": "ws-stock"
+   "center": [
+    -6,
+    3
+   ],
+   "blurb": "Shelves that back away from you. Vending machines with no buttons.",
+   "palette": {
+    "wall": "#b3a985",
+    "floor": "#6c634d",
+    "ceil": "#9f977b",
+    "trim": "#5f573f",
+    "light": 0.8,
+    "bg": "#4a4434",
+    "fog": [
+     2,
+     15
+    ],
+    "hemi": 0.72
+   },
+   "floorStyle": "concrete",
+   "crystal": {
+    "id": "ws-stock",
+    "name": "The Soft Stockroom (crystal plaza)",
+    "color": "#ffd27a"
+   },
+   "openness": 0.68,
+   "roomChance": 0.6,
+   "roomTypes": [
+    "shelves",
+    "boxes",
+    "vending",
+    "shelves",
+    "dark"
+   ],
+   "grabberChance": 0.2,
+   "grabbers": [
+    "bounceback"
+   ],
+   "npcChance": 0.045,
+   "npcs": [
+    "unfiled",
+    "late"
+   ],
+   "shift": {
+    "every": 140,
+    "warn": 2.5,
+    "blockChance": 0.12,
+    "warning": "Cardboard creaks… the aisles are rearranging.",
+    "done": "Something shifted. The stockroom moved its aisles again."
+   },
+   "deadZones": []
   },
   {
-   "id": "overlook",
-   "name": "The Gremlins' Overlook",
-   "waystone": "ws-overlook",
-   "secret": true
-  }
- ],
- "rooms": [
-  {
-   "id": "print-hall",
-   "level": "print",
-   "label": "The Wrong Print",
-   "x0": -1.6,
-   "x1": 1.6,
-   "z0": -18,
-   "z1": 0,
-   "lightEvery": 3
+   "id": "waiting",
+   "name": "The Waiting Floor",
+   "center": [
+    1,
+    8
+   ],
+   "blurb": "Rows of chairs facing nothing. Now serving: nobody.",
+   "palette": {
+    "wall": "#c9cdb8",
+    "floor": "#7d8a8f",
+    "ceil": "#e8ead8",
+    "trim": "#6f7a6a",
+    "light": 1.3,
+    "bg": "#bfc5b5",
+    "fog": [
+     3,
+     20
+    ],
+    "hemi": 1.1
+   },
+   "floorStyle": "carpet",
+   "crystal": {
+    "id": "ws-waiting",
+    "name": "The Waiting Floor (crystal plaza)",
+    "color": "#b8c8ff"
+   },
+   "openness": 0.7,
+   "roomChance": 0.55,
+   "roomTypes": [
+    "chairs",
+    "chairs",
+    "table",
+    "vending",
+    "empty"
+   ],
+   "grabberChance": 0.15,
+   "grabbers": [
+    "courtesy",
+    "hem"
+   ],
+   "npcChance": 0.05,
+   "npcs": [
+    "onhold",
+    "echohire",
+    "late"
+   ],
+   "shift": {
+    "every": 110,
+    "warn": 2.5,
+    "blockChance": 0.15,
+    "warning": "A ticket machine dings… the floor is rearranging.",
+    "done": "Something shifted. Your number has been called somewhere else."
+   },
+   "deadZones": []
   },
   {
-   "id": "print-gallery",
-   "level": "print",
-   "label": "The Wrong Print · the empty gallery",
-   "x0": 1.6,
-   "x1": 9.6,
-   "z0": -10,
-   "z1": -4,
-   "lightEvery": 3
+   "id": "shallows",
+   "name": "The Tiled Shallows",
+   "center": [
+    -5,
+    -6
+   ],
+   "blurb": "White tile, still water an inch deep, an echo that's a little late.",
+   "palette": {
+    "wall": "#e9f0ec",
+    "floor": "#cfe3e0",
+    "ceil": "#f6fbf8",
+    "trim": "#9fc3bd",
+    "light": 1.6,
+    "bg": "#dcebe6",
+    "fog": [
+     3,
+     22
+    ],
+    "hemi": 1.3
+   },
+   "floorStyle": "tile",
+   "crystal": {
+    "id": "ws-shallows",
+    "name": "The Tiled Shallows (crystal plaza)",
+    "color": "#7ff0e0"
+   },
+   "openness": 0.66,
+   "roomChance": 0.5,
+   "roomTypes": [
+    "pool",
+    "pool",
+    "empty",
+    "plants"
+   ],
+   "grabberChance": 0.12,
+   "grabbers": [
+    "hem"
+   ],
+   "npcChance": 0.035,
+   "npcs": [
+    "reprint",
+    "echohire"
+   ],
+   "shift": {
+    "every": 120,
+    "warn": 2.5,
+    "blockChance": 0.1,
+    "warning": "Water drips upward for a second… the tiles are rearranging.",
+    "done": "Something shifted. The pools are somewhere else now."
+   },
+   "deadZones": []
   },
   {
-   "id": "print-mirror",
-   "level": "print",
-   "label": "The Wrong Print · the gallery again?",
-   "x0": -9.6,
-   "x1": -1.6,
-   "z0": -10,
-   "z1": -4,
-   "lightEvery": 3
-  },
-  {
-   "id": "turn-n",
-   "level": "turn",
-   "label": "The Annex That Turns",
-   "x0": -8,
-   "x1": 8,
-   "z0": -20.4,
-   "z1": -18,
-   "lightEvery": 4
-  },
-  {
-   "id": "turn-e",
-   "level": "turn",
-   "label": "The Annex That Turns",
-   "x0": 5.6,
-   "x1": 8,
-   "z0": -34,
-   "z1": -20.4,
-   "lightEvery": 4
-  },
-  {
-   "id": "turn-s",
-   "level": "turn",
-   "label": "The Annex That Turns",
-   "x0": -8,
-   "x1": 5.6,
-   "z0": -34,
-   "z1": -31.6,
-   "lightEvery": 4
-  },
-  {
-   "id": "turn-w",
-   "level": "turn",
-   "label": "The Annex That Turns",
-   "x0": -8,
-   "x1": -5.6,
-   "z0": -31.6,
-   "z1": -20.4,
-   "lightEvery": 4
-  },
-  {
-   "id": "turn-stub",
-   "level": "turn",
-   "label": "The Annex That Turns · EXIT?",
-   "x0": -1,
-   "x1": 1,
-   "z0": -36,
-   "z1": -34,
-   "lightEvery": 0
-  },
-  {
-   "id": "annex-break",
-   "level": "turn",
-   "label": "The Annex That Turns · where it stops matching",
-   "x0": -14,
-   "x1": -8,
-   "z0": -29,
-   "z1": -23,
-   "lightEvery": 3,
-   "skew": 0.18,
-   "wall": "#d2d6a0"
-  },
-  {
-   "id": "stock-closet",
-   "level": "stock",
-   "label": "The Soft Stockroom",
-   "x0": 8,
-   "x1": 11,
-   "z0": -28.2,
-   "z1": -25.8,
-   "lightEvery": 0
-  },
-  {
-   "id": "stock-deep",
-   "level": "stock",
-   "label": "The Soft Stockroom",
-   "x0": 11,
-   "x1": 27,
-   "z0": -31,
-   "z1": -23,
-   "lightEvery": 6
-  },
-  {
-   "id": "overlook",
-   "level": "overlook",
-   "kind": "overlook",
-   "label": "The Gremlins' Overlook (secret)",
-   "x0": 12,
-   "x1": 22,
-   "z0": -19,
-   "z1": -11,
-   "y": 7,
-   "open": [
-    "w",
-    "s"
+   "id": "night",
+   "name": "The Night Shift",
+   "center": [
+    8,
+    7
+   ],
+   "blurb": "Most of the lights are off. Somebody is still working late.",
+   "palette": {
+    "wall": "#8f8a6e",
+    "floor": "#4f4a3a",
+    "ceil": "#6e6a55",
+    "trim": "#4a4535",
+    "light": 0.55,
+    "bg": "#1e1c16",
+    "fog": [
+     1.5,
+     13
+    ],
+    "hemi": 0.55
+   },
+   "floorStyle": "carpet",
+   "crystal": {
+    "id": "ws-night",
+    "name": "The Night Shift (crystal plaza)",
+    "color": "#ff9fd0"
+   },
+   "openness": 0.62,
+   "roomChance": 0.55,
+   "roomTypes": [
+    "dark",
+    "desk",
+    "empty",
+    "vending",
+    "dark"
+   ],
+   "grabberChance": 0.16,
+   "grabbers": [
+    "bounceback",
+    "hem"
+   ],
+   "npcChance": 0.06,
+   "npcs": [
+    "late",
+    "unfiled",
+    "reprint"
+   ],
+   "shift": {
+    "every": 90,
+    "warn": 2.5,
+    "blockChance": 0.2,
+    "warning": "A desk lamp clicks off… the night shift is rearranging.",
+    "done": "Something shifted. The night shift moved the furniture again."
+   },
+   "deadZones": [
+    {
+     "id": "dz-breakroom",
+     "name": "The Dead Break Room",
+     "cells": [
+      [
+       -1,
+       -2
+      ]
+     ],
+     "sign": "NO CRYSTALS PAST THIS POINT",
+     "signSub": "the microwave ate the signal — mgmt (gremlins)"
+    }
    ]
   }
  ],
- "doors": [
-  {
-   "x": 1.6,
-   "z": -7,
-   "w": 1.2
+ "roomTypes": {
+  "frames": {
+   "label": "a room of empty frames"
   },
-  {
-   "x": -1.6,
-   "z": -7,
-   "w": 1.2
+  "empty": {
+   "label": "an empty room"
   },
-  {
-   "x": 0,
-   "z": -18,
-   "w": 3.2,
-   "open": true
+  "exitsign": {
+   "label": "a room with an EXIT sign"
   },
-  {
-   "x": 6.8,
-   "z": -20.4,
-   "w": 2.4,
-   "open": true
+  "chairs": {
+   "label": "a waiting room"
   },
-  {
-   "x": 5.6,
-   "z": -32.8,
-   "w": 2.4,
-   "open": true
+  "plants": {
+   "label": "a room full of plants"
   },
-  {
-   "x": -6.8,
-   "z": -31.6,
-   "w": 2.4,
-   "open": true
+  "table": {
+   "label": "a meeting room nobody booked"
   },
-  {
-   "x": -6.8,
-   "z": -20.4,
-   "w": 2.4,
-   "open": true
+  "shelves": {
+   "label": "a stockroom aisle"
   },
-  {
-   "x": -8,
-   "z": -26,
-   "w": 1.2
+  "boxes": {
+   "label": "a room of boxes"
   },
-  {
-   "x": 0,
-   "z": -34,
-   "w": 1.2
+  "vending": {
+   "label": "a vending nook"
   },
-  {
-   "x": 8,
-   "z": -27,
-   "w": 1.2
+  "dark": {
+   "label": "a room with the lights off",
+   "lights": 0
   },
-  {
-   "x": 11,
-   "z": -27,
-   "w": 2.4,
-   "open": true
+  "pool": {
+   "label": "a tiled pool room"
+  },
+  "desk": {
+   "label": "somebody's desk"
+  },
+  "nook": {
+   "label": "a little nook"
   }
- ],
- "redirects": [
-  {
-   "id": "fake-exit",
-   "x0": -0.7,
-   "x1": 0.7,
-   "z0": -35.7,
-   "z1": -34.5,
-   "to": "loop-redirect",
-   "toast": "…huh. This hallway again. It turned when you weren't looking."
-  }
- ],
+ },
  "spawns": {
-  "print-arrival": {
-   "x": 0,
-   "z": -1.4,
-   "yaw": 0
-  },
-  "print-gallery-mid": {
-   "x": 5.5,
-   "z": -7,
-   "yaw": -1.5708
-  },
-  "print-gallery-far": {
-   "x": 8.6,
-   "z": -4.8,
-   "yaw": 3.1416
-  },
-  "print-hall-end": {
-   "x": 0,
-   "z": -16.4,
-   "yaw": 3.1416
-  },
-  "turn-w-mid": {
-   "x": -6.8,
-   "z": -25,
-   "yaw": 3.1416
-  },
-  "turn-s-mid": {
-   "x": -2,
-   "z": -32.8,
-   "yaw": 1.5708
-  },
-  "turn-e-mid": {
-   "x": 6.8,
-   "z": -26,
-   "yaw": 0
-  },
-  "loop-redirect": {
-   "x": -3,
-   "z": -19.2,
-   "yaw": -1.5708
-  },
-  "stock-closet": {
-   "x": 9.5,
-   "z": -27,
-   "yaw": 1.5708
-  },
-  "ws-print": {
-   "x": 7.3,
-   "z": -7.7,
-   "yaw": -0.785
-  },
-  "ws-turn": {
-   "x": -11.3,
-   "z": -26,
-   "yaw": 1.5708
-  },
-  "ws-stock": {
-   "x": 23.9,
-   "z": -27,
-   "yaw": -1.5708
-  },
   "overlook-arrival": {
    "x": 14.6,
    "z": -15.4,
@@ -432,34 +529,6 @@
   }
  },
  "waystones": [
-  {
-   "id": "ws-print",
-   "level": "print",
-   "name": "The Wrong Print (empty gallery)",
-   "x": 8.6,
-   "z": -9.0,
-   "color": "#8fe3ff",
-   "spawn": "ws-print"
-  },
-  {
-   "id": "ws-turn",
-   "level": "turn",
-   "name": "The Annex That Turns (the break)",
-   "x": -13,
-   "z": -26,
-   "color": "#a8ffb0",
-   "spawn": "ws-turn"
-  },
-  {
-   "id": "ws-stock",
-   "level": "stock",
-   "name": "The Soft Stockroom (packing table)",
-   "x": 25.6,
-   "z": -27,
-   "y": 0.86,
-   "color": "#ffd27a",
-   "spawn": "ws-stock"
-  },
   {
    "id": "ws-overlook",
    "level": "overlook",
@@ -477,18 +546,18 @@
   {
    "id": "ret-print",
    "type": "return-stitch",
-   "room": "print-hall",
+   "section": "print",
    "wall": "n",
-   "at": 0.9,
+   "offset": 2.4,
    "y": 1.5,
    "prompt": "🧵 Pull the loose stitch (back to the office)"
   },
   {
    "id": "ret-stock",
    "type": "return-stitch",
-   "room": "stock-deep",
+   "section": "stock",
    "wall": "e",
-   "at": -25,
+   "offset": -2.4,
    "y": 1.4,
    "requires": {
     "curiosities": 3
@@ -502,7 +571,7 @@
    "x": 12.45,
    "z": -11.45,
    "y": 7,
-   "to": "print-gallery-mid",
+   "to": "print-arrival",
    "prompt": "🧵 Slide down the gremlin thread"
   }
  ],
@@ -527,355 +596,82 @@
   {
    "id": "c1",
    "type": "memo",
-   "x": -8.8,
-   "z": -9.2
+   "section": "print",
+   "cell": [
+    1,
+    1
+   ],
+   "quad": 0
   },
   {
    "id": "c2",
    "type": "badge",
-   "x": 1.05,
-   "z": -14
+   "section": "print",
+   "cell": [
+    -1,
+    -1
+   ],
+   "quad": 3
   },
   {
    "id": "c3",
    "type": "starter",
-   "x": -4,
-   "z": -33.2
+   "section": "turn",
+   "cell": [
+    1,
+    1
+   ],
+   "quad": 1
   },
   {
    "id": "c4",
    "type": "memo",
-   "x": -9,
-   "z": -24
+   "section": "stock",
+   "cell": [
+    -1,
+    1
+   ],
+   "quad": 2
   },
   {
    "id": "c5",
    "type": "badge",
-   "x": 18,
-   "z": -30.3
+   "section": "waiting",
+   "cell": [
+    1,
+    1
+   ],
+   "quad": 0
   },
   {
    "id": "c6",
    "type": "starter",
-   "x": 9.6,
-   "z": -27.7
-  }
- ],
- "props": [
-  {
-   "type": "sign",
-   "room": "print-hall",
-   "wall": "w",
-   "at": -2.6,
-   "y": 1.75,
-   "w": 1.5,
-   "h": 0.6,
-   "text": "Elsewhere Annex",
-   "sub": "The Gremlins found it. They're still mapping it."
+   "section": "shallows",
+   "cell": [
+    -1,
+    -1
+   ],
+   "quad": 3
   },
   {
-   "type": "sign",
-   "room": "print-hall",
-   "wall": "e",
-   "at": -5.4,
-   "y": 2.45,
-   "w": 1.1,
-   "h": 0.3,
-   "text": "Th Gallrey →"
+   "id": "c7",
+   "type": "memo",
+   "section": "night",
+   "cell": [
+    1,
+    1
+   ],
+   "quad": 0
   },
   {
-   "type": "sign",
-   "room": "print-hall",
-   "wall": "w",
-   "at": -8.6,
-   "y": 2.45,
-   "w": 1.1,
-   "h": 0.3,
-   "text": "← The Gallrey"
-  },
-  {
-   "type": "plant",
-   "room": "print-hall",
-   "x": -1.05,
-   "z": -12
-  },
-  {
-   "type": "plant",
-   "room": "print-hall",
-   "x": 1.05,
-   "z": -4
-  },
-  {
-   "type": "frame",
-   "room": "print-gallery",
-   "wall": "s",
-   "at": 3.6,
-   "y": 1.75
-  },
-  {
-   "type": "frame",
-   "room": "print-gallery",
-   "wall": "s",
-   "at": 6.2,
-   "y": 1.75
-  },
-  {
-   "type": "frame",
-   "room": "print-gallery",
-   "wall": "n",
-   "at": 5.2,
-   "y": 1.75
-  },
-  {
-   "type": "bench",
-   "room": "print-gallery",
-   "x": 5.6,
-   "z": -7.4
-  },
-  {
-   "type": "frame",
-   "room": "print-mirror",
-   "wall": "s",
-   "at": -3.6,
-   "y": 1.75
-  },
-  {
-   "type": "frame",
-   "room": "print-mirror",
-   "wall": "s",
-   "at": -6.2,
-   "y": 1.75
-  },
-  {
-   "type": "board",
-   "room": "print-mirror",
-   "wall": "w",
-   "at": -7,
-   "y": 1.6,
-   "text": "Notces"
-  },
-  {
-   "type": "bench",
-   "room": "print-mirror",
-   "x": -5.6,
-   "z": -7.4
-  },
-  {
-   "type": "poster",
-   "room": "turn-n",
-   "wall": "s",
-   "at": -3,
-   "y": 1.6,
-   "text": "YOU ARE HERE"
-  },
-  {
-   "type": "poster",
-   "room": "turn-n",
-   "wall": "s",
-   "at": 3,
-   "y": 1.6,
-   "text": "YOU ARE HERE"
-  },
-  {
-   "type": "plant",
-   "room": "turn-n",
-   "x": 4.2,
-   "z": -18.6
-  },
-  {
-   "type": "chair",
-   "room": "turn-n",
-   "x": -4.4,
-   "z": -18.6,
-   "ry": 0.4
-  },
-  {
-   "type": "poster",
-   "room": "turn-e",
-   "wall": "w",
-   "at": -24,
-   "y": 1.6,
-   "text": "YOU ARE HERE"
-  },
-  {
-   "type": "poster",
-   "room": "turn-e",
-   "wall": "w",
-   "at": -30,
-   "y": 1.6,
-   "text": "YOU ARE HERE"
-  },
-  {
-   "type": "plant",
-   "room": "turn-e",
-   "x": 7.4,
-   "z": -23.2
-  },
-  {
-   "type": "chair",
-   "room": "turn-e",
-   "x": 7.4,
-   "z": -29.6,
-   "ry": 1.9
-  },
-  {
-   "type": "poster",
-   "room": "turn-s",
-   "wall": "n",
-   "at": -3,
-   "y": 1.6,
-   "text": "YOU ARE HERE"
-  },
-  {
-   "type": "poster",
-   "room": "turn-s",
-   "wall": "n",
-   "at": 3,
-   "y": 1.6,
-   "text": "YOU ARE HERE"
-  },
-  {
-   "type": "sign",
-   "room": "turn-s",
-   "wall": "s",
-   "at": 0,
-   "y": 2.45,
-   "w": 0.9,
-   "h": 0.3,
-   "text": "EXIT →",
-   "bg": "#2f7d32"
-  },
-  {
-   "type": "plant",
-   "room": "turn-s",
-   "x": -4.4,
-   "z": -33.4
-  },
-  {
-   "type": "chair",
-   "room": "turn-s",
-   "x": 3.0,
-   "z": -33.4,
-   "ry": 2.8,
-   "color": "#c0392b",
-   "_landmark": "the one red chair"
-  },
-  {
-   "type": "poster",
-   "room": "turn-w",
-   "wall": "e",
-   "at": -24,
-   "y": 1.6,
-   "text": "YOU ARE HERE"
-  },
-  {
-   "type": "poster",
-   "room": "turn-w",
-   "wall": "e",
-   "at": -28,
-   "y": 1.6,
-   "text": "YOU ARE HERE"
-  },
-  {
-   "type": "plant",
-   "room": "turn-w",
-   "x": -7.4,
-   "z": -29.8
-  },
-  {
-   "type": "chair",
-   "room": "turn-w",
-   "x": -7.4,
-   "z": -22.4,
-   "ry": -0.8
-  },
-  {
-   "type": "sign",
-   "room": "annex-break",
-   "wall": "n",
-   "at": -11,
-   "y": 2.0,
-   "w": 1.6,
-   "h": 0.5,
-   "text": "Break room",
-   "sub": "the hallway gave up here"
-  },
-  {
-   "type": "table",
-   "room": "annex-break",
-   "x": -10.6,
-   "z": -27.6
-  },
-  {
-   "type": "chair",
-   "room": "annex-break",
-   "x": -10.6,
-   "z": -28.4,
-   "ry": 0
-  },
-  {
-   "type": "boxes",
-   "room": "stock-closet",
-   "x": 10.4,
-   "z": -25.9
-  },
-  {
-   "type": "shelf",
-   "room": "stock-deep",
-   "x": 15,
-   "z": -23.5,
-   "ry": 3.1416,
-   "recede": 1
-  },
-  {
-   "type": "shelf",
-   "room": "stock-deep",
-   "x": 19,
-   "z": -23.5,
-   "ry": 3.1416,
-   "recede": 1
-  },
-  {
-   "type": "shelf",
-   "room": "stock-deep",
-   "x": 15,
-   "z": -30.5,
-   "ry": 0,
-   "recede": 1
-  },
-  {
-   "type": "shelf",
-   "room": "stock-deep",
-   "x": 21,
-   "z": -30.5,
-   "ry": 0,
-   "recede": 1
-  },
-  {
-   "type": "vending",
-   "room": "stock-deep",
-   "x": 23.5,
-   "z": -23.55,
-   "ry": 3.1416
-  },
-  {
-   "type": "boxes",
-   "room": "stock-deep",
-   "x": 13,
-   "z": -28.6
-  },
-  {
-   "type": "boxes",
-   "room": "stock-deep",
-   "x": 22,
-   "z": -27.8
-  },
-  {
-   "type": "table",
-   "room": "stock-deep",
-   "x": 25.6,
-   "z": -27,
-   "big": true
+   "id": "c8",
+   "type": "badge",
+   "section": "turn",
+   "cell": [
+    -1,
+    -2
+   ],
+   "quad": 2
   }
  ],
  "npcs": [
@@ -885,40 +681,8 @@
    "name": "a Reprint",
    "color": "#cdbf96",
    "speed": 0.7,
-   "path": [
-    [
-     0,
-     -3
-    ],
-    [
-     0,
-     -7
-    ],
-    [
-     3.5,
-     -7
-    ],
-    [
-     6.5,
-     -6
-    ],
-    [
-     3.5,
-     -7
-    ],
-    [
-     0,
-     -7
-    ],
-    [
-     0,
-     -15
-    ],
-    [
-     0,
-     -11
-    ]
-   ]
+   "quirk": "stutter",
+   "_quirk": "moves in little skipped frames"
   },
   {
    "id": "onhold",
@@ -926,24 +690,8 @@
    "name": "an On-Hold",
    "color": "#93a8b3",
    "speed": 0.55,
-   "path": [
-    [
-     -6.8,
-     -19.2
-    ],
-    [
-     6.8,
-     -19.2
-    ],
-    [
-     6.8,
-     -32.8
-    ],
-    [
-     -6.8,
-     -32.8
-    ]
-   ]
+   "quirk": "backwards",
+   "_quirk": "walks backwards, phone to ear"
   },
   {
    "id": "unfiled",
@@ -951,24 +699,8 @@
    "name": "an Unfiled",
    "color": "#f1ece0",
    "speed": 0.5,
-   "path": [
-    [
-     13,
-     -24.4
-    ],
-    [
-     24,
-     -24.4
-    ],
-    [
-     24,
-     -29.6
-    ],
-    [
-     14,
-     -29.6
-    ]
-   ]
+   "quirk": "corner",
+   "_quirk": "stands in corners; only turns round when you're not looking"
   },
   {
    "id": "echohire",
@@ -976,24 +708,17 @@
    "name": "the Echo Hire",
    "color": "#d7ae5f",
    "speed": 0.8,
-   "path": [
-    [
-     3.2,
-     -5
-    ],
-    [
-     8.4,
-     -5.2
-    ],
-    [
-     8.0,
-     -8.6
-    ],
-    [
-     3.2,
-     -9.2
-    ]
-   ]
+   "quirk": "tall",
+   "_quirk": "a little too tall, tilts its head at you"
+  },
+  {
+   "id": "late",
+   "type": "late",
+   "name": "a Late Arrival",
+   "color": "#a9a08a",
+   "speed": 0.45,
+   "quirk": "late",
+   "_quirk": "always answers the question you asked before"
   }
  ],
  "npcPrompts": [
@@ -1090,67 +815,60 @@
     "So nice! Let's get coffee in the room that isn't there.",
     "I'll add you to the group chat. The group chat is a hallway."
    ]
+  ],
+  "late": [
+   [
+    "…(it's still answering something nobody asked yet)",
+    "Oh! Hi. Sorry. Hi. Hello. Was that already?"
+   ],
+   [
+    "Yes, hello. Hi. (it's answering your last question)",
+    "Hello to you too, eventually."
+   ],
+   [
+    "Out? Out was yesterday. I was late for it.",
+    "The way out left without me. It said it'd wait."
+   ],
+   [
+    "This place? It's the meeting. You're early. I'm late. Same room.",
+    "Annex. Elsewhere. Elsewhen, mostly."
+   ]
   ]
  },
- "grabbers": [
-  {
-   "id": "hem",
-   "type": "hem",
+ "grabberTypes": {
+  "hem": {
    "name": "the Hem",
-   "room": "print-mirror",
-   "home": [
-    -6.2,
-    -6.4
-   ],
    "speed": 0.85,
-   "notice": 6.5,
+   "notice": 5.5,
    "telegraph": "You hear a soft drag of thread nearby…",
-   "caught": "The Hem caught your ankle and reeled you somewhere else. (No harm done.)",
-   "drops": [
-    "turn-w-mid",
-    "print-gallery-far",
-    "turn-s-mid"
-   ],
-   "mercyChance": 0.35,
-   "officeChance": 0.08
+   "caught": "The Hem caught your ankle and reeled you somewhere else entirely: {section}. (No harm done.)"
   },
-  {
-   "id": "courtesy",
-   "type": "courtesy",
+  "courtesy": {
    "name": "the Courtesy",
-   "room": "turn-e",
-   "home": [
-    6.8,
-    -28.5
-   ],
    "speed": 0.8,
-   "notice": 6.5,
+   "notice": 5.5,
    "telegraph": "A polite little cough, somewhere close…",
-   "caught": "The Courtesy scooped you up, nodded, and set you down a corridor away, facing the wrong way.",
-   "drops": [
-    "turn-w-mid",
-    "turn-s-mid",
-    "print-hall-end"
-   ],
-   "mercyChance": 0.35
+   "caught": "The Courtesy scooped you up, nodded, and set you down in {section}, facing the wrong way."
   },
-  {
-   "id": "bounceback",
-   "type": "bounceback",
+  "bounceback": {
    "name": "the Bounceback",
-   "room": "stock-deep",
-   "home": [
-    19,
-    -26.8
-   ],
    "speed": 0.9,
-   "notice": 6,
+   "notice": 5,
    "telegraph": "Flump. Flump. Something soft is coming…",
-   "caught": "The Bounceback gave you a big squishy hug and spat you out somewhere safe.",
-   "mercyChance": 1
+   "caught": "The Bounceback gave you a big squishy hug and spat you out right by the crystal in {section}.",
+   "toPlaza": true
   }
- ],
- "lostMercySeconds": 300,
+ },
+ "misfire": {
+  "chance": 0.12,
+  "_about": "Waystone travel sometimes lands in a random OTHER section (unvisited ones first). Per-crystal misfireChance overrides chance.",
+  "messages": [
+   "Whoops. The waystone sneezed. You're… not where you meant to be.",
+   "A gremlin bumped the crystal mid-hop. Enjoy the detour!",
+   "Misfire! The thread took a shortcut through somewhere you haven't been.",
+   "The stone hiccuped. The Gremlins are writing this one down."
+  ]
+ },
  "overlook": {
   "note": "aha! this is where we found it.",
   "noteBy": "— the Gremlins",
@@ -1158,70 +876,12 @@
    "The Wrong Print ✓",
    "The Annex That Turns ✓ (mostly)",
    "The Soft Stockroom ✓ (it's deeper than it looks)",
+   "The Waiting Floor ✓ (still waiting)",
+   "The Tiled Shallows ✓ (bring socks)",
+   "The Night Shift ✓ (lights off)",
    "Everything else: still mapping…"
-  ]
- },
- "shifts": [
-  {
-   "id": "turn-shift",
-   "level": "turn",
-   "_about": "Parts of this area rearrange: wall panels swap among preset layouts. Add more areas by adding rows; partitions are walls across a room at 'at'.",
-   "every": 75,
-   "warn": 2.5,
-   "onEnter": true,
-   "warning": "The hum changes pitch… somewhere, a hallway is rearranging itself.",
-   "done": "Something shifted. The Annex That Turns isn't quite the same shape now.",
-   "partitions": {
-    "p-east": {
-     "room": "turn-e",
-     "axis": "x",
-     "at": -24
-    },
-    "p-west": {
-     "room": "turn-w",
-     "axis": "x",
-     "at": -22.4
-    },
-    "p-south": {
-     "room": "turn-s",
-     "axis": "z",
-     "at": -4.6
-    }
-   },
-   "layouts": [
-    [],
-    [
-     "p-east"
-    ],
-    [
-     "p-west"
-    ],
-    [
-     "p-south"
-    ],
-    [
-     "p-east",
-     "p-south"
-    ]
-   ],
-   "_note": "Every layout keeps all rooms reachable (the ring can always be walked the other way)."
-  }
- ],
- "misfire": {
-  "_about": "Waystone travel sometimes lands somewhere else. Per-stone 'misfireChance' overrides 'chance'. Pool = spawn ids; unvisited rooms are preferred.",
-  "chance": 0.12,
-  "pool": [
-   "turn-s-mid",
-   "turn-w-mid",
-   "stock-closet",
-   "print-hall-end",
-   "print-gallery-far"
   ],
-  "messages": [
-   "Whoops. The waystone sneezed. You're… not where you meant to be.",
-   "A gremlin bumped the crystal mid-hop. Enjoy the detour!",
-   "Misfire! The thread took a shortcut through somewhere you haven't been.",
-   "The stone hiccuped. The Gremlins are writing this one down."
-  ]
+  "master": true,
+  "_master": "The Overlook crystal is the Gremlins' master stone: from it you can hop to ANY section's plaza, even ones you haven't attuned."
  }
 }

@@ -1,6 +1,6 @@
 // Desks service worker: caches the app shell ONLY.
 // Never caches Supabase (API, auth, storage/signed photo URLs) or any other cross-origin request.
-const CACHE = "desks-shell-v6";
+const CACHE = "desks-shell-v7";
 const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "office3d.js", "annex.js", "annex-audio.js", "data/elsewhere-annex.json", "vendor/three.module.min.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "assets/bryan-avatar.webp",
   "assets/gallery/tea-under-the-old-oak.webp", "assets/gallery/still-life-with-tea-and-small-visitors.webp",

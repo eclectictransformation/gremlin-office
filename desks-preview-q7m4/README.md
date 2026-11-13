@@ -49,3 +49,13 @@ Any static host. After choosing the URL, set it in two places:
 - Progress: localStorage `et-desks-annex-v1:<user id>` → `{waystones, curiosities, flags}` (same shape as a future `seam_progress` row).
 - Shifting: `shifts[]` (partitions + layouts per area; only The Annex That Turns for now). Misfire: `misfire` + per-stone `misfireChance` (Overlook = 0).
 - Demo (localhost only): `?demo=1&view=stitch|secretstitch|annex|overlook`, `&as=bryan`, `&bryanopen=1`, `&annexdoors=1`.
+
+## Elsewhere Annex v2 (procedural, local preview Nov 12 2026 — not live)
+- **The world is generated.** It's a seeded grid of 16 m cells. Each cell is a safe hallway junction with up to 4 rooms off it. Chunks within 1 cell of you are built, and chunks more than 2 cells away are thrown away. Shared materials and geometry mean nothing leaks.
+- **Six sections** live in `data/elsewhere-annex.json` → `sections`: The Wrong Print (start), The Annex That Turns, The Soft Stockroom, The Waiting Floor, The Tiled Shallows and The Night Shift. Each has a crystal plaza at its `center` cell, and every other cell joins the nearest section. Each section row sets its palette, floor style, openness, room mix, grabber and NPC chances, shift rate and dead zones. To add a section, copy a row and give it a new id and center.
+- **Hallways are always safe.** Grabbers and almost-people only spawn inside rooms. A grab sends you to a different section, unvisited ones first.
+- **Almost-people are rare.** They never appear within `grid.npcMinDepth` (5) cells of the start. Each has a quirk: stutter, backwards, corner (turns only when you're not looking), tall, or late (answers your previous question).
+- **Shifting.** While you're in a section, it re-rolls its rooms every `shift.every` seconds and slides hallway walls (`blockChance`), after a flicker warning. The cell you're standing in never changes.
+- **Home crystal.** You get it on your first visit, and it always returns you to the start plaza, except in `deadZones`, where it fizzles with a joke and you walk out.
+- **The Overlook** is the secret start. It hangs 7 m above The Wrong Print, and its crystal is a master stone that can hop to any plaza.
+- **Tests:** `python3 ../test_annex.py` against `python3 -m http.server 8841` run in this folder (52 checks). The v1 copy is in `../elsewhere-annex-v1-backup/`.

@@ -608,8 +608,9 @@ export function startOffice(root, opts) {
     // door state for own door mesh
     ownDoor.children[3] && (ownDoor.children[3].rotation.y = myLock ? 0 : 1.35);
   }
-  function zoneAt(x, z) { if (mode === "cathouse") return "cathouse"; for (const r of walkable) if (r.room && x >= r.x0 - 0.01 && x <= r.x1 + 0.01 && z >= r.z0 - 0.01 && z <= r.z1 + 0.01) return r.room; return curZone; }
-  const inside = (x, z) => walkable.some((r) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
+  const onLevel = (r) => Math.abs((r.y || 0) - feet) < 2; // the Annex has floors stacked above each other (the Overlook hangs over the rooms)
+  function zoneAt(x, z) { if (mode === "cathouse") return "cathouse"; for (const r of walkable) if (r.room && x >= r.x0 - 0.01 && x <= r.x1 + 0.01 && z >= r.z0 - 0.01 && z <= r.z1 + 0.01 && onLevel(r)) return r.room; return curZone; }
+  const inside = (x, z) => walkable.some((r) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1 && onLevel(r));
 
   // ---------- controls ----------
   const pos = new THREE.Vector3(0, EYE, 1.5); let yaw = 0, pitch = -0.05; // facing -z (towards door)
@@ -711,7 +712,7 @@ export function startOffice(root, opts) {
   annexBtn.onclick = () => nearAnnex && !warp && nearAnnex.run();
   const threadEl = el("div", "o3-thread"); hud.appendChild(threadEl);
   const OFFICE_ATMOS = { bg: "#dcd6c6", fog: [18, 45] }; let annexHemi = 1.2, zoomed = false;
-  const rectAt = (x, z) => walkable.find((r) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
+  const rectAt = (x, z) => walkable.find((r) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1 && onLevel(r));
   const annexFloor = (x, z) => rectAt(x, z)?.y || 0;
   function applyAtmos(a) { scene.background.set(a.bg); scene.fog.color.set(a.bg); scene.fog.near = a.fog[0]; scene.fog.far = a.fog[1]; }
   function applyAnnexAtmos(z) { const a = annex?.atmos(z); if (a) { applyAtmos(a); annexHemi = a.hemi ?? 1.2; } if (z !== "annex:overlook") zoomed = false; }
