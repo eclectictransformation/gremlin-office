@@ -34,10 +34,16 @@ export function createChat({ net, host, el, rpg, demo, sb, me, D: getD, inContro
   const hint = el("div", "o3-small o3-chathint", "Enter = chat · hold V = talk (7 s) · clips are short, not kept, and heard by people near you");
   bar.appendChild(scopeSel); bar.appendChild(input); bar.appendChild(mic); box.appendChild(hint);
   const recDot = el("div", "o3-chatrec"); recDot.dataset.ctl = "chat-rec"; recDot.hidden = true; host.hud.appendChild(recDot);
-  function setOpen(v) { C.open = v; box.classList.toggle("open", v); if (v) { input.focus(); render(); } else { input.blur(); } }
+  // v5b: a 💬 toggle in the top-right tray (touch): the chat bar no longer sits on the joystick; it opens as a strip at the top
+  const tgl = el("button", "o3-btn ghost o3-chattgl", "💬"); tgl.dataset.ctl = "chat-toggle"; tgl.title = "Chat (Enter)"; tgl.setAttribute("aria-label", "Chat"); tgl.hidden = true; tgl.onclick = () => setOpen(!C.open);
+  (host.tray || host.hud).appendChild(tgl);
+  function setOpen(v) { C.open = v; if (v) { C.unread = 0; delete tgl.dataset.unread; } box.classList.toggle("open", v); tgl.classList.toggle("on", v); if (v) { if (!matchMedia("(pointer:coarse)").matches) input.focus(); render(); } else { input.blur(); } }
+  const xBtn = el("button", "o3-btn ghost small o3-chatx", "×"); xBtn.dataset.ctl = "chat-close"; xBtn.setAttribute("aria-label", "Close chat"); xBtn.onclick = () => setOpen(false);
+  const sendBtn = el("button", "o3-btn small o3-chatsend", "Send"); sendBtn.dataset.ctl = "chat-send"; sendBtn.onclick = () => { const v = input.value; input.value = ""; if (v.trim()) say(v); setOpen(false); };
+  bar.appendChild(sendBtn); bar.appendChild(xBtn);
   const scopeIcon = { nearby: "📍", party: "🤝", instance: "🌀", all: "📣" };
   function addLine(m, kind = "text") { const ln = { id: m.id, from: m.from, name: m.name, scope: m.scope, text: m.text, kind, at: Date.now(), me: m.from === selfId(), over: !!m.over };
-    C.lines.push(ln); if (C.lines.length > 60) C.lines.shift(); render(); }
+    C.lines.push(ln); if (C.lines.length > 60) C.lines.shift(); if (!C.open && !ln.me) { C.unread = (C.unread || 0) + 1; tgl.dataset.unread = String(Math.min(9, C.unread)); } render(); }
   function render() { log.textContent = ""; const now = Date.now();
     C.lines.slice(-8).forEach((l) => { const d = el("div", "o3-chatline" + (l.me ? " me" : "") + (l.kind === "voice" ? " voice" : "") + (l.kind === "sys" ? " sys" : ""));
       if (!C.open && now - l.at > 20000) d.classList.add("old");
@@ -123,8 +129,8 @@ export function createChat({ net, host, el, rpg, demo, sb, me, D: getD, inContro
   const demoMuted = (id) => (net.N.demoMuted?.[id] || 0) > Date.now();
 
   function update(p, inst, party) { C.self = { x: p.x, z: p.z, inst, party }; }
-  function onArrive() { C.inAnnex = true; box.hidden = false; render(); }
-  function onLeave() { C.inAnnex = false; box.hidden = true; setOpen(false); if (C.rec) stopTalk(); C.queue.length = 0; }
+  function onArrive() { C.inAnnex = true; box.hidden = false; tgl.hidden = false; render(); }
+  function onLeave() { C.inAnnex = false; box.hidden = true; tgl.hidden = true; setOpen(false); if (C.rec) stopTalk(); C.queue.length = 0; }
   const debug = { state: () => ({ open: C.open, scope: C.scope, lines: C.lines.map((l) => ({ name: l.name, scope: l.scope, text: l.text, kind: l.kind, me: l.me, over: l.over })), heard: C.heard.slice(), played: C.played.slice(), blocked: C.blocked.slice(), sent: C.sent.map((s) => ({ scope: s.scope, text: s.text || null, dur: s.dur || null, via: s.via || "text", size: s.size || null })), recording: !!C.rec, playing: !!C.playing, queue: C.queue.length, muted: muted(), listenAll: C.listenAll, copy: myCopy(), shown: !box.hidden }),
     say, startTalk, stopTalk, setOpen, setScope: (s) => { C.scope = s; scopeSel.value = s; return s; }, listenAll: (v) => { C.listenAll = !!v; return C.listenAll; }, mute, demoMuted, hears: (msg, L) => hears(msg, L),
     demoSay: (id, text, scope, extra) => net.demoSay(id, text, scope, extra), demoVoice: async (id, scope = "nearby", secs = 1.2, extra = {}) => { const clip = await synthClip(secs); return net.demoVoice(id, clip, scope, extra); }, quietFakes: (v = true) => (net.N.demoQuiet = !!v) };

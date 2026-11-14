@@ -1117,6 +1117,10 @@
    "name": "The Training Closet",
    "short": "Training Closet",
    "training": true,
+   "turnBased": true,
+   "battleRange": 2.4,
+   "battleGroup": 2.6,
+   "_turnBased": "Bryan said yes (Nov 14 2026): practice fights here use the same turn-based battle screen as the Mailroom. It's one open room, so critters wait at home and a fight starts only when you walk within battleRange (m) of one; critters within battleGroup of it join (the boss fights alone). Sandbox: party size 2-3 stays real-time (combat.partyTurns:false); 'Turn-based: ON/OFF' and 'Fight everything' are in the dev panel. Nothing in here counts.",
    "size": 14,
    "palette": {
     "wall": "#d9d2b8",
@@ -1196,6 +1200,8 @@
    "short": "Mailroom",
    "layout": "run",
    "solo": true,
+   "turnBased": true,
+   "_turnBased": "v5b pilot, now also the Training Closet (Bryan, Nov 14 2026): fights here open the side-view turn-based battle screen (annex-battle.js). Wait style: nothing moves while you choose. Set turnBased:true on any other instance (or combat.turnBasedEverywhere) to switch it on there.",
    "level": 1,
    "levelRange": [
     1,
@@ -1653,5 +1659,21 @@
   "signedSecs": 120,
   "deleteAfter": 120,
   "note": "Text + push-to-talk over private Realtime Broadcast topic annex-chat (migration 013). nearM = how far 'nearby' carries outside instances."
+ },
+ "combat": {
+  "_about": "v5b: how fights work. Real time everywhere except places with turnBased:true (instances) or turnBasedEverywhere:true (the open Annex). partyTurns:false = party instances stay real time until turns are synced between teammates.",
+  "turnBasedEverywhere": false,
+  "partyTurns": false
+ },
+ "avatars": {
+  "_about": "v5b: static avatar sprites (transparent WebP in assets/avatars/). Used as your fighter in battles and as your cut-out figure that teammates see. match = part of the Desks display name (lower case); adminOnly = only for an admin session; demoAdmin = the ?demo=1 admin uses it locally. Moth's per-player drawings (annex.avatars) will plug into the same slot later.",
+  "static": [
+   {
+    "match": "bryan",
+    "adminOnly": true,
+    "demoAdmin": true,
+    "src": "assets/avatars/bryan.webp"
+   }
+  ]
  }
 }

@@ -1170,5 +1170,5 @@ export function createAnnex(kit, data, host) {
     switchAt: (i, j, qi) => { const sw = chunks.get(ck(i, j))?.switches.find((q) => q.rm.qi === qi); return sw && { ...W3(sw.lx, 0, sw.lz) }; },
     reset: () => { prog = { waystones: {}, curiosities: [], flags: {}, glimpse: {} }; save(); chunks.forEach((ch) => { ch.stones.forEach(refreshStone); ch.curios.forEach((c) => (c.g.visible = true)); }); if (ovStone) refreshStone(ovStone); refreshSeals(); },
   };
-  return { near, clickTargets, update, render, blockedAt: (x, z) => (G.active && GW ? GW.blockedLocal(x - GW.origin.x, z - GW.origin.z) : blockedLocal(x - AX, z - AZ)), hudButtons, atmos, roomLabel, exitHome: () => exitHome(null, null), muteBtn, debug, audio };
+  return { resetView: () => { flipT = 0; }, near, clickTargets, update, render, blockedAt: (x, z) => (G.active && GW ? GW.blockedLocal(x - GW.origin.x, z - GW.origin.z) : blockedLocal(x - AX, z - AZ)), hudButtons, atmos, roomLabel, exitHome: () => exitHome(null, null), muteBtn, debug, audio };
 }

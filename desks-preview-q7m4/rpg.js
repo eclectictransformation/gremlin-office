@@ -5,6 +5,8 @@
 // v4b: a starter Training Closet instance (nothing counts: no XP / loot / quests, harmless knockouts) + a hidden dev sandbox panel.
 // v5: level cap 25 + XP falloff by content level, the Mailroom starter run (solo, real XP), gate instances that wake per-character waystones,
 //     hooks for the admin-only Control Room (control.js), game-master spawns in front of a player, and party members filled by annex-net.js.
+// v5b: turn-based battles (annex-battle.js) for zones flagged turnBased (only the Mailroom for now); avatar sprite in the fighter slot.
+import { createBattle } from "./annex-battle.js";
 export function createRPG(ctx) {
   const { THREE, box, canvasTex, plate, cplane, root, host, el, audio, AX, AZ, C, C2, HW, R, walkable, hsh, ck, depthOf, startSec, sectionOf, place, refreshBlockers, chunks, fill, setPlayerName, deskName, hubSpawn, safeSpawn, OV } = ctx;
   let D = null; const pickH = (arr, u) => arr[Math.min(arr.length - 1, Math.floor(u * arr.length))];
@@ -73,6 +75,7 @@ export function createRPG(ctx) {
   const fx = el("div", "o3-transform"); const fxT = el("b"); fx.appendChild(fxT); host.hud.appendChild(fx);
   const ko = el("div", "o3-ko"); const koT = el("p"); ko.appendChild(koT); host.hud.appendChild(ko);
   const hurtEl = el("div", "o3-hurt"); host.hud.appendChild(hurtEl);
+  const battle = createBattle({ el, hud: host.hud, host, audio }); let battleList = [], sbTurnBased = null, inBattleCall = false, pendingLvl = null, tbGraceUntil = 0, battleZone = null, trackZone = null, trackSpot = null, prevSpot = null, lastBattle = null;
   function renderBar() {
     const c = CH(); const show = transformed && inAnnex && !!c; bar.hidden = !show; dlog.hidden = !show; if (!show) return;
     const L = level(), mh = maxHp(), lo = D.levels.xp[L - 1], hi = D.levels.xp[L] ?? null;
@@ -81,14 +84,15 @@ export function createRPG(ctx) {
     bXpF.style.width = (hi == null ? 100 : clamp((c.xp - lo) / (hi - lo), 0, 1) * 100) + "%"; bXpT.textContent = hi == null ? `⭐ ${c.xp} XP (max level)` : `⭐ ${c.xp}/${hi} XP`;
     const ab = pathOf().ability; abBtn.textContent = ab.icon; abBtn.title = `${ab.name} (X)${abilityUsed ? " · used this scuffle" : ""}`; abBtn.disabled = abilityUsed && !footArmed; abBtn.classList.toggle("armed", footArmed);
   }
-  function addLog(t, kind = "") { logs.push({ t, kind, at: Date.now() }); if (logs.length > 60) logs.shift();
+  let logTotal = 0;
+  function addLog(t, kind = "") { logTotal++; logs.push({ t, kind, at: Date.now() }); if (logs.length > 60) logs.shift();
     const row = el("div", "o3-dl " + kind, t); dlog.appendChild(row); while (dlog.children.length > 5) dlog.firstChild.remove(); setTimeout(() => row.classList.add("old"), 7000); }
   function popup(t, kind = "") { pop.textContent = t; pop.className = "o3-dicepop show " + kind; clearTimeout(pop._h); pop._h = setTimeout(() => (pop.className = "o3-dicepop"), 1700); }
   let openKind = null;
   function toggle(kind, fn) { if (!transformed) return; if (openKind === kind && host.state().busy) { host.closePanel(); return; } if (host.state().busy) host.closePanel(); fn(); }
   const panel = (kind, title, build, opt = {}) => { host.openPanel(title, (pn) => { pn.dataset.rpgPanel = kind; build(pn); }, { ...opt, onClose: () => { if (openKind === kind) openKind = null; opt.onClose?.(); } }); openKind = kind; };
   addEventListener("keydown", (e) => {
-    if (!inAnnex || !transformed || e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT" || e.repeat) return;
+    if (!inAnnex || !transformed || battle.active() || e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT" || e.repeat) return;
     const k = e.key.toLowerCase(); const map = { c: ["sheet", openSheet], i: ["gear", openGear], j: ["quests", openQuests], l: ["log", openLog] };
     if (map[k]) { e.preventDefault(); toggle(...map[k]); } else if (k === "x" && !host.state().busy) { e.preventDefault(); useAbility(); }
   });
@@ -283,7 +287,7 @@ export function createRPG(ctx) {
       if (!n) { addLog(`⭐ 0 XP · ${why} (level ${clvl} is too far below you, level ${level()})`, "sys"); return; } if (n < n0) why += ` (reduced: level ${clvl} content)`; } if (isTraining() && !TR().grantXP) { trainXP += n; addLog(`🎓 Practice: ${n} XP would go here (${why}). XP is off in training.`, "sys"); return; } const L0 = level(), h0 = maxHp(); c.xp += n; const L1 = level(); addLog(`⭐ +${n} XP · ${why}`, "xp");
     if (L1 > L0) { c.hp += maxHp() - h0; for (let L = L0 + 1; L <= L1; L++) if (D.levels.statUpAt.includes(L)) c.pendingStat = (c.pendingStat || 0) + 1;
       lastLevelUp = { from: L0, to: L1, at: Date.now() }; audio.sfx("chime"); popup(`⬆️ LEVEL ${L1}!`, "lvl"); addLog(`⬆️ Level ${L1}! Max HP ${maxHp()}${c.pendingStat ? " · pick a stat to raise" : ""}`, "lvl");
-      setTimeout(() => { if (!host.state().busy && !koBusy) openLevelUp(); else host.toast(`⬆️ Level ${L1}! Open your sheet (C) to see what changed.`); }, 350); }
+      setTimeout(() => { if (battle.active()) { pendingLvl = L1; return; } if (!host.state().busy && !koBusy) openLevelUp(); else host.toast(`⬆️ Level ${L1}! Open your sheet (C) to see what changed.`); }, 350); }
     save(); renderBar(); }
   function openLevelUp() { const c = CH(); panel("levelup", `⬆️ Level ${level()}!`, (pn) => {
     pn.appendChild(el("p", null, `${c.name} feels a bit more sure of the hallways. Max HP is now ${maxHp()}, proficiency ${sg(prof())}.`)); statPick(pn); }); }
@@ -321,7 +325,7 @@ export function createRPG(ctx) {
   const mobWorldLocal = (m) => (m.ch ? { x: m.ch.lx + m.g.position.x, z: m.ch.lz + m.g.position.z } : { x: IX + m.g.position.x, z: IZ + m.g.position.z });
   const dist = (m) => { const w = mobWorldLocal(m); return Math.hypot(w.x - lastP.x, w.z - lastP.z); };
   const sameRoom = (m) => curZone === m.zone;
-  function attackMob(m, skipRange) { if (!transformed || !m || m.dead || koBusy || host.state().busy || cd > 0) return null;
+  function attackMob(m, skipRange) { if (battle.active() && !inBattleCall) return null; if (!transformed || !m || m.dead || koBusy || host.state().busy || cd > 0) return null;
     if (!skipRange && (!sameRoom(m) || dist(m) > D.mobs.reach)) { host.toast(`Too far. Get closer to the ${m.name}.`); return null; }
     cd = D.mobs.playerCooldown; const adv = footArmed, wp = weapon(), r = resolveAttack(atkBonus(), m.ac, adv); lastAttack = { ...r, mob: m.name, id: m.id }; m.cd = Math.max(m.cd, 0.6); tipEvent("attack");
     const rs = r.rolls.length > 1 ? `[${r.rolls.join(", ")}]→${r.d20}` : `${r.d20}`;
@@ -349,13 +353,87 @@ export function createRPG(ctx) {
       addLog(`🌪 ${sp.name}! ${sp.text} ${D.stats.find((s) => s.id === sp.stat).name} save ${d}${sg(b)} = ${tot} vs DC ${sp.dc} · ${ok ? "half" : "full"} damage: ${got}`, ok ? "miss" : "ouch"); popup(`🌪 ${sp.name} · ${got} dmg`, "ouch"); hurt(got, m.name); return; }
     if (!r.hit) { addLog(`${m.icon} ${m.name} rolls ${r.d20}${sg(m.atk)} = ${r.total} vs your AC ${r.ac} · misses`, "miss"); return; }
     const dm = Math.max(1, rollN(r.crit ? 2 : 1, m.die).s + m.dmgB); addLog(`${m.icon} ${m.name} rolls ${r.d20}${sg(m.atk)} = ${r.total} vs AC ${r.ac} · ${rpick(m.def.hitText)} (−${dm} HP)`, "ouch"); audio.sfx("flump"); hurt(dm, m.name); }
-  function useAbility() { const c = CH(); if (!transformed || !c || koBusy) return false; const ab = pathOf().ability; if (abilityUsed) { host.toast(`${ab.icon} ${ab.name} is used up until this scuffle ends (or a crystal recharges it).`); return false; }
+  function useAbility(target) { const c = CH(); if (!transformed || !c || koBusy) return false; if (battle.active() && !inBattleCall) return false; const ab = pathOf().ability; if (abilityUsed) { host.toast(`${ab.icon} ${ab.name} is used up until this scuffle ends (or a crystal recharges it).`); return false; }
     if (ab.id === "footnote") { footArmed = true; abilityUsed = true; addLog(`📝 Footnote ready: your next attack or door check rolls two d20s.`, "sys"); popup("📝 Footnote ready", "hit"); }
     else if (ab.id === "secondwind") { if (c.hp >= maxHp()) { host.toast("You're not out of breath yet."); return false; } const h = roll(8) + level(); c.hp = Math.min(maxHp(), c.hp + h); abilityUsed = true; addLog(`🌬 Second Wind: 1d8+${level()} = +${h} HP`, "heal"); popup(`🌬 +${h} HP`, "hit"); }
-    else if (ab.id === "gizmo") { const foes = allMobs().filter((m) => !m.dead && sameRoom(m)).sort((a, b) => dist(a) - dist(b)), m = foes[0];
-      if (!m || dist(m) > 6) { host.toast("No one nearby to fling a gizmo at."); return false; } const d = rollN(2, 6); m.hp -= d.s; m.hitT = 0.3; abilityUsed = true; addLog(`🪀 Gizmo: 2d6 [${d.r.join(",")}] = ${d.s} damage to the ${m.name}`, "hit"); popup(`🪀 ${d.s} dmg`, "hit"); if (m.hp <= 0) killMob(m); }
+    else if (ab.id === "gizmo") { const foes = allMobs().filter((m) => !m.dead && sameRoom(m)).sort((a, b) => dist(a) - dist(b)), m = target && !target.dead ? target : foes[0];
+      if (!m || (!target && dist(m) > 6)) { host.toast("No one nearby to fling a gizmo at."); return false; } const d = rollN(2, 6); m.hp -= d.s; m.hitT = 0.3; abilityUsed = true; addLog(`🪀 Gizmo: 2d6 [${d.r.join(",")}] = ${d.s} damage to the ${m.name}`, "hit"); popup(`🪀 ${d.s} dmg`, "hit"); if (m.hp <= 0) killMob(m); }
     audio.sfx("pick"); save(); renderBar(); tipEvent("ability"); return true; }
   const allMobs = () => { const out = []; if (inst.active) inst.mobs.forEach((m) => out.push(m)); else chunks.forEach((ch) => ch.rpg?.mobs.forEach((m) => out.push(m))); return out; };
+
+  // ---------- v5b: turn-based battles (side view, wait-style turn gauges; module: annex-battle.js) ----------
+  // Per-zone flag: an instance with "turnBased": true (the Mailroom), or "combat.turnBasedEverywhere" for the open Annex later.
+  // Party instances fall back to real time for now (turns aren't synced between teammates yet).
+  function turnBasedHere() { if (!D) return false; if (inst.active) { const I = D.instances[inst.id]; if (I?.control) return false; if (isTraining() && sbTurnBased !== null) return sbTurnBased; return !!I?.turnBased && (partySize() <= 1 || !!D.combat?.partyTurns); } return !!D.combat?.turnBasedEverywhere; }
+  // v5b+: single-room instances (Training Closet) set battleRange: critters wait at home and a fight starts only when you walk
+  // up to one; it pulls in critters within battleGroup of it (a boss never pulls anyone in, and is only pulled if it's the one you walked up to).
+  const rangeCfg = () => { const I = inst.active ? D.instances[inst.id] : null; return I?.battleRange ? { range: I.battleRange, group: I.battleGroup ?? 2.6 } : null; };
+  const mobW = (m) => ({ x: IX + m.g.position.x, z: IZ + m.g.position.z });
+  function rangeFoes(p, zone) { const rc = rangeCfg(); if (!rc) return null; let best = null, bd = 1e9; const L = inst.mobs.filter((m) => !m.dead && m.zone === zone);
+    L.forEach((m) => { const w = mobW(m), d = Math.hypot(w.x - p.x, w.z - p.z); if (d < bd) { bd = d; best = m; } }); if (!best || bd > rc.range) return [];
+    if (best.boss) return [best]; const bw = mobW(best); return [best, ...L.filter((m) => m !== best && !m.boss && Math.hypot(mobW(m).x - bw.x, mobW(m).z - bw.z) <= rc.group)]; }
+  function battleFoes(zone) { const out = []; allMobs().forEach((m) => { if (!m.dead && m.zone === zone) out.push(m); }); if (!inst.active) gmMobs.forEach((m) => { if (!m.dead && m.zone === zone) out.push(m); }); return out; }
+  const GEAR_ICON = { cone: "🚧", visor: "🧢", cardigan: "🧥", bubble: "🫧", cardboard: "📦", badge: "📛", keyring: "🔑", mint: "🍬", clips: "📎" };
+  const WEAPON_ICON = { fists: "👊", newspaper: "🗞️", stapler: "📎", chicken: "🐔", ruler: "📏", umbrella: "☂️", punch: "🕳️", lamp: "💡", mop: "🧹", tape: "🩹", jug: "🫗" };
+  // optional pose frames per avatar (data: avatars.static[].poses = { idle, attack, hurt, victory, hold }); missing ones fall back to CSS transforms
+  const avatarPoses = (src) => { const e = (D?.avatars?.static || []).find((a) => a.src === src); return e?.poses && typeof e.poses === "object" ? e.poses : null; };
+  const PATH_COL = { archivist: "#6a5a9a", wanderer: "#4a7a5a", tinkerer: "#9a6a3a" };
+  function avatarUrl() { const c = CH(); return ext.avatarUrl?.() || c?.avatar || null; }
+  function heroInfo() { const c = CH(); return { name: c.name, hp: c.hp, maxHp: maxHp(), xp: c.xp, level: level(), color: PATH_COL[c.path] || "#5b7a4a", avatar: avatarUrl(), speedMod: mod(stat("stride")),
+    weaponIcon: WEAPON_ICON[c.gear.weapon] || item(c.gear.weapon)?.icon || "👊", weaponName: weapon().name, poses: avatarPoses(avatarUrl()),
+    gearIcons: ["head", "armor"].map((k) => c.gear[k] && (GEAR_ICON[c.gear[k]] || (k === "head" ? "🎩" : "🦺"))).filter(Boolean) }; }
+  // enemy portraits: each critter's own 3D model, photographed once into a small picture (cached per kind)
+  const ART = new Map(); let artR = null;
+  function foeArt(m) { const key = (m.def?.mesh || (m.boss ? (m.def?.mesh || "boss") : m.kind)) + (m.boss ? ":b" : ""); if (ART.has(key)) return ART.get(key); let url = null;
+    try { if (!artR) { artR = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true }); artR.setSize(220, 220, false); artR.setClearColor(0x000000, 0); artR.outputColorSpace = THREE.SRGBColorSpace; }
+      const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xfff4dc, 0x55503f, 2.2)); const dl = new THREE.DirectionalLight(0xffffff, 1.6); dl.position.set(2, 3, 4); sc.add(dl);
+      const mm = makeMobMesh(m.def?.mesh || (m.boss ? "boss" : m.kind), sc, 1); mm.barG.visible = false; const bb = new THREE.Box3().setFromObject(mm.body), sz = bb.getSize(new THREE.Vector3()), ct = bb.getCenter(new THREE.Vector3());
+      const r = Math.max(sz.x, sz.y, sz.z, 0.3), cam = new THREE.PerspectiveCamera(30, 1, 0.05, 50); cam.position.set(ct.x + r * 1.1, ct.y + r * 0.45, ct.z + r * 2.4); cam.lookAt(ct);
+      artR.render(sc, cam); url = artR.domElement.toDataURL("image/png"); sc.remove(mm.g); } catch (e) { url = null; }
+    ART.set(key, url); return url; }
+  function freeArt() { if (artR) { try { artR.dispose(); artR.forceContextLoss(); } catch {} artR = null; } }
+  function foeView(m) { return Object.assign(m, { art: foeArt(m) }); }
+  function startBattle(foes, zone) { const I = inst.active ? D.instances[inst.id] : null, k = /:run:(\d+)$/.exec(zone || ""), stp = I?.steps && k ? I.steps[+k[1]] : null;
+    abilityUsed = false; footArmed = false; fightGroup = "battle:" + zone; battleZone = zone; renderBar(); host.setFreeze?.(true); host.closePanel?.();
+    battleList = foes.slice(); foes.forEach(foeView); freeArt(); const c = CH(); lastBattle = { zone, xp0: c.xp, lvl0: level(), logT0: logTotal, foes: foes.map((m) => m.name), at: Date.now(), outcome: null };
+    battle.start({ title: stp ? stp.name : isTraining() ? `🎓 Practice bout · ${I.short || I.name}` : `A scuffle in ${I ? I.short || I.name : "the Annex"}`, hero: heroInfo(), foes, speed: battleSpeed,
+      intro: foes.length > 1 ? `${foes.length} critters block the way! Wait for your gauge, then pick a move. Nothing moves while you choose.` : `A ${foes[0].name} blocks the way! Wait for your gauge, then pick a move. Nothing moves while you choose.`,
+      rules: battleRules }); }
+  const inB = (fn) => (...a) => { inBattleCall = true; try { return fn(...a); } finally { inBattleCall = false; } };
+  const battleRules = {
+    hero: () => heroInfo(), alive: (m) => !m.dead && m.hp > 0, isKO: () => koBusy || !CH() || CH().hp <= 0,
+    weaponName: () => `${weapon().name} · d${weapon().die}`,
+    attack: inB((m, armed) => { cd = 0; if (armed) footArmed = true; return attackMob(m, true); }),
+    ability: () => { const ab = pathOf().ability; return { name: ab.name, short: ab.name.split(" (")[0], icon: ab.icon, used: abilityUsed, armed: footArmed, kind: ab.id === "footnote" ? "arm" : ab.id === "gizmo" ? "target" : "heal",
+      hint: ab.id === "footnote" ? "next attack rolls twice" : ab.id === "gizmo" ? "2d6, no roll needed" : `heal 1d8+${level()}` }; },
+    useAbility: inB((target) => useAbility(target || undefined)),
+    items: () => { const c = CH(), n = {}; c.inv.forEach((id) => { const it = item(id); if (it?.slot === "use") n[id] = (n[id] || 0) + 1; }); return Object.entries(n).map(([id, count]) => { const it = item(id); return { id, name: it.name, icon: it.icon, count, hint: `heals ${it.heal[0]}d${it.heal[1]}+${it.heal[2]}` }; }); },
+    useItem: (id) => useItem(id),
+    fleeHint: () => { const b = mod(stat("stride")); return `d20${sg(b)} vs ${fleeDC()}`; },
+    flee: () => { const d = roll(20), b = mod(stat("stride")), tot = d + b, dc = fleeDC(), ok = d !== 1 && (d === 20 || tot >= dc);
+      addLog(`🏃 Flee: d20 ${d}${sg(b)} = ${tot} vs ${dc} · ${ok ? "you scarper back the way you came" : "you trip over a parcel. Still here!"}`, ok ? "sys" : "miss");
+      return { ok, text: ok ? `🏃 ${tot} vs ${dc}: you scarper back the way you came!` : `🏃 ${tot} vs ${dc}: you trip over a parcel. Still here!` }; },
+    foeAct: (m) => mobAttack(m),
+    logCount: () => logTotal, logsSince: (n) => logs.slice(Math.max(0, logs.length - (logTotal - n))).map((l) => l.t),
+    summary: (b) => { const c = CH(), got = c.xp - lastBattle.xp0, lines = [], L = level(); const loot = logs.slice(Math.max(0, logs.length - (logTotal - lastBattle.logT0))).filter((l) => l.kind === "loot" || l.kind === "quest").map((l) => l.t);
+      lines.push(got > 0 ? `⭐ +${got} XP` : isTraining() ? "🎓 Practice: nothing counts in here." : "⭐ No XP this time (too easy for you)."); if (L > lastBattle.lvl0) lines.push(`⬆️ Level ${L}! Max HP ${maxHp()}.`);
+      loot.forEach((t) => lines.push(t)); lines.push(`❤️ ${c.hp}/${maxHp()} HP · ${b.turns} turn${b.turns === 1 ? "" : "s"}`); return { title: b.foes.some((f) => f.m.boss) ? "🏆 Boss down!" : "🎉 Scuffle won!", lines }; },
+    onEnd: (outcome) => { lastBattle.outcome = outcome; host.setFreeze?.(false); fightGroup = null; footArmed = false; renderBar(); host.updateActions?.();
+      if (outcome === "fled") { const sp = fleeSpot(); if (sp) ctx.placeRaw(sp); tbGraceUntil = performance.now() + 2500; host.toast("🏃 You got away. The critters stay where they are (and remember you)."); }
+      else tbGraceUntil = performance.now() + 600;
+      if (pendingLvl && outcome !== "ko") { pendingLvl = null; setTimeout(() => { if (!host.state().busy && !koBusy && !battle.active()) openLevelUp(); }, 300); } else pendingLvl = null; },
+  };
+  const fleeDC = () => (battleFoesNow().some((m) => m.boss) ? 12 : 8);
+  const battleFoesNow = () => battleList.filter((m) => !m.dead);
+  function fleeSpot() { const I = inst.active ? D.instances[inst.id] : null, k = /:run:(\d+)$/.exec(battleZone || "");
+    const rc = rangeCfg(); if (rc && battleList.length) { const s0 = I.size, cx = battleList.reduce((a, m) => a + mobW(m).x, 0) / battleList.length, cz = battleList.reduce((a, m) => a + mobW(m).z, 0) / battleList.length;
+      const sp0 = I.spawn || { x: s0 / 2, z: s0 - 2 }; let dx = lastP.x - cx, dz = lastP.z - cz, dl = Math.hypot(dx, dz); if (dl < 0.2) { dx = IX + sp0.x - cx; dz = IZ + sp0.z - cz; dl = Math.hypot(dx, dz) || 1; }
+      const far = rc.range + 1.4, x = clamp(cx + dx / dl * far, IX + 1.2, IX + s0 - 1.2), z = clamp(cz + dz / dl * far, IZ + 1.2, IZ + s0 - 1.2);
+      const ok = inst.mobs.every((m) => m.dead || Math.hypot(mobW(m).x - x, mobW(m).z - z) > rc.range + 0.3); return ok ? { x, z, yaw: Math.atan2(-(cx - x), -(cz - z)) } : { x: IX + sp0.x, z: IZ + sp0.z, yaw: sp0.yaw || 0 }; }
+    if (I?.layout === "run" && k) { const R0 = runGeo(I), sg = R0.seg(+k[1]); return { x: IX + R0.cx, z: IZ + Math.min(sg.z1 + 1.6, R0.z1 - 1.2), yaw: 0 }; }
+    if (!prevSpot) return null; const rect = walkable.find((r) => r.room === prevSpot.zone); let { x, z } = prevSpot;
+    if (rect) { x = clamp(x, rect.x0 - AX + 0.4, rect.x1 - AX - 0.4); z = clamp(z, rect.z0 - AZ + 0.4, rect.z1 - AZ - 0.4); } return { x, z, y: prevSpot.y, yaw: prevSpot.yaw }; }
+  let battleSpeed = 1;
 
   // ---------- knockout: Grenshol to the rescue (never death) ----------
   function pickCons(force) { const L = D.knockout.consequences; if (force) return L.find((c) => c.id === force) || L[0]; const tot = L.reduce((a, c) => a + c.weight, 0); let u = rng() * tot; for (const c of L) { u -= c.weight; if (u < 0) return c; } return L[0]; }
@@ -426,7 +504,7 @@ export function createRPG(ctx) {
   function enterInstance(p) { const id = p.pp.instance; buildInstance(id); ext.onEnter?.(id, p); inst.id = id; inst.from = { i: p.i, j: p.j, id: p.pp.id, spawn: p.spawn || null }; party.instance = id; audio.sfx("zip");
     return host.threadWarp({ target: null, swap: () => { inst.active = true; if (D.instances[id].training) startTraining(); spawnInstance(id); fightGroup = null; abilityUsed = false; const I0 = D.instances[id], s = I0.size, sp0 = I0.spawn || { x: s / 2, z: s - 2, yaw: 0 }; lastP = { x: IX + sp0.x, z: IZ + sp0.z };
       ctx.placeRaw({ x: IX + sp0.x, z: IZ + sp0.z, yaw: sp0.yaw || 0 }); host.toast(D.instances[id].training ? `${D.instances[id].name} · ${D.instances[id].control ? "admin only (nothing here counts)" : "practice mode (nothing here counts)"}` : D.instances[id].solo ? `${D.instances[id].name} · solo · level ${(D.instances[id].levelRange || [D.instances[id].level || 1]).join("–")}` : `${D.instances[id].name} · party of ${partySize()}`); addLog(`🌀 Entered ${D.instances[id].name} (${D.instances[id].control ? "admin" : D.instances[id].training ? "practice" : D.instances[id].solo ? "solo" : "party of " + partySize()})`, "sys"); renderBar(); renderTip(); host.updateActions(); } }); }
-  function leaveInstance(quiet) { if (!inst.active) return; const from = inst.from; const done = () => { const was = inst.id; if (isTraining()) endTraining(); inst.active = false; ext.onLeave?.(was); party.instance = null; inst.mobs.forEach((m) => m.g.parent?.remove(m.g)); inst.drops.forEach((d) => d.g.parent?.remove(d.g)); inst.mobs = []; inst.drops = []; fightGroup = null; };
+  function leaveInstance(quiet) { if (!inst.active) return; const from = inst.from; const done = () => { if (battle.active()) battle.end("left"); const was = inst.id; if (isTraining()) endTraining(); inst.active = false; ext.onLeave?.(was); party.instance = null; inst.mobs.forEach((m) => m.g.parent?.remove(m.g)); inst.drops.forEach((d) => d.g.parent?.remove(d.g)); inst.mobs = []; inst.drops = []; fightGroup = null; };
     if (quiet) { done(); return; } audio.sfx("zip"); host.threadWarp({ swap: () => { done(); place(from.spawn || hubSpawn(from.i, from.j, 0), from.spawn ? TR().backText : "Back in the Annex hallway. Just you again."); renderBar(); renderTip(); host.updateActions(); } }); }
   function bossDown(m) { if (isTraining()) { tipEvent("boss"); if (TR().grantLoot && m.def.loot) dropLoot(null, m, m.def.loot); inst.mobs.forEach((q) => { if (!q.dead) { q.dead = true; q.deadT = 0; } }); host.toast(`The ${m.name} ${m.def.dieText}`); return; }
     S.world.bosses[inst.id] = new Date().toISOString(); progress("boss", inst.id); afterBoss(inst.id); if (m.def.loot) dropLoot(null, m, m.def.loot); inst.mobs.forEach((q) => { if (!q.dead) { q.dead = true; q.deadT = 0; } }); save();
@@ -544,7 +622,7 @@ export function createRPG(ctx) {
     if (real && c && back && T.grantLoot) { const lent = [...(T.rack?.items || [])]; back.gear = c.gear; back.inv = c.inv.filter((id) => { const k = lent.indexOf(id); if (k >= 0 && !back.inv.includes(id)) { lent.splice(k, 1); return false; } return true; }); }
     S.character = back; S.stash = trainSnap.stash; S.world = trainSnap.world; S.flags = trainSnap.flags;
     if (real && T.questProgress) { S.quests = cur.quests; S.counters = cur.counters; } else { S.quests = trainSnap.quests; S.counters = trainSnap.counters; }
-    if (S.character) S.character.hp = clamp(S.character.hp || 1, 1, maxHp()); trainSnap = null; sandboxUsed = false; sbParty = 0; abilityUsed = false; footArmed = false; save(); renderBar(); renderTip(); }
+    if (S.character) S.character.hp = clamp(S.character.hp || 1, 1, maxHp()); trainSnap = null; sandboxUsed = false; sbParty = 0; sbTurnBased = null; abilityUsed = false; footArmed = false; save(); renderBar(); renderTip(); }
   let rackUsed = false;
   function trainSoup() { const c = CH(); if (!c) return; const h = D.training.soup.heal, r = rollN(h[0], h[1]), v = r.s + h[2]; c.hp = Math.min(maxHp(), c.hp + v); addLog(`🍲 Practice soup: ${h[0]}d${h[1]} [${r.r.join(",")}]+${h[2]} = +${v} HP`, "heal"); popup(`🍲 +${v} HP`, "hit"); audio.sfx("pick"); renderBar(); tipEvent("heal"); }
   function trainRack() { if (!rackUsed) { rackUsed = true; (D.training.rack.items || []).forEach((id) => { if (item(id)) CH().inv.push(id); }); addLog("🧥 Borrowed practice gear (it stays in the closet).", "loot"); host.toast(D.training.rack.text); renderBar(); } openGear(); }
@@ -571,10 +649,13 @@ export function createRPG(ctx) {
     equip: (id) => { const it = item(id), c = CH(); if (!it || !c || !EQUIP.includes(it.slot) || !isTraining()) return false; sandboxUsed = true; if (c.gear[it.slot]) c.inv.push(c.gear[it.slot]); c.gear[it.slot] = id; renderBar(); addLog(`🧪 Equipped ${it.name}`, "sys"); return true; },
     level: (L) => { const c = CH(); if (!c || !isTraining()) return false; sandboxUsed = true; c.xp = D.levels.xp[clamp(L, 1, D.levels.xp.length) - 1]; c.hp = maxHp(); renderBar(); addLog(`🧪 Level set to ${level()}`, "sys"); return level(); },
     stats: (o) => { const c = CH(); if (!c || !isTraining()) return false; sandboxUsed = true; Object.entries(o || {}).forEach(([k, v]) => { if (k in c.stats) c.stats[k] = clamp(Math.round(+v || 10), 1, D.levels.statMax); }); c.hp = Math.min(c.hp, maxHp()); renderBar(); addLog("🧪 Stats: " + D.stats.map((s) => s.name + " " + c.stats[s.id]).join(", "), "sys"); return { ...c.stats }; },
-    party: (n) => { if (!isTraining()) return false; sandboxUsed = true; sbParty = clamp(n | 0, 1, D.party.max); spawnInstance(inst.id); renderBar(); host.updateActions(); addLog(`🧪 Party size ${partySize()} (room re-spawned)`, "sys"); return partySize(); },
+    party: (n) => { if (!isTraining()) return false; if (battle.active()) battle.end("left"); sandboxUsed = true; sbParty = clamp(n | 0, 1, D.party.max); spawnInstance(inst.id); renderBar(); host.updateActions(); addLog(`🧪 Party size ${partySize()} (room re-spawned)`, "sys"); return partySize(); },
     force: (arr) => { forced.length = 0; (arr || []).forEach((v) => { v = v | 0; if (v >= 1 && v <= 20) forced.push(v); }); addLog(`🧪 Next d20s forced: ${forced.join(", ") || "(none)"}`, "sys"); return forced.slice(); },
-    reset: () => { if (!isTraining()) return false; spawnInstance(inst.id); host.updateActions(); return inst.mobs.length; },
+    reset: () => { if (!isTraining()) return false; if (battle.active()) battle.end("left"); spawnInstance(inst.id); host.updateActions(); return inst.mobs.length; },
     heal: () => { const c = CH(); if (!c) return; c.hp = maxHp(); renderBar(); },
+    // v5b+: turn-based in the closet (null = follow the JSON flag) and "fight everything at once"
+    turnBased: (v) => { if (!isTraining()) return null; sandboxUsed = true; sbTurnBased = v === null || v === undefined ? null : !!v; addLog(`🧪 Turn-based ${turnBasedHere() ? "ON" : "OFF (real-time)"} in here`, "sys"); host.updateActions(); return turnBasedHere(); },
+    battleAll: () => { if (!isTraining() || battle.active()) return false; const foes = inst.mobs.filter((m) => !m.dead && m.zone === inst.zone); if (!foes.length) return false; sandboxUsed = true; host.closePanel?.(); if (!turnBasedHere()) { addLog("🧪 Turn-based is off (party size > 1 or toggled off), so this stays real-time.", "sys"); return false; } startBattle(foes, inst.zone); return foes.length; },
   };
   function openSandbox() { if (!isTraining()) { host.toast("🧪 The sandbox only opens inside the Training Closet (or the Control Room)."); return; }
     panel("sandbox", "🧪 Combat sandbox (dev)", (pn) => { const row = (lab, ...kids) => { const r = el("div", "o3-sbrow"); r.appendChild(el("b", null, lab)); kids.forEach((k) => r.appendChild(k)); pn.appendChild(r); return r; };
@@ -589,6 +670,7 @@ export function createRPG(ctx) {
       sr.appendChild(btn("Apply", "sb-stats", () => SB.stats(Object.fromEntries(Object.entries(ins).map(([k, i]) => [k, +i.value])))));
       row("Party", ...[1, 2, 3].map((n) => btn(String(n), "sb-party-" + n, () => SB.party(n))));
       const fi = el("input"); fi.placeholder = "20, 1, 15"; fi.dataset.rpg = "sb-dice"; fi.style.width = "8em"; row("Force d20", fi, btn("Force", "sb-force", () => SB.force(fi.value.split(/[ ,]+/).map(Number))), btn("Clear", "sb-unforce", () => SB.force([])));
+      row("Battles", btn(turnBasedHere() ? "Turn-based: ON" : "Turn-based: OFF", "sb-tb", (e) => { SB.turnBased(!turnBasedHere()); e.target.textContent = turnBasedHere() ? "Turn-based: ON" : "Turn-based: OFF"; }), btn("⚔️ Fight everything", "sb-battle-all", () => SB.battleAll()));
       row("Me", btn("Full HP", "sb-heal", () => SB.heal()), btn("Knock me out", "sb-ko", () => { host.closePanel(); knockout("sandbox"); }));
     }, { wide: true }); }
 
@@ -602,8 +684,11 @@ export function createRPG(ctx) {
       if (lvl && d < 0.8 && !c.inside) { c.inside = true; if (!busy && !transformed) openCircle(); } else if (d > 1.4) c.inside = false; });
     if (!transformed && !inst.active) { const zc = /^annex:c:(-?\d+),(-?\d+):/.exec(st.zone || ""); const atStart = !zc || (+zc[1] === startSec.center[0] && +zc[2] === startSec.center[1]);
       if (!atStart && !busy) { if (!leftStart) { leftStart = true; nudge(); nudgeT = 0; } nudgeT += dt; if (nudgeT > D.nudge.every) { nudgeT = 0; nudge(); } } else nudgeT = 0; }
-    const yaw = host.state().yaw; let fighting = null;
-    const tickList = (list, ox, oz) => list.forEach((m) => { if (tickMob(m, dt, ts, p.x - ox, p.z - oz, st.zone, busy, yaw)) fighting = m; });
+    const yaw = host.state().yaw; let fighting = null; const holdMobs = !!rangeCfg() && turnBasedHere(); const bBusy = busy || battle.active() || holdMobs;
+    const tickList = (list, ox, oz) => list.forEach((m) => { if (tickMob(m, dt, ts, p.x - ox, p.z - oz, st.zone, bBusy, yaw)) fighting = m; });
+    // v5b: remember where you were in the previous zone (the spot "Flee" puts you back to)
+    if (st.zone !== trackZone) { if (trackSpot && trackZone) prevSpot = trackSpot; trackZone = st.zone; } if (!battle.active()) trackSpot = { x: p.x, z: p.z, yaw, y: st.feet || 0, zone: st.zone };
+    if (!busy && !battle.active() && transformed && CH() && turnBasedHere() && performance.now() > tbGraceUntil) { const foes = rangeFoes(p, st.zone) || battleFoes(st.zone); if (foes.length) startBattle(foes, st.zone); }
     tportals().forEach((tp) => (tp.disc.rotation.z = -ts * 1.5)); sportals().forEach((tp) => (tp.disc.rotation.z = ts * 1.2));
     if (inst.active) { tickList(inst.mobs, IX, IZ); inst.exit.disc.rotation.z = -ts * 1.5; inst.drops.forEach((d) => { if (!d.taken) d.b.rotation.y = ts * 2; }); }
     else { for (let q = gmMobs.length - 1; q >= 0; q--) { const m = gmMobs[q]; if (!m.ch.gmRoot && !chunks.has(m.ch.key)) { gmMobs.splice(q, 1); continue; } tickList([m], m.ch.lx, m.ch.lz); } }
@@ -718,6 +803,9 @@ export function createRPG(ctx) {
     leaveInstance: () => leaveInstance(), riddle: (ai) => { const rd = D.riddles.find((r) => !(S.counters.riddles || []).includes(r.id)); return rd ? answerRiddle(rd.id, ai ?? rd.ok) : null; },
     openSheet, openGear, openQuests, openLog, openCreator, openCircle, deliver, takeDrop: () => { let d = null; const f = (q) => { if (!q.taken && !d) d = q; }; chunks.forEach((ch) => ch.rpg?.drops.forEach(f)); inst.drops.forEach(f); if (d) takeDrop(d); return d && d.id; }, logs: () => logs.map((l) => l.t),
   };
+  debug.battle = () => battle.state(); debug.battleSpeed = (v) => { battleSpeed = v; battle.setSpeed(v); return v; }; debug.lastBattle = () => lastBattle && { ...lastBattle };
+  debug.battleCmd = (sel) => { const b = document.querySelector(`[data-btl="${sel}"]`); if (!b) return false; b.click(); return true; };
+  debug.turnBasedHere = () => turnBasedHere(); debug.zone = () => curZone; debug.avatarUrl = () => avatarUrl(); debug.heroInfo = () => (CH() ? heroInfo() : null); debug.data = debug.data || (() => D); debug.setAvatar = (u) => { const c = CH(); if (!c) return false; c.avatar = u || null; save(); return true; };
   debug.sandbox = () => { sandboxOn = true; host.updateActions(); if (isTraining()) openSandbox(); else host.toast("🧪 Sandbox armed. It opens inside the Training Closet."); return sandboxAllowed(); };
   const api5 = { ext, gmSpawn, gateWaystones, travelWaystone, waystoneList, enterInstance: (p) => enterInstance(p), leaveInstance: () => leaveInstance(), data: () => D, instId: () => (inst.active ? inst.id : null), isControl, partySize: () => partySize(),
     party: () => ({ id: party.id, members: party.members.map((m) => ({ ...m })), max: D?.party?.max || 3 }),

@@ -193,7 +193,10 @@ export function createControl(ctx) {
   const onPartyGo = (p) => { const P = rpg.party(); if (P.members.length > 1) net.sendParty({ type: "go", to: "*", party: P.id, portal: p.pp.id, instance: p.pp.instance }); };
 
   // ---------- rpg.js hooks ----------
-  Object.assign(rpg.ext, { isAdmin: () => net.isAdmin(), buildControl, portalParty, onPartyGo,
+  // v5b: avatar sprites (static, data-driven: data/annex-rpg.json "avatars"). Moth's per-player drawings plug in here later.
+  function myAvatar() { const A = rpg.data()?.avatars; if (!A?.static) return null; const nm = String(net.N.selfName || host.me?.display_name || "").toLowerCase();
+    for (const a of A.static) { if (a.adminOnly && !net.isAdmin()) continue; if (host.demo ? a.demoAdmin && net.isAdmin() : nm.includes(a.match)) return a.src; } return null; }
+  Object.assign(rpg.ext, { avatarUrl: () => { const u = myAvatar(); net.N.selfAvatar = u; return u; }, isAdmin: () => net.isAdmin(), buildControl, portalParty, onPartyGo,
     controlButtons: () => [btn("🛰 Control desk", "desk-btn", () => openDesk(), "o3-btn ghost")],
     onLeave: (id) => { const P = rpg.party(); if (P.id && P.members.length > 1 && !D?.instances[id]?.training) { net.sendParty({ type: "leave", to: "*", party: P.id }); } if (!D?.instances[id]?.training) rpg.setParty(null, []); T.carry = null; } });
 
@@ -203,16 +206,19 @@ export function createControl(ctx) {
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), new THREE.MeshStandardMaterial({ color: "#f1d7b8", roughness: 0.8 })); head.position.y = 1.36; g.add(head);
     const tex = canvasTex(256, 64, (c, w, h) => { c.fillStyle = "rgba(14,24,34,.8)"; c.fillRect(0, 0, w, h); c.fillStyle = "#fff"; c.font = "bold 34px system-ui"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(String(p.name).slice(0, 14), w / 2, h / 2); });
     const tag = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })); tag.scale.set(0.9, 0.22, 1); tag.position.y = 1.8; g.add(tag);
-    g.position.set(p.x, p.y || 0, p.z); return { g, tag, tex, body, name: p.name }; }
+    let bb = null; if (p.av) { body.visible = false; head.visible = false; // the cartoon cut-out replaces the simple figure
+      bb = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.08, depthWrite: true, side: THREE.DoubleSide })); bb.position.y = 0.85; bb.scale.set(0.9, 1.7, 1); bb.userData.av = p.av; g.add(bb);
+      new THREE.TextureLoader().load(p.av, (t) => { t.colorSpace = THREE.SRGBColorSpace; bb.material.map = t; bb.material.needsUpdate = true; const a = t.image.width / t.image.height; bb.scale.set(1.7 * a, 1.7, 1); }, undefined, () => { body.visible = true; head.visible = true; bb.visible = false; }); }
+    g.position.set(p.x, p.y || 0, p.z); return { g, tag, tex, body, bb, name: p.name }; }
   function dropFig(id) { const f = T.figs.get(id); if (!f) return; root.remove(f.g); f.g.traverse((o) => { if (o.isMesh) { o.geometry !== planeGeo && o.geometry.dispose(); o.material.map?.dispose?.(); o.material.dispose(); } }); T.figs.delete(id); }
   function syncFigs(dt) { const myInst = rpg.instId(), myParty = rpg.party().id, yaw = host.state().yaw, seen = new Set();
     net.players().forEach((p) => { const show = T.inAnnex && (p.inst || null) === (myInst || null) && (!myInst || (p.party && p.party === myParty)); if (!show) return; seen.add(p.id);
-      let f = T.figs.get(p.id); if (!f) { f = makeFig(p); T.figs.set(p.id, f); } const a = Math.min(1, dt * 6); f.g.position.x += (p.x - f.g.position.x) * a; f.g.position.z += (p.z - f.g.position.z) * a; f.g.position.y = p.y || 0; f.body.rotation.y = p.yaw || 0; f.tag.rotation.y = yaw; });
+      let f = T.figs.get(p.id); if (!f) { f = makeFig(p); T.figs.set(p.id, f); } const a = Math.min(1, dt * 6); f.g.position.x += (p.x - f.g.position.x) * a; f.g.position.z += (p.z - f.g.position.z) * a; f.g.position.y = p.y || 0; f.body.rotation.y = p.yaw || 0; f.tag.rotation.y = yaw; if (f.bb) f.bb.rotation.y = yaw; });
     [...T.figs.keys()].forEach((id) => { if (!seen.has(id)) dropFig(id); }); }
 
   // ---------- HUD chip ----------
-  const chip = el("div", "o3-netchip"); chip.hidden = true; chip.dataset.ctl = "online"; host.hud.appendChild(chip);
-  const renderChip = () => { const n = net.players().size; chip.textContent = net.status() === "offline" ? "👥 offline" : `👥 ${n} teammate${n === 1 ? "" : "s"} here`; chip.hidden = !T.inAnnex || net.status() === "off"; };
+  const chip = el("div", "o3-netchip"); chip.hidden = true; chip.dataset.ctl = "online"; (host.tray || host.hud).appendChild(chip); // v5b: lives in the top-right tray, off the joystick
+  const renderChip = () => { const n = net.players().size; chip.textContent = net.status() === "offline" ? "👥 offline" : `👥 ${n}`; chip.title = `${n} teammate${n === 1 ? "" : "s"} here`; chip.setAttribute("aria-label", chip.title); chip.hidden = !T.inAnnex || net.status() === "off"; };
 
   // ---------- per frame ----------
   function update(dt, ts, p, st) { if (!D) return; net.tick(dt); const inst = rpg.instId();
@@ -231,7 +237,7 @@ export function createControl(ctx) {
   function onLeave() { T.inAnnex = false; chat.onLeave(); net.leave(); [...T.figs.keys()].forEach(dropFig); renderChip(); }
 
   const debug = { net, state: () => ({ admin: net.isAdmin(), adminChecked: net.N.adminChecked, door: !!T.door, doorSpot: overlookSpots.some((o) => o.key === "control"), status: net.status(), players: [...net.players().values()].map((p) => ({ id: p.id, name: p.name, x: +p.x.toFixed(1), z: +p.z.toFixed(1), inst: p.inst, party: p.party })),
-      inControl: rpg.instId() === "control", booth: boothState(), figs: [...T.figs.keys()], pin: T.pin, dots: T.dots.slice(), gmLog: net.N.log.slice(-5), party: rpg.party(), carry: T.carry, chip: chip.hidden ? null : chip.textContent }),
+      inControl: rpg.instId() === "control", booth: boothState(), figs: [...T.figs.keys()], figAv: [...T.figs.entries()].filter(([, f]) => f.bb).map(([id, f]) => ({ id, av: f.bb.userData.av, loaded: !!f.bb.material.map })), pin: T.pin, dots: T.dots.slice(), gmLog: net.N.log.slice(-5), party: rpg.party(), carry: T.carry, chip: chip.hidden ? null : chip.textContent }),
     door: () => T.door && { x: AX + T.door.lx, z: AZ + T.door.lz, y: T.door.y, spawn: { x: AX + T.door.spawn.x, z: AZ + T.door.spawn.z, y: T.door.spawn.y, yaw: T.door.spawn.yaw } },
     openDoor, enterControl: () => (net.isAdmin() && T.door ? openDoor() : null), openDesk, boothOp, loadBooth, lookIntoBooth, moveProp, props: () => T.props.map((p) => ({ id: p.id, x: +p.g.position.x.toFixed(2), z: +p.g.position.z.toFixed(2) })),
     setPin: (x, z) => { T.pin = { x, z }; return T.pin; }, sendGM: (c) => net.sendGM(c), fakes: () => net.fakes(), demoPlace: net.demoPlace, demoRelease: net.demoRelease, mapDots: () => drawMap(document.createElement("canvas")), chat: chat.debug };

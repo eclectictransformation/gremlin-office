@@ -26,10 +26,14 @@ export function createNet({ sb, me, demo, isLocal }) {
 
   // ---------- fake teammates (demo only) ----------
   const fakes = [];
+  // v5b: avatar billboards. Only our own static sprite paths are accepted from presence (never an arbitrary URL).
+  const AV_OK = /^assets\/avatars\/[a-z0-9_-]{1,40}\.(webp|png)$/;
+  const cleanAv = (v) => (typeof v === "string" && AV_OK.test(v) ? v : null);
+  const fakeAv = (() => { try { return /[?&]fakeav=1\b/.test(location.search); } catch { return false; } })();
   function startFakes(world) {
     if (fakes.length || !world) return; const C = world.C, C2 = C / 2, c0 = world.start;
     [["a", "Vince", [c0[0] + 1, c0[1]]], ["c", "Juhani", [c0[0], c0[1] + 1]]].forEach(([id, name, cell], k) => {
-      const f = { id, name, x: cell[0] * C + C2, z: cell[1] * C + C2, y: 0, cell: cell.slice(), to: null, speed: 1.3 + k * 0.25, inst: null, portal: null, party: null, wait: k * 1.5, got: [], fake: true };
+      const f = { id, name, x: cell[0] * C + C2, z: cell[1] * C + C2, y: 0, cell: cell.slice(), to: null, speed: 1.3 + k * 0.25, inst: null, portal: null, party: null, wait: k * 1.5, got: [], fake: true, av: fakeAv && id === "a" ? "assets/avatars/bryan.webp" : null };
       fakes.push(f); });
     N.fakeTick = (dt) => fakes.forEach((f) => {
       if (f.hold) return; if (f.wait > 0) { f.wait -= dt; return; }
@@ -38,7 +42,7 @@ export function createNet({ sb, me, demo, isLocal }) {
       const dx = f.to.x - f.x, dz = f.to.z - f.z, d = Math.hypot(dx, dz), s = Math.min(d, f.speed * dt);
       if (d < 0.05) { f.to = null; f.wait = 0.8 + Math.random() * 2; return; } f.x += dx / d * s; f.z += dz / d * s; f.yaw = Math.atan2(-dx, -dz); });
   }
-  function fakeState() { const out = new Map(); fakes.forEach((f) => out.set(f.id, { id: f.id, name: f.name, x: f.x, z: f.z, y: f.y, yaw: f.yaw || 0, inst: f.inst, portal: f.portal, party: f.party, fake: true, t: Date.now() })); return out; }
+  function fakeState() { const out = new Map(); fakes.forEach((f) => out.set(f.id, { id: f.id, name: f.name, x: f.x, z: f.z, y: f.y, yaw: f.yaw || 0, inst: f.inst, portal: f.portal, party: f.party, av: f.av || null, fake: true, t: Date.now() })); return out; }
 
   // ---------- join / leave ----------
   async function join(world) {
@@ -49,7 +53,7 @@ export function createNet({ sb, me, demo, isLocal }) {
       sb.realtime.setAuth();
       annexCh = sb.channel("annex", { config: { private: true, presence: { key: N.selfId }, broadcast: { self: false } } });
       annexCh.on("presence", { event: "sync" }, () => { const st = annexCh.presenceState(); N.players = new Map();
-        Object.entries(st).forEach(([id, arr]) => { if (id === N.selfId) return; const v = arr[arr.length - 1]; if (v && typeof v === "object") N.players.set(id, { id, name: String(v.n || "?").slice(0, 40), x: +v.x || 0, z: +v.z || 0, y: +v.y || 0, yaw: +v.yw || 0, inst: v.in || null, portal: v.pt || null, party: v.pa || null, t: +v.t || 0 }); });
+        Object.entries(st).forEach(([id, arr]) => { if (id === N.selfId) return; const v = arr[arr.length - 1]; if (v && typeof v === "object") N.players.set(id, { id, name: String(v.n || "?").slice(0, 40), x: +v.x || 0, z: +v.z || 0, y: +v.y || 0, yaw: +v.yw || 0, inst: v.in || null, portal: v.pt || null, party: v.pa || null, av: cleanAv(v.av), t: +v.t || 0 }); });
         emit("players", N.players); })
         .on("broadcast", { event: "party" }, ({ payload }) => onParty(payload))
         .subscribe((s) => { if (s === "SUBSCRIBED") { setStatus("online"); lastSent = null; } else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT") setStatus("offline"); });
@@ -67,7 +71,7 @@ export function createNet({ sb, me, demo, isLocal }) {
   function track(pos) {
     if (!joined) return; const now = Date.now(); N.self = { ...pos, t: now };
     if (demo || !annexCh || N.status !== "online") return;
-    const v = { n: N.selfName, x: +pos.x.toFixed(1), z: +pos.z.toFixed(1), y: +(pos.y || 0).toFixed(1), yw: +(pos.yaw || 0).toFixed(2), in: pos.inst || null, pt: pos.portal || null, pa: pos.party || null, t: now };
+    const v = { n: N.selfName, x: +pos.x.toFixed(1), z: +pos.z.toFixed(1), y: +(pos.y || 0).toFixed(1), yw: +(pos.yaw || 0).toFixed(2), in: pos.inst || null, pt: pos.portal || null, pa: pos.party || null, av: cleanAv(N.selfAvatar), t: now };
     const same = lastSent && ["x", "z", "y", "in", "pt", "pa"].every((k) => lastSent[k] === v[k]);
     if (now - lastTrack < 1000 || (same && now - lastTrack < 15000)) return; lastTrack = now; lastSent = v; annexCh.track(v).catch(() => {});
   }

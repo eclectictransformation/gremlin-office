@@ -517,6 +517,35 @@ export function startOffice(root, opts) {
   const actions = el("div", "o3-actions"); hud.appendChild(actions);
   const touch = matchMedia("(pointer:coarse)").matches;
   const help = el("div", "o3-help", touch ? "Joystick to walk · drag to look · ⤒ to jump · ? for help" : "WASD to walk · Q / ← → turn · drag or R / F to look up & down · Space to jump · E for portals & stitches · ? for help"); hud.appendChild(help);
+  // v5b: touch tray (top right, under the top bar): ⟲ Reset view + chat / teammates chips move here so nothing sits on the joystick
+  const tray = el("div", "o3-tray"); top.appendChild(tray);
+  const resetBtn = el("button", "o3-btn ghost o3-reset", "⟲"); resetBtn.title = "Reset view (undo any zoom, level the camera)"; resetBtn.setAttribute("aria-label", "Reset view"); resetBtn.dataset.o3 = "reset-view";
+  resetBtn.onclick = () => { resetView(); toast3("⟲ View reset"); }; tray.appendChild(resetBtn);
+  // v5b: no accidental page zoom while in the 3D office / Annex (iOS double-tap + pinch, and focus-zoom on small inputs)
+  const vpMeta = document.querySelector('meta[name="viewport"]'), vpMeta0 = vpMeta?.getAttribute("content") || "width=device-width,initial-scale=1";
+  const VP_LOCK = "width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover";
+  if (vpMeta) vpMeta.setAttribute("content", VP_LOCK);
+  const noGesture = (e) => e.preventDefault();
+  let lastTouchEnd = 0;
+  const noDoubleTap = (e) => { const t = e.target; if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return; const now = performance.now(); if (now - lastTouchEnd < 320 && e.touches.length === 0) e.preventDefault(); lastTouchEnd = now; };
+  const noDbl = (e) => { if (root.contains(e.target)) e.preventDefault(); };
+  ["gesturestart", "gesturechange", "gestureend"].forEach((k) => document.addEventListener(k, noGesture, { passive: false }));
+  root.addEventListener("touchend", noDoubleTap, { passive: false }); document.addEventListener("dblclick", noDbl, { passive: false });
+  const pinchBlock = (e) => { if (e.touches && e.touches.length > 1 && !e.target.closest?.(".o3-panel")) e.preventDefault(); };
+  root.addEventListener("touchmove", pinchBlock, { passive: false });
+  function resetPageZoom() {
+    if (!vpMeta) return; const z = window.visualViewport?.scale || 1;
+    // iOS re-reads the viewport tag when it changes: nudge it, then lock it again (snaps any page zoom back to 1x)
+    vpMeta.setAttribute("content", "width=device-width,initial-scale=1.0001,maximum-scale=1.0001,user-scalable=no,viewport-fit=cover");
+    setTimeout(() => { vpMeta.setAttribute("content", VP_LOCK); window.scrollTo(0, 0); }, 60); return z;
+  }
+  function resetView() {
+    try { if (document.pointerLockElement) document.exitPointerLock(); } catch {}
+    try { if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); } catch {}
+    zoomed = false; pitch = clampPitch(-0.05); roll = 0; if (cam.fov !== 70 && !warp) { cam.fov = 70; cam.updateProjectionMatrix(); }
+    annex?.resetView?.(); resize(); resetPageZoom(); lastReset = { at: Date.now(), pageScale: window.visualViewport?.scale || 1 };
+  }
+  let lastReset = null;
   // every overlay: X (top right), Close button, Escape key, or click/tap outside closes it
   const backdrop = el("div", "o3-backdrop"); backdrop.hidden = true; hud.appendChild(backdrop);
   const panel = el("div", "o3-panel"); panel.hidden = true; panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true"); hud.appendChild(panel);
@@ -733,7 +762,7 @@ export function startOffice(root, opts) {
   if (opts.annex) {
     try {
       annex = createAnnex({ THREE, scene, mat, box, plane, canvasTex, plate, wrap, fit, PAL, H, T, R, ROOM, walkable, planeGeo }, opts.annex, {
-        el, me, hud, layout: { L, gz0, gz1, hx, gx }, rooms, showAllEntrances: !!opts.annexShowAll,
+        el, me, hud, tray, resetView: () => resetView(), layout: { L, gz0, gz1, hx, gx }, rooms, showAllEntrances: !!opts.annexShowAll,
         sb: opts.api?.sb || null, demo: !!opts.demo, // v5: Supabase client for Annex multiplayer (null in demo mode)
         cam: () => cam,
         state: () => ({ mode, pos, feet, yaw, busy: !!warp || !panel.hidden }),
@@ -838,9 +867,11 @@ export function startOffice(root, opts) {
     catTeleport(x, z, y, p = 0, standOn = null) { mode = "cathouse"; climb = null; pos.x = CAT.cx + x; pos.z = CAT.cz + z; yaw = y; pitch = clampPitch(p); vy = 0; feet = standOn ?? 0; fallApex = feet; bounces = 0; onGround = true; updateActions(true); },
     portalAt: () => ({ ...nbPortal.wp }),
     layout: { L, gz0, gz1, hx, gx, cat: { ...CAT } },
-    annex: annex ? { ...annex.debug, near: () => nearAnnex && { key: nearAnnex.key, label: nearAnnex.label }, run: () => nearAnnex?.run(), zoomed: () => zoomed } : null,
+    annex: annex ? { ...annex.debug, near: () => nearAnnex && { key: nearAnnex.key, label: nearAnnex.label }, run: () => nearAnnex?.run(), zoomed: () => zoomed, setZoom: (v) => { zoomed = !!v; } } : null,
     look(y, p) { yaw = y; pitch = clampPitch(p); },
     state: () => ({ climbing: !!climb, bounces, lastLanding, best, vy, mode, feet, onGround, x: pos.x, z: pos.z, yaw, pitch, warp: !!warp, nearPortal: !!nearPortal }),
-    destroy() { alive = false; cancelAnimationFrame(raf); ro.disconnect(); removeEventListener("keydown", kd); removeEventListener("keyup", ku); renderer.dispose(); root.innerHTML = ""; },
+    resetView, lastReset: () => lastReset, tray,
+    destroy() { alive = false; cancelAnimationFrame(raf); ro.disconnect(); removeEventListener("keydown", kd); removeEventListener("keyup", ku);
+      ["gesturestart", "gesturechange", "gestureend"].forEach((k) => document.removeEventListener(k, noGesture)); document.removeEventListener("dblclick", noDbl); if (vpMeta) vpMeta.setAttribute("content", vpMeta0); renderer.dispose(); root.innerHTML = ""; },
   };
 }

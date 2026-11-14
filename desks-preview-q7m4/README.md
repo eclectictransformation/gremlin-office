@@ -304,3 +304,54 @@ There are 5 pickups along the way, including the new **Fizzy Pocket Potion** (1d
 - Known soft spot: presence and party messages could be faked by a logged-in teammate, which is low stakes. GM commands are enforced by the server.
 
 Tests: `../test_annex.py` (v5 section) → `../screens/v5-test-results.json`, screenshots `../screens/v5-*.png`.
+
+## v5b: zoom fix, touch HUD, turn-based Mailroom, avatars (local preview Nov 14 2026, NOT live)
+
+Nothing here is deployed or committed. Backup of v5 source: `/workspace/gremlin-desks/elsewhere-annex-v5-backup/`.
+
+### Accidental zoom: cause and fix
+- **Cause:** on iPad/iPhone the page itself (not the 3D camera) zoomed. (1) The chat input and select were 13px and sat over the joystick, so iOS focus-zoomed whenever a thumb landed on them. (2) The HUD buttons had no `touch-action` and the viewport had no `maximum-scale`, so a quick double-tap zoomed the page. (3) The canvas has `touch-action:none`, which swallows the pinch you'd normally use to zoom back out. That is why you couldn't undo it. The only in-game zoom is the Overlook spyglass (FOV 26).
+- **Fix (office3d.js + style.css):** while the office is open, the viewport meta is locked (`maximum-scale=1,user-scalable=no,viewport-fit=cover`) and restored on exit. Also: `gesturestart/change/end` and `dblclick` are prevented, there is a 320ms double-tap guard, multi-touch moves are blocked outside panels, every input and select is 16px, and `touch-action:manipulation` is set on the HUD.
+- **⟲ Reset view** (top-right tray, always visible, and also during battles): exits pointer lock, blurs focus, drops the spyglass, sets FOV back to 70, levels pitch and roll, resets annex camera effects, and nudges the page zoom back to 1.
+
+### Touch HUD layout
+- The new top-right **tray** holds ⟲ reset, 👥 N (teammates, collapsed) and 💬 chat (with an unread badge). The bottom-left area belongs to the joystick only.
+- On touch, chat stays hidden until 💬 is tapped and then opens as a strip at the top. It never autofocuses, so no keyboard or zoom pops up.
+- Short landscape (≤500px tall): the RPG bar sits centered at the top, the dice log is hidden, and the joystick and jump buttons are smaller. Narrow portrait gets its own offsets.
+- Checked with bounding-box tests at 1024×768, 768×1024, 820×1180, 1180×820, 390×844 and 844×390.
+
+### Turn-based combat (annex-battle.js)
+- This is a reusable module: `createBattle({el,hud,host,audio,cfg})` takes a rules object from rpg.js.
+- It is turned on per zone with `"turnBased": true` in `data/annex-rpg.json`. For now that is set only on `instances.starter` (the Mildly Perilous Mailroom).
+- `combat.turnBasedEverywhere` (off) would apply it to the open world. `combat.partyTurns` (off) would apply it to party runs. Party runs stay real-time.
+- It is a side-view battle: foes on the left, your fighter on the right. Each side has an ATB-style turn gauge in Wait mode, so gauges pause while your menu is open or an action is playing.
+- When your gauge fills, four big buttons appear: **Attack / Ability / Item / Flee**. Then you pick a target from big enemy cards.
+- Same d20 math, XP, loot, potions and boss as before. A full clear takes a fresh character to level 2.
+- Flee: d20 + stride vs DC 8 (boss 12). On a success you drop back to the previous room.
+- Keys: 1–4 for commands, Esc to go back.
+
+### Avatars
+- `data/annex-rpg.json → avatars.static` maps players to `assets/avatars/*.webp|png`. Transparent or opaque images both work (opaque ones get a card frame). If the image fails to load, the old figure is used.
+- Your own avatar is shared through presence as `av` (sanitized path). Teammates show it as a world billboard.
+- Bryan's entry (`bryan.webp`, adminOnly, used by `?demo=1`) needs the processed file at `assets/avatars/bryan.webp`. `/workspace/gremlin-desks/avatar_key.py` produces it from the source JPG.
+
+### Cache / tests
+- The service worker cache is `desks-shell-v12` and the shell includes `annex-battle.js`.
+- Tests: `python3 /workspace/gremlin-desks/test_annex.py` (the full suite, which also runs `test_annex_v5b.py`). Screenshots go to `/workspace/gremlin-desks/screens/v5b-*.png`.
+
+### v5b+: Training Closet is turn-based too (Bryan said yes, Nov 14 2026)
+- `instances.training` now has `turnBased: true`, `battleRange: 2.4` and `battleGroup: 2.6`. The closet is one open room, so critters wait at home. A practice bout starts only when you walk within 2.4 m of one, and critters within 2.6 m of it join in. The boss always fights alone. You can use the soup and the rack freely between bouts. Flee steps you back out of reach inside the closet. Nothing counts (no XP and no loot, same as before).
+- The dev sandbox still works as the combat sandbox. New buttons: **Turn-based: ON/OFF**, which switches the closet back to real-time for that visit, and **⚔️ Fight everything**, which puts every critter in the room into one battle. Party size 2–3 stays real-time (`combat.partyTurns:false`). Reset room and the party buttons close any open battle first. Overrides reset when you leave.
+- Bryan's avatar is `assets/avatars/bryan.webp` (307×512, transparent). It was made from his JPG with `avatar_key.py` v2 (morphological opening, so his ink lines, sunglasses and necklace stay solid).
+
+### v5b+: fighter motion, FF-style (Bryan, Nov 14 2026)
+- Every fighter's art sits in a `.btl-body` layer and moves with CSS transforms only. There's no extra JS loop or canvas.
+  - **Idle:** a ready-stance rock (slight rotate and bob, a 1.2–1.6 s loop). Each fighter gets a random delay and length so they never move in sync.
+  - **Gauge full:** the hero does a stronger bounce with a gold glow.
+  - **Attack:** a lunge plus squash and stretch.
+  - **Hit:** a white flash plus a knockback wobble.
+  - **Victory:** a hop and jiggle dance loop behind the end card.
+  - Enemies rock, squash and wobble too.
+- **Weapon in hand:** the equipped weapon is its own small sprite (emoji per weapon, `WEAPON_ICON` in rpg.js), placed about 55–65% down the avatar near the hands. It swings on Attack, raises while ready and waves on victory. The drawn stand-in figure holds it too.
+- **Optional pose frames:** `avatars.static[].poses = { idle, attack, hurt, victory, hold }`, each a local `assets/avatars/*.webp|png`. They're preloaded, and only ones that load are swapped in; any missing pose falls back to the transforms. Nothing ships yet, so the transforms do all the work today.
+- `prefers-reduced-motion: reduce` turns off the rocking, bouncing, dancing and swings, and makes lunges near-instant. The hit flash and damage numbers stay.
