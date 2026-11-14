@@ -734,6 +734,8 @@ export function startOffice(root, opts) {
     try {
       annex = createAnnex({ THREE, scene, mat, box, plane, canvasTex, plate, wrap, fit, PAL, H, T, R, ROOM, walkable, planeGeo }, opts.annex, {
         el, me, hud, layout: { L, gz0, gz1, hx, gx }, rooms, showAllEntrances: !!opts.annexShowAll,
+        sb: opts.api?.sb || null, demo: !!opts.demo, // v5: Supabase client for Annex multiplayer (null in demo mode)
+        cam: () => cam,
         state: () => ({ mode, pos, feet, yaw, busy: !!warp || !panel.hidden }),
         openPanel, closePanel, toast: toast3, threadWarp, updateActions: () => updateActions(true),
         placeAnnex: (p) => { pos.x = p.x; pos.z = p.z; feet = p.y || 0; yaw = p.yaw; pitch = clampPitch(p.pitch ?? 0); vy = 0; onGround = true; climb = null; updateActions(true); },

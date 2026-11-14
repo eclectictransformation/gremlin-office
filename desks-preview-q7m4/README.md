@@ -193,9 +193,114 @@ Everything here is original and silly. All tunables are in **`data/annex-rpg.jso
   - panels and misc: `riddle()`, `openSheet()`, `openCreator()`, `hallwayMobs()`
 - `__o3.annex.rpgFind('mob'|'door'|'box', r)` finds the nearest uncleared one. Teleport there with `__o3.annex.gotoCell(i, j, qi)`.
 
-**Files:** `rpg.js`, `data/annex-rpg.json`, plus small hooks in `annex.js`, a v4 block in `style.css`, and `sw.js` (cache `desks-shell-v9`, which adds both new files).
+**Files:** `rpg.js`, `data/annex-rpg.json`, plus small hooks in `annex.js`, a v4 block in `style.css`, and `sw.js` (cache `desks-shell-v9`, which adds both new files; v4b bumps it to `desks-shell-v10`).
 
 **Tests:** run `python3 ../test_annex.py` against `python3 -m http.server 8841` in this folder. There are 94 v2/v3 checks + 43 v4 checks, written to `../screens/v3-test-results.json` and `v4-test-results.json`, with screenshots in `../screens/v4-*.png`. The v3 copy is in `../elsewhere-annex-v3-backup/`.
 
 **Credits / licence.** Compatible with fifth edition.
 This work includes material from the System Reference Document 5.2.1 ("SRD 5.2.1") by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.
+
+## v4b: the Training Closet + dev sandbox (local preview Nov 13 2026, not live)
+**Where.** A narrow door signed **TRAINING CLOSET** ("practice only · nothing in here counts") sits in the first hallway off the entrance plaza: the hallway straight ahead of the Loose Stitch arrival spot, on the plaza's own short arm, so room re-rolls never cover it. The Overlook (secret stitch) has its own Training Closet door on its north wall, between the circle and the master crystal. You have to be transformed to use either one; otherwise you get the usual gentle nudge.
+
+**Inside** (`instances.training`):
+- Three Practice Dummies, a Sleepy Dust Bunny and a tiny practice boss, **Coach Stuffing** (HP 16, AC 10, d6, with a Clipboard Slap every 3rd swing).
+- A practice soup pot (free, heals 2d4+2) and a practice rack that lends a newspaper, a bubble-wrap vest and a cone helm to try on.
+- A small tip card walks you through attack → dice → ability → gear → healing → knockout. Each tip moves on when you do the thing, or you can press Next.
+
+**Rules** (`training` in `data/annex-rpg.json`):
+- `grantXP:false` blocks XP and level-ups. XP you "would" earn goes to the dice log.
+- `grantLoot:false` means nothing drops and borrowed gear stays in the closet.
+- `questProgress:false` means quests and kill counters ignore training.
+- `partyMax:1` keeps training solo; `&party` doesn't scale it.
+- Mobs reset on every visit.
+- How it's enforced:
+  - Your character is snapshotted when you step in and restored when you leave, which covers XP, gear, inventory, stats, quests and counters. Each flag set to true lets its part through.
+  - While you're inside, only the snapshot is written to localStorage, so closing the tab mid-practice can't save anything either.
+- **Knockout in training:** a "practice knockout". You're reset at the closet door with full HP and a gentle note. No XP loss, nothing stolen, no status.
+
+**Dev sandbox** (hidden from players):
+- Opens with `&sandbox=1` or `__o3.annex.rpg.sandbox()`, and only on localhost unless `training.sandbox.allowLive` is true. A 🧪 Sandbox button appears inside the closet.
+- What it does:
+  - spawn any enemy from `annex-rpg.json` at tier 0–4
+  - equip any item
+  - set level 1–5 and stats
+  - set party size 1–3 (the room re-spawns scaled)
+  - force the next d20s
+  - full HP, knock me out, reset the room
+- A sandbox visit never keeps anything, even if the grant flags are on.
+- Console helpers: `__o3.annex.rpg.sb.{spawn,equip,level,stats,party,force,reset,heal}`. Testing helpers: `rpg.enterTraining()`, `rpg.tportals()`, `rpg.setTraining({ grantXP: true })`.
+
+**Tests:** 33 v4b checks in `../test_annex.py` (results in `../screens/v4b-test-results.json`, screenshots in `../screens/v4b-*.png`). The v4 copy is in `../elsewhere-annex-v4-backup/`.
+
+## v5: Control Room, multiplayer presence, the Mildly Perilous Mailroom, levels 1–25, gates + waystones (local preview Nov 13 2026, NOT live)
+Backup of v4b before any v5 edit: `../elsewhere-annex-v4b-backup/`. Nothing deployed, pushed or applied. Service worker cache is `desks-shell-v11`.
+
+**Control Room (admin only).** There's a door on the Overlook's east wall, and it is only *built* when the database says you're an admin. `annex-net.js` calls `rpc('annex_whoami')`, which uses `is_admin()`: profiles.is_admin plus an aal2 two-step session. There's no client password and no secret URL word. A non-admin's page has no door, no hotspot and no route in. Inside:
+- a wall map
+- the control desk (tabs: Map · Spawn · Sandbox · Move · Booth)
+- the viewing booth, a glass case that loads any cell as a miniature and turns, tilts, flips it upside-down, lifts the roof or spins it, with beacons for players in that cell
+
+What you can do there:
+- **Map:** one dot per player with name, section/cell, distance from you, pairwise distances and a droppable 📍 pin. Players inside instances are listed separately.
+- **Spawn:** any enemy or any boss at any tier, dropped about 2.6 m in front of a chosen player, sent on the admin-only `annex-gm` broadcast. The receiving page spawns it locally. GM mobs are never saved and give XP only. You can also send a little note.
+- **Sandbox:** the full v4b sandbox (spawn, gear, level, stats, forced dice, party size).
+- **Move:** nudge, rotate, lift, flip, carry or reset the room's props.
+
+**Multiplayer.** Uses Supabase Realtime private channels:
+- `annex`: presence (name, x/z/y, yaw, instance, portal, party), throttled to 1 update a second, or every 15 s when still. It also carries party invites.
+- `annex-gm`: everyone reads; only admins may send (RLS on realtime.messages).
+
+Teammates appear as simple figures with name tags in the same place or the same party instance.
+
+Parties: max 3, only for instances. At a party portal you see "➕ Invite <name>" for teammates within 8 m. Accepting joins the party, and "Go" pulls the party into the same instance. Solo instances, like the Mailroom and gates, always count as party 1.
+
+**Demo:** `?demo=1` (localhost only) makes you a fake admin and adds two wandering fake teammates, Vince and Juhani. Add `&as=player` to be a non-admin and check that the door is gone. Console: `__o3.annex.ctl` (state, door, enterControl, openDesk, boothOp, sendGM, fakes, demoPlace…).
+
+**The Mildly Perilous Mailroom (`instances.starter`).** A red door with a brass slot on the arrival plaza, separate from the Training Closet. It's a solo linear run:
+1. Fight 1 · Fight 2
+2. 🛋 Rest (full HP and ability)
+3. Fight 3 · Fight 4
+4. 🛋 Rest
+5. Fight 5
+6. Boss: the Lost-and-Found Bin
+
+There are 5 pickups along the way, including the new **Fizzy Pocket Potion** (1d8+2 heal, also in loot tiers 0–1). Data flags `grantXP` and `grantLoot` make it real progress, unlike Training. It's tuned for levels 1–2. Cleared fights and pickups are saved per character and don't respawn. A full clear takes a fresh level-1 character to level 2, never 3 (Bryan, Nov 14): `instances.starter.xpMult` = 0.4 scales the fight XP and the boss gives 40, so the run is worth 112 XP (a fresh character ends at 132, or 192 if the Dust Management quest completes on the way).
+
+**Levels 1–25.**
+- `levels.xp` has 25 steps (SRD-like to 20, then our own curve to 16 950).
+- Proficiency goes +2 → +8.
+- Stat picks at levels 3, 5, 8, 11, 14, 17, 20 and 23.
+- Every enemy and instance has a `level`, and a tier adds +1 per tier.
+
+**XP falloff** (`xpFalloff` in JSON): full XP up to 1 level below you, −20 % per extra level, and 0 at 5+ levels below. The log says "too easy for you".
+
+**Gates + waystones.**
+- `gates[]` place a gate instance in a deeper section. The placeholder is the Revolving Doorman in The Annex That Turns.
+- Clearing it wakes its waystone, saved on that character as `char.waystones`.
+- The 🗺 Waystone board on the start plaza and the Home crystal (once you have one) offer fast travel there.
+- Real deep content and lore come later.
+
+**Chat (typed + push-to-talk), `annex-chat.js`.** Uses the private Realtime Broadcast topic `annex-chat`.
+- **Typed chat:** press **Enter**, type, Enter. Scopes:
+  - 📍 Nearby: within 20 m outside instances, or the whole room inside an instance copy. It never leaks into another copy.
+  - 🤝 Party
+  - 🌀 Instance (the same copy)
+  - 📣 Everyone
+
+  Lines are at most 280 characters. In real mode they're logged server-side with `annex_chat_log()`: 300 characters max, 20 per minute.
+- **Voice:** hold **V** (or the 🎙 button) to record a clip, up to 7 s, at Opus about 24 kbps (about 20 KB). Real mode uploads it to the private `voice-clips/<you>/` bucket (256 KB cap, audio only). The broadcast carries a 2-minute signed link, and the sender deletes the clip after 2 minutes; `voice-sweep` deletes anything older than 10 minutes. If the upload fails, a clip of 48 KB or less goes inline as base64. Clips play one at a time, and nothing is archived.
+- **Control Room "💬 Chat & mute" tab:**
+  - 👂 listen-in to every room (admin, only inside the Control Room)
+  - 🔇 Mute 10 min / 🔈 Unmute per teammate. This sends an admin-only GM message plus `annex_chat_mute()`. The server stops muted people from sending on `annex-chat` or uploading clips.
+  - recent chat
+- **Demo:** fake local chat. Vince and Juhani hear you when in range and answer typed lines. `&fakemic=1` records a hum instead of the mic. Console: `__o3.annex.ctl.chat` (say, startTalk, stopTalk, demoSay, demoVoice, mute, hears).
+
+**Server side — approved by Bryan and APPLIED Nov 14 2026 to project eclectic-desks `dotwzemmkrxswoeqcggj` (migrations 011–014; edge functions avatar-request, moth-avatar, voice-sweep). The frontend itself is not deployed from here:**
+- `supabase/migrations/011_annex_multiplayer.sql`: `annex_whoami()`, `annex_gm_audit()`, and realtime.messages policies `rt_annex_sel`, `rt_annex_ins`, `rt_annex_gm_ins`. Additive only.
+- `supabase/migrations/012_avatar_requests.sql`, `functions/avatar-request`, `functions/moth-avatar`: Moth cartoon avatars, 1 per player per month. See `../cartoon-avatar-plan.md`.
+- `supabase/migrations/013_annex_chat.sql` + `functions/voice-sweep`: chat mutes, chat log, `annex-chat` RLS, private `voice-clips` bucket and policies. `014_voice_sweep_cron.sql` is optional (pg_cron + pg_net run the sweep every 10 min and prune the chat log after 30 days).
+- Dashboard checks (no change made): Realtime "Allow public access" OFF, Auth sign-ups OFF (invite-only), TOTP MFA on.
+- Known soft spot: presence and party messages could be faked by a logged-in teammate, which is low stakes. GM commands are enforced by the server.
+
+Tests: `../test_annex.py` (v5 section) → `../screens/v5-test-results.json`, screenshots `../screens/v5-*.png`.

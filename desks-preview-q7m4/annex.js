@@ -8,6 +8,7 @@
 // v4: Annex characters, d20 combat, gear, quests, dice doors and party-portal instances live in rpg.js (+ data/annex-rpg.json).
 import { createAnnexAudio } from "./annex-audio.js";
 import { createRPG } from "./rpg.js";
+import { createControl } from "./control.js"; // v5: admin Control Room, live map, multiplayer figures, parties at portals
 
 export function createAnnex(kit, data, host) {
   const { THREE, scene, mat, box, plane, canvasTex, plate, wrap, PAL, H, T, R, ROOM, walkable, planeGeo } = kit;
@@ -344,7 +345,7 @@ export function createAnnex(kit, data, host) {
   const ovStone = ovStoneDef ? Object.assign(makeStone(ovStoneDef, root, ovStoneDef.x, ovStoneDef.y || 0, ovStoneDef.z, true), { lx: ovStoneDef.x, lz: ovStoneDef.z }) : null;
 
   // ---------- chunk streaming ----------
-  const chunks = new Map(); let blockers = []; let rpg = null;
+  const chunks = new Map(); let blockers = []; let rpg = null, ctl = null;
   const stats = { built: 0, roomsBuilt: 0, cellsSeen: new Set(), roomsSeen: new Set() };
   let lastP = { x: 0, z: 0 }, inAnnexNow = false;
   const cellOf = (x, z) => [Math.floor(x / C), Math.floor(z / C)];
@@ -497,8 +498,12 @@ export function createAnnex(kit, data, host) {
     if (fm !== false && (fm || Math.random() < chance)) { const S = otherSection(d.sec || null); lastMisfire = S.id;
       return host.threadWarp({ swap: () => place(dropIn(S, false), "💥 " + pick(data.misfire?.messages || ["Misfire!"]) + ` (${S.name})`) }); }
     host.threadWarp({ swap: () => { place(d.spawnFn(), `You arrive at ${d.name}.`); rpg?.event("crystal", d.id); } }); }
-  function useHome() {
+  function useHome(direct) {
     if (host.state().busy) return; if (here().dead) return fizzle();
+    const ws = direct === true ? [] : (rpg?.gateWaystones?.() || []); // v5: woken gate waystones show up as extra stops on the Home crystal
+    if (ws.length && !rpg?.inInstance()) return host.openPanel(`${data.homeCrystal?.icon || "🏠"} ${data.homeCrystal?.name || "Home crystal"}`, (pn) => { pn.dataset.rpgPanel = "home";
+      const b = el("button", "o3-btn", "🏠 Back to the start"); b.dataset.rpg = "home-start"; b.onclick = () => { host.closePanel(); setTimeout(() => useHome(true), 50); }; pn.appendChild(b);
+      pn.appendChild(el("p", "o3-small", "…or a gate waystone you've woken:")); rpg.waystoneList(pn); });
     audio.sfx("zip"); host.setZoom(false); prog.flags.homeUses = (prog.flags.homeUses || 0) + 1; save(); lostT = 0;
     host.threadWarp({ swap: () => { place(arrivalSpawn(), data.homeCrystal?.used || "Back to the start."); rpg?.event("crystal", "home"); } });
   }
@@ -618,7 +623,7 @@ export function createAnnex(kit, data, host) {
   function arrive(sp, spawnId, e) {
     visitFrom = e?.id || null; timeIn = 0; lostT = 0; hinted = false; inAnnexNow = true; cleanupGlimpse(); endAlive(true); crHide(); flipT = 0; audio.setMood("annex");
     if (data.shuffleOnEnter) { unloadAll(); sections.forEach((S) => (epochs[S.id] = Math.floor(Math.random() * 100000))); } // never quite the same twice (hallways stay put; rooms re-roll)
-    host.enterAnnexMode(); place(sp); audio.start(); muteBtn.hidden = false; renderMute(); rpg?.onArrive(spawnId);
+    host.enterAnnexMode(); place(sp); audio.start(); muteBtn.hidden = false; renderMute(); rpg?.onArrive(spawnId); ctl?.onArrive(spawnId);
     const firstCrystal = !prog.flags.homeCrystal; if (firstCrystal) { prog.flags.homeCrystal = new Date().toISOString(); save(); }
     if (spawnId === "overlook-arrival") { prog.flags.foundOverlook = true; save(); banner("aha! this is where we found it.", "The Gremlins' Overlook · a secret way into the Elsewhere Annex"); }
     else banner(data.name, data.tagline);
@@ -626,7 +631,7 @@ export function createAnnex(kit, data, host) {
   }
   function exitHome(target, kit, quick) {
     audio.sfx("zip"); host.setZoom(false);
-    host.threadWarp({ target: target || null, onK: (k) => kit?.yawn?.(k), swap: () => { kit?.yawn?.(0); cleanupGlimpse(); endAlive(true); crHide(); flipT = 0; audio.setMood("annex"); audio.stop(); muteBtn.hidden = true; inAnnexNow = false; rpg?.onLeave(); host.leaveAnnexMode(); unloadAll(); if (!quick) host.toast("You're back in the office. The stitch is still there, if you want it."); } });
+    host.threadWarp({ target: target || null, onK: (k) => kit?.yawn?.(k), swap: () => { kit?.yawn?.(0); cleanupGlimpse(); endAlive(true); crHide(); flipT = 0; audio.setMood("annex"); audio.stop(); muteBtn.hidden = true; inAnnexNow = false; rpg?.onLeave(); ctl?.onLeave(); host.leaveAnnexMode(); unloadAll(); if (!quick) host.toast("You're back in the office. The stitch is still there, if you want it."); } });
   }
 
   // ---------- HUD bits ----------
@@ -702,6 +707,7 @@ export function createAnnex(kit, data, host) {
     if (st.mode !== "annex") return;
     if (G.active) { tickGlimpse(dt, ts); return; }
     const p = local(st.pos), zone = st.zone, busy = st.busy; lastP = p;
+    ctl?.update(dt, ts, p, st);
     if (rpg?.inInstance()) { timeIn += dt; rpg.update(dt, ts, p, st); return; } // party instance: no streaming, shifting, Grenshol or flitters
     timeIn += dt; lostT += dt; flipT = Math.max(0, flipT - dt);
     if (!busy) stream(p, false);
@@ -1103,8 +1109,12 @@ export function createAnnex(kit, data, host) {
     deskName: () => host.me?.display_name || "you", OV, hubSpawn, place: (sp, t) => place(sp, t),
     placeRaw: (sp) => host.placeAnnex({ x: AX + sp.x, z: AZ + sp.z, y: sp.y || 0, yaw: sp.yaw || 0, pitch: sp.pitch ?? 0 }),
     safeSpawn: (id) => (id && id !== "home" && stoneById[id] ? stoneById[id].spawnFn() : arrivalSpawn()) });
+  // v5: a throwaway copy of any cell for the Control Room's viewing booth (no walk areas, nothing ticks, never in the chunk map)
+  function boothCell(i, j) { const S = sectionOf(i, j), seen = stats.cellsSeen.has(ck(i, j)); const ch = buildCell(planCell(i, j, epochs[S.id] || 0)); root.remove(ch.g);
+    ch.walk.forEach((r) => { const k = walkable.indexOf(r); if (k >= 0) walkable.splice(k, 1); }); stats.built--; if (!seen) stats.cellsSeen.delete(ck(i, j)); return ch; }
+  ctl = createControl({ THREE, root, host, el, rpg, OV, overlookSpots, box, mat, cplane, plate, canvasTex, planeGeo, C, C2, HW, AX, AZ, sections, secById, sectionOf, startSec, ck, chunks, boothCell, audio, cellOf, walkable, R });
   const debug = {
-    rpg: rpg.debug,
+    rpg: rpg.debug, ctl: ctl.debug, useHome: () => useHome(),
     rpgPlan: (i, j) => rpg.debug.plan(planCell(i, j, epOf(i, j))),
     rpgFind: (what, r = 10, minD = 0, sec = null) => { const c0 = startSec.center, cells = []; for (let i = c0[0] - r; i <= c0[0] + r; i++) for (let j = c0[1] - r; j <= c0[1] + r; j++) cells.push([i, j]);
       cells.sort((a, b) => depthOf(...a) - depthOf(...b)); for (const [i, j] of cells) { if (depthOf(i, j) < minD || (sec && sectionOf(i, j).id !== sec)) continue; const pl = planCell(i, j, epOf(i, j)), P = rpg.debug.plan(pl), x = P[what];

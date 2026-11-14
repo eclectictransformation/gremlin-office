@@ -304,6 +304,7 @@ screens.office = async () => {
   const view = (location.search.match(/[?&]view=([a-z0-9]+)/) || [])[1];
   office3d = mod.startOffice($("#o3root"), { ...data, me, demo: DEMO, annex, annexShowAll: DEMO && /[?&]annexdoors=1/.test(location.search), api: {
     exit: () => (location.hash = "#/desk"),
+    sb: DEMO ? null : sb, // v5: Annex multiplayer (private Realtime channels + annex_whoami RPC; see supabase/migrations/011)
     photoUrls: DEMO ? null : (paths) => photoUrl(paths),
     artUrls: DEMO ? null : (paths) => signedFrom("gallery-art", paths),
     setLocked: async (v) => { if (DEMO) return true; const { error } = await sb.from("desks").update({ locked: v }).eq("user_id", me.id); if (error) { toast(error.message); return false; } return true; },
