@@ -414,9 +414,11 @@ export function createAnnex(kit, data, host) {
     if (pl.center) { const S = pl.S, pr = { x0: C2 - hs, x1: C2 + hs, z0: C2 - hs, z1: C2 + hs };
       for (const [a, b] of [[-3, -3], [3, -3], [-3, 3], [3, 3]]) lightPanel(g, C2 + a, C2 + b, M, false);
       const sTex = once("tex:sign:" + S.id, () => plate(S.name, "crystal plaza", { w: 900, h: 300, bg: "#5b5a2e", fg: "#fbf3d0", accent: S.crystal?.color || "#e6d07a" }));
-      P.sign(g, wallSpot(pr, "s", C2 + 3.4, 2.1), sTex, 2.2, 0.72); P.sign(g, wallSpot(pr, "w", C2 - 3.4, 2.1), sTex, 2.2, 0.72);
       const bench = (x, z, ry) => { const b = new THREE.Group(); b.position.set(x, 0, z); b.rotation.y = ry; g.add(b); box(0, 0.42, 0, 2.4, 0.08, 0.6, mat(PAL.oak, { roughness: 0.6 }), b); box(-1, 0.2, 0, 0.08, 0.4, 0.5, mat(PAL.moss), b); box(1, 0.2, 0, 0.08, 0.4, 0.5, mat(PAL.moss), b); };
-      bench(C2 - 3.4, C2 - hs + 0.6, 0); bench(C2 + hs - 0.6, C2 + 3.4, Math.PI / 2);
+      // v5c start plaza: the Door Station stands on the north side, so the section sign leaves that wall
+      // (wallSpot "s" is the north wall) and the west wall stays clear for the train. Other plazas are unchanged.
+      if (S.id === startSec.id) { P.sign(g, wallSpot(pr, "n", C2 - 3.4, 2.1), sTex, 2.2, 0.72); bench(C2 + hs - 0.6, C2 + 3.4, Math.PI / 2); }
+      else { P.sign(g, wallSpot(pr, "s", C2 + 3.4, 2.1), sTex, 2.2, 0.72); P.sign(g, wallSpot(pr, "w", C2 - 3.4, 2.1), sTex, 2.2, 0.72); bench(C2 - 3.4, C2 - hs + 0.6, 0); bench(C2 + hs - 0.6, C2 + 3.4, Math.PI / 2); }
       if (S.crystal) { const st = makeStone(stoneById[S.crystal.id], g, C2, 0, C2, true); st.lx = lx + C2; st.lz = lz + C2; ch.stones.push(st);
         ch.blockers.push({ x0: lx + C2 - 0.45, x1: lx + C2 + 0.45, z0: lz + C2 - 0.45, z1: lz + C2 + 0.45 }); }
       (data.exits || []).filter((x) => x.type === "return-stitch" && x.section === S.id).forEach((x) => {

@@ -355,3 +355,90 @@ Nothing here is deployed or committed. Backup of v5 source: `/workspace/gremlin-
 - **Weapon in hand:** the equipped weapon is its own small sprite (emoji per weapon, `WEAPON_ICON` in rpg.js), placed about 55–65% down the avatar near the hands. It swings on Attack, raises while ready and waves on victory. The drawn stand-in figure holds it too.
 - **Optional pose frames:** `avatars.static[].poses = { idle, attack, hurt, victory, hold }`, each a local `assets/avatars/*.webp|png`. They're preloaded, and only ones that load are swapped in; any missing pose falls back to the transforms. Nothing ships yet, so the transforms do all the work today.
 - `prefers-reduced-motion: reduce` turns off the rocking, bouncing, dancing and swings, and makes lunges near-instant. The hit flash and damage numbers stay.
+
+## v5c: slower XP, Door Station, Mailroom 1–3 (local preview Nov 14 2026, NOT live)
+
+Nothing here is deployed or committed. Backup of v5b source: `/workspace/gremlin-desks/elsewhere-annex-v5b-backup/`. Bryan's ask (Nov 14, 3:11 PM ET): take the slower early-game pacing, don't ding level 2 off one fight, make the first instance walk-in from the gear-up room, and let levels 1–3 earn XP there. Doors, not generic portal pads (3:12 PM). A departures-board teaser for a later train to Gremlin World (3:14 PM), not clickable and not connected yet.
+
+### XP curve (levels 1–25, cap unchanged)
+
+A house curve with a 5e-style early gap. A single scuffle cannot reach level 2. The starter instance can reach level 3 and cannot reach level 4. After level 3 the step to 4 is a wide jump, then the steps grow steadily.
+
+| Level | Cumulative XP | Increment | Proficiency | Notes |
+|---|---|---|---|---|
+| 1 | 0 | — | +2 | |
+| 2 | 150 | 150 | +2 | Several starter fights (five, in the Mailroom) |
+| 3 | 400 | 250 | +2 | A full Mailroom clear lands here; +1 to a stat |
+| 4 | 1000 | 600 | +2 | The starter cannot reach this |
+| 5 | 1600 | 600 | +3 | +1 to a stat |
+| 6 | 2300 | 700 | +3 | |
+| 7 | 3100 | 800 | +3 | |
+| 8 | 4000 | 900 | +3 | +1 to a stat |
+| 9 | 5000 | 1000 | +4 | |
+| 10 | 6100 | 1100 | +4 | |
+| 11 | 7300 | 1200 | +4 | +1 to a stat |
+| 12 | 8600 | 1300 | +4 | |
+| 13 | 10000 | 1400 | +5 | |
+| 14 | 11500 | 1500 | +5 | +1 to a stat |
+| 15 | 13100 | 1600 | +5 | |
+| 16 | 14800 | 1700 | +5 | |
+| 17 | 16600 | 1800 | +6 | +1 to a stat |
+| 18 | 18500 | 1900 | +6 | |
+| 19 | 20500 | 2000 | +6 | |
+| 20 | 22600 | 2100 | +6 | +1 to a stat |
+| 21 | 25000 | 2400 | +7 | |
+| 22 | 27600 | 2600 | +7 | |
+| 23 | 30400 | 2800 | +7 | +1 to a stat |
+| 24 | 33400 | 3000 | +7 | |
+| 25 | 36600 | 3200 | +8 | cap |
+
+Overworld XP falloff (`xpFalloff`) is unchanged: full XP up to 1 level below you, −20 % per extra level, and 0 at 5+ levels below.
+
+**Starter instance band** (`instances.starter.xpBand`): levels 1–3 earn full XP in the Mailroom (no per-mob falloff inside the band). At level 4 each award is a 1-XP token ("you've outgrown this place"). At level 5 and up, none.
+
+### The Mildly Perilous Mailroom (`instances.starter`)
+
+Still a solo linear run with turn-based battles, potions and loot. Layout is now:
+
+1. Fight 1 · The Welcome Fluff (1 Dust Bunny, 15 XP)
+2. Fight 2 · Double Fluff (2 Dust Bunnies, 30)
+3. Fight 3 · Moths in the Pigeonholes (2 Static Moths, 40)
+4. 🛋 Rest · The Squashy Mail Sack
+5. Fight 4 · Paper Sprite Ambush (2 Paper-Cut Sprites + 1 Dust Bunny, 35)
+6. Fight 5 · The Sock and the Moth (Sock Wraith + Static Moth, 50) — a fresh character dings **level 2** here (170 XP)
+7. Fight 6 · Hold Music in the Slots (Static Moth + Hold-Music Wisp, 45)
+8. 🛋 Rest · The Tea Trolley
+9. Boss · The Lost-and-Found Bin (250 XP)
+
+`xpMult` is 1. Fight XP is the normal critter values. A full clear is **465 XP**, so a fresh level-1 character ends at **level 3** (400) and well short of level 4 (1000). A typical first run also pays Sign In (+20, when you put on your gear) and Dust Management (+60, after three critters), for 545 XP — still level 3. With those quests, level 2 arrives around fight 3 rather than fight 5. Either way it takes several fights, never one. Cleared fights and pickups are still saved per character and don't respawn. Five pickups remain (potions, the badge, the visor).
+
+### Door Station (the arrival plaza)
+
+After you put on your gear at the stitched circle, the same room is the **Door Station**. It is meant to read as calm and orderly: a muted palette, even sconces, a symmetric row of neatly labeled doors, a tidy check-in desk, and the middle of the plaza left open for later trapdoors and ladders.
+
+The four doors stand on a free-standing facade just inside the north wall, east of the north hallway, evenly spaced, south-facing: a sealed `???` door, the Mailroom, the padlocked gate, and another sealed `???` door. Each instance has its own themed door (simple geometry + painted signs, no big assets). You walk up and step through. No exploration is required to play the first instance. The old "The Wrong Print / crystal plaza" wall sign was moved to the south wall of this plaza so it no longer sits behind the doors.
+
+- **The Mailroom door** is lit from the start: a red door with a brass mail slot, a stamp, and a postmark sign ("THE MAILROOM · solo · real XP · levels 1–3"), with only a very slight leftover wobble so the row stays tidy.
+- **The Revolving Doorman door** (the existing placeholder gate in The Annex That Turns) starts as a dim, padlocked, boarded silhouette with a `???` plaque. Finding that gate in the Backrooms — walking up to it, or waking its waystone — is saved on the character as `discovered["gate-turn"]` and lights this door. You can then enter the gate instance from the Station. No new instances were added.
+- **Two reserved doors** stay sealed (`???`) until later lore; each has a data-driven `theme` (name, colors, sign, decor) and a `dest` so they can be filled in later.
+
+**Old hallway Mailroom door:** still works, as a shortcut, on the plaza arm opposite the Training Closet. The Station door is the main entrance.
+
+**Train platform** (west side of the plaza): a short track runs north into the wall, with a tidy platform edge (yellow line) and a **Train — Coming Soon** sign next to the departures board. The board is driven by a data-driven `station.stations[]` list. One teaser row, **Gremlin World ??? — Delayed / Coming Soon**. It is not clickable, has no link, and does not connect to `world.html`. The row already has `dest: { type: "external", world: "gremlin-world", path: "world.html" }` so a later train can point at that world without changing the data shape. Door destinations use the same `dest` field (`type: "instance" | "external" | "none"`).
+
+**Order vs. chaos:** the Station stays calm. Crossing the brass threshold into the north hallway (the way out into the Backrooms) is a clear change into light "what the f***" weirdness — a slightly tilted hall, an upside-down lamp, and a nonsensical sign ("THIS WAY (NOT THIS WAY) / the floor is on Tuesdays") — not danger. The Training Closet on that hall is unchanged.
+
+### Battle mode (per instance)
+
+The Mailroom is the test bench for comparing battle systems. Each instance now has a `battleMode` field in `data/annex-rpg.json`:
+
+- `atb-turns` — the current side-view, wait-style turns (`annex-battle.js`). This is what the Mailroom and the Training Closet use.
+- `realtime` — the existing open-world style (party instances, the open Annex, the placeholder gate).
+
+`turnBased: true` is kept as a compatibility alias for `atb-turns`. The sandbox's Turn-based: ON/OFF toggle still works in the closet for that visit. New mode names can be added later and selected per instance; none are being built in this build. Known names are listed under `combat.modes`.
+
+### Cache / tests
+
+- The service worker cache is `desks-shell-v14`.
+- Tests: `python3 /workspace/gremlin-desks/test_annex_v5c.py` (curve, clear ends ~L3, no XP at L4+, Station reachability, encounter/rest/boss order, even doors, train + stations list, threshold). v5b tests still run via `test_annex.py` / `test_annex_v5b.py`. Screenshots go to `/workspace/gremlin-desks/screens/v5c-*.png`, including `v5c-doors-*.png`, `v5c-train-ipad.png`, and `v5c-threshold-ipad.png`.
+- Changed-files zip: `/workspace/elsewhere-annex-v5c-changed.zip`. Go-live needs Bryan's explicit yes.

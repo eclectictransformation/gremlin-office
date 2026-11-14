@@ -6,6 +6,7 @@
 // v5: level cap 25 + XP falloff by content level, the Mailroom starter run (solo, real XP), gate instances that wake per-character waystones,
 //     hooks for the admin-only Control Room (control.js), game-master spawns in front of a player, and party members filled by annex-net.js.
 // v5b: turn-based battles (annex-battle.js) for zones flagged turnBased (only the Mailroom for now); avatar sprite in the fighter slot.
+// v5c: slower 5e-inspired XP curve; Mailroom is 3 fights, rest, 3 fights, rest, boss (levels 1–3); Door Station in the arrival plaza with themed doors, a tidy train teaser, and a weird Backrooms threshold.
 import { createBattle } from "./annex-battle.js";
 export function createRPG(ctx) {
   const { THREE, box, canvasTex, plate, cplane, root, host, el, audio, AX, AZ, C, C2, HW, R, walkable, hsh, ck, depthOf, startSec, sectionOf, place, refreshBlockers, chunks, fill, setPlayerName, deskName, hubSpawn, safeSpawn, OV } = ctx;
@@ -172,6 +173,7 @@ export function createRPG(ctx) {
     if (P.portal) ch.rpg.portal = makePortal(ch, P.portal);
     if (pl.center && TR().enabled && pl.i === startSec.center[0] && pl.j === startSec.center[1]) ch.rpg.tportal = makeTrainingPortal(ch, pl);
     if (pl.center && D.instances.starter && pl.i === startSec.center[0] && pl.j === startSec.center[1]) ch.rpg.sportal = makeStarterPortal(ch, pl);
+    if (pl.i === startSec.center[0] && pl.j === startSec.center[1]) addStationBlockers();
   }
   function makeBox(ch, rm, key, tier, chest) { const g = new THREE.Group(); const x = rm.sx > 0 ? rm.x1 - 0.8 : rm.x0 + 0.8, z = rm.sz > 0 ? rm.z1 - 0.8 : rm.z0 + 0.8; g.position.set(x, 0, z); ch.g.add(g);
     const cm = sm(chest ? "#8a5a2a" : "#b08a5a", { roughness: 1 }); box(0, 0.2, 0, 0.5, 0.4, 0.4, cm, g); const lid = new THREE.Group(); lid.position.set(0, 0.4, -0.2); g.add(lid); box(0, 0.02, 0.2, 0.52, 0.05, 0.42, cm, lid);
@@ -227,7 +229,7 @@ export function createRPG(ctx) {
     if (b.method === "array") return [...v].sort((a, c) => c - a).join() === [...D.creation.standardArray].sort((a, c) => c - a).join();
     return v.every((x) => x >= D.creation.pointBuy.min && x <= D.creation.pointBuy.max) && pbCost(b.base) <= D.creation.pointBuy.points; }
   function createChar(b) { if (!validBuild(b)) return false; const P = D.paths[b.path];
-    S.character = { v: 1, name: cleanName(b.name), path: b.path, method: b.method, base: { ...b.base }, stats: finalStats(b.base, b.path), xp: 0, hp: 0, gear: { weapon: P.weapon, armor: null, head: null, trinket: null }, inv: [], status: [], pendingStat: 0, created_at: new Date().toISOString() };
+    S.character = { v: 1, name: cleanName(b.name), path: b.path, method: b.method, base: { ...b.base }, stats: finalStats(b.base, b.path), xp: 0, hp: 0, gear: { weapon: P.weapon, armor: null, head: null, trinket: null }, inv: [], status: [], pendingStat: 0, waystones: {}, discovered: {}, created_at: new Date().toISOString() };
     (D.startGear || []).forEach((id) => { const it = item(id); if (it && !S.character.gear[it.slot]) S.character.gear[it.slot] = id; });
     S.character.hp = maxHp(); S.quests = {}; S.stash = []; S.counters = {}; save(); return true; }
   function openCreator() {
@@ -283,8 +285,11 @@ export function createRPG(ctx) {
   // ---------- XP, levels, quests ----------
   // v5: XP falloff for content well below you (data: xpFalloff). Returns the fraction of XP you get.
   function xpScale(clvl) { const F = D.xpFalloff; if (!F || !clvl) return 1; const diff = level() - clvl; if (diff <= F.fullWithin) return 1; if (diff >= F.zeroAt) return 0; return Math.max(0, 1 - (diff - F.fullWithin) * F.perLevel); }
-  function gainXP(n0, why, clvl) { const c = CH(); if (!c || !n0) return; let n = n0; if (clvl) { const f = xpScale(clvl); n = f > 0 ? Math.max(D.xpFalloff?.minXP || 1, Math.round(n0 * f)) : 0;
-      if (!n) { addLog(`⭐ 0 XP · ${why} (level ${clvl} is too far below you, level ${level()})`, "sys"); return; } if (n < n0) why += ` (reduced: level ${clvl} content)`; } if (isTraining() && !TR().grantXP) { trainXP += n; addLog(`🎓 Practice: ${n} XP would go here (${why}). XP is off in training.`, "sys"); return; } const L0 = level(), h0 = maxHp(); c.xp += n; const L1 = level(); addLog(`⭐ +${n} XP · ${why}`, "xp");
+  function instBand() { return inst.active ? D?.instances[inst.id]?.xpBand : null; }
+  function gainXP(n0, why, clvl, raw) { const c = CH(); if (!c) return; let n = n0;
+    if (!raw) { const B = instBand(); if (B) { const L = level(); if (L >= (B.zeroAt ?? 99)) { addLog(`⭐ 0 XP · ${why} (you've outgrown this place)`, "sys"); return; } if (L > (B.fullMax ?? 99)) { n = B.token ?? 1; why += " (just a token — you've outgrown this place)"; } }
+      else if (clvl) { const f = xpScale(clvl); n = f > 0 ? Math.max(D.xpFalloff?.minXP || 1, Math.round(n0 * f)) : 0; if (!n) { addLog(`⭐ 0 XP · ${why} (level ${clvl} is too far below you, level ${level()})`, "sys"); return; } if (n < n0) why += ` (reduced: level ${clvl} content)`; } }
+    if (!n) return; if (isTraining() && !TR().grantXP) { trainXP += n; addLog(`🎓 Practice: ${n} XP would go here (${why}). XP is off in training.`, "sys"); return; } const L0 = level(), h0 = maxHp(); c.xp += n; const L1 = level(); addLog(`⭐ +${n} XP · ${why}`, "xp");
     if (L1 > L0) { c.hp += maxHp() - h0; for (let L = L0 + 1; L <= L1; L++) if (D.levels.statUpAt.includes(L)) c.pendingStat = (c.pendingStat || 0) + 1;
       lastLevelUp = { from: L0, to: L1, at: Date.now() }; audio.sfx("chime"); popup(`⬆️ LEVEL ${L1}!`, "lvl"); addLog(`⬆️ Level ${L1}! Max HP ${maxHp()}${c.pendingStat ? " · pick a stat to raise" : ""}`, "lvl");
       setTimeout(() => { if (battle.active()) { pendingLvl = L1; return; } if (!host.state().busy && !koBusy) openLevelUp(); else host.toast(`⬆️ Level ${L1}! Open your sheet (C) to see what changed.`); }, 350); }
@@ -361,10 +366,14 @@ export function createRPG(ctx) {
     audio.sfx("pick"); save(); renderBar(); tipEvent("ability"); return true; }
   const allMobs = () => { const out = []; if (inst.active) inst.mobs.forEach((m) => out.push(m)); else chunks.forEach((ch) => ch.rpg?.mobs.forEach((m) => out.push(m))); return out; };
 
-  // ---------- v5b: turn-based battles (side view, wait-style turn gauges; module: annex-battle.js) ----------
-  // Per-zone flag: an instance with "turnBased": true (the Mailroom), or "combat.turnBasedEverywhere" for the open Annex later.
-  // Party instances fall back to real time for now (turns aren't synced between teammates yet).
-  function turnBasedHere() { if (!D) return false; if (inst.active) { const I = D.instances[inst.id]; if (I?.control) return false; if (isTraining() && sbTurnBased !== null) return sbTurnBased; return !!I?.turnBased && (partySize() <= 1 || !!D.combat?.partyTurns); } return !!D.combat?.turnBasedEverywhere; }
+  // ---------- v5b/v5c: battles (side view, wait-style turn gauges; module: annex-battle.js) ----------
+  // Per-instance battleMode: "atb-turns" (current side-view wait-style turns) or "realtime" (existing open-world style).
+  // The Mailroom is the test bench for comparing systems — new mode names can be added later and selected per instance. None are built in v5c.
+  // "turnBased": true is kept as a compatibility alias for battleMode "atb-turns".
+  // Party instances fall back to real time for now (turns aren't synced between teammates yet) unless combat.partyTurns is on.
+  function battleModeOf(I) { if (!I) return "realtime"; if (I.battleMode) return I.battleMode; return I.turnBased ? "atb-turns" : "realtime"; }
+  function usesAtbTurns(I) { return battleModeOf(I) === "atb-turns"; }
+  function turnBasedHere() { if (!D) return false; if (inst.active) { const I = D.instances[inst.id]; if (I?.control) return false; if (isTraining() && sbTurnBased !== null) return sbTurnBased; return usesAtbTurns(I) && (partySize() <= 1 || !!D.combat?.partyTurns); } return !!D.combat?.turnBasedEverywhere; }
   // v5b+: single-room instances (Training Closet) set battleRange: critters wait at home and a fight starts only when you walk
   // up to one; it pulls in critters within battleGroup of it (a boss never pulls anyone in, and is only pulled if it's the one you walked up to).
   const rangeCfg = () => { const I = inst.active ? D.instances[inst.id] : null; return I?.battleRange ? { range: I.battleRange, group: I.battleGroup ?? 2.6 } : null; };
@@ -510,7 +519,7 @@ export function createRPG(ctx) {
     S.world.bosses[inst.id] = new Date().toISOString(); progress("boss", inst.id); afterBoss(inst.id); if (m.def.loot) dropLoot(null, m, m.def.loot); inst.mobs.forEach((q) => { if (!q.dead) { q.dead = true; q.deadT = 0; } }); save();
     host.toast(`The ${m.name} ${m.def.dieText}`); }
 
-  // ---------- v5: The Mildly Perilous Mailroom (solo starter run: 5 fights, 2 rests, 1 boss; real XP + loot; nothing respawns) ----------
+  // ---------- v5/v5c: The Mildly Perilous Mailroom (solo starter run: 3 fights, rest, 3 fights, rest, boss; real XP + loot; nothing respawns; levels 1–3) ----------
   const RUN_Z0 = 16; // the run sits south of the square rooms (z 0..14) with a gap, so their walk areas never touch
   const runKey = (k) => `run:${inst.id}:${k}`;
   function runGeo(I) { const W = I.width || 6, SEG = I.segment || 8, LOB = I.lobby || 6, n = I.steps.length, x0 = 4, x1 = x0 + W, z1 = RUN_Z0 + LOB + n * SEG;
@@ -552,7 +561,7 @@ export function createRPG(ctx) {
   function afterBoss(id) { const I = D.instances[id];
     if (I.layout === "run") setTimeout(() => host.toast(I.cleared), 1800);
     if (I.gate) { const gt = (D.gates || []).find((q) => q.instance === id); const c = CH(); if (gt && c) { c.waystones ||= {}; if (!c.waystones[gt.waystone.id]) { c.waystones[gt.waystone.id] = { at: new Date().toISOString(), gate: gt.id }; save(); setTimeout(() => host.toast(`✨ ${gt.waystone.name} is awake! Travel there from the waystone board or your Home crystal.`), 1800); addLog(`✨ Waystone woken: ${gt.waystone.name}`, "lvl"); } } } }
-  // starter door: same plaza arm as the Training Closet, on the opposite wall
+  // starter door (hallway shortcut): same plaza arm as the Training Closet, on the opposite wall. The main entrance is the lit Mailroom door at the Door Station in the plaza; this one still works.
   function makeStarterPortal(ch, pl) { const PMg = C2 - (pl.hs ?? 6), mid = PMg / 2; const arms = ["zn", "xn", "xp", "zp"].filter((d) => pl.arms[d]), arm = arms[1] || arms[0]; if (!arm) return null; const I = D.instances.starter; let x, z, rot, sx, sz; /* the plaza arm next to the Training Closet's */
     if (arm[0] === "z") { z = arm === "zn" ? mid : C - mid; x = C2 + HW - 0.14; rot = -Math.PI / 2; sx = C2 - 0.35; sz = z; } else { x = arm === "xn" ? mid : C - mid; z = C2 + HW - 0.14; rot = Math.PI; sx = x; sz = C2 - 0.35; }
     const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; ch.g.add(g); box(0, 1.05, -0.03, 1.15, 2.1, 0.04, sm("#8a3a2a"), g); box(0, 2.14, -0.02, 1.25, 0.08, 0.06, sm("#4a2a1a"), g); box(-0.62, 1.05, -0.02, 0.06, 2.1, 0.06, sm("#4a2a1a"), g); box(0.62, 1.05, -0.02, 0.06, 2.1, 0.06, sm("#4a2a1a"), g);
@@ -568,7 +577,7 @@ export function createRPG(ctx) {
       const go = el("button", "o3-btn", pr.boss ? "🗡 Walk through again (it's quiet now)" : "🗡 Step into the Mailroom"); go.dataset.rpg = "starter-go"; go.onclick = () => { host.closePanel(); enterStarter(tp); }; pn.appendChild(go); }); }
   const enterStarter = (tp) => { tp = tp || sportals()[0]; if (!tp) return null; return enterInstance({ pp: { id: "sp-mailroom", instance: "starter" }, i: startSec.center[0], j: startSec.center[1], spawn: tp.spawn }); };
   // gates (solo, deep) -> per-character waystones
-  function openGate(p) { const I = D.instances[p.pp.instance], gt = p.pp, c = CH(), awake = !!c?.waystones?.[gt.waystone.id];
+  function openGate(p) { maybeDiscover(p.pp); const I = D.instances[p.pp.instance], gt = p.pp, c = CH(), awake = !!c?.waystones?.[gt.waystone.id];
     panel("gate", `🚪 ${I.short || I.name}`, (pn) => { pn.appendChild(el("p", "o3-riddle", gt.label)); pn.appendChild(el("p", null, I.intro));
       pn.appendChild(el("p", "o3-small", `Solo gate · content level ${I.level}. ${awake ? "✨ Its waystone is already awake for you." : "Beat its keeper to wake " + gt.waystone.name + "."}`));
       if (S.world.bosses[p.pp.instance]) { pn.appendChild(el("p", "o3-small", I.done)); return; }
@@ -583,6 +592,149 @@ export function createRPG(ctx) {
     box(0, 0.6, 0, 0.08, 1.2, 0.08, sm("#6f5a3e"), g); cplane(M("t:wsb", () => plate("WAYSTONES", "gates you've opened", { w: 560, h: 200, bg: "#3a3450", fg: "#f3eeff", accent: "#b48cff" })), 0.9, 0.32, 0, 1.35, 0.05, 0, g);
     board = { g, lx: x, lz: z }; }
   function openBoard() { panel("wsboard", "🗺 Waystone board", (pn) => { pn.appendChild(el("p", "o3-small", "Gate waystones you've woken (this character only). Tap one to travel.")); waystoneList(pn); }); }
+
+
+  // ---------- v5c: Door Station in the arrival plaza (orderly themed doors, train teaser, threshold) ----------
+  let stationDoors = [], departBoard = null, trainProp = null, threshProp = null, deskProp = null, comingSign = null;
+  const hexDim = (hex, f) => { const n = parseInt(String(hex).replace("#", ""), 16), r = Math.round(((n >> 16) & 255) * f), gv = Math.round(((n >> 8) & 255) * f), b = Math.round((n & 255) * f); return "#" + ((1 << 24) + (r << 16) + (gv << 8) + b).toString(16).slice(1); };
+  function doorIsOpen(def) { if (!def) return false; if (def.unlocked) return true; const u = def.unlock || {}, c = CH(); if (!c) return false;
+    if (u.type === "discover") { if (u.gate) { const gt = (D.gates || []).find((q) => q.id === u.gate); return !!(c.discovered?.[u.gate] || (gt && c.waystones?.[gt.waystone.id])); } return !!(u.flag && (c.discovered?.[u.flag] || S.flags?.[u.flag])); } return false; }
+  function markDiscovered(id) { const c = CH(); if (!c || !id) return false; c.discovered ||= {}; if (c.discovered[id]) return false; c.discovered[id] = new Date().toISOString(); save(); paintStation(); host.toast(D.station?.discoverToast || "A Station door just flickered on."); addLog("🚪 A Station door woke.", "lvl"); return true; }
+  function maybeDiscover(pp) { if (pp?.gate && transformed) markDiscovered(pp.id); }
+  function stationRows(St) { return (St?.stations && St.stations.length) ? St.stations : (St?.departures?.rows || []); }
+  function postmarkTex(title, sub, col) { return canvasTex(720, 240, (c) => { c.fillStyle = col.signBg; c.fillRect(0, 0, 720, 240); c.strokeStyle = col.accent; c.lineWidth = 8; c.strokeRect(10, 10, 700, 220);
+    c.strokeStyle = col.accent; c.lineWidth = 5; c.beginPath(); c.arc(610, 72, 48, 0, 7); c.stroke(); c.beginPath(); c.arc(610, 72, 34, 0, 7); c.stroke();
+    c.fillStyle = col.accent; c.font = "bold 14px system-ui"; c.textAlign = "center"; c.fillText("ANNEX", 610, 68); c.fillText("MAIL", 610, 86);
+    c.lineWidth = 2.5; for (let i = 0; i < 4; i++) { c.beginPath(); for (let x = 0; x <= 160; x += 8) { const y = 48 + i * 12 + Math.sin(x / 7) * 3; x ? c.lineTo(430 + x, y) : c.moveTo(430 + x, y); } c.stroke(); }
+    c.fillStyle = col.signFg; c.textAlign = "left"; c.font = "bold 40px system-ui"; c.fillText(title, 28, 112); c.font = "22px system-ui"; c.fillText(sub, 28, 162); }); }
+  function depTex(St) { const rows = stationRows(St), Dep = St.departures || {}; return canvasTex(640, 400, (c) => { c.fillStyle = "#1a1c16"; c.fillRect(0, 0, 640, 400); c.fillStyle = "#c9b45a"; c.fillRect(0, 0, 640, 8); c.fillRect(0, 392, 640, 8);
+    c.fillStyle = "#e8d889"; c.font = "bold 36px system-ui"; c.textAlign = "center"; c.fillText(Dep.title || "DEPARTURES", 320, 52); c.font = "18px system-ui"; c.fillStyle = "#9a8a4a"; c.fillText(Dep.subtitle || "", 320, 80);
+    c.strokeStyle = "#4a4630"; c.beginPath(); c.moveTo(24, 96); c.lineTo(616, 96); c.stroke();
+    rows.forEach((r, i) => { const y = 150 + i * 78; c.fillStyle = "#d8c878"; c.textAlign = "left"; c.font = "bold 26px system-ui"; c.fillText((r.name || "").toUpperCase(), 36, y);
+      c.textAlign = "center"; c.font = "bold 24px system-ui"; c.fillText(r.code || "???", 400, y); c.textAlign = "right"; c.fillStyle = r.status === "Delayed" ? "#e08a4a" : "#8fd18a"; c.fillText((r.status || "").toUpperCase(), 604, y);
+      if (r.note) { c.textAlign = "left"; c.font = "16px system-ui"; c.fillStyle = "#9a8a4a"; c.fillText(String(r.note).toUpperCase(), 36, y + 28); } });
+    c.textAlign = "center"; c.font = "bold 16px system-ui"; c.fillStyle = "#c9b45a"; c.fillText("TRAIN — COMING SOON", 320, 372); }); }
+  function hiddenDisc(parent, x, y, z, r) { const disc = new THREE.Mesh(G("hdisc", () => new THREE.CircleGeometry(0.55, 16)), new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide, transparent: true, opacity: 0 })); disc.position.set(x, y, z); parent.add(disc); return disc; }
+  function themedDoor(parent, x, y, z, rotY, def) {
+    const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = rotY; parent.add(g);
+    const col = def.theme.colors, open0 = doorIsOpen(def);
+    const doorM = sm(open0 ? col.door : hexDim(col.door, 0.35), { roughness: 0.85, emissive: open0 ? col.emissive : "#000000", emissiveIntensity: open0 ? 0.16 : 0 });
+    const frameM = sm(open0 ? col.frame : hexDim(col.frame, 0.4), { roughness: 0.7 });
+    box(0, 1.05, -0.03, 1.15, 2.1, 0.04, doorM, g); box(0, 2.14, -0.02, 1.25, 0.08, 0.06, frameM, g); box(-0.62, 1.05, -0.02, 0.06, 2.1, 0.06, frameM, g); box(0.62, 1.05, -0.02, 0.06, 2.1, 0.06, frameM, g);
+    box(0, 1.22, 0.0, 0.42, 0.07, 0.03, sm(open0 ? col.slot : hexDim(col.slot, 0.45), { metalness: 0.6, roughness: 0.3 }), g);
+    if (def.theme.decor === "mail") box(0.32, 1.62, 0.025, 0.22, 0.18, 0.02, sm(open0 ? "#d8c878" : "#4a4030"), g); // stamp
+    const lockG = new THREE.Group(); lockG.position.set(0.28, 1.0, 0.05); g.add(lockG);
+    box(0, 0.05, 0, 0.16, 0.2, 0.08, sm("#3a3a32", { metalness: 0.5, roughness: 0.4 }), lockG);
+    const sh = new THREE.Mesh(G("lockring", () => new THREE.TorusGeometry(0.07, 0.018, 6, 12)), sm("#5a5a50", { metalness: 0.6, roughness: 0.35 })); sh.position.y = 0.16; lockG.add(sh);
+    const plankG = new THREE.Group(); g.add(plankG); const plankM = sm("#3a3024", { roughness: 1 });
+    const p1 = box(0, 1.1, 0.04, 0.16, 2.0, 0.05, plankM, plankG); p1.rotation.z = 0.45; const p2 = box(0, 1.1, 0.05, 0.16, 2.0, 0.05, plankM, plankG); p2.rotation.z = -0.45;
+    const { ring, disc } = swirl(g); ring.visible = false; disc.position.set(0, 1.05, 0.08); disc.material = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide, transparent: true, opacity: 0 });
+    disc.scale.set(1.1, 1.8, 1); // invisible click/tap target covering the door face
+    const signMesh = cplane(plate("???", "sealed", { w: 720, h: 220, bg: "#2a2a2a", fg: "#8a8a8a", accent: "#5a5a5a" }), 1.15, 0.35, 0, 2.45, 0.04, 0, g);
+    signMesh.material = new THREE.MeshStandardMaterial({ map: signMesh.material.map, roughness: 0.9, side: THREE.DoubleSide });
+    if (def.theme.wobble) g.rotation.z = 0.015; // tiny leftover mail wobble; the row stays tidy
+    // even, muted sconce above the frame
+    box(0, 2.28, 0.08, 0.18, 0.06, 0.08, sm("#d8c8a0", { emissive: "#e8d9a8", emissiveIntensity: 0.35 }), g);
+    const d = { def, g, doorM, frameM, lockG, plankG, ring, disc, col, signMesh };
+    paintOne(d, open0); return d; }
+  function doorSignTex(def, open) { const col = def.theme.colors; if (open && def.theme.decor === "mail") return postmarkTex(def.theme.sign, def.theme.signSub, col);
+    return plate(open ? def.theme.sign : "???", open ? def.theme.signSub : "sealed", { w: 720, h: 220, bg: open ? col.signBg : "#2a2a2a", fg: open ? col.signFg : "#8a8a8a", accent: open ? col.accent : "#5a5a5a" }); }
+  function paintOne(d, open) { const col = d.col; d.doorM.color.set(open ? col.door : hexDim(col.door, 0.35)); d.doorM.emissive.set(open ? col.emissive : "#000000"); d.doorM.emissiveIntensity = open ? 0.16 : 0;
+    d.frameM.color.set(open ? col.frame : hexDim(col.frame, 0.4)); if (d.lockG) d.lockG.visible = !open; if (d.plankG) d.plankG.visible = !open; if (d.ring) d.ring.visible = false;
+    if (d.signMesh && d._open !== open) { d.signMesh.material.map = doorSignTex(d.def, open); d.signMesh.material.needsUpdate = true; d._open = open; } }
+  function paintStation() { stationDoors.forEach((d) => { const open = doorIsOpen(d.def); paintOne(d, open); if (d.signPlane) d.signPlane.visible = true; }); }
+  function buildFacade(St, ox, oz) {
+    const F = St.layout?.facade || {}, z = oz + (F.z ?? 4.72), x0 = ox + (F.x0 ?? 9.15), x1 = ox + (F.x1 ?? 13.95);
+    const mid = (x0 + x1) / 2, w = x1 - x0, h = F.h ?? 3, g = new THREE.Group(); root.add(g);
+    const wall = sm("#4a463c", { roughness: 0.95 }), trim = sm("#3a362e", { roughness: 0.8 });
+    box(mid, h / 2, z, w, h, 0.1, wall, g); box(mid, 0.06, z + 0.06, w, 0.12, 0.04, trim, g); box(mid, h - 0.06, z + 0.06, w, 0.1, 0.04, trim, g);
+    box(mid, 0.012, z + 0.95, w + 0.15, 0.02, 1.7, sm("#5a5648", { roughness: 1 }), g); // muted runner in front of the doors
+    const sg = St.layout?.stationSign || {};
+    cplane(M("t:stn-sign", () => plate(St.sign, St.signSub, { w: 860, h: 220, bg: "#3a3428", fg: "#fbf3d0", accent: "#c9b45a" })), 1.7, 0.4, mid, sg.y || 2.82, z + 0.08, 0, g);
+    return { g, x0, x1, z, mid }; }
+  function buildDesk(St, ox, oz) {
+    const L = St.layout?.desk || {}, x = ox + (L.x ?? 10.15), z = oz + (L.z ?? 6.55), g = new THREE.Group();
+    g.position.set(x, 0, z); g.rotation.y = L.rotY ?? 0.06; root.add(g);
+    const oak = sm("#6a5840", { roughness: 0.7 }), dark = sm("#3a3024");
+    box(0, 0.72, 0, 1.35, 0.06, 0.62, oak, g); box(-0.6, 0.36, 0, 0.06, 0.72, 0.58, dark, g); box(0.6, 0.36, 0, 0.06, 0.72, 0.58, dark, g); box(0, 0.36, -0.26, 1.2, 0.62, 0.05, oak, g);
+    box(-0.45, 0.82, 0.08, 0.04, 0.2, 0.04, sm("#c8b56a", { metalness: 0.4 }), g);
+    box(-0.45, 1.0, 0.08, 0.16, 0.08, 0.16, sm("#e8d9a8", { emissive: "#e8d0a0", emissiveIntensity: 0.45 }), g);
+    const bell = new THREE.Mesh(G("bell", () => new THREE.SphereGeometry(0.05, 10, 8)), sm("#d8c878", { metalness: 0.6, roughness: 0.3 })); bell.position.set(0.15, 0.82, 0.08); bell.scale.y = 0.7; g.add(bell);
+    box(0.15, 0.76, 0.08, 0.08, 0.02, 0.08, sm("#d8c878", { metalness: 0.5 }), g);
+    cplane(M("t:checkin", () => plate((St.desk && St.desk.sign) || "CHECK-IN", (St.desk && St.desk.signSub) || "please form a tidy queue", { w: 640, h: 180, bg: "#3a3428", fg: "#fbf3d0", accent: "#c9b45a" })), 0.7, 0.2, 0, 1.05, -0.28, 0, g);
+    const disc = hiddenDisc(g, 0, 0.9, 0.2, 0.55); disc.userData.run = openDesk; disc.userData.maxD = 4.5;
+    deskProp = { g, disc, lx: x, lz: z, label: (St.desk && St.desk.label) || "🔔 Check-in desk" }; }
+  function openDesk() { const Dk = D.station?.desk || {}; panel("checkin", "🔔 Check-in", (pn) => { pn.appendChild(el("p", "o3-riddle", Dk.text || "A tidy desk. A bell. A lamp. Nobody is currently checking anyone in.")); pn.appendChild(el("p", "o3-small", Dk.sub || "The Station likes things orderly.")); }); }
+  function buildTrain(St, ox, oz) {
+    const T = St.layout?.train || {}, x = ox + (T.x ?? 3.35), z0 = oz + (T.z0 ?? 2.25), z1 = oz + (T.z1 ?? 7.4);
+    const midz = (z0 + z1) / 2, len = z1 - z0, g = new THREE.Group(); root.add(g);
+    const rail = sm("#6a6a70", { metalness: 0.7, roughness: 0.35 }), tie = sm("#4a3a28", { roughness: 1 }), plat = sm("#6a665c", { roughness: 0.9 }), yel = sm("#d8c44a", { roughness: 0.55, emissive: "#a09030", emissiveIntensity: 0.12 });
+    for (let zz = z0 + 0.15; zz < z1 - 0.1; zz += 0.42) box(x, 0.03, zz, 0.85, 0.05, 0.12, tie, g);
+    box(x - 0.22, 0.07, midz, 0.06, 0.05, len - 0.1, rail, g); box(x + 0.22, 0.07, midz, 0.06, 0.05, len - 0.1, rail, g);
+    box(x, 0.22, z0 + 0.08, 0.9, 0.4, 0.1, sm("#4a4036"), g); box(x, 0.55, z0 + 0.08, 0.7, 0.08, 0.08, rail, g); // buffer against the wall
+    const px = T.platformX != null ? ox + T.platformX : x + 0.95, pw = T.platformW ?? 1.35, pz0 = z0 + 0.35, pz1 = z1 - 0.15, plen = pz1 - pz0;
+    box(px, 0.08, (pz0 + pz1) / 2, pw, 0.16, plen, plat, g); box(px - pw / 2 + 0.06, 0.17, (pz0 + pz1) / 2, 0.1, 0.02, plen, yel, g);
+    const Sx = St.layout?.trainSign || {}, sx = ox + (Sx.x ?? 4.55), sz = oz + (Sx.z ?? 6.35), sg = new THREE.Group();
+    sg.position.set(sx, 0, sz); sg.rotation.y = Sx.rotY ?? 0.12; root.add(sg);
+    box(0, 0.7, 0, 0.06, 1.4, 0.06, sm("#4a4030"), sg);
+    cplane(M("t:trainsign", () => plate((St.train && St.train.sign) || "TRAIN — COMING SOON", (St.train && St.train.signSub) || "please wait behind the yellow line", { w: 900, h: 240, bg: "#2a2c22", fg: "#f3e7b0", accent: "#c9b45a" })), 1.2, 0.36, 0, Sx.y || 2.15, 0.04, 0, sg);
+    const sdisc = hiddenDisc(sg, 0, 1.6, 0.1, 0.6); sdisc.userData.run = openTrainSign; sdisc.userData.maxD = 4.5;
+    comingSign = { g: sg, disc: sdisc, lx: sx, lz: sz, label: (St.train && St.train.label) || "🚂 Train — Coming Soon" };
+    trainProp = { g, lx: x, lz: midz, z0, z1, platformX: px, sign: comingSign }; }
+  function openTrainSign() { const Tr = D.station?.train || {}; panel("trainsign", "🚂 Train — Coming Soon", (pn) => { pn.appendChild(el("p", "o3-riddle", Tr.text || "A short track runs into the wall. The train is coming soon, in some weird way.")); pn.appendChild(el("p", "o3-small", Tr.sub || "Please wait behind the yellow line. No boarding, and no connection from here yet.")); }); }
+  function wtfSignTex() { const Th = D.station?.threshold || {}; return canvasTex(720, 280, (c) => { c.fillStyle = "#3a4a38"; c.fillRect(0, 0, 720, 280); c.strokeStyle = "#c9b45a"; c.lineWidth = 8; c.strokeRect(10, 10, 700, 260);
+    c.fillStyle = "#fbf3d0"; c.font = "bold 36px system-ui"; c.textAlign = "center"; c.fillText(Th.sign || "THIS WAY (NOT THIS WAY)", 360, 118);
+    c.font = "22px system-ui"; c.fillStyle = "#d8c878"; c.fillText(Th.signSub || "the floor is on Tuesdays", 360, 168);
+    c.fillStyle = "#e08a4a"; c.beginPath(); c.moveTo(360, 190); c.lineTo(328, 222); c.lineTo(348, 222); c.lineTo(348, 250); c.lineTo(372, 250); c.lineTo(372, 222); c.lineTo(392, 222); c.closePath(); c.fill(); }); }
+  function buildThreshold(St, ox, oz) {
+    const L = St.layout?.threshold || {}, x = ox + (L.x ?? 8), z = oz + (L.z ?? 2.02), g = new THREE.Group(); root.add(g);
+    box(x, 0.015, z + 0.22, 2.35, 0.03, 0.28, sm("#5a5648", { roughness: 0.85 }), g);
+    box(x, 0.025, z + 0.08, 2.35, 0.02, 0.06, sm("#c9b45a", { roughness: 0.5 }), g); // tidy brass bar on the Station side
+    const trim = new THREE.Group(); trim.position.set(x, 0, z - 0.16); trim.rotation.z = 0.12; trim.rotation.y = 0.04; g.add(trim); // slightly tilted hall cue
+    const tm = sm("#6a6558"); box(0, 2.15, 0, 2.5, 0.08, 0.06, tm, trim); box(-1.22, 1.1, 0, 0.08, 2.2, 0.06, tm, trim); box(1.22, 1.1, 0, 0.08, 2.2, 0.06, tm, trim);
+    const tile = box(x + 0.45, 0.02, z - 0.55, 0.55, 0.02, 0.55, sm("#6a5a48"), g); tile.rotation.y = 0.22;
+    // upside-down lamp on the east side of the hall, clear of the Training Closet
+    const lamp = new THREE.Group(); lamp.position.set(x + 0.82, 0, z - 1.05); g.add(lamp);
+    box(0, 2.62, 0, 0.05, 0.5, 0.05, sm("#4a4030"), lamp);
+    const shade = new THREE.Mesh(G("lampshade", () => new THREE.ConeGeometry(0.2, 0.28, 10)), sm("#e8d4a0", { emissive: "#e0c878", emissiveIntensity: 0.55 }));
+    shade.position.y = 2.12; shade.rotation.x = Math.PI; lamp.add(shade); // wide opening faces the ceiling
+    const bulb = new THREE.Mesh(G("bulb", () => new THREE.SphereGeometry(0.055, 8, 8)), sm("#fff6c8", { emissive: "#fff0a0", emissiveIntensity: 0.9 })); bulb.position.y = 2.24; lamp.add(bulb);
+    // crooked sign faces the Station so it reads as you cross the threshold (not edge-on on the wall)
+    const sg = new THREE.Group(); sg.position.set(x + 0.7, 0, z - 0.9); sg.rotation.y = 0.18; sg.rotation.z = 0.16; g.add(sg);
+    cplane(M("t:wtfsign", wtfSignTex), 1.15, 0.46, 0, 1.55, 0.02, 0, sg);
+    const disc = hiddenDisc(g, x, 1.2, z, 0.7); disc.userData.run = openThreshold; disc.userData.maxD = 5;
+    threshProp = { g, disc, lx: x, lz: z, label: (St.threshold && St.threshold.label) || "A slightly odd threshold" }; }
+  function openThreshold() { const Th = D.station?.threshold || {}; panel("threshold", Th.title || "A slightly odd threshold", (pn) => { pn.appendChild(el("p", "o3-riddle", Th.text || "The hall leans a little. The lamp is upside down. A sign says THIS WAY (NOT THIS WAY).")); pn.appendChild(el("p", "o3-small", Th.sub || "Weird, not dangerous. This is where the Station ends and the Backrooms begin.")); }); }
+  function addStationBlockers() {
+    const St = D.station, L = St?.layout || {}, sc = startSec.center, ch = chunks.get(ck(sc[0], sc[1])); if (!ch || ch._stationBlk || !St) return;
+    ch._stationBlk = true; const ox = sc[0] * C, oz = sc[1] * C, F = L.facade || {}, Dk = L.desk || {}, Tr = L.train || {};
+    const fz = oz + (F.z ?? 4.72); ch.blockers.push({ x0: ox + (F.x0 ?? 9.15), x1: ox + (F.x1 ?? 13.95), z0: fz - 0.14, z1: fz + 0.14 });
+    const dx = ox + (Dk.x ?? 10.15), dz = oz + (Dk.z ?? 6.55); ch.blockers.push({ x0: dx - 0.75, x1: dx + 0.75, z0: dz - 0.42, z1: dz + 0.42 });
+    const tx = ox + (Tr.x ?? 3.35), tz0 = oz + (Tr.z0 ?? 2.25); ch.blockers.push({ x0: tx - 0.5, x1: tx + 0.5, z0: tz0 - 0.05, z1: tz0 + 0.25 });
+    refreshBlockers(); }
+  function buildStation() { const St = D.station; if (!St) return; const sc = startSec.center, ox = sc[0] * C, oz = sc[1] * C, L = St.layout || {}, rot = L.rotY || 0, z = oz + (L.z ?? 4.85), xs = L.doorsX || {};
+    buildFacade(St, ox, oz); buildTrain(St, ox, oz); buildDesk(St, ox, oz); buildThreshold(St, ox, oz);
+    (St.doors || []).forEach((def) => { const x = ox + (xs[def.id] ?? 11); const built = themedDoor(root, x, 0, z, rot, def); const sz = z + 1.15;
+      const d = { ...built, lx: x, lz: z, y: 0, spawn: { x, z: sz, y: 0, yaw: yawTo(0, z - sz) } }; d.disc.userData.run = () => openStationDoor(d); d.disc.userData.maxD = 4.5; stationDoors.push(d); });
+    if (St.departures && L.board) { const g = new THREE.Group(); g.position.set(ox + L.board.x, 0, oz + L.board.z); g.rotation.y = L.board.rotY ?? 0; root.add(g);
+      box(0, 0.7, 0, 0.08, 1.4, 0.08, sm("#4a4030"), g); box(0, 1.7, 0.02, 1.15, 0.9, 0.05, sm("#1a1c16"), g);
+      cplane(M("t:dep", () => depTex(St)), 1.1, 0.78, 0, 1.7, 0.05, 0, g);
+      const bdisc = hiddenDisc(g, 0, 1.7, 0.08, 0.55); bdisc.userData.run = () => openDepartures(); bdisc.userData.maxD = 4.5;
+      departBoard = { g, disc: bdisc, lx: ox + L.board.x, lz: oz + L.board.z }; }
+    addStationBlockers(); }
+  function openDepartures() { const St = D.station, rows = stationRows(St); panel("departures", `📋 ${St.departures.title}`, (pn) => { pn.appendChild(el("p", "o3-small", St.departures.subtitle || ""));
+    rows.forEach((r) => { pn.appendChild(el("p", "o3-riddle", `${r.name} ${r.code || "???"} — ${r.status || ""}${r.note ? " · " + r.note : ""}`)); pn.appendChild(el("p", "o3-small", r.clickable ? "" : "Not boarding. No connection from here yet.")); }); }); }
+  function openStationDoor(d) { if (!transformed) return nudge(true); if (!doorIsOpen(d.def)) { panel("sdoor-" + d.def.id, "🚪 ???", (pn) => { pn.appendChild(el("p", "o3-riddle", D.station.lockedLabel)); }); host.toast(D.station.lockedToast); return; }
+    const dest = d.def.dest || {}; if (dest.type === "instance" && dest.id === "starter") return openStarter(d);
+    if (dest.type === "instance" && dest.id) { const gt = (D.gates || []).find((q) => q.instance === dest.id || q.id === dest.id);
+      if (gt) return openGate({ pp: { ...gt, gate: true }, i: startSec.center[0], j: startSec.center[1], spawn: d.spawn });
+      return enterInstance({ pp: { id: d.def.id, instance: dest.id }, i: startSec.center[0], j: startSec.center[1], spawn: d.spawn }); }
+    if (dest.type === "external") { host.toast("Delayed."); return; } host.toast(D.station.lockedToast); }
+  function stationDoorList() { return stationDoors.map((d) => ({ id: d.def.id, open: doorIsOpen(d.def), dest: d.def.dest, theme: d.def.theme.name, sign: doorIsOpen(d.def) ? d.def.theme.sign : "???", ...W3(d.lx, 0, d.lz), spawn: { ...W3(d.spawn.x, 0, d.spawn.z), yaw: d.spawn.yaw } })); }
+  function trainInfo() { return trainProp && { x: trainProp.lx, z: trainProp.lz, z0: trainProp.z0, z1: trainProp.z1, platformX: trainProp.platformX, sign: comingSign && { ...W3(comingSign.lx, 0, comingSign.lz), label: comingSign.label }, board: departBoard && W3(departBoard.lx, 0, departBoard.lz) }; }
+  function thresholdInfo() { return threshProp && { ...W3(threshProp.lx, 0, threshProp.lz), label: threshProp.label }; }
+  function deskInfo() { return deskProp && { ...W3(deskProp.lx, 0, deskProp.lz), label: deskProp.label }; }
+
 
   // ---------- the Training Closet: practice only (nothing counts; everything resets when you leave) ----------
   function buildTrainingRoom(g, s) { const mt = sm("#3f6a5a", { roughness: 1 }); [[3.5, 6], [7, 6], [10.5, 6]].forEach(([x, z]) => box(x, 0.012, z, 2.6, 0.02, 2.6, mt, g));
@@ -690,6 +842,7 @@ export function createRPG(ctx) {
     if (st.zone !== trackZone) { if (trackSpot && trackZone) prevSpot = trackSpot; trackZone = st.zone; } if (!battle.active()) trackSpot = { x: p.x, z: p.z, yaw, y: st.feet || 0, zone: st.zone };
     if (!busy && !battle.active() && transformed && CH() && turnBasedHere() && performance.now() > tbGraceUntil) { const foes = rangeFoes(p, st.zone) || battleFoes(st.zone); if (foes.length) startBattle(foes, st.zone); }
     tportals().forEach((tp) => (tp.disc.rotation.z = -ts * 1.5)); sportals().forEach((tp) => (tp.disc.rotation.z = ts * 1.2));
+    stationDoors.forEach((d) => { if (d.def.theme.wobble && doorIsOpen(d.def)) d.g.rotation.z = 0.012 + Math.sin(ts * 1.1) * 0.008; });
     if (inst.active) { tickList(inst.mobs, IX, IZ); inst.exit.disc.rotation.z = -ts * 1.5; inst.drops.forEach((d) => { if (!d.taken) d.b.rotation.y = ts * 2; }); }
     else { for (let q = gmMobs.length - 1; q >= 0; q--) { const m = gmMobs[q]; if (!m.ch.gmRoot && !chunks.has(m.ch.key)) { gmMobs.splice(q, 1); continue; } tickList([m], m.ch.lx, m.ch.lz); } }
     if (!inst.active) chunks.forEach((ch) => { const r = ch.rpg; if (!r) return; if (r.mobs.length) tickList(r.mobs, ch.lx, ch.lz);
@@ -716,7 +869,12 @@ export function createRPG(ctx) {
   function near(p, feet, cand) { if (!D) return; const lv = (y) => Math.abs((y || 0) - feet) < 1.2;
     circles.forEach((c) => { if (lv(c.y) && !transformed) cand("rpg:circle:" + c.id, Math.hypot(c.x - p.x, c.z - p.z), 1.9, D.circle.label, openCircle); });
     const sc = startCircle(); if (transformed && sc && CH()?.inv.includes("parcel")) cand("rpg:outbox", Math.hypot(sc.x + 1.15 - p.x, sc.z - 0.6 - p.z), 2.2, D.outbox.label, deliver);
-    sportals().forEach((tp) => cand("rpg:starter" + (transformed ? "" : ":n"), Math.hypot(tp.lx - p.x, tp.lz - p.z), 2.2, transformed ? `🗡 ${D.instances.starter.name} (solo · real XP · level 1–2)` : `🗡 ${D.instances.starter.short} (step into the entrance circle first)`, () => openStarter(tp)));
+    sportals().forEach((tp) => cand("rpg:starter" + (transformed ? "" : ":n"), Math.hypot(tp.lx - p.x, tp.lz - p.z), 2.2, transformed ? `🗡 ${D.instances.starter.name} (solo · real XP · level ${(D.instances.starter.levelRange || [1, 3]).join("–")})` : `🗡 ${D.instances.starter.short} (step into the entrance circle first)`, () => openStarter(tp)));
+    stationDoors.forEach((d) => { const open = doorIsOpen(d.def), name = open ? d.def.theme.name : "???"; cand("rpg:sdoor:" + d.def.id + (transformed && open ? "" : ":n"), Math.hypot(d.lx - p.x, d.lz - p.z), 2.2, transformed ? (open ? `🚪 ${name}` : "🚪 ??? (sealed)") : `🚪 ${name} (step into the entrance circle first)`, () => openStationDoor(d)); });
+    if (departBoard && !inst.active && feet < 1) cand("rpg:departures", Math.hypot(departBoard.lx - p.x, departBoard.lz - p.z), 1.9, D.station.departures.label, openDepartures);
+    if (comingSign && !inst.active && feet < 1) cand("rpg:trainsign", Math.hypot(comingSign.lx - p.x, comingSign.lz - p.z), 1.9, comingSign.label, openTrainSign);
+    if (threshProp && !inst.active && feet < 1) cand("rpg:threshold", Math.hypot(threshProp.lx - p.x, threshProp.lz - p.z), 2.0, threshProp.label, openThreshold);
+    if (deskProp && !inst.active && feet < 1) cand("rpg:checkin", Math.hypot(deskProp.lx - p.x, deskProp.lz - p.z), 1.8, deskProp.label, openDesk);
     if (board && !inst.active && feet < 1) cand("rpg:wsboard", Math.hypot(board.lx - p.x, board.lz - p.z), 1.9, D.waystoneBoard.label, openBoard);
     tportals().forEach((tp) => { if (lv(tp.y)) cand("rpg:train:" + tp.def.id + (transformed ? "" : ":n"), Math.hypot(tp.lx - p.x, tp.lz - p.z), 2.2, transformed ? "🎓 Training Closet (practice, nothing counts)" : "🎓 Training Closet (step into the entrance circle first)", () => openTraining(tp)); });
     const mobC = (m) => { if (m.dead || !transformed || curZone !== m.zone) return; cand("rpg:mob:" + m.id + (cd > 0 ? ":cd" : ""), dist(m), D.mobs.reach, cd > 0 ? "⏳ (winding up…)" : `⚔️ ${weapon().name} → ${m.name} (d20${sg(atkBonus())} vs AC ${m.ac})`, () => attackMob(m)); };
@@ -727,9 +885,9 @@ export function createRPG(ctx) {
     chunks.forEach((ch) => { const r = ch.rpg; if (!r) return; r.mobs.forEach(mobC); r.drops.forEach(dropC);
       [r.box, r.box2].forEach((b) => { if (b && !b.opened) cand("rpg:box:" + b.key, Math.hypot(b.lx - p.x, b.lz - p.z), 1.6, transformed ? (b.chest ? "🧰 Open the chest" : "📦 Open the cardboard box") : "📦 A box (waiting for your Annex self)", () => openBox(b)); });
       if (r.door && !r.door.open) cand("rpg:door:" + r.door.key + (transformed ? "" : ":n"), Math.hypot(r.door.lx - p.x, r.door.lz - p.z), 1.8, transformed ? `🎲 Dice door: ${D.stats.find((s) => s.id === r.door.P.stat).name} check (DC ${r.door.P.dc})` : "🎲 A dice door (step into the entrance circle first)", () => openDoor(r.door));
-      if (r.portal) cand("rpg:portal:" + r.portal.pp.id + (transformed ? "" : ":n"), Math.hypot(r.portal.lx - p.x, r.portal.lz - p.z), 2.4, r.portal.pp.gate ? (transformed ? `🚪 Gate (solo · level ${D.instances[r.portal.pp.instance].level})` : "🚪 A gate (step into the entrance circle first)") : transformed ? "🌀 Party portal (1–3 explorers)" : "🌀 Party portal (step into the entrance circle first)", () => openPortal(r.portal)); }); }
+      if (r.portal) { if (r.portal.pp.gate && Math.hypot(r.portal.lx - p.x, r.portal.lz - p.z) < 8) maybeDiscover(r.portal.pp); cand("rpg:portal:" + r.portal.pp.id + (transformed ? "" : ":n"), Math.hypot(r.portal.lx - p.x, r.portal.lz - p.z), 2.4, r.portal.pp.gate ? (transformed ? `🚪 Gate (solo · level ${D.instances[r.portal.pp.instance].level})` : "🚪 A gate (step into the entrance circle first)") : transformed ? "🌀 Party portal (1–3 explorers)" : "🌀 Party portal (step into the entrance circle first)", () => openPortal(r.portal)); } }); }
   function deliver() { const c = CH(), i = c?.inv.indexOf("parcel") ?? -1; if (i < 0) return false; c.inv.splice(i, 1); audio.sfx("pick"); host.toast(D.outbox.done); progress("fetch"); save(); return true; }
-  function clickTargets() { if (!D) return []; const out = circles.map((c) => c.disc); tportals().forEach((tp) => out.push(tp.disc)); sportals().forEach((tp) => out.push(tp.disc)); if (inst.active) { inst.mobs.forEach((m) => !m.dead && out.push(m.hitMesh)); out.push(inst.exit.disc); return out; }
+  function clickTargets() { if (!D) return []; const out = circles.map((c) => c.disc); tportals().forEach((tp) => out.push(tp.disc)); sportals().forEach((tp) => out.push(tp.disc)); stationDoors.forEach((d) => out.push(d.disc)); if (departBoard?.disc) out.push(departBoard.disc); if (comingSign?.disc) out.push(comingSign.disc); if (threshProp?.disc) out.push(threshProp.disc); if (deskProp?.disc) out.push(deskProp.disc); if (inst.active) { inst.mobs.forEach((m) => !m.dead && out.push(m.hitMesh)); out.push(inst.exit.disc); return out; }
     gmMobs.forEach((m) => !m.dead && out.push(m.hitMesh)); chunks.forEach((ch) => { if (!ch.rpg) return; ch.rpg.mobs.forEach((m) => !m.dead && out.push(m.hitMesh)); if (ch.rpg.portal) out.push(ch.rpg.portal.disc); }); return out; }
 
   // ---------- panels ----------
@@ -763,7 +921,7 @@ export function createRPG(ctx) {
   function onLeave() { if (inst.active) leaveInstance(true); const was = transformed; inAnnex = false; transformed = false; setPlayerName(null); renderBar(); if (was && D) addLog(D.circle.unbecome, "sys"); }
   function init() { (D.partyPortals || []).forEach((pp) => { const Sx = ctx.secById[pp.section]; if (!Sx) return; portalByCell.set(ck(Sx.center[0] + pp.cell[0], Sx.center[1] + pp.cell[1]), pp); });
     (D.gates || []).forEach((gt) => { const Sx = ctx.secById[gt.section]; if (!Sx) return; const k = ck(Sx.center[0] + gt.cell[0], Sx.center[1] + gt.cell[1]); if (!portalByCell.has(k)) portalByCell.set(k, { ...gt, gate: true }); });
-    buildBoard();
+    buildBoard(); buildStation();
     const sc = startSec.center; buildCircle(sc[0] * C + 5.0, sc[1] * C + 12.0, 0, "start"); if (OV) buildCircle(OV.x0 + 3.2, OV.z1 - 1.6, OV.y, "overlook"); buildOverlookTraining();
     chunks.forEach((ch) => onCell(ch)); refreshBlockers(); }
   const ready = fetch("data/annex-rpg.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) { D = d; init(); } return !!d; }).catch(() => false);
@@ -787,7 +945,7 @@ export function createRPG(ctx) {
     hallwayMobs: () => { let n = 0; chunks.forEach((ch) => ch.rpg?.mobs.forEach((m) => { if (!/:r\d$/.test(m.zone)) n++; const gp = m.g.position; if (gp.x < m.rect.x0 - 0.01 || gp.x > m.rect.x1 + 0.01 || gp.z < m.rect.z0 - 0.01 || gp.z > m.rect.z1 + 0.01) n++; })); return n; },
     attack: (id) => { const m = findMob(id); if (!m) return null; cd = 0; return attackMob(m, true); },
     kill: (id) => { const m = findMob(id); if (!m) return false; m.hp = 0; killMob(m); return true; },
-    addXP: (n) => gainXP(n, "debug"), raise, setHP: (n) => { CH().hp = n; save(); renderBar(); }, hurt: (n) => hurt(n, "test"), ko: (force, speed = 1) => { koSpeed = speed; knockout("test", force); }, koSpeed: (v) => { koSpeed = v; },
+    addXP: (n) => gainXP(n, "debug", null, true), raise, setHP: (n) => { CH().hp = n; save(); renderBar(); }, hurt: (n) => hurt(n, "test"), ko: (force, speed = 1) => { koSpeed = speed; knockout("test", force); }, koSpeed: (v) => { koSpeed = v; },
     give: (id) => giveItem(id), equip, event, progress, ability: useAbility,
     doors: () => { const out = []; chunks.forEach((ch) => { const d = ch.rpg?.door; if (d) out.push({ key: d.key, stat: d.P.stat, dc: d.P.dc, open: d.open, ...W3(d.lx, 0, d.lz), blocked: ch.blockers.includes(d.blk) }); }); return out; },
     doorRoll: (key) => { let dr = null; chunks.forEach((ch) => { if (ch.rpg?.door?.key === key) dr = ch.rpg.door; }); return dr ? doorRoll(dr) : null; },
@@ -805,13 +963,18 @@ export function createRPG(ctx) {
   };
   debug.battle = () => battle.state(); debug.battleSpeed = (v) => { battleSpeed = v; battle.setSpeed(v); return v; }; debug.lastBattle = () => lastBattle && { ...lastBattle };
   debug.battleCmd = (sel) => { const b = document.querySelector(`[data-btl="${sel}"]`); if (!b) return false; b.click(); return true; };
-  debug.turnBasedHere = () => turnBasedHere(); debug.zone = () => curZone; debug.avatarUrl = () => avatarUrl(); debug.heroInfo = () => (CH() ? heroInfo() : null); debug.data = debug.data || (() => D); debug.setAvatar = (u) => { const c = CH(); if (!c) return false; c.avatar = u || null; save(); return true; };
+  debug.turnBasedHere = () => turnBasedHere(); debug.battleMode = () => (inst.active ? battleModeOf(D.instances[inst.id]) : (D.combat?.turnBasedEverywhere ? "atb-turns" : "realtime")); debug.zone = () => curZone; debug.avatarUrl = () => avatarUrl(); debug.heroInfo = () => (CH() ? heroInfo() : null); debug.data = debug.data || (() => D); debug.setAvatar = (u) => { const c = CH(); if (!c) return false; c.avatar = u || null; save(); return true; };
   debug.sandbox = () => { sandboxOn = true; host.updateActions(); if (isTraining()) openSandbox(); else host.toast("🧪 Sandbox armed. It opens inside the Training Closet."); return sandboxAllowed(); };
   const api5 = { ext, gmSpawn, gateWaystones, travelWaystone, waystoneList, enterInstance: (p) => enterInstance(p), leaveInstance: () => leaveInstance(), data: () => D, instId: () => (inst.active ? inst.id : null), isControl, partySize: () => partySize(),
     party: () => ({ id: party.id, members: party.members.map((m) => ({ ...m })), max: D?.party?.max || 3 }),
     setParty: (id, members) => { party.id = id || null; const mine = { id: host.me?.id || "me", me: true }; party.members = [mine, ...(members || []).filter((m) => m.id !== mine.id)].slice(0, D?.party?.max || 3); return party.members.length; },
     lastPos: () => ({ ...lastP }), zone: () => curZone, sandboxOpen: () => openSandbox(), spawnHere: (k, t) => SB.spawn(k, t), statsFor: (k, t) => { const s = statsFor(k, t); if (s) delete s.def; return s; } };
   debug.runProgress = runProgress; debug.enterStarter = () => enterStarter(); debug.starterDoor = () => { const tp = sportals()[0]; return tp && { ...W3(tp.lx, 0, tp.lz), spawn: { ...W3(tp.spawn.x, 0, tp.spawn.z), yaw: tp.spawn.yaw } }; };
+  debug.stationDoors = () => stationDoorList(); debug.stationDoor = (id) => stationDoorList().find((d) => d.id === (id || "sd-mailroom")); debug.departures = () => D.station && { ...D.station.departures, rows: stationRows(D.station), stations: stationRows(D.station), board: departBoard && W3(departBoard.lx, 0, departBoard.lz) }; debug.openDepartures = openDepartures;
+  debug.stations = () => stationRows(D.station); debug.train = () => trainInfo(); debug.threshold = () => thresholdInfo(); debug.desk = () => deskInfo(); debug.stationLayout = () => ({ doors: stationDoorList(), train: trainInfo(), threshold: thresholdInfo(), desk: deskInfo() });
+  debug.discover = (id) => markDiscovered(id || "gate-turn"); debug.openStationDoor = (id) => { const d = stationDoors.find((q) => q.def.id === (id || "sd-mailroom")); if (d) openStationDoor(d); return !!d; };
+  debug.enterStation = (id) => { const d = stationDoors.find((q) => q.def.id === (id || "sd-mailroom")); if (!d || !doorIsOpen(d.def)) return null; const dest = d.def.dest || {}; if (dest.id === "starter") return enterStarter(d); if (dest.type === "instance" && dest.id) { const gt = (D.gates || []).find((q) => q.instance === dest.id || q.id === dest.id); return enterInstance({ pp: gt ? { ...gt, gate: true } : { id: d.def.id, instance: dest.id }, i: startSec.center[0], j: startSec.center[1], spawn: d.spawn }); } return null; };
+  debug.doorIsOpen = (id) => { const d = stationDoors.find((q) => q.def.id === id) || (D.station?.doors || []).find((q) => q.id === id); return d ? doorIsOpen(d.def || d) : false; };
   debug.gateWaystones = gateWaystones; debug.travelWaystone = travelWaystone; debug.xpScale = (l) => xpScale(l); debug.board = () => board && W3(board.lx, 0, board.lz); debug.openBoard = openBoard;
   debug.enterGate = (id) => { const gt = (D.gates || []).find((q) => q.id === (id || D.gates[0].id)); const Sx = ctx.secById[gt.section]; const i = Sx.center[0] + gt.cell[0], j = Sx.center[1] + gt.cell[1]; return enterInstance({ pp: { ...gt, gate: true }, i, j }); };
   debug.use = (id) => useItem(id); debug.lastPos = api5.lastPos; debug.gates = () => [...portalByCell.entries()].filter(([, pp]) => pp.gate).map(([k, pp]) => ({ id: pp.id, k })); debug.gmSpawn = gmSpawn; debug.party5 = api5.party; debug.setParty = api5.setParty;
