@@ -1117,7 +1117,65 @@
     ]
    }
   },
-  "loopNote": "A gremlin note on the banister: \"we went round 41 times. it's very good exercise.\""
+  "loopNote": "A gremlin note on the banister: \"we went round 41 times. it's very good exercise.\"",
+  "_about_v5d2": "v5d2: stairwells are real now. Each kind uses a flight from stairs[] (matched by kind): from/to = floor heights in metres (to > from goes up, below 0 goes down into a pit), steps = number of steps, direction = 'away-from-door' (the only one built), landing = flat landing length, width = flight width. You walk the actual steps (smooth height following, rails on the sides); reaching the landing does the old Escher trick for that kind. gravity 'inverted' is a stub for future upside-down stairs that disorient the room: rows with it are ignored for now (not built).",
+  "stairs": [
+   {
+    "id": "flight-up",
+    "kind": "up",
+    "from": 0,
+    "to": 1.2,
+    "steps": 8,
+    "direction": "away-from-door",
+    "landing": 0.7,
+    "width": 1.1,
+    "gravity": "normal"
+   },
+   {
+    "id": "flight-down",
+    "kind": "down",
+    "from": 0,
+    "to": -1.2,
+    "steps": 8,
+    "direction": "away-from-door",
+    "landing": 0.7,
+    "width": 1.1,
+    "gravity": "normal"
+   },
+   {
+    "id": "flight-loop",
+    "kind": "loop",
+    "from": 0,
+    "to": 1.2,
+    "steps": 8,
+    "direction": "away-from-door",
+    "landing": 0.7,
+    "width": 1.1,
+    "gravity": "normal"
+   },
+   {
+    "id": "flight-flip",
+    "kind": "flip",
+    "from": 0,
+    "to": -1.2,
+    "steps": 8,
+    "direction": "away-from-door",
+    "landing": 0.7,
+    "width": 1.1,
+    "gravity": "normal"
+   },
+   {
+    "id": "flight-upside-down",
+    "kind": "flip",
+    "from": 0,
+    "to": 1.2,
+    "steps": 8,
+    "direction": "away-from-door",
+    "gravity": "inverted",
+    "enabled": false,
+    "_note": "STUB, not built: upside-down stairs that flip the room around you. Kept here so the shape is settled."
+   }
+  ]
  },
  "tvs": {
   "_about": "Rooms of these types roll chance for a little TV. Each plays one procedural cartoon (picked by the room's hash) at fps frames per second, and only while it's on screen and within range metres.",
@@ -1163,6 +1221,137 @@
   "chooseTitle": "Grenshol holds still. Where to?",
   "chooseText": "It remembers you. It can take you back somewhere you've been, or somewhere new.",
   "thinText": "The glimpse is thinning… Grenshol is about to send you back.",
-  "returnText": "…and Grenshol sets you down, very gently, in the Annex: {section}."
+  "returnText": "…and Grenshol sets you down, very gently, in the Annex: {section}.",
+  "returnStartText": "…and Grenshol drops you, very gently, right back at the beginning: {section}."
+ },
+ "beyond": {
+  "_about": "v5d2: the open Backrooms are calm exploring (no wandering critters, no Grenshol, no flitters, no light-switch rooms). Weird doors out in the Backrooms open onto short passages that are sealed off from the normal halls. Only inside those passages do small random critters and Grenshol show up. Grenshol is from another world: never in the instances (Mailroom, Grotto, Training Closet, gates). Zones are cell rectangles (origin [i,j], size [w,d]); every edge leaving a zone is sealed, every edge inside is open. A door sits flush on a closed wall of its cell (wall is picked automatically; 'wall' is the fallback that gets sealed if every arm is open). Change names/lines freely.",
+  "doors": [
+   {
+    "id": "wd-turn",
+    "section": "turn",
+    "cell": [
+     1,
+     0
+    ],
+    "zone": "bz-hum",
+    "wall": "xn",
+    "sign": "STAFF ONLY",
+    "signSub": "(wrong staff)",
+    "prompt": "🚪 Open the slightly wrong door",
+    "color": "#4f6f6a",
+    "frame": "#2e2620",
+    "glow": "#bfe6ff",
+    "tilt": 0.11
+   },
+   {
+    "id": "wd-stock",
+    "section": "stock",
+    "cell": [
+     1,
+     0
+    ],
+    "zone": "bz-drain",
+    "wall": "zn",
+    "sign": "PULL",
+    "signSub": "(it pushes)",
+    "prompt": "🚪 Open the door that wasn't here yesterday",
+    "color": "#6a4f6f",
+    "frame": "#2a2430",
+    "glow": "#ffe2a8",
+    "tilt": -0.13
+   }
+  ],
+  "zones": [
+   {
+    "id": "bz-hum",
+    "switchChance": 0.3,
+    "name": "The Humming Passage",
+    "origin": [
+     40,
+     0
+    ],
+    "size": [
+     4,
+     1
+    ],
+    "arrive": "The door clicks shut behind you. The hum down here is a note lower. Small things skitter in the side rooms, and something tall might be about.",
+    "leave": "You step back through the wrong door. The normal Backrooms hum settles round you again.",
+    "backPrompt": "🚪 Back through the wrong door",
+    "backSign": "EXIT",
+    "backSignSub": "(probably)",
+    "grenshol": true,
+    "mobs": {
+     "chance": 0.8,
+     "tier": 0,
+     "count": [
+      1,
+      2
+     ],
+     "kinds": [
+      "dust",
+      "moth",
+      "wisp"
+     ]
+    },
+    "rooms": [
+     {
+      "cell": [
+       2,
+       0
+      ],
+      "danger": true,
+      "traps": [],
+      "sign": "THIS ONE'S DANGEROUS",
+      "signSub": "you might wanna be careful in here"
+     }
+    ]
+   },
+   {
+    "id": "bz-drain",
+    "switchChance": 0.3,
+    "name": "The Drain Halls",
+    "origin": [
+     -44,
+     6
+    ],
+    "size": [
+     3,
+     2
+    ],
+    "arrive": "The door that wasn't here yesterday lets you through, then forgets you. Somewhere a drain gurgles politely. Little critters live in the side rooms here, and Grenshol likes to visit.",
+    "leave": "Back through the door. It looks very pleased with itself.",
+    "backPrompt": "🚪 Back through the door that wasn't here",
+    "backSign": "EXIT",
+    "backSignSub": "(this one is real)",
+    "grenshol": true,
+    "mobs": {
+     "chance": 0.7,
+     "tier": 0,
+     "count": [
+      1,
+      2
+     ],
+     "kinds": [
+      "sock",
+      "dust",
+      "moth"
+     ]
+    },
+    "rooms": [
+     {
+      "cell": [
+       1,
+       1
+      ],
+      "danger": true,
+      "traps": [],
+      "sign": "CAREFUL IN HERE",
+      "signSub": "no, really. we mean it this time."
+     }
+    ]
+   }
+  ],
+  "_about_rooms": "zones[].rooms marks specific side rooms inside a zone: cell is relative to the zone origin, qi (0-3, optional) picks the quadrant room (else the first room in that cell). danger:true hangs a warning sign by the room's doorway. traps:[] is reserved for later silly traps (e.g. a trap that knocks you out and sends you back to the start); none are built yet, the list is read but ignored."
  }
 }

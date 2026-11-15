@@ -34,6 +34,7 @@ export function createRPG(ctx) {
   const CH = () => S.character;
 
   // ---------- session state ----------
+  let battleBoss = false; // v5d2: for the music bed
   let transformed = false, inAnnex = false, cd = 0, footArmed = false, abilityUsed = false, fightGroup = null, koBusy = false, koSpeed = 1, regenT = 0, nudgeT = 0, nudges = 0, leftStart = false;
   const logs = []; let lastAttack = null, lastKO = null, lastLevelUp = null, lastDoor = null;
   const urlParty = (() => { try { return parseInt(new URLSearchParams(location.search).get("party"), 10) || 0; } catch { return 0; } })();
@@ -172,9 +173,11 @@ export function createRPG(ctx) {
     const { i, j } = pl, dep = depthOf(i, j), Mb = D.mobs, tier = Math.min(4, Math.floor(dep / (Mb.tierEvery || 3)));
     const elig = pl.rooms.filter((r) => !r.grab && !r.npc && !r.curio && !r.stair && !r.sw), used = new Set();
     const take = (tag) => { const pool = elig.filter((r) => !used.has(r.qi)); if (!pool.length) return null; const r = pool[Math.floor(hsh(i, j, "rpg-" + tag + "q", pl.ep) * pool.length)]; used.add(r.qi); return r; };
-    if (dep >= Mb.minDepth && hsh(i, j, "rpg-mob") < Math.min(Mb.chanceMax, Mb.chance + Mb.chancePerDepth * dep)) { const r = take("mob");
-      if (r) { const pool = Mb.bySection[pl.S.id] || ["dust"], n = Mb.count[0] + Math.floor(hsh(i, j, "rpg-n") * (Mb.count[1] - Mb.count[0] + 1));
-        out.mob = { qi: r.qi, tier, kinds: Array.from({ length: n }, (_, k) => pickH(pool, hsh(i, j, "rpg-k", k))), cleared: !!S.world.mobs[pl.key] }; } }
+    // v5d2: the open Backrooms are calm. Critters only live in the passages beyond a weird door (ctx.beyondZoneAt).
+    const BZ = ctx.beyondZoneAt ? ctx.beyondZoneAt(i, j) : null, ZM = BZ?.mobs || null;
+    if (ZM && hsh(i, j, "rpg-mob") < (ZM.chance ?? 0.6)) { const r = take("mob");
+      if (r) { const pool = ZM.kinds || Mb.bySection[pl.S.id] || ["dust"], cnt = ZM.count || [1, 2], n = cnt[0] + Math.floor(hsh(i, j, "rpg-n") * (cnt[1] - cnt[0] + 1)), zt = ZM.tier ?? tier;
+        out.mob = { qi: r.qi, tier: zt, zone: BZ.id, kinds: Array.from({ length: n }, (_, k) => pickH(pool, hsh(i, j, "rpg-k", k))), cleared: !!S.world.mobs[pl.key] }; } }
     const Dd = D.doors; if (dep >= Dd.minDepth && hsh(i, j, "rpg-door") < Dd.chance) { const r = take("door");
       if (r) out.door = { qi: r.qi, stat: pickH(Dd.stats, hsh(i, j, "rpg-ds")), dc: Dd.dc[tier], open: !!S.world.doors[pl.key], chest: !S.world.loot["door:" + pl.key], tier }; }
     const Bx = D.boxes; if (dep >= Bx.minDepth && hsh(i, j, "rpg-box") < Bx.chance) { const r = take("box"); if (r) out.box = { qi: r.qi, taken: !!S.world.loot[pl.key], tier }; }
@@ -434,7 +437,7 @@ export function createRPG(ctx) {
   function freeArt() { if (artR) { try { artR.dispose(); artR.forceContextLoss(); } catch {} artR = null; } }
   function foeView(m) { return Object.assign(m, { art: foeArt(m) }); }
   function startBattle(foes, zone) { const I = inst.active ? D.instances[inst.id] : null, k = /:run:(\d+)$/.exec(zone || ""), stp = I?.steps && k ? I.steps[+k[1]] : null;
-    abilityUsed = false; footArmed = false; fightGroup = "battle:" + zone; battleZone = zone; renderBar(); host.setFreeze?.(true); host.closePanel?.();
+    abilityUsed = false; footArmed = false; fightGroup = "battle:" + zone; battleZone = zone; battleBoss = foes.some((m) => m.boss || m.gmBoss); renderBar(); host.setFreeze?.(true); host.closePanel?.();
     battleList = foes.slice(); foes.forEach(foeView); freeArt(); const c = CH(); lastBattle = { zone, xp0: c.xp, lvl0: level(), logT0: logTotal, foes: foes.map((m) => m.name), at: Date.now(), outcome: null };
     const C = D.companion, palOn = companionActive();
     battle.start({ title: stp ? stp.name : isTraining() ? `🎓 Practice bout · ${I.short || I.name}` : `A scuffle in ${I ? I.short || I.name : "the Annex"}`, hero: heroInfo(), foes, speed: battleSpeed,
@@ -464,7 +467,8 @@ export function createRPG(ctx) {
     summary: (b) => { const c = CH(), got = c.xp - lastBattle.xp0, lines = [], L = level(); const loot = logs.slice(Math.max(0, logs.length - (logTotal - lastBattle.logT0))).filter((l) => l.kind === "loot" || l.kind === "quest").map((l) => l.t);
       lines.push(got > 0 ? `⭐ +${got} XP` : isTraining() ? "🎓 Practice: nothing counts in here." : "⭐ No XP this time (too easy for you)."); if (L > lastBattle.lvl0) lines.push(`⬆️ Level ${L}! Max HP ${maxHp()}.`);
       loot.forEach((t) => lines.push(t)); lines.push(`❤️ ${c.hp}/${maxHp()} HP · ${b.turns} turn${b.turns === 1 ? "" : "s"}`); return { title: b.foes.some((f) => f.m.boss) ? "🏆 Boss down!" : "🎉 Scuffle won!", lines }; },
-    onEnd: (outcome) => { lastBattle.outcome = outcome; host.setFreeze?.(false); fightGroup = null; footArmed = false; renderBar(); host.updateActions?.();
+    onEnd: (outcome) => { lastBattle.outcome = outcome; host.setFreeze?.(false); fightGroup = null; battleBoss = false; footArmed = false; renderBar(); host.updateActions?.();
+      if (outcome === "win") { try { audio.playSting?.("victory-jingle"); } catch (e) {} } // v5d2: short sting, then the area bed comes back
       if (outcome === "fled") { const sp = fleeSpot(); if (sp) ctx.placeRaw(sp); tbGraceUntil = performance.now() + 2500; host.toast("🏃 You got away. The critters stay where they are (and remember you)."); }
       else tbGraceUntil = performance.now() + 600;
       if (pendingLvl && outcome !== "ko") { pendingLvl = null; setTimeout(() => { if (!host.state().busy && !koBusy && !battle.active()) openLevelUp(); }, 300); } else pendingLvl = null; },
@@ -485,6 +489,7 @@ export function createRPG(ctx) {
   function pickCons(force) { const L = D.knockout.consequences; if (force) return L.find((c) => c.id === force) || L[0]; const tot = L.reduce((a, c) => a + c.weight, 0); let u = rng() * tot; for (const c of L) { u -= c.weight; if (u < 0) return c; } return L[0]; }
   function knockout(by, force) { if (koBusy || !CH()) return; if (isTraining()) return trainingKO(by); koBusy = true; const c = CH(), K = D.knockout, L = level(), lo = D.levels.xp[L - 1], loss = Math.floor((c.xp - lo) * K.xpLossPct);
     c.xp = Math.max(lo, c.xp - loss); let cons = pickCons(force), note = null, stolen = null;
+    if (inst.active && cons.id === "steal") cons = pickCons("lampshade"); // v5d2: Grenshol isn't in the instances, so nothing gets 'borrowed' in there
     if (cons.id === "steal") { const cand = EQUIP.map((s) => c.gear[s]).filter((id) => id && !item(id).keep).sort((a, b) => (item(b).value || 0) - (item(a).value || 0));
       if (cand.length) { stolen = cand[0]; const it = item(stolen); c.gear[it.slot] = null; { const alt = c.inv.filter((q) => item(q)?.slot === it.slot).sort((x, y) => (item(y).value || 0) - (item(x).value || 0))[0]; if (alt) { c.inv.splice(c.inv.indexOf(alt), 1); c.gear[it.slot] = alt; } } note = rpick(cons.note).replace("{item}", it.name.toLowerCase()); S.stash.push({ item: stolen, note, at: new Date().toISOString() }); } else cons = pickCons("lampshade"); }
     if (cons.id !== "steal" && !(c.status || []).some((s) => s.id === cons.id)) (c.status ||= []).push({ id: cons.id, text: cons.status, statMod: cons.statMod || null });
@@ -492,7 +497,7 @@ export function createRPG(ctx) {
     lastKO = { by: by || null, loss, xp: c.xp, cons: cons.id, stolen, note, inInstance: !!wasInst, at: Date.now(), placed: false }; save(); renderBar();
     addLog(`💫 Knocked out${by ? " by the " + by : ""}. −${loss} XP.`, "ouch"); audio.sfx("flump");
     koT.textContent = K.fade; ko.classList.add("on");
-    setTimeout(() => { koT.textContent = K.carry; if (wasInst) leaveInstance(true); const sp = wasInst ? hubSpawn(wasInst.i, wasInst.j, 0) : safeSpawn(S.lastCrystal); place(sp); lastKO.placed = true; lastKO.to = sp; c.hp = maxHp(); save(); renderBar(); host.updateActions(); }, 1400 * koSpeed);
+    setTimeout(() => { koT.textContent = (wasInst && K.carryInstance) || K.carry; if (wasInst) leaveInstance(true); const sp = wasInst ? hubSpawn(wasInst.i, wasInst.j, 0) : safeSpawn(S.lastCrystal); place(sp); lastKO.placed = true; lastKO.to = sp; c.hp = maxHp(); save(); renderBar(); host.updateActions(); }, 1400 * koSpeed);
     setTimeout(() => { ko.classList.remove("on"); koBusy = false;
       panel("knockout", "💫 " + K.noteTitle, (pn) => { pn.dataset.cons = cons.id;
         if (stolen) { pn.appendChild(el("div", "o3-note o3-gnote", note)); pn.appendChild(el("p", "o3-small", `Your ${item(stolen).name} is gone. It's on the list in Grenshol's stash (see your sheet). Maybe you can win it back one day.`)); }
@@ -523,8 +528,8 @@ export function createRPG(ctx) {
     done.push(id); audio.sfx("chime"); gainXP(D.xp.riddle, "answered a weird question"); progress("riddle"); save(); return { ok: true }; }
 
   // ---------- party portals -> instanced rooms (the ONLY place party size matters) ----------
-  const IX = -3000, IZ = -3000; const inst = { active: false, rooms: {}, walk: false, g: null, mobs: [], drops: [], from: null, zone: "annex:inst:room", id: null, exit: null, extras: [] };
-  function buildInstance(id) { const I = D.instances[id], s = I.size, pal = I.palette; Object.entries(inst.rooms).forEach(([k, r]) => (r.g.visible = k === id)); if (inst.rooms[id]) { inst.g = inst.rooms[id].g; inst.exit = inst.rooms[id].exit; inst.extras = inst.rooms[id].extras; return; }
+  const IX = -3000, IZ = -3000; const inst = { active: false, rooms: {}, walk: false, g: null, mobs: [], drops: [], from: null, zone: "annex:inst:room", id: null, exit: null, extras: [], blockers: [] };
+  function buildInstance(id) { const I = D.instances[id], s = I.size, pal = I.palette; Object.entries(inst.rooms).forEach(([k, r]) => (r.g.visible = k === id)); if (inst.rooms[id]) { inst.g = inst.rooms[id].g; inst.exit = inst.rooms[id].exit; inst.extras = inst.rooms[id].extras; inst.blockers = inst.rooms[id].blockers || []; return; }
     if (I.layout === "run") return buildRun(id, I);
     if (I.layout === "cave") return buildCave(id, I);
     const g = new THREE.Group(); g.position.set(IX, 0, IZ); root.add(g); inst.g = g; inst.extras = [];
@@ -605,9 +610,18 @@ export function createRPG(ctx) {
   function caveRoom(I, id) { return caveRooms(I).find((r) => r.id === id); }
   function caveZone(r) { return r.step != null ? `annex:inst:run:${r.step}` : `annex:inst:cave:${r.id}`; }
   function caveWalk(r) {
-    const pad = 0.12 + R;
-    const rec = { x0: AX + IX + r.x - r.w / 2 + pad, x1: AX + IX + r.x + r.w / 2 - pad, z0: AZ + IZ + r.z - r.d / 2, z1: AZ + IZ + r.z + r.d / 2, room: caveZone(r), y: r.y || 0 };
+    const pad = 0.14 + R;
+    const rec = { x0: AX + IX + r.x - r.w / 2 + pad, x1: AX + IX + r.x + r.w / 2 - pad, z0: AZ + IZ + r.z - r.d / 2 + pad, z1: AZ + IZ + r.z + r.d / 2 - pad, room: caveZone(r), y: r.y || 0 };
     if (r.y1 != null && r.y1 !== (r.y || 0)) { rec.slope = r.slope || "z"; rec.y = r.slopeDir === -1 ? r.y1 : r.y; rec.y1 = r.slopeDir === -1 ? r.y : r.y1; }
+    return rec;
+  }
+  function caveDoorWalk(r, side, g0, g1) {
+    const pad = 0.14 + R, deep = pad + 0.45, ns = (side === "n" || side === "s");
+    const at = side === "n" ? r.z - r.d / 2 : side === "s" ? r.z + r.d / 2 : side === "w" ? r.x - r.w / 2 : r.x + r.w / 2;
+    const rec = { room: caveZone(r), y: yOnRoom(r, ns ? at : r.z) };
+    if (ns) { rec.x0 = AX + IX + g0 + 0.08; rec.x1 = AX + IX + g1 - 0.08; rec.z0 = AZ + IZ + at - deep; rec.z1 = AZ + IZ + at + deep; }
+    else { rec.z0 = AZ + IZ + g0 + 0.08; rec.z1 = AZ + IZ + g1 - 0.08; rec.x0 = AX + IX + at - deep; rec.x1 = AX + IX + at + deep; }
+    if (r.y1 != null && r.y1 !== (r.y || 0) && ns) { rec.slope = r.slope || "z"; rec.y = yOnRoom(r, at - deep); rec.y1 = yOnRoom(r, at + deep); }
     return rec;
   }
   function yOnRoom(r, z) {
@@ -617,17 +631,117 @@ export function createRPG(ctx) {
     const z0 = r.z - r.d / 2, t = Math.max(0, Math.min(1, (z - z0) / Math.max(0.01, r.d)));
     return yN + (yS - yN) * t;
   }
-  function addRampSlab(g, r, mat, yOff, thick, widthExtra, lenExtra) {
+  function addRampSlab(g, r, mat, yOff, thick, widthExtra, lenExtra, geo) {
     const yS = r.slopeDir === -1 ? (r.y || 0) : r.y1, yN = r.slopeDir === -1 ? r.y1 : (r.y || 0);
     const L = r.d + (lenExtra || 0), dy = yN - yS, ang = Math.atan2(dy, r.d), len = Math.hypot(L, dy * (L / r.d));
-    const fl = box(r.x, (yS + yN) / 2 + (yOff || 0), r.z, r.w + (widthExtra || 0), thick || 0.16, len, mat, g);
+    const fl = (() => { if (!geo) return box(r.x, (yS + yN) / 2 + (yOff || 0), r.z, r.w + (widthExtra || 0), thick || 0.16, len, mat, g);
+      const m = new THREE.Mesh(geo, mat); m.position.set(r.x, (yS + yN) / 2 + (yOff || 0), r.z); m.scale.set(r.w + (widthExtra || 0), thick || 0.16, len); g.add(m); return m; })();
     fl.rotation.x = ang; return fl;
   }
   function addRampFloor(g, r, mat) { return addRampSlab(g, r, mat, 0, 0.16, 0, 0); }
+
+  // Per-instance visualStyle: "textured-rock" (Grotto) vs default flat. Only walls + ceiling rock are textured.
+  function drawRockTex(c, w, h, seed) {
+    const img = c.createImageData(w, h), d = img.data;
+    const hash = (ix, iy) => {
+      let n = Math.imul(((ix % w) + w) % w + seed * 17, 374761393) ^ Math.imul(((iy % h) + h) % h + seed * 31, 668265263);
+      n = Math.imul(n ^ (n >>> 13), 1274126177);
+      return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+    };
+    const smth = (tt) => tt * tt * (3 - 2 * tt);
+    const vnoise = (x, y, freq) => {
+      const fx = (x / w) * freq, fy = (y / h) * freq, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = smth(fx - x0), ty = smth(fy - y0);
+      const g = (ix, iy) => hash(((ix % freq) + freq) % freq * (w / freq), ((iy % freq) + freq) % freq * (h / freq));
+      const a = g(x0, y0), b = g(x0 + 1, y0), cc = g(x0, y0 + 1), dd = g(x0 + 1, y0 + 1);
+      return a + (b - a) * tx + (cc - a) * ty + (a - b - cc + dd) * tx * ty;
+    };
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const n = vnoise(x, y, 8) * 0.5 + vnoise(x, y, 16) * 0.28 + vnoise(x, y, 32) * 0.15 + vnoise(x, y, 64) * 0.07;
+      const ridge = 1 - Math.abs(vnoise(x, y, 6) * 2 - 1);
+      const crevice = ridge > 0.84 ? (ridge - 0.84) / 0.16 : 0;
+      let v = 0.42 + n * 0.38 - crevice * 0.3 + (hash(x, y) - 0.5) * 0.06;
+      v = Math.max(0.16, Math.min(0.84, v));
+      const i = (y * w + x) * 4;
+      d[i] = v * 212; d[i + 1] = v * 192; d[i + 2] = v * 168; d[i + 3] = 255;
+    }
+    c.putImageData(img, 0, 0);
+    c.strokeStyle = "rgba(28, 20, 14, 0.5)"; c.lineWidth = 1.25; c.lineJoin = "round";
+    for (let k = 0; k < 8; k++) {
+      let x = hash(k * 19, seed * 7) * w, y = hash(k * 23, seed * 11) * h, ox = x, oy = y;
+      c.beginPath(); c.moveTo(x, y);
+      for (let s = 0; s < 14; s++) {
+        const a = (hash(k * 29 + s, seed) - 0.5) * 1.4 + k * 0.7;
+        x += Math.cos(a) * 11; y += Math.sin(a) * 11;
+        if (Math.abs(x - ox) > w * 0.45 || Math.abs(y - oy) > h * 0.45) break;
+        c.lineTo(x, y);
+      }
+      c.stroke();
+    }
+  }
+  function rockTex(key, seed) {
+    return M("tex:rock:" + key, () => {
+      const t = canvasTex(256, 256, (c, w, h) => drawRockTex(c, w, h, seed));
+      t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; return t;
+    });
+  }
+  function rockBoxGeo() {
+    return G("g:rockBoxVC", () => {
+      const geo = new THREE.BoxGeometry(1, 1, 1), pos = geo.attributes.position, col = [];
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        const edge = Math.max(Math.abs(x), Math.abs(z));
+        const s = 0.74 + y * 0.14 - edge * 0.16;
+        col.push(s, s * 0.98, s * 0.94);
+      }
+      geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3)); return geo;
+    });
+  }
+  function rockLumpGeo() {
+    return G("g:rockLumpVC", () => {
+      const geo = new THREE.IcosahedronGeometry(0.32, 0); geo.computeVertexNormals();
+      const n = geo.attributes.normal, col = [];
+      for (let i = 0; i < n.count; i++) {
+        const s = 0.7 + n.getY(i) * 0.22 + n.getX(i) * 0.08;
+        col.push(s, s * 0.97, s * 0.93);
+      }
+      geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3)); return geo;
+    });
+  }
+  function rockVariants(tex, base, prefix, n, extra) {
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      out.push(M("mat:rock:" + prefix + ":" + i, () => {
+        const map = tex.clone(); map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        const a = hash01(i * 3 + 1 + prefix.length), b = hash01(i * 7 + 2 + prefix.length);
+        map.repeat.set(0.8 + a * 1.6, 0.8 + b * 1.6); map.offset.set(hash01(i * 11), hash01(i * 13));
+        map.center.set(0.5, 0.5); map.rotation = hash01(i * 17) * Math.PI * 2; map.needsUpdate = true;
+        const col = new THREE.Color(base);
+        col.offsetHSL((hash01(i * 23) - 0.5) * 0.045, (hash01(i * 29) - 0.5) * 0.08, (hash01(i * 31) - 0.5) * 0.07);
+        col.multiplyScalar(0.9 + hash01(i * 19) * 0.22);
+        return new THREE.MeshStandardMaterial({ map, color: col, roughness: 0.96, metalness: 0, vertexColors: true, ...(extra || {}) });
+      }));
+    }
+    return out;
+  }
+
   function buildCave(id, I) {
-    const rooms = caveRooms(I), pal = I.palette, g = new THREE.Group(); g.position.set(IX, 0, IZ); root.add(g); inst.g = g; inst.extras = [];
+    const rooms = caveRooms(I), pal = I.palette, g = new THREE.Group(); g.position.set(IX, 0, IZ); root.add(g); inst.g = g; inst.extras = []; inst.blockers = [];
+    const textured = (I.visualStyle || I.cave?.visualStyle) === "textured-rock";
     const wm = sm(pal.wall, { roughness: 1 }), fm = sm(pal.floor, { roughness: 1 }), cm = sm(pal.ceil, { roughness: 1, emissive: pal.ceil, emissiveIntensity: 0.28 });
     const rk = sm(pal.rock || pal.wall, { roughness: 1 }), rk2 = sm("#5a4e42", { roughness: 1 });
+    const wallVars = textured ? rockVariants(rockTex("wall", 11), pal.wall, "w", 8) : null;
+    const rockVars = textured ? rockVariants(rockTex("wall", 11), pal.rock || pal.wall, "r", 8) : null;
+    const ceilVars = textured ? rockVariants(rockTex("ceil", 29), pal.ceil, "c", 8, { emissive: pal.ceil, emissiveIntensity: 0.26 }) : null;
+    const rockBox = textured ? rockBoxGeo() : null, lumpGeo = textured ? rockLumpGeo() : null;
+    const pick = (arr, seed) => arr[((seed * 1000) | 0) % arr.length];
+    const addBlk = (cx, cz, sx, sz, padX, padZ) => { const hx = Math.abs(sx) / 2 + (padX ?? R), hz = Math.abs(sz) / 2 + (padZ ?? R); inst.blockers.push({ x0: IX + cx - hx, x1: IX + cx + hx, z0: IZ + cz - hz, z1: IZ + cz + hz }); };
+    const blkSpin = (cx, cz, sx, sz, yaw) => {
+      const c = Math.cos(yaw || 0), s = Math.sin(yaw || 0), xs = [], zs = [];
+      [[-sx / 2, -sz / 2], [sx / 2, -sz / 2], [-sx / 2, sz / 2], [sx / 2, sz / 2]].forEach(([dx, dz]) => { xs.push(cx + dx * c - dz * s); zs.push(cz + dx * s + dz * c); });
+      inst.blockers.push({ x0: IX + Math.min(...xs) - R, x1: IX + Math.max(...xs) + R, z0: IZ + Math.min(...zs) - R, z1: IZ + Math.max(...zs) + R });
+    };
+    const ceilMat = (seed) => (textured ? pick(ceilVars, seed) : cm);
+    const wallMat = (seed) => (textured ? pick(wallVars, seed) : wm);
     const crystal = sm("#c9a45a", { emissive: "#e0b25a", emissiveIntensity: 0.7 });
     const lamp = sm("#ffe3a8", { emissive: "#ffb45a", emissiveIntensity: 1.35 });
     const wood = sm("#6a4a28", { roughness: 0.92 }), woodD = sm("#4a3218", { roughness: 0.95 });
@@ -635,9 +749,10 @@ export function createRPG(ctx) {
     const glow = sm("#ff7a28", { emissive: "#ff6a18", emissiveIntensity: 1.4 });
     const pool = new THREE.MeshBasicMaterial({ color: 0xffc878, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide });
     const H0 = I.cave.height || 2.85;
-    const lump = (x, y, z, sx, sy, sz, seed, mat) => {
-      const rock = new THREE.Mesh(G("crock", () => new THREE.IcosahedronGeometry(0.32, 0)), mat || rk);
+    const lump = (x, y, z, sx, sy, sz, seed, mat, collide) => {
+      const rock = new THREE.Mesh(textured ? lumpGeo : G("crock", () => new THREE.IcosahedronGeometry(0.32, 0)), textured ? pick(rockVars, seed) : (mat || rk));
       rock.position.set(x, y, z); rock.scale.set(sx, sy, sz); rock.rotation.set(seed, seed * 1.7, seed * 0.6); g.add(rock);
+      if (collide) addBlk(x, z, sx * 0.42, sz * 0.42);
     };
     const hangLamp = (x, yCeil, z, yFloor) => {
       box(x, yCeil - 0.16, z, 0.03, 0.28, 0.03, woodD, g);
@@ -658,10 +773,11 @@ export function createRPG(ctx) {
       const roomH = r.height || H0, sloped = r.y1 != null && r.y1 !== y0;
       if (sloped) {
         addRampSlab(g, r, fm, 0, 0.16, 0.15, 0.2);
-        addRampSlab(g, r, cm, roomH + 0.18, 0.5, 0.35, 0.35);
+        addRampSlab(g, r, ceilMat(ri + 3), roomH + 0.18, 0.5, 0.35, 0.35, rockBox);
       } else {
         box(r.x, y0 - 0.06, r.z, r.w + 0.2, 0.16, r.d + 0.2, fm, g);
-        box(r.x, y0 + roomH + 0.2, r.z, r.w + 0.45, 0.5, r.d + 0.45, cm, g);
+        if (textured) { const cmesh = new THREE.Mesh(rockBox, ceilMat(ri + 5)); cmesh.position.set(r.x, y0 + roomH + 0.2, r.z); cmesh.scale.set(r.w + 0.45, 0.5, r.d + 0.45); g.add(cmesh); }
+        else box(r.x, y0 + roomH + 0.2, r.z, r.w + 0.45, 0.5, r.d + 0.45, cm, g);
       }
       const wallH = roomH + (yHi - yLo) + 0.5, wallY = yLo + wallH / 2;
       const rb = { x0: r.x - r.w / 2, x1: r.x + r.w / 2, z0: r.z - r.d / 2, z1: r.z + r.d / 2 };
@@ -677,10 +793,15 @@ export function createRPG(ctx) {
         const o0 = (side === "n" || side === "s") ? o.x - o.w / 2 : o.z - o.d / 2;
         const o1 = (side === "n" || side === "s") ? o.x + o.w / 2 : o.z + o.d / 2;
         const a0 = Math.max(lo, o0), a1 = Math.min(hi, o1), mid = (a0 + a1) / 2;
-        const half = Math.max(1.15, Math.min(1.7, (a1 - a0) / 2));
+        const half = Math.max(1.15, Math.min(2.15, (a1 - a0) / 2));
         return [Math.max(lo + 0.15, mid - half), Math.min(hi - 0.15, mid + half)];
       };
-      const wallSeg = (cx, cy, cz, sx, sy, sz) => box(cx, cy, cz, sx, sy, sz, wm, g);
+      const wallMesh = (cx, cy, cz, sx, sy, sz, seed, collide) => {
+        if (collide) { if (Math.abs(sx) >= Math.abs(sz)) addBlk(cx, cz, sx, sz, 0.04, R); else addBlk(cx, cz, sx, sz, R, 0.04); }
+        if (!textured) return box(cx, cy, cz, sx, sy, sz, wm, g);
+        const m = new THREE.Mesh(rockBox, wallMat(seed)); m.position.set(cx, cy, cz); m.scale.set(sx, sy, sz); g.add(m); return m;
+      };
+      const wallSeg = (cx, cy, cz, sx, sy, sz) => wallMesh(cx, cy, cz, sx, sy, sz, hash01(ri * 13 + cx * 3 + cz * 7 + sx), true);
       const gapWall = (axis, c, lo, hi, at, side) => { const gr = gapRange(side, lo, hi); if (!gr) { if (axis === "z") wallSeg(c, wallY, at, hi - lo, wallH, 0.28); else wallSeg(at, wallY, c, 0.28, wallH, hi - lo); return; }
         const [g0, g1] = gr; if (axis === "z") { wallSeg((lo + g0) / 2, wallY, at, Math.max(0.2, g0 - lo), wallH, 0.28); wallSeg((g1 + hi) / 2, wallY, at, Math.max(0.2, hi - g1), wallH, 0.28); }
         else { wallSeg(at, wallY, (lo + g0) / 2, 0.28, wallH, Math.max(0.2, g0 - lo)); wallSeg(at, wallY, (g1 + hi) / 2, 0.28, wallH, Math.max(0.2, hi - g1)); } };
@@ -688,15 +809,15 @@ export function createRPG(ctx) {
       gapWall("z", r.x, rb.x0, rb.x1, rb.z0, "n"); gapWall("z", r.x, rb.x0, rb.x1, rb.z1, "s");
       if (roomH > H0 + 0.3) {
         const lh = roomH - H0, ly = y0 + H0 + lh / 2;
-        [["n", rb.z0], ["s", rb.z1]].forEach(([side, at]) => { if (openOn(side)) box(r.x, ly, at, r.w, lh, 0.42, wm, g); });
-        [["w", rb.x0], ["e", rb.x1]].forEach(([side, at]) => { if (openOn(side)) box(at, ly, r.z, 0.42, lh, r.d, wm, g); });
+        [["n", rb.z0], ["s", rb.z1]].forEach(([side, at]) => { if (openOn(side)) wallMesh(r.x, ly, at, r.w, lh, 0.42, hash01(ri + at), false); });
+        [["w", rb.x0], ["e", rb.x1]].forEach(([side, at]) => { if (openOn(side)) wallMesh(at, ly, r.z, 0.42, lh, r.d, hash01(ri + at + 4), false); });
       }
       // irregular lumpy walls (skip doorway gaps)
       const inGap = (side, t) => {
         const lo = (side === "w" || side === "e") ? rb.z0 : rb.x0, hi = (side === "w" || side === "e") ? rb.z1 : rb.x1;
         const gr = gapRange(side, lo, hi); if (!gr) return false;
         const pos = lo + t * (hi - lo);
-        return pos >= gr[0] - 0.15 && pos <= gr[1] + 0.15;
+        return pos >= gr[0] - 0.4 && pos <= gr[1] + 0.4;
       };
       const wallN = Math.max(4, Math.round((r.type === "slope" ? r.d : Math.max(r.w, r.d)) / 1.35));
       for (let k = 0; k < wallN; k++) {
@@ -705,7 +826,7 @@ export function createRPG(ctx) {
         sides.forEach(([side, x, z], si) => {
           if (inGap(side, t)) return;
           const yf = yOnRoom(r, z);
-          lump(x, yf + 0.35 + u * (roomH * 0.45), z, 0.7 + u * 0.9, 0.55 + hash01(k + si) * 1.1, 0.65 + u * 0.6, u, si ? rk2 : rk);
+          lump(x, yf + 0.35 + u * (roomH * 0.45), z, 0.7 + u * 0.9, 0.55 + hash01(k + si) * 1.1, 0.65 + u * 0.6, u, si ? rk2 : rk, true);
         });
       }
       for (let k = 0; k < wallN; k++) {
@@ -714,7 +835,7 @@ export function createRPG(ctx) {
         sides.forEach(([side, x, z], si) => {
           if (inGap(side, t)) return;
           const yf = yOnRoom(r, z);
-          lump(x, yf + 0.4 + u * (roomH * 0.4), z, 0.65 + u * 0.8, 0.5 + hash01(k * 2 + si) * 1.0, 0.6 + u * 0.55, u, rk);
+          lump(x, yf + 0.4 + u * (roomH * 0.4), z, 0.65 + u * 0.8, 0.5 + hash01(k * 2 + si) * 1.0, 0.6 + u * 0.55, u, rk, true);
         });
       }
       // lumpy rock ceiling (fills the void when you look up or down a ramp)
@@ -725,7 +846,7 @@ export function createRPG(ctx) {
         const yf = yOnRoom(r, z), yc = yf + roomH;
         lump(x, yc - 0.15 - hash01(k + ri) * 0.35, z, 0.9 + u * 1.1, 0.45 + v * 0.5, 0.85 + hash01(k * 11) * 0.9, u, rk);
         if (k % 3 === 0) {
-          const st = new THREE.Mesh(G("cstalac", () => new THREE.ConeGeometry(0.1, 0.4, 5)), rk);
+          const st = new THREE.Mesh(G("cstalac", () => new THREE.ConeGeometry(0.1, 0.4, 5)), textured ? pick(rockVars, u + 0.3) : rk);
           st.position.set(x + 0.15, yc - 0.28, z - 0.1); st.rotation.x = Math.PI; st.scale.set(0.8 + u, 1 + v, 0.8 + u); g.add(st);
         }
       }
@@ -755,6 +876,7 @@ export function createRPG(ctx) {
       if (r.type === "rest") {
         const soft = new THREE.Mesh(G("softrock", () => new THREE.SphereGeometry(0.7, 12, 8)), sm("#8a7a62", { roughness: 1 }));
         soft.scale.set(1.35, 0.45, 1.05); soft.position.set(r.x - 1.1, y0 + 0.28, r.z); g.add(soft);
+        addBlk(r.x - 1.1, r.z, 1.7, 1.4);
         inst.extras.push({ key: "rest-" + r.id, lx: IX + r.x - 1.1, lz: IZ + r.z, ly: y0, label: () => I.rest.label, run: () => runRest(I) });
       }
       if (r.id === "pocket-dead") {
@@ -808,11 +930,13 @@ export function createRPG(ctx) {
         wh.rotation.z = Math.PI / 2; wh.position.set(wx, 0.14, wz); cart.add(wh);
       });
     })(foyer.x + 2.15, foyer.y || 0, foyer.z + 0.4, 0.18);
+    blkSpin(foyer.x + 2.15, foyer.z + 0.4, 0.9, 1.2, 0.18);
     // timber frame at the mouth
     (function addMouth() {
       const y0 = foyer.y || 0, z = foyer.z + foyer.d / 2 - 0.2, hw = 1.5;
       box(foyer.x - hw, y0 + 1.5, z, 0.28, 3.0, 0.28, wood, g);
       box(foyer.x + hw, y0 + 1.5, z, 0.28, 3.0, 0.28, wood, g);
+      addBlk(foyer.x - hw, z, 0.28, 0.28); addBlk(foyer.x + hw, z, 0.28, 0.28);
       box(foyer.x, y0 + 2.95, z, 3.3, 0.28, 0.32, wood, g);
       box(foyer.x - 1.15, y0 + 2.15, z, 0.12, 1.5, 0.12, wood, g).rotation.z = 0.55;
       box(foyer.x + 1.15, y0 + 2.15, z, 0.12, 1.5, 0.12, wood, g).rotation.z = -0.55;
@@ -824,6 +948,7 @@ export function createRPG(ctx) {
     if (gal) (function addFoundry() {
       const y = gal.y || 0, x = gal.x - 2.15, z = gal.z - 0.6;
       box(x, y + 0.7, z, 1.2, 1.4, 1.0, rk2, g);
+      addBlk(x, z, 1.25, 1.05); addBlk(x + 0.28, z - 0.1, 0.35, 0.35);
       box(x, y + 0.55, z + 0.52, 0.55, 0.55, 0.1, glow, g);
       box(x + 0.28, y + 1.7, z - 0.1, 0.3, 0.7, 0.3, rk2, g);
       const ember = new THREE.Mesh(G("clantern", () => new THREE.CylinderGeometry(0.08, 0.1, 0.18, 8)), lamp);
@@ -832,19 +957,23 @@ export function createRPG(ctx) {
       pl.rotation.x = -Math.PI / 2; pl.position.set(x, y + 0.05, z + 0.4); pl.scale.set(1.3, 1.3, 1); g.add(pl);
       box(x + 1.5, y + 0.18, z + 0.3, 0.38, 0.36, 0.38, iron, g);
       box(x + 1.5, y + 0.44, z + 0.3, 0.78, 0.16, 0.3, iron, g);
+      addBlk(x + 1.5, z + 0.3, 0.86, 0.42);
       box(x + 1.95, y + 0.44, z + 0.3, 0.28, 0.12, 0.18, iron, g);
       [[1.8, 1.8], [2.5, 0.7], [0.6, 2.2]].forEach(([dx, dz], i) => {
         box(x + dx, y + 0.28, z + dz, 0.55 + i * 0.08, 0.5, 0.45, wood, g);
         box(x + dx, y + 0.55, z + dz, 0.57 + i * 0.08, 0.05, 0.47, woodD, g);
+        addBlk(x + dx, z + dz, 0.62 + i * 0.08, 0.52);
       });
       box(gal.x + 3.6, y + 0.28, gal.z + 1.4, 0.7, 0.55, 0.5, wood, g);
       box(gal.x + 4.3, y + 0.22, gal.z + 0.5, 0.5, 0.42, 0.45, woodD, g);
+      addBlk(gal.x + 3.6, gal.z + 1.4, 0.75, 0.55); addBlk(gal.x + 4.3, gal.z + 0.5, 0.55, 0.5);
     })();
     // Collection Chamber set piece: a fully furnished lost-and-found office, somehow down here
     const bossR = caveRoom(I, "boss") || rooms[rooms.length - 1];
     (function addLostFound() {
       const y = bossR.y || 0, x = bossR.x + 2.6, z = bossR.z + 3.1, desk = new THREE.Group();
       desk.position.set(x, y, z); desk.rotation.y = -0.95; g.add(desk);
+      blkSpin(x, z, 1.8, 1.7, -0.95);
       box(0, 0.78, 0, 1.7, 0.08, 0.85, wood, desk);
       box(-0.75, 0.38, 0.35, 0.1, 0.76, 0.1, wood, desk);
       box(0.75, 0.38, 0.35, 0.1, 0.76, 0.1, wood, desk);
@@ -877,8 +1006,29 @@ export function createRPG(ctx) {
     inst.exit = { g: ex, disc, lx: IX + foyer.x, lz: IZ + foyer.z + foyer.d / 2 - 0.65 };
     inst.extras.push({ key: "far-door", lx: IX + bossR.x, lz: IZ + bossR.z - bossR.d / 2 + 0.7, label: () => (S.world.bosses[id] ? "🌀 Leave through the far dark" : "🪨 The far dark (locked until the pile is dealt with)"), run: () => (S.world.bosses[id] ? leaveInstance() : host.toast("The dark politely declines until the pile has been spoken to.")) });
     I.spawn = { x: foyer.x, z: foyer.z + foyer.d / 2 - 2.0, y: foyer.y || 0, yaw: 0 };
-    inst.rooms[id] = { g, exit: inst.exit, extras: inst.extras };
-    rooms.forEach((r) => walkable.push(caveWalk(r)));
+    inst.rooms[id] = { g, exit: inst.exit, extras: inst.extras, blockers: inst.blockers };
+    rooms.forEach((r) => {
+      walkable.push(caveWalk(r));
+      const rb = { x0: r.x - r.w / 2, x1: r.x + r.w / 2, z0: r.z - r.d / 2, z1: r.z + r.d / 2 };
+      const overlapAmt = (a0, a1, b0, b1) => Math.max(0, Math.min(a1, b1) - Math.max(a0, b0));
+      const neighborOn = (side) => rooms.find((o) => { if (o.id === r.id) return false; const ob = { x0: o.x - o.w / 2, x1: o.x + o.w / 2, z0: o.z - o.d / 2, z1: o.z + o.d / 2 };
+        if (side === "n") return Math.abs(rb.z0 - ob.z1) < 1.2 && overlapAmt(rb.x0, rb.x1, ob.x0, ob.x1) > 1.4;
+        if (side === "s") return Math.abs(rb.z1 - ob.z0) < 1.2 && overlapAmt(rb.x0, rb.x1, ob.x0, ob.x1) > 1.4;
+        if (side === "w") return Math.abs(rb.x0 - ob.x1) < 1.2 && overlapAmt(rb.z0, rb.z1, ob.z0, ob.z1) > 1.4;
+        if (side === "e") return Math.abs(rb.x1 - ob.x0) < 1.2 && overlapAmt(rb.z0, rb.z1, ob.z0, ob.z1) > 1.4; return false; });
+      const gapRange = (side, lo, hi) => {
+        const o = neighborOn(side); if (!o) return null;
+        const o0 = (side === "n" || side === "s") ? o.x - o.w / 2 : o.z - o.d / 2;
+        const o1 = (side === "n" || side === "s") ? o.x + o.w / 2 : o.z + o.d / 2;
+        const a0 = Math.max(lo, o0), a1 = Math.min(hi, o1), mid = (a0 + a1) / 2;
+        const half = Math.max(1.15, Math.min(2.15, (a1 - a0) / 2));
+        return [Math.max(lo + 0.15, mid - half), Math.min(hi - 0.15, mid + half)];
+      };
+      // only emit north/west connectors so each doorway is added once
+      [["n", rb.x0, rb.x1], ["w", rb.z0, rb.z1]].forEach(([side, lo, hi]) => {
+        const gr = gapRange(side, lo, hi); if (gr) walkable.push(caveDoorWalk(r, side, gr[0], gr[1]));
+      });
+    });
   }
   function spawnCave(id, I) {
     const rooms = caveRooms(I);
@@ -1419,7 +1569,7 @@ export function createRPG(ctx) {
   debug.takeInstDrops = () => { (inst.drops || []).forEach((d) => { if (!d.taken) takeDrop(d); }); return (CH()?.inv || []).slice(); }; debug.IX = IX; debug.IZ = IZ;
   debug.turnBasedHere = () => turnBasedHere(); debug.battleMode = () => (inst.active ? battleModeOf(D.instances[inst.id]) : (D.combat?.turnBasedEverywhere ? "atb-turns" : "realtime")); debug.zone = () => curZone; debug.avatarUrl = () => avatarUrl(); debug.heroInfo = () => (CH() ? heroInfo() : null); debug.data = debug.data || (() => D); debug.setAvatar = (u) => { const c = CH(); if (!c) return false; c.avatar = u || null; save(); return true; };
   debug.sandbox = () => { sandboxOn = true; host.updateActions(); if (isTraining()) openSandbox(); else host.toast("🧪 Sandbox armed. It opens inside the Training Closet."); return sandboxAllowed(); };
-  const api5 = { ext, gmSpawn, gateWaystones, travelWaystone, waystoneList, enterInstance: (p) => enterInstance(p), leaveInstance: () => leaveInstance(), data: () => D, instId: () => (inst.active ? inst.id : null), isControl, partySize: () => partySize(),
+  const api5 = { musicState: () => ({ inst: inst.active ? inst.id : null, fight: !!(fightGroup || battle.active()), boss: !!(battleBoss && battle.active()) }), ext, gmSpawn, gateWaystones, travelWaystone, waystoneList, enterInstance: (p) => enterInstance(p), leaveInstance: () => leaveInstance(), data: () => D, instId: () => (inst.active ? inst.id : null), isControl, partySize: () => partySize(),
     party: () => ({ id: party.id, members: party.members.map((m) => ({ ...m })), max: D?.party?.max || 3 }),
     setParty: (id, members) => { party.id = id || null; const mine = { id: host.me?.id || "me", me: true }; party.members = [mine, ...(members || []).filter((m) => m.id !== mine.id)].slice(0, D?.party?.max || 3); return party.members.length; },
     lastPos: () => ({ ...lastP }), zone: () => curZone, sandboxOpen: () => openSandbox(), spawnHere: (k, t) => SB.spawn(k, t), statsFor: (k, t) => { const s = statsFor(k, t); if (s) delete s.def; return s; } };
@@ -1432,5 +1582,5 @@ export function createRPG(ctx) {
   debug.gateWaystones = gateWaystones; debug.travelWaystone = travelWaystone; debug.xpScale = (l) => xpScale(l); debug.board = () => board && W3(board.lx, 0, board.lz); debug.openBoard = openBoard;
   debug.enterGate = (id) => { const gt = (D.gates || []).find((q) => q.id === (id || D.gates[0].id)); const Sx = ctx.secById[gt.section]; const i = Sx.center[0] + gt.cell[0], j = Sx.center[1] + gt.cell[1]; return enterInstance({ pp: { ...gt, gate: true }, i, j }); };
   debug.use = (id) => useItem(id); debug.lastPos = api5.lastPos; debug.gates = () => [...portalByCell.entries()].filter(([, pp]) => pp.gate).map(([k, pp]) => ({ id: pp.id, k })); debug.gmSpawn = gmSpawn; debug.party5 = api5.party; debug.setParty = api5.setParty;
-  return { onCell, update, near, clickTargets, talkExtras, event, onArrive, onLeave, inInstance: () => inst.active, roomLabel, atmos, instButtons, debug, ready, transformed: () => transformed, ...api5 };
+  return { onCell, update, near, clickTargets, talkExtras, event, onArrive, onLeave, inInstance: () => inst.active, blockedLocal: (x, z) => !!(inst.active && inst.blockers && inst.blockers.some((b) => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1)), roomLabel, atmos, instButtons, debug, ready, transformed: () => transformed, ...api5 };
 }

@@ -937,7 +937,8 @@
       "CRITICAL! A swing so good the lights flicker in applause.",
       "CRITICAL! Somewhere, a Gremlin cheers.",
       "CRITICAL! That one's going in the survey."
-    ]
+    ],
+    "_about_v5d2": "v5d2: overworld critters only spawn in zones beyond a weird door (data/elsewhere-annex.json beyond.zones[].mobs: chance, tier, count, kinds). The minDepth/chance/bySection numbers above are kept for reference and as a pool fallback; the open Backrooms have no critters."
   },
   "doors": {
     "_about": "A few room doorways are shut by a dice door. Roll d20 + stat modifier (+ proficiency if your path has it) vs the DC. Fail = a funny consequence and a short wait, never a permanent lockout. DCs barely climb with depth.",
@@ -1147,7 +1148,8 @@
         "status": "New hairdo (cosmetic)"
       }
     ],
-    "noteTitle": "A note, tucked into your collar"
+    "noteTitle": "A note, tucked into your collar",
+    "carryInstance": "A pair of Gremlins drag you out by the ankles, very politely, and prop you up by the door you came in."
   },
   "partyPortals": [
     {
@@ -1616,6 +1618,7 @@
       "name": "The Gently Declining Grotto",
       "short": "Grotto",
       "layout": "cave",
+      "visualStyle": "textured-rock",
       "solo": true,
       "turnBased": true,
       "battleMode": "atb-turns",
@@ -2009,9 +2012,9 @@
     "backText": "Back in the hallway. The Training Closet door clicks shut behind you.",
     "ko": {
       "fade": "You flop onto a gym mat\u2026",
-      "carry": "Grenshol peeks in, giggles, and props you up by the closet door.",
+      "carry": "A Gremlin peeks in, giggles, and props you up by the closet door.",
       "noteTitle": "Practice knockout",
-      "note": "That was a practice knockout. Nothing lost, nothing borrowed. Out in the real Annex a knockout costs a little XP and Grenshol may 'borrow' something. The dummies have been re-stuffed whenever you want another go."
+      "note": "That was a practice knockout. Nothing lost, nothing borrowed. Out in the real Annex a knockout costs a little XP, and past the weird doors Grenshol may 'borrow' something. The dummies have been re-stuffed whenever you want another go."
     },
     "soup": {
       "label": "\ud83c\udf72 Practice soup (free \u00b7 heals 2d4+2)",

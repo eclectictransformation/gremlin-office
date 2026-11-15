@@ -439,7 +439,7 @@ The Mailroom is the test bench for comparing battle systems. Each instance now h
 
 ### Cache / tests
 
-- The service worker cache was `desks-shell-v14` in v5c (v5d bumps it to `desks-shell-v15`).
+- The service worker cache was `desks-shell-v14` in v5c (v5d bumped it to `desks-shell-v15`; v5d1 is `desks-shell-v16`).
 - Tests: `python3 /workspace/gremlin-desks/test_annex_v5c.py` (curve, clear ends ~L3, no XP at L4+, Station reachability, encounter/rest/boss order, even doors, train + stations list, threshold). v5b tests still run via `test_annex.py` / `test_annex_v5b.py`. Screenshots go to `/workspace/gremlin-desks/screens/v5c-*.png`, including `v5c-doors-*.png`, `v5c-train-ipad.png`, and `v5c-threshold-ipad.png`.
 - Changed-files zip: `/workspace/elsewhere-annex-v5c-changed.zip`. Go-live needs Bryan's explicit yes.
 
@@ -480,7 +480,37 @@ A goofy, derpy, lovably clumsy little dragon — uneven googly eyes, tiny wings 
 
 ### Cache / tests
 
-- The service worker cache is `desks-shell-v15`.
+- The service worker cache is `desks-shell-v16` (v5d1).
+- v5d1: annex hallway cells no longer stream in when you are inside an instance (a teleport/goto was dropping the default pale `#e9f0ec` walls into the Grotto).
+- v5d1: Grotto walls and ceiling rock use a per-instance `visualStyle: "textured-rock"` (procedural 256px tiling, vertex tint, per-chunk variation). Floors, beams and props stay flat until we decide. Other instances keep the default flat look. Station and Backrooms are unchanged.
+- v5d1: the Grotto now has real collision — walls, doorway-width only, plus rocks, the cart, the foundry, the desk and the rest rock — so you follow the winding tunnels and slopes.
 - Tests: `python3 /workspace/gremlin-desks/test_annex_v5d.py` (resets, grotto door, downward slopes, encounter order, minimap fog and HUD clearance, Snorble shows solo / hides in a group / toggle persists / heals when low). v5b and v5c tests still run. Screenshots go to `/workspace/gremlin-desks/screens/v5d-*.png`, including the cave / foundry / reveal / minimap set and `v5d-companion-battle-ipad.png`.
 - Changed-files zip: `/workspace/elsewhere-annex-v5d-changed.zip`. Go-live needs Bryan's explicit yes.
 
+
+## v5d2 — music, calm Backrooms, weird doors, danger rooms, real stairs (local preview Nov 14 2026, NOT live)
+
+Ships together with the v5d1 Grotto walls / grey-slab fix / textured rock, which never went live. Service worker cache: **`desks-shell-v17`**.
+
+### Music
+- `annex-midi-player.js` (light synth) + `annex-scene-music.js` + `data/annex-music.json` + `midi/*.mid` (11 tracks from `/workspace/annex-music`).
+- Obeys the existing 🔊 toggle: muted = player stopped and the old chiptune bed restored. Never starts before a real user gesture (pointerdown / touchend / keydown, or `navigator.userActivation`), so iOS is happy. Scene changes crossfade on a bar line.
+- Scenes: Station plaza + Overlook → station; **just past the brass threshold (start section) → `backrooms-arrival`** ("Just Past the Brass Line", E Dorian, 76 bpm: the explore motif, sparser, with a music-box C-natural and an E/F rub every 8 bars); the rest of the Backrooms → **`backrooms-explore`** ("Carpet Hum", E Dorian, 80 bpm); zones beyond weird doors → `beyond-explore` (or `zone.music`); fights → battle; instances use their own track.
+- Previews: `/workspace/annex-music/previews/backrooms-arrival.ogg`, `backrooms-explore.ogg` (≤ 6 voices each).
+
+### Calm Backrooms + weird doors
+- No wandering mobs, no Grenshol, no flitters, no light-switch rooms in the open Backrooms. Grabbers (harmless trick doors) and almost-people are unchanged.
+- `beyond.weirdDoors` in `data/elsewhere-annex.json`: a tilted door set flush in a closed hallway wall (leaf ajar, knob too high, odd glow, small sign). Using it opens a passage into a sealed zone with its own back door.
+  - `wd-turn` (The Annex That Turns, world cell (8,-1), west wall of the hub) → **The Humming Passage** (`bz-hum`, cells 40–43, 0).
+  - `wd-stock` (stock section, world cell (-5,3), north wall of the hub) → **The Drain Halls** (`bz-drain`, cells -44…-42, 6–7).
+- Zones set `mobs` (chance/tier/count/kinds), `switchChance` (lights-change rooms) and `rooms` (danger rooms). Small random mobs and Grenshol appear only there. Grenshol keeps its catch → tour, and now drags you back to the start (`lastReturn.home`). It never appears inside instances.
+- Danger rooms: `{ "cell": [..], "danger": true, "traps": [], "sign": [title, small] }`. A yellow warning plate on the hallway side of the doorway ("THIS ONE'S DANGEROUS / you might wanna be careful in here", "CAREFUL IN HERE / no, really. we mean it this time."). Traps are reserved, not built.
+
+### Real stairwells
+- `stairwells.stairs` data entries (`from`/`to` level, `steps`, `direction`, landing, width). Flights are walkable: smooth height following (sloped walk rects), side collision (blocked when the height step > 0.45 m), rails, a pit cut into the floor for down flights and a short shaft cut into the ceiling for up flights. A soft procedural click per step (rate-limited, silent when muted). Reaching the landing triggers the existing Escher trick; "Climb the stairs" still works as a shortcut.
+- `gravity: "inverted"` is stubbed in data and disabled; not built.
+
+### Tests
+- New: `python3 /workspace/gremlin-desks/test_annex_v5d2.py`.
+- Existing tests: v5b/v5c/v5d are unchanged except that the sw version check now expects v17. `test_annex.py` was updated for the calm-Backrooms rules: Grenshol, light switches and mobs are found in the zones beyond the weird doors, and the v4b closet check steps around the v5c threshold prompt.
+- Changed-files zip: `/workspace/elsewhere-annex-v5d2-changed.zip` (all changes vs live v15, v5d1 included). Go-live needs Bryan's explicit yes.

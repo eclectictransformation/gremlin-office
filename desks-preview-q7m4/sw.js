@@ -1,7 +1,10 @@
 // Desks service worker: caches the app shell ONLY.
 // Never caches Supabase (API, auth, storage/signed photo URLs) or any other cross-origin request.
-const CACHE = "desks-shell-v15";
+const CACHE = "desks-shell-v17";
 const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "office3d.js", "annex.js", "annex-audio.js", "glimpse.js", "rpg.js", "control.js", "annex-net.js", "annex-chat.js", "annex-battle.js", "data/elsewhere-annex.json", "data/glimpse-world.json", "data/annex-rpg.json", "vendor/three.module.min.js", "manifest.webmanifest",
+  "annex-midi-player.js", "annex-scene-music.js", "data/annex-music.json",
+  "midi/annex-station.mid", "midi/backrooms-arrival.mid", "midi/backrooms-explore.mid", "midi/mailroom-explore.mid", "midi/mailroom-battle.mid",
+  "midi/grotto-explore.mid", "midi/grotto-battle.mid", "midi/grotto-boss.mid", "midi/deep-boss.mid", "midi/victory-jingle.mid", "midi/snorble-theme.mid",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "assets/bryan-avatar.webp",
   "assets/gallery/tea-under-the-old-oak.webp", "assets/gallery/still-life-with-tea-and-small-visitors.webp",
   "assets/gallery/healing-herbs-plate.webp", "assets/gallery/morning-check-in-highlands.webp", "assets/gallery/slow-hands.webp",

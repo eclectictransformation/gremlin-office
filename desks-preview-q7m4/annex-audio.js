@@ -24,6 +24,7 @@ const BPMS = { annex: 138, alive: 100, glimpse: 76 };
 export function createAnnexAudio() {
   let ctx = null, master = null, musicBus = null, humBus = null, echo = null, sched = 0, nextT = 0, step = 0, running = false, steps = 0, mood = "annex", moodSteps = 0;
   let muted = false; try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch {}
+  let scoreOn = true; // v5d2: the old 8-bar chiptune bed goes quiet while a MIDI scene plays (hum + cues keep running)
   const humNodes = []; let pendingGesture = null, wantRun = false;
   function ensure() {
     if (ctx) return ctx;
@@ -49,6 +50,7 @@ export function createAnnexAudio() {
   }
   const stepLen = () => 60 / (BPMS[mood] || BPM) / 2;
   function playStep(t) {
+    if (!scoreOn && mood === "annex") { step++; steps++; return; } // v5d2: a MIDI scene is playing instead
     const STEP = stepLen(); moodSteps++;
     if (mood === "glimpse") { const i = step % GLIM.length, bar = Math.floor(i / 4) % GROOTS.length;
       tone("sine", midi(GLIM[i]), t, STEP * 2.4, 0.16, echo); if (i % 2 === 0) tone("triangle", midi(GLIM[i] + 12), t + STEP * 0.5, STEP * 0.9, 0.035, echo);
@@ -94,6 +96,8 @@ export function createAnnexAudio() {
     get muted() { return muted; },
     setMood(m) { m = m || "annex"; if (m === mood) return; mood = m; step = 0; moodSteps = 0; if (ctx && running) humBus.gain.setTargetAtTime(humFor(), ctx.currentTime, 0.4); },
     get mood() { return mood; },
+    setScore(on) { scoreOn = !!on; },
+    get scoreOn() { return scoreOn; },
     // little cues (all quiet, nothing harsh)
     sfx(name) {
       if (muted || (navigator.userActivation && !navigator.userActivation.hasBeenActive) || !ensure()) return; const t = ctx.currentTime + 0.01;
@@ -106,6 +110,7 @@ export function createAnnexAudio() {
       else if (name === "peek") { const o = tone("sine", 520, t, 0.5, 0.06, master); o.frequency.exponentialRampToValueAtTime(860, t + 0.45); }
       else if (name === "flutter") { for (let i = 0; i < 6; i++) noise(t + i * 0.035, 0.02, 0.06, 2500, 2, master); }
       else if (name === "click") { tone("square", 1800, t, 0.02, 0.05, master); tone("sine", 90, t, 0.12, 0.2, master); }
+      else if (name === "stepclick") { tone("sine", 220 + Math.random() * 30, t, 0.05, 0.05, master); noise(t, 0.025, 0.02, 1400, 1, master); } // v5d2: one soft click per real step
       else if (name === "steps") { for (let i = 0; i < 5; i++) { tone("sine", 110 - i * 4, t + i * 0.13, 0.09, 0.2, master); noise(t + i * 0.13, 0.05, 0.05, 900, 1, master); } }
       else if (name === "whoosh") { const n = noise(t, 1.2, 0.3, 300, 1.5, master); n.f.frequency.exponentialRampToValueAtTime(3000, t + 1.0); [523.3, 659.3, 784, 1046.5].forEach((f, i) => tone("sine", f, t + 0.3 + i * 0.12, 1.4, 0.06, master)); }
       else if (name === "pick") { tone("triangle", 880, t, 0.1, 0.15, master); tone("triangle", 1320, t + 0.08, 0.18, 0.12, master); }

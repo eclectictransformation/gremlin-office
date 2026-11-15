@@ -1,0 +1,1098 @@
+{
+ "name": "Elsewhere Annex Music Library",
+ "about": "Original, looping video-game cues written as General MIDI files. Players can describe a change in plain words; the team (and describe_change.py) turns that into a new version. Nothing here quotes an existing game theme. Game copy: default cues only (no remixes, no OGG previews).",
+ "updated": "2026-11-15T04:03:34Z",
+ "version": 1,
+ "tracks": [
+  {
+   "id": "annex-station",
+   "title": "The Even Lamps",
+   "role": "explore",
+   "area": [
+    "station",
+    "annex"
+   ],
+   "encounter": [],
+   "tags": [
+    "station",
+    "explore",
+    "calm",
+    "uncanny"
+   ],
+   "mood": "calm, orderly, slightly uncanny",
+   "tempo": 72,
+   "key": "F",
+   "mode": "lydian",
+   "meter": "4/4",
+   "bars": 32,
+   "intro_bars": 0,
+   "length_bars": 32,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 32,
+    "start_tick": 0,
+    "end_tick": 61440,
+    "crossfade_bars": 2
+   },
+   "texture": "sparse warm pads, open fifths and sus2 chords, a few sine-bell peeks",
+   "instruments": {
+    "lead": 10,
+    "bass": 33,
+    "pad": 89,
+    "perc": 9
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 10,
+     "name": "Music Box"
+    },
+    {
+     "slot": "bass",
+     "gm": 33,
+     "name": "Acoustic Bass"
+    },
+    {
+     "slot": "pad",
+     "gm": 89,
+     "name": "Pad 2 (warm)"
+    },
+    {
+     "slot": "perc",
+     "gm": 9,
+     "name": "Glockenspiel"
+    }
+   ],
+   "layers": {
+    "drums": false,
+    "drone": true,
+    "bass": true,
+    "pad": true,
+    "bells": true,
+    "echo": 0.18
+   },
+   "intensity": 2,
+   "drums": false,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/annex-station.mid",
+   "preview": "previews/annex-station.ogg",
+   "seed": 1401,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.28,
+   "filter_hz": 3600,
+   "echo": 0.18,
+   "pattern": "annex-station",
+   "length_sec": 106.667,
+   "loop_sec": 106.667,
+   "midi_bytes": 1462,
+   "voices_peak": 7,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_seconds": 30.0,
+   "preview_bytes": 150681,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "mailroom-explore",
+   "title": "Parcel Shuffle",
+   "role": "explore",
+   "area": [
+    "mailroom",
+    "starter"
+   ],
+   "encounter": [],
+   "tags": [
+    "mailroom",
+    "explore",
+    "silly",
+    "office"
+   ],
+   "mood": "bouncy office silliness",
+   "tempo": 88,
+   "key": "G",
+   "mode": "mixolydian",
+   "meter": "4/4",
+   "bars": 32,
+   "intro_bars": 0,
+   "length_bars": 32,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 32,
+    "start_tick": 0,
+    "end_tick": 61440,
+    "crossfade_bars": 2
+   },
+   "texture": "staccato marimba and pizzicato trading over a bouncy bass, plenty of air",
+   "instruments": {
+    "lead": 13,
+    "bass": 33,
+    "pad": 89,
+    "perc": 46
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 13,
+     "name": "Marimba"
+    },
+    {
+     "slot": "bass",
+     "gm": 33,
+     "name": "Acoustic Bass"
+    },
+    {
+     "slot": "pad",
+     "gm": 89,
+     "name": "Pad 2 (warm)"
+    },
+    {
+     "slot": "perc",
+     "gm": 46,
+     "name": "Pizzicato Strings"
+    }
+   ],
+   "layers": {
+    "drums": false,
+    "drone": false,
+    "bass": true,
+    "pad": false,
+    "bells": false,
+    "echo": 0.08
+   },
+   "intensity": 2,
+   "drums": false,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/mailroom-explore.mid",
+   "preview": "previews/mailroom-explore.ogg",
+   "seed": 2204,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.16,
+   "filter_hz": 3900,
+   "echo": 0.08,
+   "pattern": "mailroom-explore",
+   "length_sec": 87.273,
+   "loop_sec": 87.273,
+   "midi_bytes": 2768,
+   "voices_peak": 3,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_seconds": 30.0,
+   "preview_bytes": 76360,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "mailroom-battle",
+   "title": "Stampede of Stamps",
+   "role": "battle",
+   "area": [
+    "mailroom",
+    "starter"
+   ],
+   "encounter": [
+    "fight"
+   ],
+   "tags": [
+    "mailroom",
+    "battle",
+    "staccato",
+    "comic"
+   ],
+   "mood": "quick, silly, a little frantic — still more slapstick than danger",
+   "tempo": 132,
+   "key": "A",
+   "mode": "aeolian",
+   "meter": "4/4",
+   "bars": 24,
+   "intro_bars": 0,
+   "length_bars": 24,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 24,
+    "start_tick": 0,
+    "end_tick": 46080,
+    "crossfade_bars": 2
+   },
+   "texture": "pizzicato ostinato, xylophone punches, square bassoon-tuba bass, chromatic slides and short rests",
+   "instruments": {
+    "lead": 14,
+    "bass": 71,
+    "pad": 46,
+    "perc": 13
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 14,
+     "name": "Xylophone"
+    },
+    {
+     "slot": "bass",
+     "gm": 71,
+     "name": "Bassoon"
+    },
+    {
+     "slot": "pad",
+     "gm": 46,
+     "name": "Pizzicato Strings"
+    },
+    {
+     "slot": "perc",
+     "gm": 13,
+     "name": "Marimba"
+    }
+   ],
+   "layers": {
+    "drums": false,
+    "drone": false,
+    "bass": true,
+    "pad": true,
+    "bells": false,
+    "echo": 0.05
+   },
+   "intensity": 3,
+   "drums": false,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/mailroom-battle.mid",
+   "preview": "previews/mailroom-battle.ogg",
+   "seed": 3310,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.12,
+   "filter_hz": 4000,
+   "echo": 0.05,
+   "pattern": "mailroom-battle",
+   "length_sec": 43.636,
+   "loop_sec": 43.636,
+   "midi_bytes": 2990,
+   "voices_peak": 4,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_seconds": 29.09,
+   "preview_bytes": 137352,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "grotto-explore",
+   "title": "Drip by Drip",
+   "role": "explore",
+   "area": [
+    "grotto"
+   ],
+   "encounter": [],
+   "tags": [
+    "grotto",
+    "explore",
+    "cave",
+    "echo",
+    "minor"
+   ],
+   "mood": "dripping, echoey, minor, unhurried",
+   "tempo": 66,
+   "key": "D",
+   "mode": "aeolian",
+   "meter": "4/4",
+   "bars": 32,
+   "intro_bars": 0,
+   "length_bars": 32,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 32,
+    "start_tick": 0,
+    "end_tick": 61440,
+    "crossfade_bars": 2
+   },
+   "texture": "low drone pad, sine and triangle only, sparse kalimba drips, lots of silence, one light echo",
+   "instruments": {
+    "lead": 109,
+    "bass": 33,
+    "pad": 89,
+    "perc": 13
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 109,
+     "name": "Kalimba"
+    },
+    {
+     "slot": "bass",
+     "gm": 33,
+     "name": "Acoustic Bass"
+    },
+    {
+     "slot": "pad",
+     "gm": 89,
+     "name": "Pad 2 (warm)"
+    },
+    {
+     "slot": "perc",
+     "gm": 13,
+     "name": "Marimba"
+    }
+   ],
+   "layers": {
+    "drums": false,
+    "drone": true,
+    "bass": true,
+    "pad": true,
+    "bells": false,
+    "echo": 0.35
+   },
+   "intensity": 2,
+   "drums": false,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/grotto-explore.mid",
+   "preview": "previews/grotto-explore.ogg",
+   "seed": 4055,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.4,
+   "filter_hz": 3200,
+   "echo": 0.35,
+   "pattern": "grotto-explore",
+   "length_sec": 116.364,
+   "loop_sec": 116.364,
+   "midi_bytes": 881,
+   "voices_peak": 6,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_seconds": 29.09,
+   "preview_bytes": 155495,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "grotto-battle",
+   "title": "Down the Rails",
+   "role": "battle",
+   "area": [
+    "grotto"
+   ],
+   "encounter": [
+    "fight"
+   ],
+   "tags": [
+    "grotto",
+    "battle",
+    "driving",
+    "minor"
+   ],
+   "mood": "driving, downward, still more odd than scary",
+   "tempo": 126,
+   "key": "D",
+   "mode": "aeolian",
+   "meter": "4/4",
+   "bars": 24,
+   "intro_bars": 0,
+   "length_bars": 24,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 24,
+    "start_tick": 0,
+    "end_tick": 46080,
+    "crossfade_bars": 2
+   },
+   "texture": "pulse-bass ostinato, low toms, a minor square lead, same damp cave palette",
+   "instruments": {
+    "lead": 81,
+    "bass": 39,
+    "pad": 89,
+    "perc": 13
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 81,
+     "name": "Lead 1 (square)"
+    },
+    {
+     "slot": "bass",
+     "gm": 39,
+     "name": "Synth Bass 1"
+    },
+    {
+     "slot": "pad",
+     "gm": 89,
+     "name": "Pad 2 (warm)"
+    },
+    {
+     "slot": "perc",
+     "gm": 13,
+     "name": "Marimba"
+    }
+   ],
+   "layers": {
+    "drums": true,
+    "drone": false,
+    "bass": true,
+    "pad": false,
+    "bells": false,
+    "echo": 0.12
+   },
+   "intensity": 4,
+   "drums": true,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/grotto-battle.mid",
+   "preview": "previews/grotto-battle.ogg",
+   "seed": 4188,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.2,
+   "filter_hz": 3600,
+   "echo": 0.12,
+   "pattern": "grotto-battle",
+   "length_sec": 45.714,
+   "loop_sec": 45.714,
+   "midi_bytes": 3211,
+   "voices_peak": 2,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_seconds": 28.57,
+   "preview_bytes": 130559,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "grotto-boss",
+   "title": "Grumblepile's Chair",
+   "role": "boss",
+   "area": [
+    "grotto"
+   ],
+   "encounter": [
+    "boss",
+    "grumblepile"
+   ],
+   "tags": [
+    "grotto",
+    "boss",
+    "grumblepile",
+    "comic",
+    "heavy"
+   ],
+   "mood": "heavy and comic-menacing — a stalagmite who got ideas",
+   "tempo": 120,
+   "key": "E",
+   "mode": "aeolian",
+   "meter": "6/8",
+   "bars": 32,
+   "intro_bars": 4,
+   "length_bars": 36,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 5,
+    "end_bar": 36,
+    "start_tick": 5760,
+    "end_tick": 51840,
+    "crossfade_bars": 2
+   },
+   "texture": "stomping 6/8 lurch, tuba and brass as saw, a few chromatic wrong notes",
+   "instruments": {
+    "lead": 61,
+    "bass": 59,
+    "pad": 58,
+    "perc": 9
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 61,
+     "name": "French Horn"
+    },
+    {
+     "slot": "bass",
+     "gm": 59,
+     "name": "Tuba"
+    },
+    {
+     "slot": "pad",
+     "gm": 58,
+     "name": "Trombone"
+    },
+    {
+     "slot": "perc",
+     "gm": 9,
+     "name": "Glockenspiel"
+    }
+   ],
+   "layers": {
+    "drums": true,
+    "drone": false,
+    "bass": true,
+    "pad": true,
+    "bells": false,
+    "echo": 0.1
+   },
+   "intensity": 5,
+   "drums": true,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/grotto-boss.mid",
+   "preview": "previews/grotto-boss.ogg",
+   "seed": 5001,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.22,
+   "filter_hz": 3400,
+   "echo": 0.1,
+   "pattern": "grotto-boss",
+   "length_sec": 54.0,
+   "loop_sec": 48.0,
+   "midi_bytes": 2605,
+   "voices_peak": 6,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_seconds": 28.5,
+   "preview_bytes": 166546,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "deep-boss",
+   "title": "Below the Last Lantern",
+   "role": "boss",
+   "area": [
+    "deep"
+   ],
+   "encounter": [
+    "boss",
+    "deep"
+   ],
+   "tags": [
+    "deep",
+    "boss",
+    "dark",
+    "phrygian"
+   ],
+   "mood": "darker, heavier, a deeper-dungeon boss for later",
+   "tempo": 96,
+   "key": "E",
+   "mode": "phrygian",
+   "meter": "4/4",
+   "bars": 32,
+   "intro_bars": 4,
+   "length_bars": 36,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 5,
+    "end_bar": 36,
+    "start_tick": 7680,
+    "end_tick": 69120,
+    "crossfade_bars": 2
+   },
+   "texture": "low saw drone, slow strings, sparse heavy drums, Phrygian bII cadence",
+   "instruments": {
+    "lead": 49,
+    "bass": 39,
+    "pad": 51,
+    "perc": 48
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 49,
+     "name": "String Ensemble 1"
+    },
+    {
+     "slot": "bass",
+     "gm": 39,
+     "name": "Synth Bass 1"
+    },
+    {
+     "slot": "pad",
+     "gm": 51,
+     "name": "Synth Strings 1"
+    },
+    {
+     "slot": "perc",
+     "gm": 48,
+     "name": "Timpani"
+    }
+   ],
+   "layers": {
+    "drums": true,
+    "drone": true,
+    "bass": true,
+    "pad": true,
+    "bells": false,
+    "echo": 0.22
+   },
+   "intensity": 5,
+   "drums": true,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/deep-boss.mid",
+   "preview": "previews/deep-boss.ogg",
+   "seed": 6110,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": -1,
+   "reverb": 0.35,
+   "filter_hz": 2800,
+   "echo": 0.22,
+   "pattern": "deep-boss",
+   "length_sec": 90.0,
+   "loop_sec": 80.0,
+   "midi_bytes": 2583,
+   "voices_peak": 7,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_seconds": 30.0,
+   "preview_bytes": 134072,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "victory-jingle",
+   "title": "Stamp of Approval",
+   "role": "sting",
+   "area": [
+    "all"
+   ],
+   "encounter": [
+    "victory"
+   ],
+   "tags": [
+    "victory",
+    "sting",
+    "jingle"
+   ],
+   "mood": "short, bright, a little official and a little silly",
+   "tempo": 126,
+   "key": "D",
+   "mode": "ionian",
+   "meter": "4/4",
+   "bars": 4,
+   "intro_bars": 0,
+   "length_bars": 4,
+   "loop": false,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 4,
+    "start_tick": 0,
+    "end_tick": 7680,
+    "crossfade_bars": 1
+   },
+   "texture": "short bell-and-fifth fanfare, even steps, no borrowed victory riffs",
+   "instruments": {
+    "lead": 9,
+    "bass": 33,
+    "pad": 89,
+    "perc": 14
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 9,
+     "name": "Glockenspiel"
+    },
+    {
+     "slot": "bass",
+     "gm": 33,
+     "name": "Acoustic Bass"
+    },
+    {
+     "slot": "pad",
+     "gm": 89,
+     "name": "Pad 2 (warm)"
+    },
+    {
+     "slot": "perc",
+     "gm": 14,
+     "name": "Xylophone"
+    }
+   ],
+   "layers": {
+    "drums": false,
+    "drone": false,
+    "bass": true,
+    "pad": false,
+    "bells": true,
+    "echo": 0.1
+   },
+   "intensity": 3,
+   "drums": false,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/victory-jingle.mid",
+   "preview": "previews/victory-jingle.ogg",
+   "seed": 7002,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.2,
+   "filter_hz": 4000,
+   "echo": 0.1,
+   "pattern": "victory-jingle",
+   "length_sec": 7.619,
+   "loop_sec": null,
+   "midi_bytes": 435,
+   "voices_peak": 4,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_seconds": 8.0,
+   "preview_bytes": 29166,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "snorble-theme",
+   "title": "A Sneeze of Sparkles",
+   "role": "sting",
+   "area": [
+    "all"
+   ],
+   "encounter": [
+    "snorble"
+   ],
+   "tags": [
+    "snorble",
+    "companion",
+    "derpy",
+    "motif"
+   ],
+   "mood": "a derpy little motif — clumsy, friendly, slightly off the beat",
+   "tempo": 108,
+   "key": "F",
+   "mode": "ionian",
+   "meter": "4/4",
+   "bars": 4,
+   "intro_bars": 0,
+   "length_bars": 4,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 4,
+    "start_tick": 0,
+    "end_tick": 7680,
+    "crossfade_bars": 2
+   },
+   "texture": "xylophone stumble, a tiny tuba blat, sparkle bells",
+   "instruments": {
+    "lead": 14,
+    "bass": 59,
+    "pad": 10,
+    "perc": 9
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 14,
+     "name": "Xylophone"
+    },
+    {
+     "slot": "bass",
+     "gm": 59,
+     "name": "Tuba"
+    },
+    {
+     "slot": "pad",
+     "gm": 10,
+     "name": "Music Box"
+    },
+    {
+     "slot": "perc",
+     "gm": 9,
+     "name": "Glockenspiel"
+    }
+   ],
+   "layers": {
+    "drums": false,
+    "drone": false,
+    "bass": true,
+    "pad": false,
+    "bells": true,
+    "echo": 0.12
+   },
+   "intensity": 2,
+   "drums": false,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/snorble-theme.mid",
+   "preview": "previews/snorble-theme.ogg",
+   "seed": 8088,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.18,
+   "filter_hz": 3900,
+   "echo": 0.12,
+   "pattern": "snorble-theme",
+   "length_sec": 8.889,
+   "loop_sec": 8.889,
+   "midi_bytes": 441,
+   "voices_peak": 3,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_seconds": 8.89,
+   "preview_bytes": 50867,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "backrooms-arrival",
+   "title": "Just Past the Brass Line",
+   "role": "explore",
+   "area": [
+    "backrooms",
+    "arrival"
+   ],
+   "encounter": [],
+   "tags": [
+    "backrooms",
+    "arrival",
+    "explore",
+    "liminal",
+    "dorian",
+    "sparse",
+    "odd"
+   ],
+   "mood": "the first steps past the Station: calm, sparse, one thing slightly off",
+   "tempo": 76,
+   "key": "E",
+   "mode": "dorian",
+   "meter": "4/4",
+   "bars": 32,
+   "intro_bars": 0,
+   "length_bars": 32,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 32,
+    "start_tick": 0,
+    "end_tick": 61440,
+    "crossfade_bars": 2
+   },
+   "texture": "cousin of Carpet Hum: same E/B drone and carpet motif, but only twice a loop, 8-bar holds, and an odd music-box C-natural + E/F semitone rub every 8 bars",
+   "instruments": {
+    "lead": 12,
+    "bass": 33,
+    "pad": 89,
+    "perc": 11
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 12,
+     "name": "Vibraphone"
+    },
+    {
+     "slot": "bass",
+     "gm": 33,
+     "name": "Acoustic Bass"
+    },
+    {
+     "slot": "pad",
+     "gm": 89,
+     "name": "Pad 2 (warm)"
+    },
+    {
+     "slot": "perc",
+     "gm": 11,
+     "name": "GM 11"
+    }
+   ],
+   "layers": {
+    "drums": false,
+    "drone": true,
+    "bass": true,
+    "pad": true,
+    "bells": false,
+    "echo": 0.28
+   },
+   "intensity": 1,
+   "drums": false,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/backrooms-arrival.mid",
+   "preview": "previews/backrooms-arrival.ogg",
+   "seed": 5102,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.34,
+   "filter_hz": 3200,
+   "echo": 0.28,
+   "pattern": "backrooms-arrival",
+   "length_sec": 101.053,
+   "loop_sec": 101.053,
+   "midi_bytes": 741,
+   "voices_peak": 6,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_bytes": 177549,
+   "preview_seconds": 28.42,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "backrooms-explore",
+   "title": "Carpet Hum",
+   "role": "explore",
+   "area": [
+    "backrooms"
+   ],
+   "encounter": [],
+   "tags": [
+    "backrooms",
+    "explore",
+    "liminal",
+    "dorian",
+    "calm"
+   ],
+   "mood": "liminal, gently wrong, curious, not scary",
+   "tempo": 80,
+   "key": "E",
+   "mode": "dorian",
+   "meter": "4/4",
+   "bars": 32,
+   "intro_bars": 0,
+   "length_bars": 32,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 32,
+    "start_tick": 0,
+    "end_tick": 61440,
+    "crossfade_bars": 2
+   },
+   "texture": "E/B fluorescent-hum drone, one slow pad voice, a vibraphone 'carpet motif' (B-D-C#-A), rare high glock ticks",
+   "instruments": {
+    "lead": 12,
+    "bass": 33,
+    "pad": 89,
+    "perc": 9
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 12,
+     "name": "Vibraphone"
+    },
+    {
+     "slot": "bass",
+     "gm": 33,
+     "name": "Acoustic Bass"
+    },
+    {
+     "slot": "pad",
+     "gm": 89,
+     "name": "Pad 2 (warm)"
+    },
+    {
+     "slot": "perc",
+     "gm": 9,
+     "name": "Glockenspiel"
+    }
+   ],
+   "layers": {
+    "drums": false,
+    "drone": true,
+    "bass": true,
+    "pad": true,
+    "bells": false,
+    "echo": 0.22
+   },
+   "intensity": 2,
+   "drums": false,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/backrooms-explore.mid",
+   "preview": "previews/backrooms-explore.ogg",
+   "seed": 5101,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.3,
+   "filter_hz": 3400,
+   "echo": 0.22,
+   "pattern": "backrooms-explore",
+   "length_sec": 96.0,
+   "loop_sec": 96.0,
+   "midi_bytes": 1051,
+   "voices_peak": 5,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_bytes": 153827,
+   "preview_seconds": 30.0,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  }
+ ]
+}
