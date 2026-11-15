@@ -338,3 +338,47 @@ body.in-office{touch-action:none;overscroll-behavior:none;-webkit-text-size-adju
 .btl-frame{position:relative;height:100%;max-width:100%;display:flex;align-items:flex-end;justify-content:center}
 .btl-frame .btl-av{height:100%;width:auto}
 .btl-frame .btl-weapon{left:auto;right:54%;top:55%} /* mirrored sprite: the hands are just left of centre */
+
+/* ---- v5d: instance minimap (top-right, under the ⟲/💬/👥 tray) + Snorble the little dragon ---- */
+.o3-minimap{position:absolute;top:8.2rem;right:.65rem;z-index:11;width:132px;height:132px;border:2px solid #c9b45a;border-radius:12px;background:rgba(18,16,12,.82);box-shadow:2px 2px 0 rgba(0,0,0,.35);overflow:hidden;padding:0;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.o3-minimap canvas{display:block;width:100%;height:100%;pointer-events:none}
+.o3-minimap .o3-maphint{position:absolute;left:6px;bottom:4px;font:700 9px/1 system-ui;color:#e8d889;text-shadow:0 1px 0 #000;pointer-events:none}
+.o3-minimap.open{width:min(300px,78vw);height:min(300px,58vh);z-index:14}
+.o3-minimap[hidden]{display:none!important}
+@media (pointer:coarse) and (max-height:560px){
+  .o3-minimap{top:4.9rem;right:.65rem;width:110px;height:110px}
+  .o3-minimap.open{width:min(240px,62vw);height:min(210px,66vh);top:4.9rem}
+}
+@media (min-width:900px) and (min-height:700px){
+  .o3-minimap{width:148px;height:148px}
+}
+
+.btl-heroes.has-pal{width:44%;right:3%;display:flex;align-items:flex-end;justify-content:flex-end;gap:4%}
+.btl-heroes.has-pal .btl-fighter.btl-hero{width:58%;height:100%}
+.btl-heroes.has-pal .btl-fighter.btl-pal{width:36%;height:72%;align-self:flex-end;flex:none}
+.btl-pal .btl-tag{background:#3a3450}
+.btl-pal.ready .btl-body{animation:btlready .72s ease-in-out infinite}
+.btl-pal.lunge-clumsy{animation:btlclumsy .55s ease-out}
+@keyframes btlclumsy{25%{transform:translateX(-28%) rotate(-8deg) scale(1.06)}55%{transform:translateX(-40%) rotate(6deg) scale(1.04)}100%{transform:none}}
+.btl-pal.sparkle .btl-sprite{animation:btlsparkle .7s ease-out}
+@keyframes btlsparkle{30%{filter:drop-shadow(0 0 16px #f3d98b) drop-shadow(0 0 8px #f8b8c8) brightness(1.35)}100%{filter:none}}
+.btl-snorble{width:min(78%,140px);height:min(78%,140px);position:relative}
+.btl-snorble .bod{position:absolute;left:22%;bottom:12%;width:52%;height:48%;background:#6aaa5a;border-radius:50% 50% 46% 46%;box-shadow:inset -6px -8px 0 rgba(0,0,0,.12)}
+.btl-snorble .snout{position:absolute;left:8%;bottom:28%;width:28%;height:22%;background:#7ab868;border-radius:50%}
+.btl-snorble .noz{position:absolute;left:12%;bottom:36%;width:6%;height:6%;background:#3a4a30;border-radius:50%}
+.btl-snorble .eye{position:absolute;background:#fff;border:2px solid #1a1a18;border-radius:50%;box-shadow:1px 1px 0 #1a1a18}
+.btl-snorble .eye.l{left:28%;top:22%;width:22%;height:26%}
+.btl-snorble .eye.r{left:52%;top:18%;width:18%;height:18%}
+.btl-snorble .pup{position:absolute;background:#1a1a18;border-radius:50%}
+.btl-snorble .eye.l .pup{left:35%;top:40%;width:38%;height:38%}
+.btl-snorble .eye.r .pup{left:18%;top:28%;width:44%;height:44%}
+.btl-snorble .wing{position:absolute;bottom:38%;width:28%;height:32%;background:#5a8a4a;border-radius:80% 20% 60% 20%;opacity:.9}
+.btl-snorble .wing.l{left:4%;transform:rotate(-25deg)}
+.btl-snorble .wing.r{right:2%;transform:rotate(20deg) scaleX(-1)}
+.btl-snorble .tail{position:absolute;right:6%;bottom:18%;width:22%;height:12%;background:#6aaa5a;border-radius:40% 80% 40% 40%;transform:rotate(-20deg)}
+.btl-snorble .horn{position:absolute;top:10%;width:8%;height:16%;background:#e8d889;border-radius:40% 40% 0 0}
+.btl-snorble .horn.l{left:36%;transform:rotate(-12deg)}
+.btl-snorble .horn.r{left:54%;transform:rotate(16deg);height:12%}
+.btl-tog{margin:.35rem 0 0;display:flex;justify-content:center}
+.btl-tog button{min-height:36px;font:700 13px system-ui;border-radius:10px;padding:.25rem .7rem}
+.btl-end .btl-tog{margin-top:.6rem}

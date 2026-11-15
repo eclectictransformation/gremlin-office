@@ -439,6 +439,48 @@ The Mailroom is the test bench for comparing battle systems. Each instance now h
 
 ### Cache / tests
 
-- The service worker cache is `desks-shell-v14`.
+- The service worker cache was `desks-shell-v14` in v5c (v5d bumps it to `desks-shell-v15`).
 - Tests: `python3 /workspace/gremlin-desks/test_annex_v5c.py` (curve, clear ends ~L3, no XP at L4+, Station reachability, encounter/rest/boss order, even doors, train + stations list, threshold). v5b tests still run via `test_annex.py` / `test_annex_v5b.py`. Screenshots go to `/workspace/gremlin-desks/screens/v5c-*.png`, including `v5c-doors-*.png`, `v5c-train-ipad.png`, and `v5c-threshold-ipad.png`.
 - Changed-files zip: `/workspace/elsewhere-annex-v5c-changed.zip`. Go-live needs Bryan's explicit yes.
+
+
+## v5d — The Gently Declining Grotto, instance resets, minimap, Snorble
+
+Still private and local-only. Training Closet tools, zoom lock, HUD tray, avatar animations, the train platform, and departures are unchanged. No new instances beyond this first cave stage; Moth's pose set is not started.
+
+### Instance resets
+
+The Mailroom and the Grotto **reset when you re-enter after a clear or after leaving mid-run**. Mobs, the boss, rests, and consumable pickups (potions) come back. **Unique finds stay found** — the Mailroom badge, visor and umbrella, the Grotto's Lucky Pebble, and Grumblepile's Pocket Lantern are once per character, so replays don't flood the bag. There is no time cooldown. The XP taper (`xpBand`) is unchanged, so grinding a clear still doesn't power-level you: Mailroom is full XP at levels 1–3; the Grotto is full XP at levels 2–4.
+
+### The Gently Declining Grotto (stage 1)
+
+A real cave behind the left Door Station door (`sd-grotto`, previously a sealed `???`). Rough stone arch, a little lantern, sign **THE GROTTO · solo · real XP · levels 2–4**. Original cave, slightly silly Annex tone. One reserved `???` door remains on the right.
+
+The floor actually slopes down as you walk in (about 7.5 m of descent). The tunnel winds west, then east, with side pockets, so the map is a readable path rather than a straight line. Lumpy low-poly rock walls and a continuous rock ceiling (no black void overhead), warmer hanging-lantern pools, and a short depth fog. Mine structure along the way: a timber frame at the mouth, wooden support beams, hanging lanterns, mine-cart rails that follow the slopes, and one parked cart just inside the entrance. Mid-way, the pebble gallery is a small workshop/foundry (anvil, crates, a glowing furnace). The Collection Chamber opens into a tall cavern with an original silly set piece — a fully furnished lost-and-found office desk that has no business being this far down — and Grumblepile is a character with a face, uneven eyes, and a frown, not just a cone. Lightweight (shared geometry, emissive lamps, no point lights). Stage 1 only — we'll go deeper later with the lore.
+
+**Encounters (level band 2–4, `battleMode: atb-turns`, house XP curve):**
+
+1. Fight 1 · The Welcome Drip (Polite Drip, 20)
+2. Fight 2 · Bats Who Have Opinions (2 Opinionated Bats, 50)
+3. 🛋 Rest · The Surprisingly Soft Rock
+4. Fight 3 · A Pile of Helpful Stones (2 Helpful Pebbles, 60)
+5. Fight 4 · Echoes With Teeth (Echo With Teeth + Ambitious Moss, 65)
+6. Fight 5 · The Last Landing (bat + pebble + drip, 75)
+7. Boss · The Collection Chamber — **Grumblepile, the Stalagmite Who Got Ideas** (300)
+
+A full clear is **570 XP**. A level-2 character (150) lands well into level 3. A fresh level-3 character ends just short of level 4 (400+570=970). A level-4 character stays short of level 5 (1000+570=1570). At level 5 each award is a 1-XP token; at level 6 and up, none.
+
+### Instance minimap
+
+Instances (Mailroom and Grotto) get a small map in the **top right, under the ⟲ / 💬 / 👥 tray**, never on top of it. Checked at phone portrait (390×844), iPad portrait, and phone landscape. Tap to enlarge. Explored rooms are drawn; unexplored rooms are dark with a hinted outline and a `?`. A player dot, and fight / rest / boss icons, appear once you've seen that section. The fog resets when the instance resets.
+
+### Snorble (solo companion)
+
+A goofy, derpy, lovably clumsy little dragon — uneven googly eyes, tiny wings that barely work, original lightweight CSS art. When you're **not in a group**, Snorble joins turn battles as an extra fighter on your side with its own turn gauge. Small heals that prefer you when you're low (sneezes warm sparkles) and light attacks (trips into the enemy / bonks), so it keeps you alive without carrying the fight. Toggle ON/OFF on the character sheet and on the battle end card between fights. Saved per character, default ON. Auto-hides in a party/group. If knocked out, Snorble is back next fight. Does not split XP. Idle rock, clumsy lunge, sparkle heal — same motion style as the other fighters. No overworld follower, to keep it light.
+
+### Cache / tests
+
+- The service worker cache is `desks-shell-v15`.
+- Tests: `python3 /workspace/gremlin-desks/test_annex_v5d.py` (resets, grotto door, downward slopes, encounter order, minimap fog and HUD clearance, Snorble shows solo / hides in a group / toggle persists / heals when low). v5b and v5c tests still run. Screenshots go to `/workspace/gremlin-desks/screens/v5d-*.png`, including the cave / foundry / reveal / minimap set and `v5d-companion-battle-ipad.png`.
+- Changed-files zip: `/workspace/elsewhere-annex-v5d-changed.zip`. Go-live needs Bryan's explicit yes.
+

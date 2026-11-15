@@ -1153,6 +1153,10 @@ export function createAnnex(kit, data, host) {
     arrive: (spawnId) => arrive(resolveSpawn(spawnId), spawnId, null),
     goto: (spawnId) => place(resolveSpawn(spawnId) || stoneById[spawnId]?.spawnFn()),
     gotoLocal: (x, z, yaw = 0, y = 0, pitch = 0) => place({ x, z, yaw, y, pitch }),
+    floorAt: (x, z) => { const wx = AX + x, wz = AZ + z; const r = walkable.find((q) => wx >= q.x0 && wx <= q.x1 && wz >= q.z0 && wz <= q.z1);
+      if (!r) return 0; const y0 = r.y || 0; if (r.y1 == null || r.y1 === y0) return y0;
+      const axis = r.slope || "z", a0 = axis === "x" ? r.x0 : r.z0, a1 = axis === "x" ? r.x1 : r.z1, u = axis === "x" ? wx : wz;
+      const tt = (u - a0) / Math.max(1e-4, a1 - a0); return y0 + Math.max(0, Math.min(1, tt)) * (r.y1 - y0); },
     home: useHome, shift: (id) => { const S = secById[id]; if (S) startShift(S); }, epoch: (id) => epochs[id],
     blockedLocal, misfireNext: (v = true) => { forceMisfire = v; }, lastMisfire: () => lastMisfire, lastGrab: () => lastGrab, cell: C,
     calm: (v = true) => { calm = !!v; if (calm) crHide(); }, creatureOK: (i, j) => creatureOK(i, j),

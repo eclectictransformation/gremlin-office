@@ -314,7 +314,8 @@
       "die": 8,
       "stat": "stride",
       "value": 3,
-      "text": "Opens with a whump. Mostly for drama."
+      "text": "Opens with a whump. Mostly for drama.",
+      "unique": true
     },
     "punch": {
       "name": "Three-Hole Punch",
@@ -391,7 +392,8 @@
         "wits": 1
       },
       "value": 2,
-      "text": "+1 to Wits checks. Very green."
+      "text": "+1 to Wits checks. Very green.",
+      "unique": true
     },
     "badge": {
       "name": "Laminated Name Badge",
@@ -400,7 +402,8 @@
         "luck": 1
       },
       "value": 2,
-      "text": "+1 to Luck checks. The name on it is almost yours."
+      "text": "+1 to Luck checks. The name on it is almost yours.",
+      "unique": true
     },
     "keyring": {
       "name": "Key Ring of Many Doors",
@@ -452,6 +455,25 @@
       "value": 1,
       "icon": "\ud83e\uddea",
       "text": "Heals 1d8+2. Tastes like a battery that's trying its best."
+    },
+    "lucky-pebble": {
+      "name": "Lucky Pebble",
+      "slot": "trinket",
+      "check": {
+        "luck": 1
+      },
+      "value": 2,
+      "icon": "\ud83e\udea8",
+      "unique": true,
+      "text": "+1 to Luck checks. It keeps trying to be helpful and mostly just sits there, proudly."
+    },
+    "pocket-lantern": {
+      "name": "Pocket Lantern",
+      "slot": "trinket",
+      "value": 2,
+      "icon": "\ud83c\udfee",
+      "unique": true,
+      "text": "A tiny lantern that is almost too pleased with itself. Doesn't light much. Looks nice on a belt."
     }
   },
   "startGear": [
@@ -754,6 +776,101 @@
       ],
       "dieText": "curls up into a nap-sized cloud.",
       "level": 1
+    },
+    "drip": {
+      "name": "Polite Drip",
+      "icon": "\ud83d\udca7",
+      "mesh": "drip",
+      "hp": 6,
+      "ac": 10,
+      "atk": 2,
+      "die": 4,
+      "xp": 20,
+      "speed": 1.2,
+      "every": 2.4,
+      "hitText": [
+        "drips apologetically on your head",
+        "splashes your sleeve as if to say sorry",
+        "forms a very small puddle underfoot"
+      ],
+      "dieText": "goes splat, then apologises one last time.",
+      "level": 2
+    },
+    "cavebat": {
+      "name": "Opinionated Bat",
+      "icon": "\ud83e\udd87",
+      "mesh": "cavebat",
+      "hp": 7,
+      "ac": 11,
+      "atk": 2,
+      "die": 4,
+      "xp": 25,
+      "speed": 1.8,
+      "every": 2.3,
+      "hitText": [
+        "swoops by with a tiny lecture",
+        "flaps a wing at your ear",
+        "insists you are standing in its air"
+      ],
+      "dieText": "lands, folds up, and looks unimpressed.",
+      "level": 2
+    },
+    "pebble": {
+      "name": "Helpful Pebble",
+      "icon": "\ud83e\udea8",
+      "mesh": "pebble",
+      "hp": 8,
+      "ac": 12,
+      "atk": 2,
+      "die": 4,
+      "xp": 30,
+      "speed": 1.0,
+      "every": 2.6,
+      "hitText": [
+        "rolls helpfully into your shin",
+        "offers itself as a stepping stone at the worst moment",
+        "bonks you, then waits to be thanked"
+      ],
+      "dieText": "settles down, finally convinced it has helped enough.",
+      "level": 2
+    },
+    "echo": {
+      "name": "Echo With Teeth",
+      "icon": "\ud83d\ude2e",
+      "mesh": "echo",
+      "hp": 9,
+      "ac": 11,
+      "atk": 3,
+      "die": 4,
+      "xp": 35,
+      "speed": 1.4,
+      "every": 2.5,
+      "hitText": [
+        "repeats your last step, a bit sharper",
+        "nips the air next to you",
+        "gives your words a tiny bite"
+      ],
+      "dieText": "fades, leaving only a polite aftertaste of sound.",
+      "level": 3
+    },
+    "moss": {
+      "name": "Ambitious Moss",
+      "icon": "\ud83c\udf3f",
+      "mesh": "moss",
+      "hp": 8,
+      "ac": 10,
+      "atk": 2,
+      "die": 4,
+      "xp": 30,
+      "speed": 0.8,
+      "every": 2.7,
+      "hitText": [
+        "tries to grow on your boot",
+        "pats you with a damp tuft",
+        "spreads a little further than is strictly necessary"
+      ],
+      "dieText": "settles into a modest, decorative clump.",
+      "level": 3
     }
   },
   "mobs": {
@@ -1211,7 +1328,7 @@
       ],
       "grantXP": true,
       "grantLoot": true,
-      "_flags": "grantXP/grantLoot true = this is the real game (kills, XP, pickups and boss loot all count and are saved). Fights and pickups never come back once cleared/taken (no camping).",
+      "_flags": "grantXP/grantLoot true = this is the real game. v5d: the Mailroom (and the Grotto) reset on re-entry after a clear or after leaving: mobs, boss, rests and consumable pickups come back. Unique finds (badge, visor, umbrella, and similar) stay found, so replays don't flood your bag. XP still tapers via xpBand.",
       "palette": {
         "wall": "#d9c9a3",
         "floor": "#8a6a4a",
@@ -1391,8 +1508,8 @@
         "dmgPerExtra": 0,
         "minionsPerMember": 0
       },
-      "done": "The Mailroom is quiet now. The Bin is dozing on its side. (Cleared fights and pickups don't come back.)",
-      "cleared": "\ud83c\udf89 You cleared The Mildly Perilous Mailroom! The far door hums open.",
+      "done": "You cleared The Mildly Perilous Mailroom. Come back any time \u2014 the parcels will have opinions again. Unique finds stay found.",
+      "cleared": "\ud83c\udf89 You cleared The Mildly Perilous Mailroom! The far door hums open. (It will all be back next visit.)",
       "xpMult": 1,
       "xpNote": "v5c (Nov 14 2026): retuned for the slower curve. Fights use full critter XP (xpMult 1) and the boss gives 250. A fresh clear is 15+30+40 + 35+50+45 + 250 = 465 XP, so a level-1 character dings 2 after five fights (150) and lands at level 3 (400) after the boss, well short of level 4 (1000). Dust Management (+60) still leaves you inside level 3. xpBand: full XP at levels 1\u20133, a 1-XP token at 4, nothing at 5+.",
       "xpBand": {
@@ -1403,7 +1520,8 @@
         "_about": "Levels 1\u20133 earn full XP here. At level 4 each award is a 1-XP token. At level 5 and up, none."
       },
       "battleMode": "atb-turns",
-      "_battleMode": "v5c: the Mailroom is the test bench for comparing battle systems. battleMode 'atb-turns' is the current side-view wait-style turns (annex-battle.js). 'realtime' is the existing alternative. New modes can be named later and selected here; none are built in this build. turnBased remains as a compatibility alias."
+      "_battleMode": "v5c: the Mailroom is the test bench for comparing battle systems. battleMode 'atb-turns' is the current side-view wait-style turns (annex-battle.js). 'realtime' is the existing alternative. New modes can be named later and selected here; none are built in this build. turnBased remains as a compatibility alias.",
+      "resetOnEnter": true
     },
     "control": {
       "name": "The Control Room",
@@ -1493,6 +1611,360 @@
       "done": "The Doorman is resting. Its waystone is awake out in the hallway.",
       "battleMode": "realtime",
       "turnBased": false
+    },
+    "grotto": {
+      "name": "The Gently Declining Grotto",
+      "short": "Grotto",
+      "layout": "cave",
+      "solo": true,
+      "turnBased": true,
+      "battleMode": "atb-turns",
+      "level": 2,
+      "levelRange": [
+        2,
+        4
+      ],
+      "grantXP": true,
+      "grantLoot": true,
+      "resetOnEnter": true,
+      "intro": "A real cave, somehow attached to the office. The floor slopes down in a way that feels slightly personal. A few scuffles, a surprisingly soft rock to sit on, a couple more scuffles, and something at the bottom that has been collecting itself for far too long. Solo. Stage one only \u2014 we'll go deeper later. Tuned for levels 2\u20134.",
+      "door": {
+        "sign": "THE GROTTO",
+        "signSub": "solo \u00b7 real XP \u00b7 levels 2\u20134",
+        "label": "A rough stone arch and a little lantern. The air on the other side is cooler, and slightly damper than an office should be."
+      },
+      "palette": {
+        "wall": "#5c5044",
+        "floor": "#4c4034",
+        "ceil": "#564a3e",
+        "bg": "#3a2e22",
+        "fog": [
+          8,
+          26
+        ],
+        "hemi": 0.88,
+        "accent": "#ffb45a",
+        "rock": "#6c5e50"
+      },
+      "xpMult": 1,
+      "xpBand": {
+        "fullMax": 4,
+        "tokenLevel": 5,
+        "token": 1,
+        "zeroAt": 6,
+        "_about": "Levels 2\u20134 (and 1, if you wander in early) earn full XP here. At level 5 each award is a 1-XP token. At level 6 and up, none."
+      },
+      "xpNote": "v5d: stage 1 only. Fights 20+50+60+65+75 = 270, boss 300, total 570. A level-2 character (150) lands well into level 3. A fresh level-3 character ends just short of level 4 (400+570=970). A level-4 character stays short of level 5 (1000+570=1570). Unique loot is once per character; potions come back on reset.",
+      "rest": {
+        "label": "\ud83d\udecb Sit on the surprisingly soft rock (rest: full HP)",
+        "text": "You sit. The rock is, against every reasonable expectation, squashy. HP full."
+      },
+      "done": "You cleared the first stage of The Gently Declining Grotto. The deeper dark can wait. Come back any time \u2014 the drips will have opinions again. Unique finds stay found.",
+      "cleared": "\ud83c\udf89 Grumblepile has collected itself into a slightly more modest pile. The first stage is clear. (It will all be back next visit.)",
+      "scale": {
+        "hpPerExtra": 0,
+        "dmgPerExtra": 0,
+        "minionsPerMember": 0
+      },
+      "boss": {
+        "name": "Grumblepile, the Stalagmite Who Got Ideas",
+        "icon": "\ud83d\uddff",
+        "mesh": "stalag",
+        "hp": 28,
+        "ac": 12,
+        "atk": 4,
+        "die": 6,
+        "xp": 300,
+        "speed": 0.7,
+        "every": 2.8,
+        "hitText": [
+          "leans on you with several rocks at once",
+          "drops a pebble it was saving for later",
+          "rumbles in a self-important way"
+        ],
+        "special": {
+          "every": 3,
+          "name": "A Small Avalanche",
+          "stat": "stride",
+          "dc": 12,
+          "dice": [
+            1,
+            6
+          ],
+          "text": "Loose stones decide to visit your shins!"
+        },
+        "dieText": "settles, a little embarrassed, into a neater pile. A tiny lantern rolls free.",
+        "loot": "pocket-lantern"
+      },
+      "pickups": [
+        {
+          "room": "pocket-loot",
+          "item": "potion"
+        },
+        {
+          "room": "pocket-loot",
+          "item": "lucky-pebble"
+        },
+        {
+          "room": "rest",
+          "item": "potion"
+        }
+      ],
+      "steps": [
+        {
+          "type": "fight",
+          "name": "Fight 1 \u00b7 The Welcome Drip",
+          "room": "dripway",
+          "mobs": [
+            [
+              "drip",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "fight",
+          "name": "Fight 2 \u00b7 Bats Who Have Opinions",
+          "room": "bat-bend",
+          "mobs": [
+            [
+              "cavebat",
+              0
+            ],
+            [
+              "cavebat",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "rest",
+          "name": "Rest \u00b7 The Surprisingly Soft Rock",
+          "room": "rest"
+        },
+        {
+          "type": "fight",
+          "name": "Fight 3 \u00b7 A Pile of Helpful Stones",
+          "room": "gallery",
+          "mobs": [
+            [
+              "pebble",
+              0
+            ],
+            [
+              "pebble",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "fight",
+          "name": "Fight 4 \u00b7 Echoes With Teeth",
+          "room": "echo-hall",
+          "mobs": [
+            [
+              "echo",
+              0
+            ],
+            [
+              "moss",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "fight",
+          "name": "Fight 5 \u00b7 The Last Landing",
+          "room": "landing",
+          "mobs": [
+            [
+              "cavebat",
+              0
+            ],
+            [
+              "pebble",
+              0
+            ],
+            [
+              "drip",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "boss",
+          "name": "Boss \u00b7 The Collection Chamber",
+          "room": "boss"
+        }
+      ],
+      "cave": {
+        "height": 2.85,
+        "rooms": [
+          {
+            "id": "foyer",
+            "type": "lobby",
+            "x": 8.0,
+            "z": 31.0,
+            "w": 10.0,
+            "d": 8.0,
+            "y": 0,
+            "label": "The Mouth"
+          },
+          {
+            "id": "slope1",
+            "type": "slope",
+            "x": 6.4,
+            "z": 23.6,
+            "w": 5.2,
+            "d": 8.0,
+            "y": 0,
+            "y1": -2.0,
+            "slope": "z",
+            "slopeDir": -1,
+            "label": "The First Decline"
+          },
+          {
+            "id": "dripway",
+            "type": "fight",
+            "step": 0,
+            "x": 4.6,
+            "z": 16.0,
+            "w": 8.0,
+            "d": 8.8,
+            "y": -2.0,
+            "label": "The Welcome Drip"
+          },
+          {
+            "id": "pocket-loot",
+            "type": "pocket",
+            "x": 11.6,
+            "z": 16.2,
+            "w": 7.2,
+            "d": 5.2,
+            "y": -2.0,
+            "label": "A Helpful Alcove",
+            "from": "dripway"
+          },
+          {
+            "id": "bat-bend",
+            "type": "fight",
+            "step": 1,
+            "x": 10.0,
+            "z": 8.2,
+            "w": 8.6,
+            "d": 8.6,
+            "y": -2.0,
+            "label": "Bats Who Have Opinions"
+          },
+          {
+            "id": "slope2",
+            "type": "slope",
+            "x": 12.4,
+            "z": 1.2,
+            "w": 5.2,
+            "d": 7.0,
+            "y": -2.0,
+            "y1": -4.0,
+            "slope": "z",
+            "slopeDir": -1,
+            "label": "Further Down"
+          },
+          {
+            "id": "rest",
+            "type": "rest",
+            "step": 2,
+            "x": 12.8,
+            "z": -4.8,
+            "w": 7.6,
+            "d": 7.2,
+            "y": -4.0,
+            "label": "The Surprisingly Soft Rock"
+          },
+          {
+            "id": "gallery",
+            "type": "fight",
+            "step": 3,
+            "x": 8.2,
+            "z": -12.2,
+            "w": 13.0,
+            "d": 9.2,
+            "y": -4.0,
+            "height": 3.5,
+            "label": "The Helpful Workshop"
+          },
+          {
+            "id": "pocket-dead",
+            "type": "pocket",
+            "x": 0.2,
+            "z": -12.0,
+            "w": 6.0,
+            "d": 5.2,
+            "y": -4.0,
+            "label": "A Dead End, Officially",
+            "from": "gallery"
+          },
+          {
+            "id": "slope3",
+            "type": "slope",
+            "x": 4.6,
+            "z": -19.8,
+            "w": 5.0,
+            "d": 7.2,
+            "y": -4.0,
+            "y1": -6.2,
+            "slope": "z",
+            "slopeDir": -1,
+            "label": "The Narrow Bit"
+          },
+          {
+            "id": "echo-hall",
+            "type": "fight",
+            "step": 4,
+            "x": 5.2,
+            "z": -26.6,
+            "w": 8.4,
+            "d": 7.8,
+            "y": -6.2,
+            "label": "Echoes With Teeth"
+          },
+          {
+            "id": "slope4",
+            "type": "slope",
+            "x": 7.6,
+            "z": -33.0,
+            "w": 5.0,
+            "d": 6.2,
+            "y": -6.2,
+            "y1": -7.6,
+            "slope": "z",
+            "slopeDir": -1,
+            "label": "The Last Slope"
+          },
+          {
+            "id": "landing",
+            "type": "fight",
+            "step": 5,
+            "x": 8.8,
+            "z": -38.4,
+            "w": 7.4,
+            "d": 6.4,
+            "y": -7.6,
+            "label": "The Last Landing"
+          },
+          {
+            "id": "boss",
+            "type": "boss",
+            "step": 6,
+            "x": 9.0,
+            "z": -48.5,
+            "w": 16.5,
+            "d": 15.2,
+            "y": -7.6,
+            "height": 5.6,
+            "label": "The Collection Chamber"
+          }
+        ]
+      }
     }
   },
   "nudge": {
@@ -1711,7 +2183,7 @@
     ]
   },
   "station": {
-    "_about": "v5c: the Door Station in the arrival plaza (the room where you put on your gear). An orderly, muted bank of themed doors stands on a free-standing facade east of the north hall, evenly spaced, with a tidy check-in desk. The Mailroom door is lit and usable immediately after you transform, no exploration required. Locked doors are dim, padlocked silhouettes with a ??? plaque; they light up when their matching Backrooms location is discovered (saved on the character as discovered[id]). A short train track runs into the west/north wall with a Coming Soon sign and a departures board driven by station.stations[]. Crossing the north-hall threshold leaves the calm Station for light Backrooms weirdness (a slightly tilted hall, an upside-down lamp, a nonsensical sign) \u2014 not danger. No new instances in this build. A door or a stations row may later point at an external world via dest.type='external' (world/path). That wiring is not live yet.",
+    "_about": "v5c: the Door Station in the arrival plaza (the room where you put on your gear). An orderly, muted bank of themed doors stands on a free-standing facade east of the north hall, evenly spaced, with a tidy check-in desk. The Mailroom door is lit and usable immediately after you transform, no exploration required. Locked doors are dim, padlocked silhouettes with a ??? plaque; they light up when their matching Backrooms location is discovered (saved on the character as discovered[id]). A short train track runs into the west/north wall with a Coming Soon sign and a departures board driven by station.stations[]. Crossing the north-hall threshold leaves the calm Station for light Backrooms weirdness (a slightly tilted hall, an upside-down lamp, a nonsensical sign) \u2014 not danger. No new instances in this build. A door or a stations row may later point at an external world via dest.type='external' (world/path). That wiring is not live yet. v5d: the left door is now The Gently Declining Grotto (lit from the start). One reserved ??? door remains.",
     "name": "The Door Station",
     "short": "Station",
     "sign": "DOOR STATION",
@@ -1794,28 +2266,26 @@
         }
       },
       {
-        "id": "sd-mystery-a",
-        "unlocked": false,
-        "unlock": {
-          "type": "discover"
-        },
+        "id": "sd-grotto",
+        "unlocked": true,
         "dest": {
-          "type": "none"
+          "type": "instance",
+          "id": "grotto"
         },
         "theme": {
-          "name": "???",
+          "name": "The Gently Declining Grotto",
           "colors": {
-            "door": "#3a3a38",
-            "frame": "#1e1e1c",
-            "slot": "#5a5a56",
-            "signBg": "#2a2a28",
-            "signFg": "#8a8a84",
-            "accent": "#5a5a54",
-            "emissive": "#2a2a28"
+            "door": "#5a4e42",
+            "frame": "#3a342c",
+            "slot": "#c9a45a",
+            "signBg": "#3a3228",
+            "signFg": "#f3e7c8",
+            "accent": "#e0b25a",
+            "emissive": "#c9a45a"
           },
-          "sign": "???",
-          "signSub": "sealed",
-          "decor": "unknown",
+          "sign": "THE GROTTO",
+          "signSub": "solo \u00b7 real XP \u00b7 levels 2\u20134",
+          "decor": "cave",
           "wobble": false
         }
       },
@@ -1853,10 +2323,10 @@
       "z": 4.85,
       "rotY": 0,
       "doorsX": {
-        "sd-mystery-a": 9.85,
         "sd-mailroom": 11.0,
         "sd-gate-turn": 12.15,
-        "sd-mystery-b": 13.3
+        "sd-mystery-b": 13.3,
+        "sd-grotto": 9.85
       },
       "facade": {
         "z": 4.72,
@@ -1933,5 +2403,37 @@
       "text": "The hall leans a little. The lamp is upside down. A sign says THIS WAY (NOT THIS WAY).",
       "sub": "Weird, not dangerous. This is where the Station ends and the Backrooms begin."
     }
+  },
+  "companion": {
+    "_about": "v5d: a solo-only battle buddy. Default on, saved per character, hides in a group. Does not split XP.",
+    "id": "snorble",
+    "name": "Snorble",
+    "short": "a very small dragon",
+    "blurb": "A goofy, derpy little dragon with uneven eyes and tiny wings that mostly just flap for morale. When you're on your own, Snorble tags along in turn battles: a clumsy bonk, or a sneeze of warm sparkles if you're low. Default on. Sits out whenever you're in a group.",
+    "defaultOn": true,
+    "maxHp": 8,
+    "ac": 11,
+    "atk": 1,
+    "die": 4,
+    "healBelow": 0.5,
+    "heal": [
+      1,
+      4,
+      1
+    ],
+    "fill": 3.1,
+    "startGauge": 0.35,
+    "attackTexts": [
+      "trips into the {name}",
+      "bonks the {name} with a forehead",
+      "flops a tiny wing at the {name}"
+    ],
+    "healText": "sneezes a cloud of warm sparkles over you",
+    "koText": "Snorble flops over, already snoring. (Back after this scuffle.)",
+    "reviveText": "Snorble sneezes, blinks, and toddles back to your side.",
+    "joinText": "Snorble toddles up and tries to stand heroically, which mostly looks like sitting.",
+    "toggleOn": "Snorble: ON (tags along when you're solo)",
+    "toggleOff": "Snorble: OFF (waiting at the Station)",
+    "hiddenInParty": "Snorble is sitting this one out \u2014 groups make the little dragon bashful."
   }
 }

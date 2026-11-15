@@ -637,7 +637,10 @@ export function startOffice(root, opts) {
     // door state for own door mesh
     ownDoor.children[3] && (ownDoor.children[3].rotation.y = myLock ? 0 : 1.35);
   }
-  const onLevel = (r) => Math.abs((r.y || 0) - feet) < 2; // the Annex has floors stacked above each other (the Overlook hangs over the rooms)
+  const walkY = (r, x, z) => { if (!r) return 0; const y0 = r.y || 0; if (r.y1 == null || r.y1 === y0) return y0;
+    const axis = r.slope || "z", a0 = axis === "x" ? r.x0 : r.z0, a1 = axis === "x" ? r.x1 : r.z1, u = axis === "x" ? x : z;
+    const tt = (u - a0) / Math.max(1e-4, a1 - a0); return y0 + Math.max(0, Math.min(1, tt)) * (r.y1 - y0); };
+  const onLevel = (r) => { const y0 = r.y || 0, y1 = r.y1 != null ? r.y1 : y0, lo = Math.min(y0, y1) - 0.9, hi = Math.max(y0, y1) + 2.2; return feet >= lo && feet <= hi; }; // stacked floors (Overlook) + sloped cave runs
   function zoneAt(x, z) { if (mode === "cathouse") return "cathouse"; for (const r of walkable) if (r.room && x >= r.x0 - 0.01 && x <= r.x1 + 0.01 && z >= r.z0 - 0.01 && z <= r.z1 + 0.01 && onLevel(r)) return r.room; return curZone; }
   const inside = (x, z) => walkable.some((r) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1 && onLevel(r));
 
@@ -742,7 +745,7 @@ export function startOffice(root, opts) {
   const threadEl = el("div", "o3-thread"); hud.appendChild(threadEl);
   const OFFICE_ATMOS = { bg: "#dcd6c6", fog: [18, 45] }; let annexHemi = 1.2, zoomed = false;
   const rectAt = (x, z) => walkable.find((r) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1 && onLevel(r));
-  const annexFloor = (x, z) => rectAt(x, z)?.y || 0;
+  const annexFloor = (x, z) => walkY(rectAt(x, z), x, z);
   function applyAtmos(a) { scene.background.set(a.bg); scene.fog.color.set(a.bg); scene.fog.near = a.fog[0]; scene.fog.far = a.fog[1]; }
   function applyAnnexAtmos(z) { const a = annex?.atmos(z); if (a) { applyAtmos(a); annexHemi = a.hemi ?? 1.2; } if (z !== "annex:overlook") zoomed = false; }
   function threadWarp({ target, swap, onK }) {
@@ -821,7 +824,7 @@ export function startOffice(root, opts) {
     if (onGround) fallApex = nf;
     const c = ceilAt(pos.x, pos.z); if (nf + BODY > c) { nf = Math.max(g.h, c - BODY); if (vy > 0) vy = 0; }
     feet = nf; }
-    if (feet < -3) { feet = 0; vy = 0; pos.x = CAT_SPAWN.x; pos.z = CAT_SPAWN.z; } // safety respawn
+    if (mode === "cathouse" && feet < -3) { feet = 0; vy = 0; pos.x = CAT_SPAWN.x; pos.z = CAT_SPAWN.z; } // safety respawn (caves may go deeper than 3 m)
     if (mode === "cathouse") { const top = solids.find((q) => q.perch); const atTop = onGround && feet >= top.y1 - 0.01 && overlaps(top, pos.x, pos.z);
       if (atTop && !wasTop) toast3("👑 You made it to the top! Gremlin royalty."); wasTop = atTop; }
     hemi.intensity = mode === "cathouse" ? 1.6 : mode === "annex" ? annexHemi : 1.25;

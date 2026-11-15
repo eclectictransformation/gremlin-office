@@ -1,6 +1,7 @@
 // Elsewhere Annex v5b: turn-based battle screen (side view, wait-style turn gauges). Original art + wording.
 // Reusable: rpg.js decides WHEN a fight becomes a battle (per-zone flag `turnBased: true` in data/annex-rpg.json) and hands
 // this module a small rules object. This module only does the screen, the turn order and the little animations.
+// v5d: an optional solo companion (Snorble) can stand on the hero side with its own gauge; it never splits XP.
 // Wait style: every gauge (yours and theirs) PAUSES while your command menu is open and while anyone's move is playing,
 // so nobody is ever hit while choosing. All dice/XP/loot math stays in rpg.js.
 export function createBattle({ el, hud, host, audio, cfg = {} }) {
@@ -51,18 +52,40 @@ export function createBattle({ el, hud, host, audio, cfg = {} }) {
     const ring = el("button", "btl-pick", ""); ring.setAttribute("aria-label", "Target " + m.name); ring.dataset.btl = "pick-" + k; ring.onclick = () => B?.picking && B.picking(k);
     f.append(spr, el("div", "btl-tag", m.name), hp, atb, ring); return { el: f, spr, body, hpF, atbF, ring };
   }
+  function palCard(p) {
+    const f = el("div", "btl-fighter btl-pal"); f.dataset.btl = "pal";
+    const spr = el("div", "btl-sprite"), body = el("div", "btl-body"); spr.appendChild(body);
+    const fig = el("div", "btl-snorble"); fig.setAttribute("aria-hidden", "true");
+    ["wing l","wing r","tail","bod","snout","noz","horn l","horn r"].forEach((c) => fig.appendChild(el("i", c)));
+    const elL = el("i", "eye l"), elR = el("i", "eye r"); elL.appendChild(el("i", "pup")); elR.appendChild(el("i", "pup")); fig.append(elL, elR);
+    body.appendChild(fig); idleVars(f, 2);
+    const hp = el("div", "btl-hp"), hpF = el("i"); hp.appendChild(hpF);
+    const atb = el("div", "btl-atb"), atbF = el("i"); atb.appendChild(atbF);
+    f.append(spr, el("div", "btl-tag", p.name), hp, atb);
+    return { el: f, spr, body, hpF, atbF };
+  }
 
   // ---------- start / end ----------
   function start(o) { // o: { title, hero, foes: [mob], rules, speed }
     if (B) return false; const R = o.rules;
     B = { R, title: o.title || "A scuffle!", hero: { ...o.hero, g: o.hero.startGauge ?? C.heroStart, fill: clamp(C.heroFill - C.heroFillPerStride * (o.hero.speedMod || 0), C.heroFillMin, C.heroFillMax) },
       foes: o.foes.map((m, k) => ({ m, k, g: Math.random() * C.foeStartMax, fill: clamp((m.every || 2.4) * C.foeFillPerEvery, C.foeFillMin, C.foeFillMax) })),
-      queue: [], busy: false, menuOpen: false, mode: "wait", picking: null, turns: 0, log: [], t0: performance.now(), speed: o.speed || 1, xp0: o.hero.xp ?? 0, done: false, raf: 0, last: performance.now(), armed: false };
+      queue: [], busy: false, menuOpen: false, mode: "wait", picking: null, turns: 0, log: [], t0: performance.now(), speed: o.speed || 1, xp0: o.hero.xp ?? 0, done: false, raf: 0, last: performance.now(), armed: false, onToggleCompanion: o.onToggleCompanion, companionOnNow: o.companionOnNow, companionOn: o.companionOn !== false, toggleOnLabel: o.toggleOnLabel, toggleOffLabel: o.toggleOffLabel };
     root.hidden = false; endCard.hidden = true; hud.classList.add("o3-battling"); banner.textContent = B.title; caption.textContent = ""; caption.className = "btl-caption"; logEl.textContent = "";
     foesEl.textContent = ""; heroesEl.textContent = ""; foesEl.dataset.n = String(B.foes.length);
     B.foes.forEach((f) => { f.ui = foeCard(f.m, f.k, B.foes.length); foesEl.appendChild(f.ui.el); });
     B.hero.ui = heroCard(B.hero); heroesEl.appendChild(B.hero.ui.el);
+    B.pal = null; heroesEl.classList.toggle("has-pal", !!o.companion);
+    if (o.companion) {
+      const C = o.companion;
+      B.pal = { id: C.id || "snorble", name: C.name || "Snorble", maxHp: C.maxHp, hp: C.maxHp, ac: C.ac ?? 11, atk: C.atk ?? 1, die: C.die ?? 4,
+        fill: Math.max(1.2, C.fill || 3.1), g: Math.min(0.9, C.startGauge ?? 0.35), healBelow: C.healBelow ?? 0.5, heal: C.heal || [1, 4, 1],
+        attackTexts: C.attackTexts || ["trips into the {name}"], healText: C.healText || "sneezes a cloud of warm sparkles over you",
+        koText: C.koText || "flops over, already snoring.", lastAct: null, lastHeal: 0 };
+      B.pal.ui = palCard(B.pal); heroesEl.appendChild(B.pal.ui.el);
+    }
     renderParty(); renderFoes(); showMenu(null); say(o.intro || "Something squeaks at you. Your turn comes when your gauge fills.", "sys");
+    if (B.pal) say((o.companion && o.companion.joinText) || `${B.pal.name} toddles up and tries to stand heroically.`, "sys");
     audio?.sfx?.("whoosh"); B.last = performance.now(); B.raf = requestAnimationFrame(loop); return true;
   }
   function finish(outcome, extra = {}) { if (!B || B.done) return; B.done = true; cancelAnimationFrame(B.raf); const R = B.R;
@@ -71,6 +94,12 @@ export function createBattle({ el, hud, host, audio, cfg = {} }) {
   function close(outcome) { if (!B) return; const R = B.R; root.hidden = true; endCard.hidden = true; hud.classList.remove("o3-battling"); menu.textContent = ""; const was = B; B = null; R.onEnd?.(outcome, was); }
   function showEnd(s) { endCard.textContent = ""; endCard.hidden = false; menu.textContent = "";
     endCard.appendChild(el("h3", null, s?.title || "🎉 Scuffle won!")); (s?.lines || []).forEach((t) => endCard.appendChild(el("p", null, t)));
+    if (typeof B.onToggleCompanion === "function") {
+      const on = typeof B.companionOnNow === "function" ? B.companionOnNow() : !!B.companionOn;
+      const tb = el("button", "ghost", on ? (B.toggleOnLabel || "Snorble: ON") : (B.toggleOffLabel || "Snorble: OFF")); tb.dataset.btl = "togpal";
+      const wrap = el("div", "btl-tog"); wrap.appendChild(tb); endCard.appendChild(wrap);
+      tb.onclick = () => { B.onToggleCompanion(); const now = typeof B.companionOnNow === "function" ? B.companionOnNow() : !on; tb.textContent = now ? (B.toggleOnLabel || "Snorble: ON") : (B.toggleOffLabel || "Snorble: OFF"); };
+    }
     const go = el("button", "btl-big", "▶ Carry on"); go.dataset.btl = "carry-on"; go.onclick = () => close("win"); endCard.appendChild(go); setTimeout(() => go.focus({ preventScroll: true }), 30); audio?.sfx?.("chime"); }
 
   // ---------- the loop: gauges fill only when nobody is choosing or moving ----------
@@ -78,17 +107,24 @@ export function createBattle({ el, hud, host, audio, cfg = {} }) {
     const R = B.R; if (R.isKO()) { finish("ko"); return; }
     const alive = B.foes.filter((f) => R.alive(f.m)); if (!alive.length) { finish("win"); return; }
     if (!B.busy && !B.menuOpen) {
-      B.hero.g = Math.min(1, B.hero.g + dt / B.hero.fill); alive.forEach((f) => { f.g = Math.min(1, f.g + dt / f.fill); });
-      // whoever is full goes next; you win ties (so the menu pops before anything swings)
-      if (B.hero.g >= 1) openMenu(); else { const f = alive.filter((q) => q.g >= 1).sort((a, b) => b.g - a.g)[0]; if (f) foeTurn(f); }
+      B.hero.g = Math.min(1, B.hero.g + dt / B.hero.fill); if (B.pal && B.pal.hp > 0) B.pal.g = Math.min(1, B.pal.g + dt / B.pal.fill);
+      alive.forEach((f) => { f.g = Math.min(1, f.g + dt / f.fill); });
+      // whoever is full goes next; you win ties (so the menu pops before anything swings), then the companion, then foes
+      if (B.hero.g >= 1) openMenu(); else if (B.pal && B.pal.hp > 0 && B.pal.g >= 1) palTurn(); else { const f = alive.filter((q) => q.g >= 1).sort((a, b) => b.g - a.g)[0]; if (f) foeTurn(f); }
     }
     renderGauges(); }
   function renderGauges() { if (!B) return; B.hero.atbF && (B.hero.atbF.style.width = B.hero.g * 100 + "%"); B.hero.ready?.classList.toggle("ready", B.hero.g >= 1); const rd = B.hero.g >= 1 && !B.done && !B.busy; if (B.hero.ui && B.hero.ui.el.classList.contains("ready") !== rd) { B.hero.ui.el.classList.toggle("ready", rd); if (!B.busy) setPose(B.hero.ui, rd ? "hold" : "idle"); }
-    B.foes.forEach((f) => { f.ui.atbF.style.width = f.g * 100 + "%"; }); }
+    B.foes.forEach((f) => { f.ui.atbF.style.width = f.g * 100 + "%"; });
+    if (B.pal) { B.pal.ui.atbF.style.width = B.pal.g * 100 + "%"; B.pal.ui.hpF.style.width = clamp(B.pal.hp / B.pal.maxHp, 0, 1) * 100 + "%"; B.pal.ui.el.classList.toggle("ready", B.pal.hp > 0 && B.pal.g >= 1 && !B.busy && !B.done); B.pal.ui.el.classList.toggle("down", B.pal.hp <= 0); } }
   function renderParty() { const h = B.hero, R = B.R, st = R.hero(); partyEl.textContent = ""; const row = el("div", "btl-prow"); row.dataset.btl = "party-row";
     row.appendChild(el("b", null, st.name)); const hp = el("div", "btl-php"), hpF = el("i"), hpT = el("span", null, `❤️ ${st.hp}/${st.maxHp}`); hp.append(hpF, hpT); hpF.style.width = clamp(st.hp / st.maxHp, 0, 1) * 100 + "%";
     hp.classList.toggle("low", st.hp / st.maxHp <= 0.3); const atb = el("div", "btl-patb"), atbF = el("i"); atb.appendChild(atbF); atb.appendChild(el("span", null, "turn"));
-    row.append(hp, atb); partyEl.appendChild(row); h.atbF = atbF; h.ready = atb; renderGauges(); }
+    row.append(hp, atb); partyEl.appendChild(row); h.atbF = atbF; h.ready = atb;
+    if (B.pal) { const p = B.pal, prow = el("div", "btl-prow btl-palrow"); prow.appendChild(el("b", null, p.name));
+      const php = el("div", "btl-php"), phpF = el("i"), phpT = el("span", null, `❤️ ${Math.max(0, p.hp)}/${p.maxHp}`); php.append(phpF, phpT); phpF.style.width = clamp(p.hp / p.maxHp, 0, 1) * 100 + "%";
+      const patb = el("div", "btl-patb"), patbF = el("i"); patb.appendChild(patbF); patb.appendChild(el("span", null, "turn"));
+      prow.append(php, patb); partyEl.appendChild(prow); p.atbF = patbF; }
+    renderGauges(); }
   function renderFoes() { B.foes.forEach((f) => { const a = B.R.alive(f.m); f.ui.el.classList.toggle("down", !a); f.ui.hpF.style.width = clamp(f.m.hp / f.m.maxHp, 0, 1) * 100 + "%"; f.ui.el.title = `${f.m.name} · ${Math.max(0, f.m.hp)}/${f.m.maxHp} HP`; }); }
   function say(t, kind = "") { if (!B) return; B.log.push(t); caption.textContent = t; caption.className = "btl-caption show " + kind; const r = el("div", "btl-l " + kind, t); logEl.appendChild(r); while (logEl.children.length > 3) logEl.firstChild.remove(); }
   function pop(target, text, kind) { const r = target.getBoundingClientRect(), s = root.getBoundingClientRect(); const d = el("div", "btl-num " + (kind || ""), text);
@@ -134,13 +170,47 @@ export function createBattle({ el, hud, host, audio, cfg = {} }) {
     act(async () => { anim(B.hero.ui.el, "cast", 500); await wait(250); R.useAbility(null); const got = R.hero().hp - hpB; if (got > 0) pop(B.hero.ui.spr, "+" + got, "heal"); }, "heal"); }
   function doFlee() { act(async () => { const R = B.R, r = R.flee(); say(r.text, r.ok ? "sys" : "miss"); if (r.ok) { anim(B.hero.ui.el, "flee", 600); await wait(650); finish("fled"); } }, "sys"); }
 
+  // ---------- companion turn: auto, small heal if you're low, otherwise a clumsy bonk ----------
+  async function palTurn() { if (!B || B.busy || !B.pal || B.pal.hp <= 0) return; B.busy = true; const R = B.R, p = B.pal, hero = R.hero();
+    p.ui.el.classList.add("active"); say(`${p.name} is up…`, "you"); await wait(280); if (!B) return;
+    const low = hero.maxHp > 0 && hero.hp / hero.maxHp <= (p.healBelow ?? 0.5);
+    if (low) {
+      anim(p.ui.el, "sparkle", 720); await wait(280); if (!B) return;
+      const r = R.palHeal ? R.palHeal(p) : { got: 0 };
+      p.lastAct = "heal"; p.lastHeal = r.got || 0;
+      if (r.got > 0) pop(B.hero.ui.spr, "+" + r.got, "heal");
+      say(`${p.name} ${p.healText}  +${r.got || 0} HP`, "heal");
+    } else {
+      const live = B.foes.filter((f) => R.alive(f.m));
+      if (live.length) {
+        const f = live[Math.floor(Math.random() * live.length)], flavor = (p.attackTexts[Math.floor(Math.random() * p.attackTexts.length)] || "trips into the {name}").replace("{name}", f.m.name);
+        anim(p.ui.el, "lunge-clumsy", 560); anim(p.ui.el, "atk", C.lunge + 140); await wait(C.lunge * 0.55); if (!B) return;
+        const hp0 = f.m.hp, r = R.palStrike ? R.palStrike(f.m) : { hit: false };
+        const dmg = Math.max(0, hp0 - Math.max(0, f.m.hp));
+        p.lastAct = "attack";
+        if (r && r.hit) { anim(f.ui.el, "hit", 450); pop(f.ui.spr, String(dmg), "dmg"); } else pop(f.ui.spr, "miss", "miss");
+        if (!R.alive(f.m)) setTimeout(() => f.ui.el.classList.add("down"), 250);
+        say(`${p.name} ${flavor}${r && r.hit ? "  (−" + dmg + " HP)" : "  · miss"}`, r && r.hit ? "hit" : "miss");
+      }
+    }
+    renderParty(); renderFoes(); await wait(C.hold * 0.7); if (!B) return;
+    p.g = 0; p.ui.el.classList.remove("active"); B.busy = false; }
+
   // ---------- their turn: one at a time, with a visible beat ----------
   async function foeTurn(f) { if (!B || B.busy) return; B.busy = true; const R = B.R, hp0 = R.hero().hp;
     f.ui.el.classList.add("active"); say(`${f.m.icon || ""} ${f.m.name} is up…`, "foe"); await wait(380); if (!B) return;
     anim(f.ui.el, "lunge-r", C.lunge + 60); anim(f.ui.el, "atk", C.lunge + 140); await wait(C.lunge * 0.6); if (!B) return;
-    const n0 = R.logCount(); R.foeAct(f.m); const lines = R.logsSince(n0); if (!B) return; const lost = hp0 - R.hero().hp;
-    if (lost > 0) { anim(B.hero.ui.el, "hit", 450); setPose(B.hero.ui, "hurt"); setTimeout(() => B && !B.done && setPose(B.hero.ui, "idle"), 520); pop(B.hero.ui.spr, "−" + lost, "ouch"); } else pop(B.hero.ui.spr, "miss", "miss");
-    if (lines.length) say(lines[lines.length - 1], lost > 0 ? "ouch" : "miss");
+    const palLive = B.pal && B.pal.hp > 0, hitPal = palLive && Math.random() < 0.28;
+    if (hitPal) {
+      const r = R.palHit ? R.palHit(f.m, B.pal) : { hit: false, dmg: 0 };
+      if (r.hit) { B.pal.hp = Math.max(0, B.pal.hp - r.dmg); anim(B.pal.ui.el, "hit", 450); pop(B.pal.ui.spr, "−" + r.dmg, "ouch"); if (B.pal.hp <= 0) say(B.pal.koText, "ouch"); }
+      else pop(B.pal.ui.spr, "miss", "miss");
+      if (r.text) say(r.text, r.hit ? "ouch" : "miss");
+    } else {
+      const n0 = R.logCount(); R.foeAct(f.m); const lines = R.logsSince(n0); if (!B) return; const lost = hp0 - R.hero().hp;
+      if (lost > 0) { anim(B.hero.ui.el, "hit", 750); setPose(B.hero.ui, "hurt"); setTimeout(() => B && !B.done && setPose(B.hero.ui, "idle"), 800); pop(B.hero.ui.spr, "−" + lost, "ouch"); } else pop(B.hero.ui.spr, "miss", "miss");
+      if (lines.length) say(lines[lines.length - 1], lost > 0 ? "ouch" : "miss");
+    }
     renderParty(); if (R.isKO()) { finish("ko"); return; } await wait(C.foeCaption); if (!B) return;
     f.g = 0; f.ui.el.classList.remove("active"); B.busy = false; }
 
@@ -151,6 +221,6 @@ export function createBattle({ el, hud, host, audio, cfg = {} }) {
     if (e.key === "Escape") { e.preventDefault(); if (menu.dataset.kind && menu.dataset.kind !== "main" && menu.dataset.kind !== "wait") showMenu("main"); } }, true);
 
   return { start, active: () => !!B, end: (o = "abort") => { if (B) { B.done = true; cancelAnimationFrame(B.raf); close(o); } },
-    state: () => B && { title: B.title, hero: { g: +B.hero.g.toFixed(2), fill: B.hero.fill }, foes: B.foes.map((f) => ({ name: f.m.name, hp: f.m.hp, alive: B.R.alive(f.m), g: +f.g.toFixed(2) })), menu: menu.dataset.kind, menuOpen: B.menuOpen, busy: B.busy, turns: B.turns, log: B.log.slice(-6), pose: B.hero.ui?.el.dataset.pose || "idle", heroCls: B.hero.ui ? [...B.hero.ui.el.classList].filter((c) => c !== "btl-fighter") : [], armed: B.armed, done: B.done, ended: !endCard.hidden },
+    state: () => B && { title: B.title, hero: { g: +B.hero.g.toFixed(2), fill: B.hero.fill, hp: B.R.hero().hp, maxHp: B.R.hero().maxHp }, pal: B.pal ? { id: B.pal.id, name: B.pal.name, hp: B.pal.hp, maxHp: B.pal.maxHp, g: +B.pal.g.toFixed(2), fill: B.pal.fill, lastAct: B.pal.lastAct, lastHeal: B.pal.lastHeal, down: B.pal.hp <= 0 } : null, foes: B.foes.map((f) => ({ name: f.m.name, hp: f.m.hp, alive: B.R.alive(f.m), g: +f.g.toFixed(2) })), menu: menu.dataset.kind, menuOpen: B.menuOpen, busy: B.busy, turns: B.turns, log: B.log.slice(-6), pose: B.hero.ui?.el.dataset.pose || "idle", heroCls: B.hero.ui ? [...B.hero.ui.el.classList].filter((c) => c !== "btl-fighter") : [], armed: B.armed, done: B.done, ended: !endCard.hidden },
     setSpeed: (s) => { if (B) B.speed = s; C.speed = s; }, root };
 }

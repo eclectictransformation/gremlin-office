@@ -7,6 +7,7 @@
 //     hooks for the admin-only Control Room (control.js), game-master spawns in front of a player, and party members filled by annex-net.js.
 // v5b: turn-based battles (annex-battle.js) for zones flagged turnBased (only the Mailroom for now); avatar sprite in the fighter slot.
 // v5c: slower 5e-inspired XP curve; Mailroom is 3 fights, rest, 3 fights, rest, boss (levels 1–3); Door Station in the arrival plaza with themed doors, a tidy train teaser, and a weird Backrooms threshold.
+// v5d: instance resets on re-entry; The Gently Declining Grotto (stage 1 cave crawl); instance minimap; Snorble, a solo-only companion dragon.
 import { createBattle } from "./annex-battle.js";
 export function createRPG(ctx) {
   const { THREE, box, canvasTex, plate, cplane, root, host, el, audio, AX, AZ, C, C2, HW, R, walkable, hsh, ck, depthOf, startSec, sectionOf, place, refreshBlockers, chunks, fill, setPlayerName, deskName, hubSpawn, safeSpawn, OV } = ctx;
@@ -127,8 +128,38 @@ export function createRPG(ctx) {
       const top = new THREE.Group(); top.position.set(0, 0.98, 0); body.add(top); box(0, 0, 0.02, 0.6, 0.22, 0.52, m, top); box(0, -0.02, 0.29, 0.16, 0.04, 0.02, sm("#c9c2a2"), top);
       for (let i = 0; i < 5; i++) box(-0.22 + i * 0.11, -0.1, 0.3, 0.04, 0.06, 0.02, sm("#f4efd9"), top); parts.top = top;
       box(-0.13, 1.18, 0.27, 0.07, 0.05, 0.02, kind === "boss" ? eyeR : eye, body); box(0.13, 1.18, 0.27, 0.07, 0.05, 0.02, kind === "boss" ? eyeR : eye, body); }
+    else if (kind === "drip") { const m = sm("#7aa8c8", { transparent: true, opacity: 0.8, emissive: "#4a88aa", emissiveIntensity: 0.35 }); const s = new THREE.Mesh(G("drip", () => new THREE.SphereGeometry(0.16, 10, 8)), m); s.scale.set(0.7, 1.3, 0.7); s.position.y = 0.55; body.add(s); box(-0.06, 0.62, 0.12, 0.04, 0.04, 0.02, eye, body); box(0.06, 0.7, 0.12, 0.05, 0.05, 0.02, eye, body); parts.bob = true; }
+    else if (kind === "cavebat") { const m = sm("#5a4a62"); box(0, 0, 0, 0.1, 0.08, 0.28, m, body); parts.w = [-1, 1].map((s) => { const p = new THREE.Group(); p.position.x = s * 0.05; body.add(p); box(s * 0.2, 0, 0, 0.36, 0.02, 0.22, sm("#3a3048"), p); return p; }); box(-0.05, 0.06, 0.12, 0.04, 0.05, 0.02, eye, body); box(0.06, 0.04, 0.12, 0.05, 0.06, 0.02, eye, body); body.position.y = 1.25; parts.fly = 1.25; }
+    else if (kind === "pebble") { const m = sm("#8a8070", { roughness: 1 }); const b = new THREE.Mesh(G("peb", () => new THREE.IcosahedronGeometry(0.28, 0)), m); b.position.y = 0.26; b.scale.set(1.1, 0.7, 1); body.add(b); box(-0.08, 0.38, 0.18, 0.05, 0.06, 0.02, eye, body); box(0.1, 0.34, 0.18, 0.06, 0.05, 0.02, eye, body); }
+    else if (kind === "echo") { const m = sm("#d8c8a0", { transparent: true, opacity: 0.7, emissive: "#c9b45a", emissiveIntensity: 0.25 }); const b = new THREE.Mesh(G("echo", () => new THREE.TorusGeometry(0.28, 0.06, 8, 16)), m); b.rotation.x = 1.2; b.position.y = 0.7; body.add(b); box(-0.08, 0.72, 0.1, 0.05, 0.07, 0.02, eye, body); box(0.1, 0.68, 0.1, 0.04, 0.05, 0.02, eye, body); parts.bob = true; }
+    else if (kind === "moss") { const m = sm("#4a7a3a", { roughness: 1 }); const b = new THREE.Mesh(G("moss", () => new THREE.IcosahedronGeometry(0.26, 0)), m); b.position.y = 0.22; b.scale.set(1.3, 0.5, 1.1); body.add(b); box(-0.1, 0.32, 0.18, 0.05, 0.05, 0.02, eye, body); box(0.08, 0.3, 0.18, 0.06, 0.05, 0.02, eye, body); }
+    else if (kind === "stalag") {
+      const m = sm("#7a7060", { roughness: 1 }), m2 = sm("#6a6054", { roughness: 1 }), m3 = sm("#8a8070", { roughness: 1 });
+      const sclera = sm("#f4efe0"), mouth = sm("#2a2420");
+      const base = new THREE.Mesh(G("grum1", () => new THREE.IcosahedronGeometry(0.48, 0)), m);
+      base.position.y = 0.38; base.scale.set(1.55, 0.85, 1.35); body.add(base);
+      const mid = new THREE.Mesh(G("grum2", () => new THREE.IcosahedronGeometry(0.38, 0)), m2);
+      mid.position.y = 0.85; mid.scale.set(1.25, 0.9, 1.1); mid.rotation.y = 0.4; body.add(mid);
+      const head = new THREE.Mesh(G("grum3", () => new THREE.IcosahedronGeometry(0.32, 0)), m3);
+      head.position.y = 1.32; head.scale.set(1.15, 1.0, 1.05); body.add(head);
+      box(-0.02, 1.48, 0.28, 0.42, 0.08, 0.12, m2, body);
+      box(0, 1.28, 0.34, 0.1, 0.1, 0.12, m, body);
+      box(-0.14, 1.34, 0.36, 0.13, 0.12, 0.04, sclera, body);
+      box(0.16, 1.40, 0.35, 0.10, 0.11, 0.04, sclera, body);
+      box(-0.15, 1.33, 0.38, 0.07, 0.07, 0.03, eye, body);
+      box(0.17, 1.39, 0.37, 0.05, 0.06, 0.03, eyeR, body);
+      box(0, 1.12, 0.34, 0.22, 0.05, 0.05, mouth, body);
+      box(-0.12, 1.14, 0.34, 0.06, 0.05, 0.05, mouth, body);
+      box(0.12, 1.14, 0.34, 0.06, 0.05, 0.05, mouth, body);
+      const armL = new THREE.Mesh(G("grum2", () => new THREE.IcosahedronGeometry(0.38, 0)), m);
+      armL.position.set(-0.62, 0.72, 0.08); armL.scale.set(0.45, 0.55, 0.4); body.add(armL);
+      const armR = new THREE.Mesh(G("grum2", () => new THREE.IcosahedronGeometry(0.38, 0)), m2);
+      armR.position.set(0.58, 0.68, 0.1); armR.scale.set(0.4, 0.5, 0.38); body.add(armR);
+      const idea = new THREE.Mesh(G("ccrys", () => new THREE.OctahedronGeometry(0.16, 0)), sm("#e0b25a", { emissive: "#ffc878", emissiveIntensity: 0.85 }));
+      idea.position.set(0.08, 1.72, 0); idea.scale.setScalar(0.7); body.add(idea);
+    }
     else { const m = sm("#f4f1e6", { side: THREE.DoubleSide }); parts.w = [-1, 1].map((s) => { const p = new THREE.Group(); body.add(p); box(s * 0.12, 0, 0, 0.24, 0.01, 0.3, m, p); return p; }); box(0, 0, 0, 0.04, 0.04, 0.3, sm("#d8d0bc"), body); body.position.y = 1.2; parts.fly = 1.2; }
-    const barG = new THREE.Group(); barG.position.y = parts.fly ? 1.85 : kind === "dummy" || kind === "tboss" ? 1.7 : kind === "sock" ? 1.55 : kind === "boss" ? 2.8 : kind === "cabinet" ? 1.5 : 0.95; g.add(barG);
+    const barG = new THREE.Group(); barG.position.y = parts.fly ? 1.85 : kind === "dummy" || kind === "tboss" ? 1.7 : kind === "sock" ? 1.55 : kind === "boss" || kind === "stalag" ? 2.85 : kind === "cabinet" ? 1.5 : kind === "pebble" || kind === "moss" || kind === "drip" ? 0.9 : kind === "echo" ? 1.25 : 0.95; g.add(barG);
     box(0, 0, 0, 0.62, 0.08, 0.02, sm("#1a1a18"), barG); const fg = box(0, 0, 0.012, 0.58, 0.05, 0.02, sm("#d8452e", { emissive: "#b0301e", emissiveIntensity: 0.6 }), barG);
     const zz = cplane(M("t:zz", () => canvasTex(96, 64, (c) => { c.fillStyle = "#3a4a33"; c.font = "bold 40px system-ui"; c.fillText("z z", 10, 46); })), 0.4, 0.27, 0, 0.25, 0, 0, barG, { transparent: true });
     return { g, body, parts, barG, fg, zz, big };
@@ -151,7 +182,7 @@ export function createRPG(ctx) {
   }
   function scaled(kind, tier) { const b = D.enemies[kind], sc = D.mobs.scale;
     return { kind, def: b, name: b.name, icon: b.icon, maxHp: Math.max(1, Math.round(b.hp * (1 + sc.hpPerTier * tier))), ac: b.ac + Math.floor(tier / 2) * sc.acPerTwoTiers, atk: b.atk + Math.floor(tier * sc.atkPerTier), die: b.die, dmgB: Math.floor(tier * sc.dmgPerTier), xp: Math.round(b.xp * (1 + sc.xpPerTier * tier)), speed: b.speed, every: b.every, clvl: (b.level || 1) + tier }; }
-  function newMob(st, m, x, z, rect, zone, ch, id) { m.g.position.set(x, 0, z); const mob = { ...st, ...m, hp: st.maxHp, rect, home: [x, z], zone, ch, cd: 1.2, dead: false, deadT: 0, ph: Math.random() * 5, id, hitT: 0, n: 0, state: "idle" };
+  function newMob(st, m, x, z, rect, zone, ch, id, y = 0) { m.g.position.set(x, y || 0, z); const mob = { ...st, ...m, hp: st.maxHp, rect, home: [x, z], zone, ch, cd: 1.2, dead: false, deadT: 0, ph: Math.random() * 5, id, hitT: 0, n: 0, state: "idle" };
     m.g.traverse((o) => { if (o.isMesh) { o.userData.run = () => attackMob(mob); o.userData.maxD = 6; } }); mob.hitMesh = m.body.children[0]; return mob; }
 
   // ---------- building into a streamed cell ----------
@@ -229,7 +260,7 @@ export function createRPG(ctx) {
     if (b.method === "array") return [...v].sort((a, c) => c - a).join() === [...D.creation.standardArray].sort((a, c) => c - a).join();
     return v.every((x) => x >= D.creation.pointBuy.min && x <= D.creation.pointBuy.max) && pbCost(b.base) <= D.creation.pointBuy.points; }
   function createChar(b) { if (!validBuild(b)) return false; const P = D.paths[b.path];
-    S.character = { v: 1, name: cleanName(b.name), path: b.path, method: b.method, base: { ...b.base }, stats: finalStats(b.base, b.path), xp: 0, hp: 0, gear: { weapon: P.weapon, armor: null, head: null, trinket: null }, inv: [], status: [], pendingStat: 0, waystones: {}, discovered: {}, created_at: new Date().toISOString() };
+    S.character = { v: 1, name: cleanName(b.name), path: b.path, method: b.method, base: { ...b.base }, stats: finalStats(b.base, b.path), xp: 0, hp: 0, gear: { weapon: P.weapon, armor: null, head: null, trinket: null }, inv: [], status: [], pendingStat: 0, waystones: {}, discovered: {}, companion: true, created_at: new Date().toISOString() };
     (D.startGear || []).forEach((id) => { const it = item(id); if (it && !S.character.gear[it.slot]) S.character.gear[it.slot] = id; });
     S.character.hp = maxHp(); S.quests = {}; S.stash = []; S.counters = {}; save(); return true; }
   function openCreator() {
@@ -311,7 +342,7 @@ export function createRPG(ctx) {
 
   // ---------- items ----------
   const EQUIP = ["weapon", "armor", "head", "trinket"];
-  function giveItem(id, quiet) { const c = CH(), it = item(id); if (!c || !it) return false; let eq = false;
+  function giveItem(id, quiet) { const c = CH(), it = item(id); if (!c || !it) return false; if (it.unique && ownsItem(id)) { if (!quiet) addLog(`You already have the ${it.name}.`, "sys"); return false; } let eq = false;
     if (EQUIP.includes(it.slot)) { const cur = item(c.gear[it.slot]); if (!cur || (it.value || 0) > (cur.value || 0)) { if (c.gear[it.slot]) c.inv.push(c.gear[it.slot]); c.gear[it.slot] = id; eq = true; } else c.inv.push(id); } else c.inv.push(id);
     save(); renderBar(); if (!quiet) addLog(`🎁 ${it.name}${eq ? " (equipped)" : ""}`, "loot"); return eq; }
   function rollLoot(tier) { const t = D.loot.tiers[clamp(tier, 0, 4)], tot = t.reduce((a, r) => a + r[1], 0); let u = rng() * tot; for (const [id, w] of t) { u -= w; if (u < 0) return id; } return t[0][0]; }
@@ -348,9 +379,9 @@ export function createRPG(ctx) {
     const ch = m.ch; if (ch && ch.rpg.mobs.every((q) => q.dead)) { S.world.mobs[ch.key] = new Date().toISOString(); abilityUsed = false; fightGroup = null;
       if (rng() < D.loot.mobDropChance || !S.flags.firstDrop) { S.flags.firstDrop = true; dropLoot(ch, m, rollLoot(ch.rpg.P.mob.tier)); } save(); setTimeout(() => host.toast("The room goes quiet. It'll stay that way."), 600); }
     gainXP(m.xp, m.name, m.clvl); progress("kill"); }
-  function dropLoot(ch, m, id) { const g = new THREE.Group(); g.position.set(m.g.position.x, 0, m.g.position.z); (ch ? ch.g : inst.g).add(g);
+  function dropLoot(ch, m, id) { if (item(id)?.unique && ownsItem(id)) return null; const g = new THREE.Group(); g.position.set(m.g.position.x, m.g.position.y || 0, m.g.position.z); (ch ? ch.g : inst.g).add(g);
     const it = item(id); const cm = sm(it.slot === "weapon" ? "#d8a64a" : it.slot === "use" ? "#7fc8a0" : "#a8c8e8", { emissive: "#fff2a8", emissiveIntensity: 0.35 }); const b = new THREE.Mesh(G("loot", () => new THREE.OctahedronGeometry(0.16, 0)), cm); b.position.y = 0.4; g.add(b);
-    const d = { g, b, id, lx: (ch ? ch.lx : IX) + m.g.position.x, lz: (ch ? ch.lz : IZ) + m.g.position.z, taken: false }; (ch ? ch.rpg.drops : inst.drops).push(d); addLog(`💎 The ${m.name} dropped something: ${it.name}`, "loot"); return d; }
+    const d = { g, b, id, lx: (ch ? ch.lx : IX) + m.g.position.x, lz: (ch ? ch.lz : IZ) + m.g.position.z, taken: false, key: (!ch && m.boss && inst.id) ? preBossKey(inst.id) : undefined }; (ch ? ch.rpg.drops : inst.drops).push(d); addLog(`💎 The ${m.name} dropped something: ${it.name}`, "loot"); return d; }
   function takeDrop(d) { if (d.taken) return; d.taken = true; d.g.visible = false; if (d.key) { S.world.loot[d.key] = new Date().toISOString(); save(); } giveItem(d.id); lootPanel(d.id, "✋ You pick up:"); }
   function hurt(n, by) { const c = CH(); if (!c || koBusy) return; c.hp = Math.max(0, c.hp - n); hurtEl.classList.remove("on"); void hurtEl.offsetWidth; hurtEl.classList.add("on"); save(); renderBar(); if (c.hp <= 0) knockout(by); }
   function mobAttack(m) { const r = resolveAttack(m.atk, ac(), false); m.n++;
@@ -405,14 +436,20 @@ export function createRPG(ctx) {
   function startBattle(foes, zone) { const I = inst.active ? D.instances[inst.id] : null, k = /:run:(\d+)$/.exec(zone || ""), stp = I?.steps && k ? I.steps[+k[1]] : null;
     abilityUsed = false; footArmed = false; fightGroup = "battle:" + zone; battleZone = zone; renderBar(); host.setFreeze?.(true); host.closePanel?.();
     battleList = foes.slice(); foes.forEach(foeView); freeArt(); const c = CH(); lastBattle = { zone, xp0: c.xp, lvl0: level(), logT0: logTotal, foes: foes.map((m) => m.name), at: Date.now(), outcome: null };
+    const C = D.companion, palOn = companionActive();
     battle.start({ title: stp ? stp.name : isTraining() ? `🎓 Practice bout · ${I.short || I.name}` : `A scuffle in ${I ? I.short || I.name : "the Annex"}`, hero: heroInfo(), foes, speed: battleSpeed,
       intro: foes.length > 1 ? `${foes.length} critters block the way! Wait for your gauge, then pick a move. Nothing moves while you choose.` : `A ${foes[0].name} blocks the way! Wait for your gauge, then pick a move. Nothing moves while you choose.`,
+      companion: palOn && C ? { ...C } : null, companionOn: companionOn(), companionOnNow: () => companionOn(),
+      toggleOnLabel: C?.toggleOn, toggleOffLabel: C?.toggleOff, onToggleCompanion: () => setCompanion(!companionOn()),
       rules: battleRules }); }
   const inB = (fn) => (...a) => { inBattleCall = true; try { return fn(...a); } finally { inBattleCall = false; } };
   const battleRules = {
     hero: () => heroInfo(), alive: (m) => !m.dead && m.hp > 0, isKO: () => koBusy || !CH() || CH().hp <= 0,
     weaponName: () => `${weapon().name} · d${weapon().die}`,
     attack: inB((m, armed) => { cd = 0; if (armed) footArmed = true; return attackMob(m, true); }),
+    palStrike: inB((m) => { const C = D.companion, r = resolveAttack(C.atk, m.ac, false); if (!r.hit) { addLog(`${C.name} trips at the ${m.name} and misses.`, "miss"); return r; } const dmg = Math.max(1, rollN(1, C.die).s); m.hp -= dmg; m.hitT = 0.3; addLog(`${C.name} ${rpick(C.attackTexts).replace("{name}", m.name)} (−${dmg} HP)`, "hit"); if (m.hp <= 0) killMob(m); return Object.assign(r, { dmg }); }),
+    palHeal: inB((p) => { const C = D.companion, h = p?.heal || C.heal || [1, 4, 1], c = CH(); if (!c) return { got: 0 }; const amount = Math.max(1, rollN(h[0], h[1]).s + (h[2] || 0)); const before = c.hp; c.hp = Math.min(maxHp(), c.hp + amount); const got = c.hp - before; save(); renderBar(); addLog(`${C.name} ${C.healText}  +${got} HP`, "heal"); return { got, amount }; }),
+    palHit: inB((m, pal) => { const r = resolveAttack(m.atk, pal.ac ?? 11, false); if (!r.hit) { addLog(`${m.icon || ""} ${m.name} swings at ${pal.name} and misses.`, "miss"); return { hit: false, dmg: 0, text: `${m.name} misses ${pal.name}` }; } const dmg = Math.max(1, rollN(1, m.die).s + (m.dmgB || 0)); addLog(`${m.icon || ""} ${m.name} bonks ${pal.name} (−${dmg} HP)`, "ouch"); return { hit: true, dmg, text: `${m.name} bonks ${pal.name} (−${dmg} HP)` }; }),
     ability: () => { const ab = pathOf().ability; return { name: ab.name, short: ab.name.split(" (")[0], icon: ab.icon, used: abilityUsed, armed: footArmed, kind: ab.id === "footnote" ? "arm" : ab.id === "gizmo" ? "target" : "heal",
       hint: ab.id === "footnote" ? "next attack rolls twice" : ab.id === "gizmo" ? "2d6, no roll needed" : `heal 1d8+${level()}` }; },
     useAbility: inB((target) => useAbility(target || undefined)),
@@ -489,6 +526,7 @@ export function createRPG(ctx) {
   const IX = -3000, IZ = -3000; const inst = { active: false, rooms: {}, walk: false, g: null, mobs: [], drops: [], from: null, zone: "annex:inst:room", id: null, exit: null, extras: [] };
   function buildInstance(id) { const I = D.instances[id], s = I.size, pal = I.palette; Object.entries(inst.rooms).forEach(([k, r]) => (r.g.visible = k === id)); if (inst.rooms[id]) { inst.g = inst.rooms[id].g; inst.exit = inst.rooms[id].exit; inst.extras = inst.rooms[id].extras; return; }
     if (I.layout === "run") return buildRun(id, I);
+    if (I.layout === "cave") return buildCave(id, I);
     const g = new THREE.Group(); g.position.set(IX, 0, IZ); root.add(g); inst.g = g; inst.extras = [];
     const wm = sm(pal.wall, { roughness: 0.95 }); box(s / 2, -0.05, s / 2, s, 0.1, s, sm(pal.floor, { roughness: 1 }), g); box(s / 2, 3.05, s / 2, s, 0.1, s, sm(pal.ceil, { emissive: pal.ceil, emissiveIntensity: 0.25 }), g);
     box(s / 2, 1.5, 0, s, 3, 0.2, wm, g); box(s / 2, 1.5, s, s, 3, 0.2, wm, g); box(0, 1.5, s / 2, 0.2, 3, s, wm, g); box(s, 1.5, s / 2, 0.2, 3, s, wm, g);
@@ -500,7 +538,7 @@ export function createRPG(ctx) {
     inst.exit = { g: ex, disc, lx: IX + s / 2, lz: IZ + s - 0.6 }; inst.rooms[id] = { g, exit: inst.exit, extras: inst.extras }; if (inst.walk) return; inst.walk = true;
     walkable.push({ x0: AX + IX + 1.0 + R, x1: AX + IX + s - 1.0 - R, z0: AZ + IZ + 0.1 + R, z1: AZ + IZ + s - 0.1 - R, room: inst.zone, y: 0 }); }
   function spawnInstance(id) { const I = D.instances[id], n = partySize(), sc = I.scale; inst.mobs.forEach((m) => m.g.parent?.remove(m.g)); inst.drops.forEach((d) => d.g.parent?.remove(d.g)); inst.mobs = []; inst.drops = [];
-    if (I.layout === "run") return spawnRun(id, I); if (I.training) return spawnTraining(I, n); if (S.world.bosses[id]) return; const s = I.size, rect = { x0: 1.6, x1: s - 1.6, z0: 1.4, z1: s - 1.4 };
+    if (I.layout === "run") return spawnRun(id, I); if (I.layout === "cave") return spawnCave(id, I); if (I.training) return spawnTraining(I, n); if (S.world.bosses[id]) return; const s = I.size, rect = { x0: 1.6, x1: s - 1.6, z0: 1.4, z1: s - 1.4 };
     const bd = I.boss, boss = { kind: "boss", def: bd, name: bd.name, icon: bd.icon, maxHp: Math.round(bd.hp * (1 + sc.hpPerExtra * (n - 1))), ac: bd.ac, atk: bd.atk, die: bd.die, dmgB: sc.dmgPerExtra * (n - 1), xp: bd.xp, speed: bd.speed, every: bd.every, boss: true, clvl: I.level || 1 };
     inst.mobs.push(newMob(boss, makeMobMesh("boss", inst.g, 2), s / 2, 3.2, rect, inst.zone, null, "inst:boss"));
     const k = I.minions ?? n * sc.minionsPerMember; for (let q = 0; q < k; q++) { const st = { ...scaled(I.minion, 0) }; st.dmgB += sc.dmgPerExtra * (n - 1); inst.mobs.push(newMob(st, makeMobMesh(I.minion, inst.g), 3.5 + q * 3.5, 5.4, rect, inst.zone, null, "inst:m" + q)); } }
@@ -510,10 +548,10 @@ export function createRPG(ctx) {
       const pl = el("p", "o3-small", `Party: ${n}/${D.party.max}${urlParty > 1 ? " (test party from the &party flag)" : party.members.length > 1 ? "" : ext.portalParty ? "" : " (solo for now; teammates join once Desks multiplayer is switched on)"}. The room inside scales to your party. Out in the Annex it's always just you.`); pl.dataset.rpg = "party-line"; pn.appendChild(pl);
       if (ext.portalParty) ext.portalParty(pn, p, () => { const k = clamp(Math.max(party.members.length, urlParty || 1), 1, D.party.max); pl.firstChild.textContent = `Party: ${k}/${D.party.max}. The room inside scales to your party. Out in the Annex it's always just you.`; });
       const go = el("button", "o3-btn", "🌀 Step through"); go.dataset.rpg = "portal-go"; go.onclick = () => { host.closePanel(); ext.onPartyGo?.(p); enterInstance(p); }; pn.appendChild(go); }); }
-  function enterInstance(p) { const id = p.pp.instance; buildInstance(id); ext.onEnter?.(id, p); inst.id = id; inst.from = { i: p.i, j: p.j, id: p.pp.id, spawn: p.spawn || null }; party.instance = id; audio.sfx("zip");
-    return host.threadWarp({ target: null, swap: () => { inst.active = true; if (D.instances[id].training) startTraining(); spawnInstance(id); fightGroup = null; abilityUsed = false; const I0 = D.instances[id], s = I0.size, sp0 = I0.spawn || { x: s / 2, z: s - 2, yaw: 0 }; lastP = { x: IX + sp0.x, z: IZ + sp0.z };
-      ctx.placeRaw({ x: IX + sp0.x, z: IZ + sp0.z, yaw: sp0.yaw || 0 }); host.toast(D.instances[id].training ? `${D.instances[id].name} · ${D.instances[id].control ? "admin only (nothing here counts)" : "practice mode (nothing here counts)"}` : D.instances[id].solo ? `${D.instances[id].name} · solo · level ${(D.instances[id].levelRange || [D.instances[id].level || 1]).join("–")}` : `${D.instances[id].name} · party of ${partySize()}`); addLog(`🌀 Entered ${D.instances[id].name} (${D.instances[id].control ? "admin" : D.instances[id].training ? "practice" : D.instances[id].solo ? "solo" : "party of " + partySize()})`, "sys"); renderBar(); renderTip(); host.updateActions(); } }); }
-  function leaveInstance(quiet) { if (!inst.active) return; const from = inst.from; const done = () => { if (battle.active()) battle.end("left"); const was = inst.id; if (isTraining()) endTraining(); inst.active = false; ext.onLeave?.(was); party.instance = null; inst.mobs.forEach((m) => m.g.parent?.remove(m.g)); inst.drops.forEach((d) => d.g.parent?.remove(d.g)); inst.mobs = []; inst.drops = []; fightGroup = null; };
+  function enterInstance(p) { const id = p.pp.instance; const Ienter = D.instances[id]; if (Ienter?.resetOnEnter) resetInstanceProgress(id); resetMinimap(); buildInstance(id); ext.onEnter?.(id, p); inst.id = id; inst.from = { i: p.i, j: p.j, id: p.pp.id, spawn: p.spawn || null }; party.instance = id; audio.sfx("zip");
+    return host.threadWarp({ target: null, swap: () => { inst.active = true; if (D.instances[id].training) startTraining(); spawnInstance(id); fightGroup = null; abilityUsed = false; const I0 = D.instances[id], s = I0.size, sp0 = I0.spawn || { x: s / 2, z: s - 2, yaw: 0, y: 0 }; lastP = { x: IX + sp0.x, z: IZ + sp0.z };
+      ctx.placeRaw({ x: IX + sp0.x, z: IZ + sp0.z, yaw: sp0.yaw || 0, y: sp0.y || 0 }); host.toast(D.instances[id].training ? `${D.instances[id].name} · ${D.instances[id].control ? "admin only (nothing here counts)" : "practice mode (nothing here counts)"}` : D.instances[id].solo ? `${D.instances[id].name} · solo · level ${(D.instances[id].levelRange || [D.instances[id].level || 1]).join("–")}` : `${D.instances[id].name} · party of ${partySize()}`); addLog(`🌀 Entered ${D.instances[id].name} (${D.instances[id].control ? "admin" : D.instances[id].training ? "practice" : D.instances[id].solo ? "solo" : "party of " + partySize()})`, "sys"); renderBar(); renderTip(); host.updateActions(); showMinimap(true); revealMap(curZone); drawMinimap(); } }); }
+  function leaveInstance(quiet) { if (!inst.active) return; const from = inst.from; const done = () => { if (battle.active()) battle.end("left"); const was = inst.id; if (isTraining()) endTraining(); inst.active = false; ext.onLeave?.(was); party.instance = null; inst.mobs.forEach((m) => m.g.parent?.remove(m.g)); inst.drops.forEach((d) => d.g.parent?.remove(d.g)); inst.mobs = []; inst.drops = []; fightGroup = null; if (D.instances[was]?.resetOnEnter) resetInstanceProgress(was); showMinimap(false); resetMinimap(); };
     if (quiet) { done(); return; } audio.sfx("zip"); host.threadWarp({ swap: () => { done(); place(from.spawn || hubSpawn(from.i, from.j, 0), from.spawn ? TR().backText : "Back in the Annex hallway. Just you again."); renderBar(); renderTip(); host.updateActions(); } }); }
   function bossDown(m) { if (isTraining()) { tipEvent("boss"); if (TR().grantLoot && m.def.loot) dropLoot(null, m, m.def.loot); inst.mobs.forEach((q) => { if (!q.dead) { q.dead = true; q.deadT = 0; } }); host.toast(`The ${m.name} ${m.def.dieText}`); return; }
     S.world.bosses[inst.id] = new Date().toISOString(); progress("boss", inst.id); afterBoss(inst.id); if (m.def.loot) dropLoot(null, m, m.def.loot); inst.mobs.forEach((q) => { if (!q.dead) { q.dead = true; q.deadT = 0; } }); save();
@@ -550,7 +588,7 @@ export function createRPG(ctx) {
       if (st.type === "fight" && !S.world.mobs[runKey(k)]) st.mobs.forEach(([kind, tier], q) => { const sc0 = scaled(kind, tier); if (I.xpMult != null) sc0.xp = Math.max(1, Math.round(sc0.xp * I.xpMult)); const m = newMob(sc0, makeMobMesh(D.enemies[kind].mesh || kind, inst.g), R0.x0 + (q + 1) * R0.W / (st.mobs.length + 1), mz - 0.8 + (q % 2) * 1.2, rect, zone, null, `run:${k}:${q}`); m.run = k; inst.mobs.push(m); });
       if (st.type === "boss" && !S.world.bosses[id]) { const bd = I.boss; const boss = { kind: "boss", def: bd, name: bd.name, icon: bd.icon, maxHp: bd.hp, ac: bd.ac, atk: bd.atk, die: bd.die, dmgB: 0, xp: bd.xp, speed: bd.speed, every: bd.every, boss: true, clvl: (I.levelRange || [I.level || 1])[1] || I.level || 1 };
         inst.mobs.push(newMob(boss, makeMobMesh(bd.mesh || "boss", inst.g, 1.5), R0.cx, mz - 1, rect, zone, null, "run:boss")); } });
-    (I.pickups || []).forEach((pk, q) => { const key = `run:${id}:p${q}`; if (S.world.loot[key] || !item(pk.item)) return; const sg = R0.seg(pk.step), x = R0.x0 + 1 + ((q * 1.7) % (R0.W - 2)), z = sg.z0 + 1.2;
+    (I.pickups || []).forEach((pk, q) => { const key = `run:${id}:p${q}`; if (S.world.loot[key] || !item(pk.item) || (item(pk.item).unique && ownsItem(pk.item))) return; const sg = R0.seg(pk.step), x = R0.x0 + 1 + ((q * 1.7) % (R0.W - 2)), z = sg.z0 + 1.2;
       const g = new THREE.Group(); g.position.set(x, 0, z); inst.g.add(g); const it = item(pk.item); const b = new THREE.Mesh(G("loot", () => new THREE.OctahedronGeometry(0.16, 0)), sm(it.slot === "use" ? "#7fc8a0" : "#a8c8e8", { emissive: "#fff2a8", emissiveIntensity: 0.35 })); b.position.y = 0.4; g.add(b);
       inst.drops.push({ g, b, id: pk.item, lx: IX + x, lz: IZ + z, taken: false, key }); }); }
   function runStepCheck(k) { const I = D.instances[inst.id]; if (!I?.steps) return; if (inst.mobs.some((q) => q.run === k && !q.dead)) return; S.world.mobs[runKey(k)] = new Date().toISOString(); save();
@@ -559,8 +597,409 @@ export function createRPG(ctx) {
   function runProgress(id = "starter") { const I = D?.instances[id]; if (!I?.steps) return null; const key = (k) => `run:${id}:${k}`; const fights = I.steps.map((st, k) => [st, k]).filter(([st]) => st.type === "fight");
     return { fights: fights.length, cleared: fights.filter(([, k]) => S.world.mobs[key(k)]).length, boss: !!S.world.bosses[id], rests: I.steps.filter((st) => st.type === "rest").length, pickups: (I.pickups || []).length, taken: (I.pickups || []).filter((_, q) => S.world.loot[`run:${id}:p${q}`]).length }; }
   function afterBoss(id) { const I = D.instances[id];
-    if (I.layout === "run") setTimeout(() => host.toast(I.cleared), 1800);
+    if (I.layout === "run" || I.layout === "cave") setTimeout(() => host.toast(I.cleared), 1800);
     if (I.gate) { const gt = (D.gates || []).find((q) => q.instance === id); const c = CH(); if (gt && c) { c.waystones ||= {}; if (!c.waystones[gt.waystone.id]) { c.waystones[gt.waystone.id] = { at: new Date().toISOString(), gate: gt.id }; save(); setTimeout(() => host.toast(`✨ ${gt.waystone.name} is awake! Travel there from the waystone board or your Home crystal.`), 1800); addLog(`✨ Waystone woken: ${gt.waystone.name}`, "lvl"); } } } }
+  // ---------- v5d: The Gently Declining Grotto (stage 1 cave crawl) + instance resets + minimap ----------
+  function hash01(n) { let x = (Math.imul(n ^ 0x9e3779b9, 0x85ebca6b) >>> 0); x ^= x >>> 13; x = Math.imul(x, 0xc2b2ae35) >>> 0; return (x >>> 0) / 4294967296; }
+  function caveRooms(I) { return I.cave?.rooms || []; }
+  function caveRoom(I, id) { return caveRooms(I).find((r) => r.id === id); }
+  function caveZone(r) { return r.step != null ? `annex:inst:run:${r.step}` : `annex:inst:cave:${r.id}`; }
+  function caveWalk(r) {
+    const pad = 0.12 + R;
+    const rec = { x0: AX + IX + r.x - r.w / 2 + pad, x1: AX + IX + r.x + r.w / 2 - pad, z0: AZ + IZ + r.z - r.d / 2, z1: AZ + IZ + r.z + r.d / 2, room: caveZone(r), y: r.y || 0 };
+    if (r.y1 != null && r.y1 !== (r.y || 0)) { rec.slope = r.slope || "z"; rec.y = r.slopeDir === -1 ? r.y1 : r.y; rec.y1 = r.slopeDir === -1 ? r.y : r.y1; }
+    return rec;
+  }
+  function yOnRoom(r, z) {
+    const y0 = r.y || 0;
+    if (r.y1 == null || r.y1 === y0) return y0;
+    const yS = r.slopeDir === -1 ? y0 : r.y1, yN = r.slopeDir === -1 ? r.y1 : y0;
+    const z0 = r.z - r.d / 2, t = Math.max(0, Math.min(1, (z - z0) / Math.max(0.01, r.d)));
+    return yN + (yS - yN) * t;
+  }
+  function addRampSlab(g, r, mat, yOff, thick, widthExtra, lenExtra) {
+    const yS = r.slopeDir === -1 ? (r.y || 0) : r.y1, yN = r.slopeDir === -1 ? r.y1 : (r.y || 0);
+    const L = r.d + (lenExtra || 0), dy = yN - yS, ang = Math.atan2(dy, r.d), len = Math.hypot(L, dy * (L / r.d));
+    const fl = box(r.x, (yS + yN) / 2 + (yOff || 0), r.z, r.w + (widthExtra || 0), thick || 0.16, len, mat, g);
+    fl.rotation.x = ang; return fl;
+  }
+  function addRampFloor(g, r, mat) { return addRampSlab(g, r, mat, 0, 0.16, 0, 0); }
+  function buildCave(id, I) {
+    const rooms = caveRooms(I), pal = I.palette, g = new THREE.Group(); g.position.set(IX, 0, IZ); root.add(g); inst.g = g; inst.extras = [];
+    const wm = sm(pal.wall, { roughness: 1 }), fm = sm(pal.floor, { roughness: 1 }), cm = sm(pal.ceil, { roughness: 1, emissive: pal.ceil, emissiveIntensity: 0.28 });
+    const rk = sm(pal.rock || pal.wall, { roughness: 1 }), rk2 = sm("#5a4e42", { roughness: 1 });
+    const crystal = sm("#c9a45a", { emissive: "#e0b25a", emissiveIntensity: 0.7 });
+    const lamp = sm("#ffe3a8", { emissive: "#ffb45a", emissiveIntensity: 1.35 });
+    const wood = sm("#6a4a28", { roughness: 0.92 }), woodD = sm("#4a3218", { roughness: 0.95 });
+    const iron = sm("#3a3a3e", { metalness: 0.55, roughness: 0.45 }), rust = sm("#4a3020", { roughness: 0.85, metalness: 0.3 });
+    const glow = sm("#ff7a28", { emissive: "#ff6a18", emissiveIntensity: 1.4 });
+    const pool = new THREE.MeshBasicMaterial({ color: 0xffc878, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide });
+    const H0 = I.cave.height || 2.85;
+    const lump = (x, y, z, sx, sy, sz, seed, mat) => {
+      const rock = new THREE.Mesh(G("crock", () => new THREE.IcosahedronGeometry(0.32, 0)), mat || rk);
+      rock.position.set(x, y, z); rock.scale.set(sx, sy, sz); rock.rotation.set(seed, seed * 1.7, seed * 0.6); g.add(rock);
+    };
+    const hangLamp = (x, yCeil, z, yFloor) => {
+      box(x, yCeil - 0.16, z, 0.03, 0.28, 0.03, woodD, g);
+      const lan = new THREE.Mesh(G("clantern", () => new THREE.CylinderGeometry(0.08, 0.1, 0.18, 8)), lamp);
+      lan.position.set(x, yCeil - 0.42, z); g.add(lan);
+      const pl = new THREE.Mesh(G("clpool", () => new THREE.CircleGeometry(1.2, 10)), pool);
+      pl.rotation.x = -Math.PI / 2; pl.position.set(x, yFloor + 0.04, z); g.add(pl);
+    };
+    const addBeamAt = (r, z, roomH) => {
+      const yf = yOnRoom(r, z), yc = yf + roomH, hw = r.w / 2 - 0.22;
+      box(r.x - hw, yf + roomH * 0.48, z, 0.18, roomH * 0.96, 0.18, wood, g);
+      box(r.x + hw, yf + roomH * 0.48, z, 0.18, roomH * 0.96, 0.18, wood, g);
+      box(r.x, yc - 0.1, z, r.w - 0.28, 0.18, 0.2, wood, g);
+      hangLamp(r.x, yc - 0.12, z, yf);
+    };
+    rooms.forEach((r, ri) => {
+      const y0 = r.y || 0, yLo = r.y1 != null ? Math.min(y0, r.y1) : y0, yHi = r.y1 != null ? Math.max(y0, r.y1) : y0;
+      const roomH = r.height || H0, sloped = r.y1 != null && r.y1 !== y0;
+      if (sloped) {
+        addRampSlab(g, r, fm, 0, 0.16, 0.15, 0.2);
+        addRampSlab(g, r, cm, roomH + 0.18, 0.5, 0.35, 0.35);
+      } else {
+        box(r.x, y0 - 0.06, r.z, r.w + 0.2, 0.16, r.d + 0.2, fm, g);
+        box(r.x, y0 + roomH + 0.2, r.z, r.w + 0.45, 0.5, r.d + 0.45, cm, g);
+      }
+      const wallH = roomH + (yHi - yLo) + 0.5, wallY = yLo + wallH / 2;
+      const rb = { x0: r.x - r.w / 2, x1: r.x + r.w / 2, z0: r.z - r.d / 2, z1: r.z + r.d / 2 };
+      const overlapAmt = (a0, a1, b0, b1) => Math.max(0, Math.min(a1, b1) - Math.max(a0, b0));
+      const neighborOn = (side) => rooms.find((o) => { if (o.id === r.id) return false; const ob = { x0: o.x - o.w / 2, x1: o.x + o.w / 2, z0: o.z - o.d / 2, z1: o.z + o.d / 2 };
+        if (side === "n") return Math.abs(rb.z0 - ob.z1) < 1.2 && overlapAmt(rb.x0, rb.x1, ob.x0, ob.x1) > 1.4;
+        if (side === "s") return Math.abs(rb.z1 - ob.z0) < 1.2 && overlapAmt(rb.x0, rb.x1, ob.x0, ob.x1) > 1.4;
+        if (side === "w") return Math.abs(rb.x0 - ob.x1) < 1.2 && overlapAmt(rb.z0, rb.z1, ob.z0, ob.z1) > 1.4;
+        if (side === "e") return Math.abs(rb.x1 - ob.x0) < 1.2 && overlapAmt(rb.z0, rb.z1, ob.z0, ob.z1) > 1.4; return false; });
+      const openOn = (side) => !!neighborOn(side);
+      const gapRange = (side, lo, hi) => {
+        const o = neighborOn(side); if (!o) return null;
+        const o0 = (side === "n" || side === "s") ? o.x - o.w / 2 : o.z - o.d / 2;
+        const o1 = (side === "n" || side === "s") ? o.x + o.w / 2 : o.z + o.d / 2;
+        const a0 = Math.max(lo, o0), a1 = Math.min(hi, o1), mid = (a0 + a1) / 2;
+        const half = Math.max(1.15, Math.min(1.7, (a1 - a0) / 2));
+        return [Math.max(lo + 0.15, mid - half), Math.min(hi - 0.15, mid + half)];
+      };
+      const wallSeg = (cx, cy, cz, sx, sy, sz) => box(cx, cy, cz, sx, sy, sz, wm, g);
+      const gapWall = (axis, c, lo, hi, at, side) => { const gr = gapRange(side, lo, hi); if (!gr) { if (axis === "z") wallSeg(c, wallY, at, hi - lo, wallH, 0.28); else wallSeg(at, wallY, c, 0.28, wallH, hi - lo); return; }
+        const [g0, g1] = gr; if (axis === "z") { wallSeg((lo + g0) / 2, wallY, at, Math.max(0.2, g0 - lo), wallH, 0.28); wallSeg((g1 + hi) / 2, wallY, at, Math.max(0.2, hi - g1), wallH, 0.28); }
+        else { wallSeg(at, wallY, (lo + g0) / 2, 0.28, wallH, Math.max(0.2, g0 - lo)); wallSeg(at, wallY, (g1 + hi) / 2, 0.28, wallH, Math.max(0.2, hi - g1)); } };
+      gapWall("x", r.z, rb.z0, rb.z1, rb.x0, "w"); gapWall("x", r.z, rb.z0, rb.z1, rb.x1, "e");
+      gapWall("z", r.x, rb.x0, rb.x1, rb.z0, "n"); gapWall("z", r.x, rb.x0, rb.x1, rb.z1, "s");
+      if (roomH > H0 + 0.3) {
+        const lh = roomH - H0, ly = y0 + H0 + lh / 2;
+        [["n", rb.z0], ["s", rb.z1]].forEach(([side, at]) => { if (openOn(side)) box(r.x, ly, at, r.w, lh, 0.42, wm, g); });
+        [["w", rb.x0], ["e", rb.x1]].forEach(([side, at]) => { if (openOn(side)) box(at, ly, r.z, 0.42, lh, r.d, wm, g); });
+      }
+      // irregular lumpy walls (skip doorway gaps)
+      const inGap = (side, t) => {
+        const lo = (side === "w" || side === "e") ? rb.z0 : rb.x0, hi = (side === "w" || side === "e") ? rb.z1 : rb.x1;
+        const gr = gapRange(side, lo, hi); if (!gr) return false;
+        const pos = lo + t * (hi - lo);
+        return pos >= gr[0] - 0.15 && pos <= gr[1] + 0.15;
+      };
+      const wallN = Math.max(4, Math.round((r.type === "slope" ? r.d : Math.max(r.w, r.d)) / 1.35));
+      for (let k = 0; k < wallN; k++) {
+        const t = (k + 0.35 + hash01(ri * 19 + k) * 0.4) / wallN, u = hash01(ri * 7 + k * 5);
+        const sides = [["w", rb.x0 + 0.22, rb.z0 + t * r.d], ["e", rb.x1 - 0.22, rb.z0 + t * r.d]];
+        sides.forEach(([side, x, z], si) => {
+          if (inGap(side, t)) return;
+          const yf = yOnRoom(r, z);
+          lump(x, yf + 0.35 + u * (roomH * 0.45), z, 0.7 + u * 0.9, 0.55 + hash01(k + si) * 1.1, 0.65 + u * 0.6, u, si ? rk2 : rk);
+        });
+      }
+      for (let k = 0; k < wallN; k++) {
+        const t = (k + 0.3 + hash01(ri * 11 + k * 3) * 0.45) / wallN, u = hash01(ri * 3 + k * 9);
+        const sides = [["n", rb.x0 + t * r.w, rb.z0 + 0.22], ["s", rb.x0 + t * r.w, rb.z1 - 0.22]];
+        sides.forEach(([side, x, z], si) => {
+          if (inGap(side, t)) return;
+          const yf = yOnRoom(r, z);
+          lump(x, yf + 0.4 + u * (roomH * 0.4), z, 0.65 + u * 0.8, 0.5 + hash01(k * 2 + si) * 1.0, 0.6 + u * 0.55, u, rk);
+        });
+      }
+      // lumpy rock ceiling (fills the void when you look up or down a ramp)
+      const cN = r.type === "boss" ? 16 : r.type === "slope" ? 7 : 9;
+      for (let k = 0; k < cN; k++) {
+        const u = hash01(ri * 17 + k * 3 + 9), v = hash01(ri * 13 + k * 7 + 2);
+        const x = rb.x0 + 0.45 + u * (r.w - 0.9), z = rb.z0 + 0.45 + v * (r.d - 0.9);
+        const yf = yOnRoom(r, z), yc = yf + roomH;
+        lump(x, yc - 0.15 - hash01(k + ri) * 0.35, z, 0.9 + u * 1.1, 0.45 + v * 0.5, 0.85 + hash01(k * 11) * 0.9, u, rk);
+        if (k % 3 === 0) {
+          const st = new THREE.Mesh(G("cstalac", () => new THREE.ConeGeometry(0.1, 0.4, 5)), rk);
+          st.position.set(x + 0.15, yc - 0.28, z - 0.1); st.rotation.x = Math.PI; st.scale.set(0.8 + u, 1 + v, 0.8 + u); g.add(st);
+        }
+      }
+      // support beams + hanging lanterns along tunnels
+      if (r.type !== "pocket") {
+        const nBeams = r.type === "boss" ? 3 : r.type === "lobby" ? 0 : Math.max(1, Math.round(r.d / 4.2));
+        for (let b = 0; b < nBeams; b++) {
+          let z;
+          if (r.type === "slope") {
+            const highZ = r.slopeDir === -1 ? rb.z1 : rb.z0, lowZ = r.slopeDir === -1 ? rb.z0 : rb.z1;
+            z = highZ + (lowZ - highZ) * (0.38 + 0.5 * ((b + 0.15) / nBeams));
+          } else if (r.type === "boss") {
+            z = rb.z0 + (b + 0.8) * (r.d / (nBeams + 1.2));
+          } else {
+            z = rb.z0 + (b + 0.55) * (r.d / (nBeams + 0.2));
+          }
+          addBeamAt(r, z, roomH);
+        }
+        if (r.type !== "slope" && nBeams === 0) hangLamp(r.x, y0 + roomH, r.z, y0);
+      } else {
+        hangLamp(r.x, y0 + roomH, r.z, y0);
+      }
+      if (r.type === "fight" || r.type === "boss") {
+        const cr = new THREE.Mesh(G("ccrys", () => new THREE.OctahedronGeometry(0.16, 0)), crystal);
+        cr.position.set(r.x - r.w * 0.28, y0 + 0.35, r.z + r.d * 0.28); cr.rotation.z = 0.3; g.add(cr);
+      }
+      if (r.type === "rest") {
+        const soft = new THREE.Mesh(G("softrock", () => new THREE.SphereGeometry(0.7, 12, 8)), sm("#8a7a62", { roughness: 1 }));
+        soft.scale.set(1.35, 0.45, 1.05); soft.position.set(r.x - 1.1, y0 + 0.28, r.z); g.add(soft);
+        inst.extras.push({ key: "rest-" + r.id, lx: IX + r.x - 1.1, lz: IZ + r.z, ly: y0, label: () => I.rest.label, run: () => runRest(I) });
+      }
+      if (r.id === "pocket-dead") {
+        cplane(M("t:deadend", () => plate("THIS IS A DEAD END", "(we checked)", { w: 720, h: 220, bg: "#3a3228", fg: "#f3e7c8", accent: "#e0b25a" })), 1.4, 0.44, r.x - 0.1, y0 + 1.5, r.z - r.d / 2 + 0.16, 0, g);
+      }
+      if (r.type === "lobby") {
+        cplane(M("t:cave:lob:" + id, () => plate(I.door.sign, I.door.signSub, { w: 900, h: 240, bg: "#3a3228", fg: "#f3e7c8", accent: "#e0b25a" })), 2.4, 0.64, r.x, y0 + 2.05, r.z + r.d / 2 - 0.22, Math.PI, g);
+      }
+      if (r.type === "boss") {
+        cplane(M("t:cave:boss:" + id, () => plate("THE COLLECTION CHAMBER", "please mind the pile", { w: 900, h: 220, bg: "#4a3a28", fg: "#fbf3d0", accent: "#e0b25a" })), 2.6, 0.64, r.x, y0 + 2.15, r.z - r.d / 2 + 0.16, 0, g);
+        [[-4.6, 0.55, -4.2], [5.0, 0.5, -3.6], [-3.8, 0.7, 4.4], [4.4, 0.45, 3.8], [0.4, 0.9, -5.6], [-5.2, 0.6, 1.2], [5.4, 0.55, -0.8]].forEach(([dx, dy, dz], i) => {
+          const c2 = new THREE.Mesh(G("ccrys", () => new THREE.OctahedronGeometry(0.16, 0)), crystal);
+          c2.position.set(r.x + dx, y0 + dy, r.z + dz); c2.scale.setScalar(1.2 + (i % 3) * 0.3); c2.rotation.z = i * 0.4; g.add(c2);
+        });
+        [[-3.2, -2.2], [2.8, -3.4], [-1.4, 2.6], [3.6, 1.8], [0.2, -0.4], [-4.4, 0.6]].forEach(([dx, dz], i) => {
+          lump(r.x + dx, y0 + roomH - 0.45 - (i % 3) * 0.2, r.z + dz, 1.6 + i * 0.15, 0.7, 1.5, 0.2 * i, rk);
+        });
+      }
+    });
+    // mine-cart rails along the main descent (skip pockets)
+    const main = rooms.filter((r) => r.type !== "pocket" && r.type !== "boss");
+    main.forEach((r) => {
+      const gauge = 0.7;
+      const addRail = (xOff) => {
+        if (r.y1 != null && r.y1 !== (r.y || 0)) addRampSlab(g, r, rust, 0.07, 0.06, -r.w + 0.08, 0.1).position.x = r.x + xOff;
+        else box(r.x + xOff, (r.y || 0) + 0.06, r.z, 0.08, 0.05, r.d - 0.3, rust, g);
+      };
+      addRail(-gauge / 2); addRail(gauge / 2);
+      const ties = Math.max(3, Math.round(r.d / 1.15));
+      for (let i = 0; i < ties; i++) {
+        const z = r.z - r.d / 2 + 0.4 + i * ((r.d - 0.8) / ties);
+        const yf = yOnRoom(r, z);
+        const tie = box(r.x, yf + 0.03, z, 0.95, 0.05, 0.12, woodD, g);
+        if (r.y1 != null && r.y1 !== (r.y || 0)) {
+          const yS = r.slopeDir === -1 ? (r.y || 0) : r.y1, yN = r.slopeDir === -1 ? r.y1 : (r.y || 0);
+          tie.rotation.x = Math.atan2(yN - yS, r.d);
+        }
+      }
+    });
+    // parked cart just inside the mouth, off the rails
+    const foyer = caveRoom(I, "foyer") || rooms[0];
+    (function addCart(x, y, z, yaw) {
+      const cart = new THREE.Group(); cart.position.set(x, y, z); cart.rotation.y = yaw; g.add(cart);
+      box(0, 0.32, 0, 0.82, 0.1, 1.15, wood, cart);
+      box(0, 0.52, -0.54, 0.82, 0.42, 0.08, wood, cart);
+      box(0, 0.52, 0.54, 0.82, 0.42, 0.08, wood, cart);
+      box(-0.39, 0.52, 0, 0.08, 0.42, 1.1, wood, cart);
+      box(0.39, 0.52, 0, 0.08, 0.42, 1.1, wood, cart);
+      [[-0.42, -0.38], [0.42, -0.38], [-0.42, 0.38], [0.42, 0.38]].forEach(([wx, wz]) => {
+        const wh = new THREE.Mesh(G("cwheel", () => new THREE.CylinderGeometry(0.14, 0.14, 0.08, 10)), iron);
+        wh.rotation.z = Math.PI / 2; wh.position.set(wx, 0.14, wz); cart.add(wh);
+      });
+    })(foyer.x + 2.15, foyer.y || 0, foyer.z + 0.4, 0.18);
+    // timber frame at the mouth
+    (function addMouth() {
+      const y0 = foyer.y || 0, z = foyer.z + foyer.d / 2 - 0.2, hw = 1.5;
+      box(foyer.x - hw, y0 + 1.5, z, 0.28, 3.0, 0.28, wood, g);
+      box(foyer.x + hw, y0 + 1.5, z, 0.28, 3.0, 0.28, wood, g);
+      box(foyer.x, y0 + 2.95, z, 3.3, 0.28, 0.32, wood, g);
+      box(foyer.x - 1.15, y0 + 2.15, z, 0.12, 1.5, 0.12, wood, g).rotation.z = 0.55;
+      box(foyer.x + 1.15, y0 + 2.15, z, 0.12, 1.5, 0.12, wood, g).rotation.z = -0.55;
+      box(foyer.x - hw, y0 + 0.08, z, 0.5, 0.16, 0.5, woodD, g);
+      box(foyer.x + hw, y0 + 0.08, z, 0.5, 0.16, 0.5, woodD, g);
+    })();
+    // mid-way foundry / workshop in the gallery
+    const gal = caveRoom(I, "gallery");
+    if (gal) (function addFoundry() {
+      const y = gal.y || 0, x = gal.x - 2.15, z = gal.z - 0.6;
+      box(x, y + 0.7, z, 1.2, 1.4, 1.0, rk2, g);
+      box(x, y + 0.55, z + 0.52, 0.55, 0.55, 0.1, glow, g);
+      box(x + 0.28, y + 1.7, z - 0.1, 0.3, 0.7, 0.3, rk2, g);
+      const ember = new THREE.Mesh(G("clantern", () => new THREE.CylinderGeometry(0.08, 0.1, 0.18, 8)), lamp);
+      ember.position.set(x, y + 0.55, z + 0.58); ember.scale.set(1.3, 0.7, 0.6); g.add(ember);
+      const pl = new THREE.Mesh(G("clpool", () => new THREE.CircleGeometry(1.2, 10)), pool);
+      pl.rotation.x = -Math.PI / 2; pl.position.set(x, y + 0.05, z + 0.4); pl.scale.set(1.3, 1.3, 1); g.add(pl);
+      box(x + 1.5, y + 0.18, z + 0.3, 0.38, 0.36, 0.38, iron, g);
+      box(x + 1.5, y + 0.44, z + 0.3, 0.78, 0.16, 0.3, iron, g);
+      box(x + 1.95, y + 0.44, z + 0.3, 0.28, 0.12, 0.18, iron, g);
+      [[1.8, 1.8], [2.5, 0.7], [0.6, 2.2]].forEach(([dx, dz], i) => {
+        box(x + dx, y + 0.28, z + dz, 0.55 + i * 0.08, 0.5, 0.45, wood, g);
+        box(x + dx, y + 0.55, z + dz, 0.57 + i * 0.08, 0.05, 0.47, woodD, g);
+      });
+      box(gal.x + 3.6, y + 0.28, gal.z + 1.4, 0.7, 0.55, 0.5, wood, g);
+      box(gal.x + 4.3, y + 0.22, gal.z + 0.5, 0.5, 0.42, 0.45, woodD, g);
+    })();
+    // Collection Chamber set piece: a fully furnished lost-and-found office, somehow down here
+    const bossR = caveRoom(I, "boss") || rooms[rooms.length - 1];
+    (function addLostFound() {
+      const y = bossR.y || 0, x = bossR.x + 2.6, z = bossR.z + 3.1, desk = new THREE.Group();
+      desk.position.set(x, y, z); desk.rotation.y = -0.95; g.add(desk);
+      box(0, 0.78, 0, 1.7, 0.08, 0.85, wood, desk);
+      box(-0.75, 0.38, 0.35, 0.1, 0.76, 0.1, wood, desk);
+      box(0.75, 0.38, 0.35, 0.1, 0.76, 0.1, wood, desk);
+      box(-0.75, 0.38, -0.35, 0.1, 0.76, 0.1, wood, desk);
+      box(0.75, 0.38, -0.35, 0.1, 0.76, 0.1, wood, desk);
+      box(0, 0.4, -0.3, 1.5, 0.06, 0.5, woodD, desk);
+      box(-0.35, 0.28, -0.3, 0.55, 0.4, 0.45, wood, desk);
+      const chair = new THREE.Group(); chair.position.set(0, 0, 0.85); desk.add(chair);
+      box(0, 0.46, 0, 0.5, 0.08, 0.5, woodD, chair);
+      box(0, 0.85, -0.22, 0.5, 0.7, 0.08, woodD, chair);
+      box(-0.2, 0.22, -0.18, 0.08, 0.44, 0.08, wood, chair);
+      box(0.2, 0.22, -0.18, 0.08, 0.44, 0.08, wood, chair);
+      box(-0.2, 0.22, 0.18, 0.08, 0.44, 0.08, wood, chair);
+      box(0.2, 0.22, 0.18, 0.08, 0.44, 0.08, wood, chair);
+      box(-0.45, 0.92, 0.1, 0.08, 0.28, 0.08, woodD, desk);
+      const shade = new THREE.Mesh(G("clantern", () => new THREE.CylinderGeometry(0.08, 0.1, 0.18, 8)), lamp);
+      shade.position.set(-0.45, 1.18, 0.1); shade.scale.set(1.1, 0.7, 1.1); desk.add(shade);
+      box(0.45, 0.86, 0.1, 0.28, 0.1, 0.22, sm("#6a2a2a"), desk);
+      box(0.15, 0.86, -0.15, 0.22, 0.08, 0.16, sm("#f3e7c8"), desk);
+      box(0.18, 0.95, -0.15, 0.18, 0.1, 0.14, sm("#f3e7c8"), desk);
+      const pot = sm("#3a6a3a", { roughness: 1 });
+      box(0.7, 0.88, 0.22, 0.12, 0.12, 0.12, sm("#8a5a3a"), desk);
+      box(0.7, 1.05, 0.22, 0.16, 0.22, 0.16, pot, desk);
+      cplane(M("t:cave:lostfound", () => plate("LOST & FOUND", "please queue · no, we don't know why it's here", { w: 900, h: 240, bg: "#3a3228", fg: "#f3e7c8", accent: "#e0b25a" })), 1.15, 0.32, 0, 0.96, 0.2, 0, desk);
+      box(1.15, 0.9, -0.1, 0.06, 1.8, 0.06, woodD, desk);
+      box(1.15, 1.75, -0.1, 0.5, 0.06, 0.5, woodD, desk);
+    })();
+    const ex = new THREE.Group(); ex.position.set(foyer.x, foyer.y || 0, foyer.z + foyer.d / 2 - 0.35); ex.rotation.y = Math.PI; g.add(ex);
+    const { disc } = swirl(ex); disc.userData.run = () => leaveInstance(); disc.userData.maxD = 4.5;
+    inst.exit = { g: ex, disc, lx: IX + foyer.x, lz: IZ + foyer.z + foyer.d / 2 - 0.65 };
+    inst.extras.push({ key: "far-door", lx: IX + bossR.x, lz: IZ + bossR.z - bossR.d / 2 + 0.7, label: () => (S.world.bosses[id] ? "🌀 Leave through the far dark" : "🪨 The far dark (locked until the pile is dealt with)"), run: () => (S.world.bosses[id] ? leaveInstance() : host.toast("The dark politely declines until the pile has been spoken to.")) });
+    I.spawn = { x: foyer.x, z: foyer.z + foyer.d / 2 - 2.0, y: foyer.y || 0, yaw: 0 };
+    inst.rooms[id] = { g, exit: inst.exit, extras: inst.extras };
+    rooms.forEach((r) => walkable.push(caveWalk(r)));
+  }
+  function spawnCave(id, I) {
+    const rooms = caveRooms(I);
+    I.steps.forEach((st, k) => {
+      const rm = rooms.find((q) => q.id === st.room) || rooms.find((q) => q.step === k);
+      if (!rm) return;
+      const rect = { x0: rm.x - rm.w / 2 + 0.6, x1: rm.x + rm.w / 2 - 0.6, z0: rm.z - rm.d / 2 + 0.5, z1: rm.z + rm.d / 2 - 0.5 };
+      const zone = `annex:inst:run:${k}`, y = rm.y || 0;
+      if (st.type === "fight" && !S.world.mobs[runKey(k)]) st.mobs.forEach(([kind, tier], q) => {
+        const sc0 = scaled(kind, tier); if (I.xpMult != null) sc0.xp = Math.max(1, Math.round(sc0.xp * I.xpMult));
+        const m = newMob(sc0, makeMobMesh(D.enemies[kind].mesh || kind, inst.g), rm.x - rm.w / 4 + q * 1.3, rm.z - 0.4, rect, zone, null, `run:${k}:${q}`, y);
+        m.run = k; inst.mobs.push(m);
+      });
+      if (st.type === "boss" && !S.world.bosses[id]) {
+        const bd = I.boss;
+        const boss = { kind: "boss", def: bd, name: bd.name, icon: bd.icon, maxHp: bd.hp, ac: bd.ac, atk: bd.atk, die: bd.die, dmgB: 0, xp: bd.xp, speed: bd.speed, every: bd.every, boss: true, clvl: (I.levelRange || [I.level || 1])[1] || I.level || 1 };
+        inst.mobs.push(newMob(boss, makeMobMesh(bd.mesh || "stalag", inst.g, 1.4), rm.x - 1.1, rm.z - 1.6, rect, zone, null, "run:boss", y));
+      }
+    });
+    (I.pickups || []).forEach((pk, q) => {
+      const key = `run:${id}:p${q}`; const it = item(pk.item); if (S.world.loot[key] || !it) return; if (it.unique && ownsItem(pk.item)) return;
+      const rm = caveRoom(I, pk.room); if (!rm) return;
+      const x = rm.x + ((q % 2) ? 0.9 : -0.7), z = rm.z + 0.4, y = rm.y || 0;
+      const g = new THREE.Group(); g.position.set(x, y, z); inst.g.add(g);
+      const b = new THREE.Mesh(G("loot", () => new THREE.OctahedronGeometry(0.16, 0)), sm(it.slot === "use" ? "#7fc8a0" : "#a8c8e8", { emissive: "#fff2a8", emissiveIntensity: 0.35 })); b.position.y = 0.4; g.add(b);
+      inst.drops.push({ g, b, id: pk.item, lx: IX + x, lz: IZ + z, ly: y, taken: false, key });
+    });
+  }
+  function resetInstanceProgress(id) {
+    const I = D.instances[id]; if (!I) return;
+    const pre = `run:${id}:`;
+    Object.keys(S.world.mobs || {}).forEach((k) => { if (k.startsWith(pre)) delete S.world.mobs[k]; });
+    delete S.world.bosses[id];
+    Object.keys(S.world.loot || {}).forEach((k) => { if (!k.startsWith(pre)) return; if (!lootKeyIsUnique(id, k)) delete S.world.loot[k]; });
+    save();
+  }
+  function lootKeyIsUnique(id, k) {
+    const I = D.instances[id]; if (!I) return false;
+    if (k === preBossKey(id)) return !!(item(I.boss?.loot)?.unique);
+    const m = /:p(\d+)$/.exec(k); if (!m) return false;
+    const pk = (I.pickups || [])[+m[1]]; return !!(pk && item(pk.item)?.unique);
+  }
+  const preBossKey = (id) => `run:${id}:boss`;
+  function ownsItem(id) { const c = CH(); if (!c) return false; if (Object.values(c.gear || {}).includes(id)) return true; if ((c.inv || []).includes(id)) return true; if ((S.stash || []).some((s) => s.item === id)) return true; return false; }
+
+  // ---------- instance minimap (top-right, under the tray) ----------
+  const mapEl = el("button", "o3-minimap"); mapEl.hidden = true; mapEl.type = "button"; mapEl.setAttribute("aria-label", "Instance map"); mapEl.title = "Instance map (tap to enlarge)";
+  const mapCv = document.createElement("canvas"); mapEl.appendChild(mapCv);
+  const mapHint = el("span", "o3-maphint", "map"); mapEl.appendChild(mapHint);
+  host.hud.appendChild(mapEl);
+  let mapOpen = false, mapExplored = new Set();
+  mapEl.onclick = () => { mapOpen = !mapOpen; mapEl.classList.toggle("open", mapOpen); drawMinimap(); };
+  function mapRooms() {
+    const I = inst.active && D.instances[inst.id]; if (!I) return [];
+    if (I.layout === "cave") {
+      const cr = caveRooms(I); const zMax = Math.max(...cr.map((r) => r.z + r.d / 2));
+      return cr.map((r) => ({ id: r.id, type: r.type, label: r.label, step: r.step, mx: r.x - r.w / 2, my: zMax - (r.z + r.d / 2), mw: r.w, mh: r.d, zone: caveZone(r), x: r.x, z: r.z, w: r.w, d: r.d, y: r.y }));
+    }
+    if (I.layout === "run") {
+      const R0 = runGeo(I); const out = [{ id: "lobby", type: "lobby", label: "Entrance", mx: 1.2, my: 0, mw: 2.6, mh: 1.8, zone: "annex:inst:run:lobby", x: R0.cx, z: (R0.z1 - R0.LOB + R0.z1) / 2, w: R0.W, d: R0.LOB, y: 0 }];
+      I.steps.forEach((st, k) => { const sg = R0.seg(k); out.push({ id: "step" + k, type: st.type, label: st.name, step: k, mx: 1.2, my: 1.8 + k * 1.65, mw: 2.6, mh: 1.65, zone: `annex:inst:run:${k}`, x: R0.cx, z: (sg.z0 + sg.z1) / 2, w: R0.W, d: R0.SEG, y: 0 }); });
+      return out;
+    }
+    return [];
+  }
+  function revealMap(zone) { if (!zone) return; mapRooms().forEach((r) => { if (r.zone === zone) mapExplored.add(r.id); }); }
+  function placeMinimap() { const tray = host.hud.querySelector(".o3-tray"); if (!tray || mapEl.hidden) return; const tb = tray.getBoundingClientRect(), hb = host.hud.getBoundingClientRect(); mapEl.style.top = Math.max(4, Math.round(tb.bottom - hb.top + 8)) + "px"; }
+  function showMinimap(on) { const rooms = mapRooms(); const ok = !!on && rooms.length > 0; mapEl.hidden = !ok; if (ok) { if (on && !mapExplored.size) { const first = rooms[0]; if (first) mapExplored.add(first.id); } placeMinimap(); drawMinimap(); } }
+  addEventListener("resize", () => { if (!mapEl.hidden) { placeMinimap(); drawMinimap(); } });
+  function resetMinimap() { mapExplored = new Set(); mapOpen = false; mapEl.classList.remove("open"); }
+  function drawMinimap() {
+    const rooms = mapRooms(); if (!rooms.length) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.max(1, mapEl.clientWidth), h = Math.max(1, mapEl.clientHeight);
+    if (mapCv.width !== Math.round(w * dpr) || mapCv.height !== Math.round(h * dpr)) { mapCv.width = Math.round(w * dpr); mapCv.height = Math.round(h * dpr); }
+    const c = mapCv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    rooms.forEach((r) => { x0 = Math.min(x0, r.mx); y0 = Math.min(y0, r.my); x1 = Math.max(x1, r.mx + r.mw); y1 = Math.max(y1, r.my + r.mh); });
+    const pad = 7;
+    const sx = (w - pad * 2) / Math.max(0.01, x1 - x0), sy = (h - pad * 2) / Math.max(0.01, y1 - y0);
+    const ox = pad, oy = pad;
+    const to = (mx, my) => [ox + (mx - x0) * sx, oy + (my - y0) * sy];
+    rooms.forEach((r) => {
+      const [x, y] = to(r.mx, r.my), rw = r.mw * sx, rh = r.mh * sy, seen = mapExplored.has(r.id);
+      if (seen) { c.fillStyle = r.type === "boss" ? "#5a3a2a" : r.type === "rest" ? "#3a5a3a" : r.type === "slope" ? "#3a342c" : r.type === "pocket" ? "#3a3a32" : "#4a453c"; c.strokeStyle = "#c9b45a"; c.lineWidth = 1.2; }
+      else { c.fillStyle = "rgba(12,10,8,.88)"; c.strokeStyle = "rgba(180,160,90,.45)"; c.lineWidth = 1; c.setLineDash([3, 3]); }
+      c.fillRect(x, y, rw, rh); c.strokeRect(x, y, rw, rh); c.setLineDash([]);
+      if (!seen) { c.fillStyle = "#e8d889"; c.font = `700 ${Math.max(9, Math.min(14, rh * 0.55))}px system-ui`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("?", x + rw / 2, y + rh / 2); }
+      else if (r.type === "fight" || r.type === "boss" || r.type === "rest") {
+        c.fillStyle = "#f3e7c8"; c.font = `700 ${Math.max(8, Math.min(13, rh * 0.5))}px system-ui`; c.textAlign = "center"; c.textBaseline = "middle";
+        c.fillText(r.type === "rest" ? "🛋" : r.type === "boss" ? "★" : "!", x + rw / 2, y + rh / 2);
+      }
+    });
+    // player dot from lastP (annex-local? lastP is annex-local: x without AX)
+    const I = D.instances[inst.id];
+    if (I && lastP) {
+      const lx = lastP.x - IX, lz = lastP.z - IZ;
+      // find containing room in instance-local
+      let here = rooms.find((r) => r.x != null && Math.abs(lx - r.x) <= (r.w || 0) / 2 + 0.2 && Math.abs(lz - r.z) <= (r.d || 0) / 2 + 0.2 && mapExplored.has(r.id)) || rooms.find((r) => mapExplored.has(r.id) && r.zone === curZone);
+      if (here) {
+        const u = (lx - (here.x - here.w / 2)) / Math.max(0.01, here.w), v = (lz - (here.z - here.d / 2)) / Math.max(0.01, here.d);
+        const [px, py] = to(here.mx + Math.max(0, Math.min(1, u)) * here.mw, here.my + Math.max(0, Math.min(1, 1 - v)) * here.mh); // v flipped so south is up-on-map? my grows as we go deeper (lower z), so v=0 (south, high z) should be top of room = small my. Room my is already deeper=larger. z high (south, entrance) is smaller my for foyer. foyer z=30 is high, map my=0. So v = (z - zMin)/d = 0 at north (low z)... wait.
+        // room z center, z0 = z-d/2 (north, lower z, deeper), z1 = z+d/2 (south).
+        // map: my is smaller at entrance (south). So as z increases, my should decrease within the room.
+        // u = (x - x0)/w, vMap = (z1 - z)/d  so south (high z) -> 0 (top if we don't flip further). to() uses my increasing downward on canvas. Entrance at top of minimap means small my. Within a room, south (high z) should be at top of that room's rect = small canvas y = here.my + 0*mh. So canvasY uses (zMax - z)/d.
+        const z0 = here.z - here.d / 2, z1 = here.z + here.d / 2;
+        const vv = (z1 - lz) / Math.max(0.01, here.d);
+        const [qx, qy] = to(here.mx + Math.max(0, Math.min(1, u)) * here.mw, here.my + Math.max(0, Math.min(1, vv)) * here.mh);
+        c.fillStyle = "#8fd18a"; c.strokeStyle = "#fbf3d0"; c.lineWidth = 1.5; c.beginPath(); c.arc(qx, qy, mapOpen ? 5 : 3.5, 0, 7); c.fill(); c.stroke();
+      }
+    }
+    mapHint.textContent = mapOpen ? "tap to shrink" : "map";
+  }
+  function minimapState() { return { hidden: !!mapEl.hidden, open: mapOpen, explored: [...mapExplored], rooms: mapRooms().map((r) => ({ id: r.id, type: r.type, zone: r.zone, seen: mapExplored.has(r.id) })), rect: mapEl.getBoundingClientRect().toJSON?.() || (() => { const b = mapEl.getBoundingClientRect(); return { x: b.x, y: b.y, width: b.width, height: b.height, top: b.top, right: b.right, bottom: b.bottom, left: b.left }; })() }; }
+
+  // ---------- v5d companion (Snorble): solo-only, default on, per character ----------
+  let forcedPartySize = 0;
+  function companionOn() { const c = CH(); return !!(c && c.companion !== false); }
+  function setCompanion(on) { const c = CH(); if (!c) return false; c.companion = !!on; save(); return c.companion; }
+  function companionActive() { if (!companionOn() || !D?.companion) return false; const n = forcedPartySize > 0 ? forcedPartySize : partySize(); return n === 1; }
+  function companionInfo() { const C = D?.companion; return C && { id: C.id, name: C.name, on: companionOn(), active: companionActive(), maxHp: C.maxHp, forcedParty: forcedPartySize || null }; }
   // starter door (hallway shortcut): same plaza arm as the Training Closet, on the opposite wall. The main entrance is the lit Mailroom door at the Door Station in the plaza; this one still works.
   function makeStarterPortal(ch, pl) { const PMg = C2 - (pl.hs ?? 6), mid = PMg / 2; const arms = ["zn", "xn", "xp", "zp"].filter((d) => pl.arms[d]), arm = arms[1] || arms[0]; if (!arm) return null; const I = D.instances.starter; let x, z, rot, sx, sz; /* the plaza arm next to the Training Closet's */
     if (arm[0] === "z") { z = arm === "zn" ? mid : C - mid; x = C2 + HW - 0.14; rot = -Math.PI / 2; sx = C2 - 0.35; sz = z; } else { x = arm === "xn" ? mid : C - mid; z = C2 + HW - 0.14; rot = Math.PI; sx = x; sz = C2 - 0.35; }
@@ -574,8 +1013,14 @@ export function createRPG(ctx) {
     panel("starter", `🗡 ${I.name}`, (pn) => { pn.appendChild(el("p", "o3-riddle", I.door.label)); pn.appendChild(el("p", null, I.intro));
       pn.appendChild(el("p", "o3-small", `Solo · content level ${I.levelRange.join("–")} · real XP and loot. Progress: ${pr.cleared}/${pr.fights} fights, boss ${pr.boss ? "beaten" : "waiting"}, ${pr.taken}/${pr.pickups} pickups.`));
       if (pr.boss && pr.cleared === pr.fights) pn.appendChild(el("p", "o3-small", I.done));
-      const go = el("button", "o3-btn", pr.boss ? "🗡 Walk through again (it's quiet now)" : "🗡 Step into the Mailroom"); go.dataset.rpg = "starter-go"; go.onclick = () => { host.closePanel(); enterStarter(tp); }; pn.appendChild(go); }); }
+      pn.appendChild(el("p", "o3-small", "The run resets when you step in — parcels come back. Unique finds stay found."));
+      const go = el("button", "o3-btn", pr.boss ? "🗡 Walk through again (the parcels will have opinions again)" : "🗡 Step into the Mailroom"); go.dataset.rpg = "starter-go"; go.onclick = () => { host.closePanel(); enterStarter(tp); }; pn.appendChild(go); }); }
   const enterStarter = (tp) => { tp = tp || sportals()[0]; if (!tp) return null; return enterInstance({ pp: { id: "sp-mailroom", instance: "starter" }, i: startSec.center[0], j: startSec.center[1], spawn: tp.spawn }); };
+  function openGrotto(d) { if (!transformed) return nudge(true); const I = D.instances.grotto, pr = runProgress("grotto");
+    panel("grotto", `🪨 ${I.name}`, (pn) => { pn.appendChild(el("p", "o3-riddle", I.door.label)); pn.appendChild(el("p", null, I.intro));
+      pn.appendChild(el("p", "o3-small", `Solo · content level ${I.levelRange.join("–")} · real XP and loot. The run resets when you step in. Unique finds stay found. Progress last visit: ${pr.cleared}/${pr.fights} fights, boss ${pr.boss ? "beaten" : "waiting"}, ${pr.taken}/${pr.pickups} pickups.`));
+      const go = el("button", "o3-btn", "🪨 Step into the Grotto"); go.dataset.rpg = "grotto-go"; go.onclick = () => { host.closePanel(); enterInstance({ pp: { id: d.def.id, instance: "grotto" }, i: startSec.center[0], j: startSec.center[1], spawn: d.spawn }); }; pn.appendChild(go); }); }
+  const enterGrotto = () => { const d = stationDoors.find((q) => q.def.id === "sd-grotto"); if (!d) return null; return enterInstance({ pp: { id: "sd-grotto", instance: "grotto" }, i: startSec.center[0], j: startSec.center[1], spawn: d.spawn }); };
   // gates (solo, deep) -> per-character waystones
   function openGate(p) { maybeDiscover(p.pp); const I = D.instances[p.pp.instance], gt = p.pp, c = CH(), awake = !!c?.waystones?.[gt.waystone.id];
     panel("gate", `🚪 ${I.short || I.name}`, (pn) => { pn.appendChild(el("p", "o3-riddle", gt.label)); pn.appendChild(el("p", null, I.intro));
@@ -623,6 +1068,8 @@ export function createRPG(ctx) {
     box(0, 1.05, -0.03, 1.15, 2.1, 0.04, doorM, g); box(0, 2.14, -0.02, 1.25, 0.08, 0.06, frameM, g); box(-0.62, 1.05, -0.02, 0.06, 2.1, 0.06, frameM, g); box(0.62, 1.05, -0.02, 0.06, 2.1, 0.06, frameM, g);
     box(0, 1.22, 0.0, 0.42, 0.07, 0.03, sm(open0 ? col.slot : hexDim(col.slot, 0.45), { metalness: 0.6, roughness: 0.3 }), g);
     if (def.theme.decor === "mail") box(0.32, 1.62, 0.025, 0.22, 0.18, 0.02, sm(open0 ? "#d8c878" : "#4a4030"), g); // stamp
+    if (def.theme.decor === "cave") { const rk = sm(open0 ? "#5a5348" : "#2a2620", { roughness: 1 }); box(-0.7, 1.05, -0.07, 0.26, 2.05, 0.24, rk, g); box(0.7, 1.05, -0.07, 0.28, 2.05, 0.24, rk, g); box(0, 2.12, -0.07, 1.42, 0.16, 0.24, rk, g);
+      const lan = new THREE.Mesh(G("doorlantern", () => new THREE.CylinderGeometry(0.06, 0.07, 0.14, 8)), sm(open0 ? "#e0b25a" : "#4a4030", { emissive: open0 ? "#c9a45a" : "#000000", emissiveIntensity: open0 ? 0.95 : 0 })); lan.position.set(-0.55, 1.85, 0.1); g.add(lan); }
     const lockG = new THREE.Group(); lockG.position.set(0.28, 1.0, 0.05); g.add(lockG);
     box(0, 0.05, 0, 0.16, 0.2, 0.08, sm("#3a3a32", { metalness: 0.5, roughness: 0.4 }), lockG);
     const sh = new THREE.Mesh(G("lockring", () => new THREE.TorusGeometry(0.07, 0.018, 6, 12)), sm("#5a5a50", { metalness: 0.6, roughness: 0.35 })); sh.position.y = 0.16; lockG.add(sh);
@@ -726,6 +1173,7 @@ export function createRPG(ctx) {
     rows.forEach((r) => { pn.appendChild(el("p", "o3-riddle", `${r.name} ${r.code || "???"} — ${r.status || ""}${r.note ? " · " + r.note : ""}`)); pn.appendChild(el("p", "o3-small", r.clickable ? "" : "Not boarding. No connection from here yet.")); }); }); }
   function openStationDoor(d) { if (!transformed) return nudge(true); if (!doorIsOpen(d.def)) { panel("sdoor-" + d.def.id, "🚪 ???", (pn) => { pn.appendChild(el("p", "o3-riddle", D.station.lockedLabel)); }); host.toast(D.station.lockedToast); return; }
     const dest = d.def.dest || {}; if (dest.type === "instance" && dest.id === "starter") return openStarter(d);
+    if (dest.type === "instance" && dest.id === "grotto") return openGrotto(d);
     if (dest.type === "instance" && dest.id) { const gt = (D.gates || []).find((q) => q.instance === dest.id || q.id === dest.id);
       if (gt) return openGate({ pp: { ...gt, gate: true }, i: startSec.center[0], j: startSec.center[1], spawn: d.spawn });
       return enterInstance({ pp: { id: d.def.id, instance: dest.id }, i: startSec.center[0], j: startSec.center[1], spawn: d.spawn }); }
@@ -831,7 +1279,7 @@ export function createRPG(ctx) {
   function nudge(force) { const now = Date.now(); if (!force && now - nudgeShown < 4000) return; nudgeShown = now; nudges++; host.toast(D.nudge.text); }
 
   // ---------- per frame ----------
-  function update(dt, ts, p, st) { if (!D) return; lastP = p; curZone = st.zone; cd = Math.max(0, cd - dt); const busy = st.busy || koBusy;
+  function update(dt, ts, p, st) { if (!D) return; lastP = p; curZone = st.zone; cd = Math.max(0, cd - dt); const busy = st.busy || koBusy; if (inst.active && !mapEl.hidden) { revealMap(st.zone); placeMinimap(); drawMinimap(); }
     circles.forEach((c) => { c.ring.rotation.z = ts * 0.4; c.disc.material.emissiveIntensity = transformed ? 0.2 : 0.45 + Math.sin(ts * 2.2) * 0.2; const d = Math.hypot(c.x - p.x, c.z - p.z), lvl = Math.abs((c.y || 0) - st.feet) < 1.2;
       if (lvl && d < 0.8 && !c.inside) { c.inside = true; if (!busy && !transformed) openCircle(); } else if (d > 1.4) c.inside = false; });
     if (!transformed && !inst.active) { const zc = /^annex:c:(-?\d+),(-?\d+):/.exec(st.zone || ""); const atStart = !zc || (+zc[1] === startSec.center[0] && +zc[2] === startSec.center[1]);
@@ -898,6 +1346,7 @@ export function createRPG(ctx) {
       const t = el("div", "o3-stats"); D.stats.forEach((s) => { const r = el("div", "o3-statrow"); r.dataset.stat = s.id; const v = stat(s.id);
         r.append(el("span", "o3-sname", `${s.icon} ${s.name}`), el("b", null, String(v)), el("span", "o3-sfinal", `${sg(mod(v))}${P.prof.includes(s.id) ? " · proficient " + sg(mod(v) + prof()) : ""}`), el("span", "o3-small o3-sabout", s.about)); t.appendChild(r); }); pn.appendChild(t);
       pn.appendChild(el("p", null, `${P.ability.icon} ${P.ability.name}${abilityUsed ? " (used this scuffle)" : ""}: ${P.ability.text}`));
+      if (D.companion) { const on = companionOn(); pn.appendChild(el("p", "o3-small", D.companion.blurb)); const tb = el("button", "o3-btn" + (on ? "" : " ghost"), on ? D.companion.toggleOn : D.companion.toggleOff); tb.dataset.rpg = "companion-toggle"; tb.onclick = () => { setCompanion(!companionOn()); host.closePanel(); openSheet(); }; pn.appendChild(tb); }
       if ((c.status || []).length) pn.appendChild(el("p", "o3-small", "Status: " + c.status.map((s) => s.text).join(" · ")));
       statPick(pn);
       if (S.stash.length) { pn.appendChild(el("p", "o3-small", "🫳 Grenshol's stash (for a future win-back):")); S.stash.forEach((s) => pn.appendChild(el("div", "o3-note o3-gnote", `${item(s.item).name} · ${s.note}`))); }
@@ -926,7 +1375,7 @@ export function createRPG(ctx) {
     chunks.forEach((ch) => onCell(ch)); refreshBlockers(); }
   const ready = fetch("data/annex-rpg.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) { D = d; init(); } return !!d; }).catch(() => false);
 
-  const roomLabel = (z) => { const I = D?.instances[inst.id]; if (I?.layout === "run") { const k = /:run:(\d+)$/.exec(z || curZone || ""); const stp = k ? I.steps[+k[1]] : null; return `${I.short || I.name} · ${stp ? stp.name : "the entrance"}`; } if (I?.solo) return `${I.name} · solo · level ${I.level}`; return roomLabel0(); };
+  const roomLabel = (z) => { const I = D?.instances[inst.id]; if (I?.layout === "run" || I?.layout === "cave") { const k = /:run:(\d+)$/.exec(z || curZone || ""); const stp = k ? I.steps[+k[1]] : null; if (stp) return `${I.short || I.name} · ${stp.name}`; if (I.layout === "cave") { const rm = caveRooms(I).find((r) => caveZone(r) === (z || curZone)); return `${I.short || I.name} · ${rm ? rm.label : "the mouth"}`; } return `${I.short || I.name} · the entrance`; } if (I?.solo) return `${I.name} · solo · level ${I.level}`; return roomLabel0(); };
   const roomLabel0 = () => `${D?.instances[inst.id]?.name || "An instance"} · ${isControl() ? "admin only · nothing here counts" : isTraining() ? "practice (nothing here counts)" : "party of " + partySize()}`;
   const atmos = () => { const p = D?.instances[inst.id]?.palette || {}; return { bg: p.bg || "#3a3a2c", fog: p.fog || [6, 40], hemi: p.hemi ?? 1.1 }; };
   const instButtons = () => { const out = [Object.assign(el("button", "o3-btn ghost", isControl() ? "🌀 Leave the Control Room" : isTraining() ? "🌀 Leave the closet" : "🌀 Leave the instance"), { onclick: () => leaveInstance() })];
@@ -940,7 +1389,7 @@ export function createRPG(ctx) {
       inInstance: inst.active, instance: inst.id, partySize: partySize(), urlParty, party: JSON.parse(JSON.stringify(party)), lastAttack, lastKO, lastLevelUp, lastDoor, nudges, inTraining: isTraining(), trainXP, tip: tipIdx, tipShown: !tipEl.hidden, sandboxOn: sandboxAllowed(), sandboxUsed, sbParty, training: { ...TR(), tips: undefined, portals: undefined }, koBusy, footArmed, abilityUsed, log: logs.slice(-8).map((l) => l.t), barShown: !bar.hidden, cd, openKind }; },
     create: (b) => createChar({ method: "array", ...b }), transform: () => transform(false), reset: () => { S = blank(); save(); transformed = false; setPlayerName(null); renderBar(); },
     plan: (pl) => rpgPlan(pl), scaled: (k, t) => { const s = scaled(k, t); delete s.def; return s; }, circle: (id = "start") => { const c = circles.find((q) => q.id === id); return c && { ...W3(c.x, c.y, c.z) }; },
-    mobs: () => { const out = []; const f = (m) => { const w = mobWorldLocal(m); out.push({ id: m.id, kind: m.kind, name: m.name, hp: m.hp, maxHp: m.maxHp, ac: m.ac, atk: m.atk, dmgB: m.dmgB, xp: m.xp, dead: m.dead, state: m.state, zone: m.zone, boss: !!m.boss, ...W3(w.x, 0, w.z) }); };
+    mobs: () => { const out = []; const f = (m) => { const w = mobWorldLocal(m); out.push({ id: m.id, kind: m.kind, name: m.name, hp: m.hp, maxHp: m.maxHp, ac: m.ac, atk: m.atk, dmgB: m.dmgB, xp: m.xp, dead: m.dead, state: m.state, zone: m.zone, boss: !!m.boss, y: w.y ?? m.g?.position?.y ?? 0, ...W3(w.x, w.y ?? m.g?.position?.y ?? 0, w.z) }); };
       chunks.forEach((ch) => ch.rpg?.mobs.forEach(f)); inst.mobs.forEach(f); gmMobs.forEach(f); return out.map((o) => ({ ...o, gm: String(o.id).startsWith("gm:") })); },
     hallwayMobs: () => { let n = 0; chunks.forEach((ch) => ch.rpg?.mobs.forEach((m) => { if (!/:r\d$/.test(m.zone)) n++; const gp = m.g.position; if (gp.x < m.rect.x0 - 0.01 || gp.x > m.rect.x1 + 0.01 || gp.z < m.rect.z0 - 0.01 || gp.z > m.rect.z1 + 0.01) n++; })); return n; },
     attack: (id) => { const m = findMob(id); if (!m) return null; cd = 0; return attackMob(m, true); },
@@ -963,13 +1412,18 @@ export function createRPG(ctx) {
   };
   debug.battle = () => battle.state(); debug.battleSpeed = (v) => { battleSpeed = v; battle.setSpeed(v); return v; }; debug.lastBattle = () => lastBattle && { ...lastBattle };
   debug.battleCmd = (sel) => { const b = document.querySelector(`[data-btl="${sel}"]`); if (!b) return false; b.click(); return true; };
+  debug.holdBattles = (on) => { tbGraceUntil = on ? performance.now() + 1e9 : 0; return tbGraceUntil; };
+  debug.setCompanion = (on) => setCompanion(!!on); debug.companion = () => companionInfo(); debug.forcePartySize = (n) => { forcedPartySize = Math.max(0, n | 0); return forcedPartySize; };
+  debug.minimap = () => minimapState(); debug.cave = () => { const I = D.instances.grotto || D.instances[inst.id]; if (!I?.cave) return null; return { id: inst.id, rooms: caveRooms(I).map((r) => ({ ...r, zone: caveZone(r), annex: { x: IX + r.x, z: IZ + r.z, y: r.y, y1: r.y1 } })), spawn: I.spawn, explored: [...mapExplored] }; };
+  debug.resetInstance = (id) => resetInstanceProgress(id || inst.id); debug.ownsItem = (id) => ownsItem(id);
+  debug.takeInstDrops = () => { (inst.drops || []).forEach((d) => { if (!d.taken) takeDrop(d); }); return (CH()?.inv || []).slice(); }; debug.IX = IX; debug.IZ = IZ;
   debug.turnBasedHere = () => turnBasedHere(); debug.battleMode = () => (inst.active ? battleModeOf(D.instances[inst.id]) : (D.combat?.turnBasedEverywhere ? "atb-turns" : "realtime")); debug.zone = () => curZone; debug.avatarUrl = () => avatarUrl(); debug.heroInfo = () => (CH() ? heroInfo() : null); debug.data = debug.data || (() => D); debug.setAvatar = (u) => { const c = CH(); if (!c) return false; c.avatar = u || null; save(); return true; };
   debug.sandbox = () => { sandboxOn = true; host.updateActions(); if (isTraining()) openSandbox(); else host.toast("🧪 Sandbox armed. It opens inside the Training Closet."); return sandboxAllowed(); };
   const api5 = { ext, gmSpawn, gateWaystones, travelWaystone, waystoneList, enterInstance: (p) => enterInstance(p), leaveInstance: () => leaveInstance(), data: () => D, instId: () => (inst.active ? inst.id : null), isControl, partySize: () => partySize(),
     party: () => ({ id: party.id, members: party.members.map((m) => ({ ...m })), max: D?.party?.max || 3 }),
     setParty: (id, members) => { party.id = id || null; const mine = { id: host.me?.id || "me", me: true }; party.members = [mine, ...(members || []).filter((m) => m.id !== mine.id)].slice(0, D?.party?.max || 3); return party.members.length; },
     lastPos: () => ({ ...lastP }), zone: () => curZone, sandboxOpen: () => openSandbox(), spawnHere: (k, t) => SB.spawn(k, t), statsFor: (k, t) => { const s = statsFor(k, t); if (s) delete s.def; return s; } };
-  debug.runProgress = runProgress; debug.enterStarter = () => enterStarter(); debug.starterDoor = () => { const tp = sportals()[0]; return tp && { ...W3(tp.lx, 0, tp.lz), spawn: { ...W3(tp.spawn.x, 0, tp.spawn.z), yaw: tp.spawn.yaw } }; };
+  debug.runProgress = runProgress; debug.enterStarter = () => enterStarter(); debug.enterGrotto = () => enterGrotto(); debug.starterDoor = () => { const tp = sportals()[0]; return tp && { ...W3(tp.lx, 0, tp.lz), spawn: { ...W3(tp.spawn.x, 0, tp.spawn.z), yaw: tp.spawn.yaw } }; };
   debug.stationDoors = () => stationDoorList(); debug.stationDoor = (id) => stationDoorList().find((d) => d.id === (id || "sd-mailroom")); debug.departures = () => D.station && { ...D.station.departures, rows: stationRows(D.station), stations: stationRows(D.station), board: departBoard && W3(departBoard.lx, 0, departBoard.lz) }; debug.openDepartures = openDepartures;
   debug.stations = () => stationRows(D.station); debug.train = () => trainInfo(); debug.threshold = () => thresholdInfo(); debug.desk = () => deskInfo(); debug.stationLayout = () => ({ doors: stationDoorList(), train: trainInfo(), threshold: thresholdInfo(), desk: deskInfo() });
   debug.discover = (id) => markDiscovered(id || "gate-turn"); debug.openStationDoor = (id) => { const d = stationDoors.find((q) => q.def.id === (id || "sd-mailroom")); if (d) openStationDoor(d); return !!d; };
