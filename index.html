@@ -2,19 +2,200 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gremlin World</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Gremlin Desks</title>
 <meta name="robots" content="noindex">
-<link rel="canonical" href="world.html">
-<link rel="icon" href="data:,">
-<!-- The office moved into Gremlin World. Keep the query string and #room so old links still land in the right place.
-     The original single-room office lives on at office-classic.html. -->
-<script>location.replace("world.html" + location.search + location.hash);</script>
-<meta http-equiv="refresh" content="0; url=world.html">
-<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#E8E4D8;color:#1A1A18;font:16px/1.5 system-ui,sans-serif;text-align:center;padding:1rem}a{color:#54664A;font-weight:600}</style>
+<meta name="theme-color" content="#3A4A33">
+<link rel="icon" type="image/png" sizes="32x32" href="desks-preview-q7m4/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="desks-preview-q7m4/icons/apple-touch-icon.png">
+<!-- Old Gremlin World links (query or #room hash) still go straight to world.html. A bare URL shows this welcome page. -->
+<script>
+(function () {
+  if (location.search || location.hash) {
+    location.replace("world.html" + location.search + location.hash);
+  }
+})();
+</script>
+<style>
+:root {
+  --cream: #E8E4D8;
+  --paper: #F1EDE2;
+  --sage: #A6B89A;
+  --forest: #54664A;
+  --moss: #3A4A33;
+  --ink: #1A1A18;
+  --clay: #B8775A;
+  --glow: rgba(243, 217, 139, 0.6);
+  --muted: #5d5d55;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1.25rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  background: var(--cream) repeating-linear-gradient(90deg, transparent 0 46px, rgba(84, 102, 74, 0.05) 46px 48px);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.5;
+}
+main { width: 100%; max-width: 28rem; }
+.card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 1.6rem 1.35rem 1.45rem;
+  box-shadow: 4px 4px 0 var(--forest);
+  text-align: center;
+}
+.mark {
+  display: block;
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 0.85rem;
+  border-radius: 20px;
+  border: 2px solid var(--ink);
+  background: var(--moss);
+}
+.clay-bar {
+  display: block;
+  width: 3.25rem;
+  height: 5px;
+  margin: 0 auto 0.9rem;
+  background: var(--clay);
+  border-radius: 3px;
+}
+.kicker {
+  margin: 0 0 0.35rem;
+  color: var(--clay);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+h1 {
+  margin: 0 0 0.7rem;
+  font-family: var(--serif);
+  font-size: clamp(1.55rem, 5vw, 1.9rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--moss);
+}
+.lead {
+  margin: 0 0 1.05rem;
+  font-size: 1.02rem;
+  color: var(--ink);
+}
+.crew {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0 0 1.25rem;
+}
+.crew img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid var(--ink);
+  background: var(--sage);
+  box-shadow: 2px 2px 0 rgba(26, 26, 24, 0.2);
+}
+.enter {
+  display: block;
+  width: 100%;
+  background: var(--forest);
+  color: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  font: inherit;
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: 2px 2px 0 var(--ink);
+  min-height: 48px;
+}
+.enter:hover { background: var(--moss); }
+.enter:focus-visible,
+.world a:focus-visible {
+  outline: 3px solid var(--clay);
+  outline-offset: 3px;
+}
+.hint {
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.world {
+  margin: 0.85rem 0 0;
+  font-size: 0.95rem;
+}
+.world a {
+  color: var(--forest);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.world a:hover { color: var(--moss); }
+@media (prefers-reduced-motion: no-preference) {
+  .card {
+    animation: rise 0.45s ease-out;
+  }
+  .enter {
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .enter:hover,
+  .enter:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@media (max-width: 430px) {
+  .card { padding-left: 1.1rem; padding-right: 1.1rem; }
+  .crew { gap: 0.25rem; }
+  .crew img { width: 44px; height: 44px; }
+}
+@media (max-height: 700px) {
+  .mark { width: 72px; height: 72px; border-radius: 16px; margin-bottom: 0.6rem; }
+  .crew img { width: 48px; height: 48px; }
+  .card { padding: 1.2rem 1.15rem 1.2rem; }
+}
+@media (max-width: 430px) and (max-height: 700px) {
+  .crew img { width: 44px; height: 44px; }
+}
+</style>
 </head>
 <body>
-<p>The gremlins moved the office into <a href="world.html">Gremlin World</a>. Follow the socks!<br>
-<small>(Missing the old room? It's still at <a href="office-classic.html">the classic office</a>.)</small></p>
+<main>
+  <div class="card">
+    <img class="mark" src="desks-preview-q7m4/icons/icon-192.png" width="88" height="88" alt="">
+    <span class="clay-bar" aria-hidden="true"></span>
+    <p class="kicker">An invite-only office</p>
+    <h1>Welcome to the Gremlin Desks</h1>
+    <p class="lead">You've found the odd little office where the gremlins work. There's a desk waiting inside, and the Annex to explore whenever curiosity wins.</p>
+    <div class="crew" aria-label="The gremlins">
+      <img src="assets/gremlins/pip.webp" width="56" height="56" alt="Pip">
+      <img src="assets/gremlins/moth.webp" width="56" height="56" alt="Moth">
+      <img src="assets/gremlins/vesper.webp" width="56" height="56" alt="Vesper">
+      <img src="assets/gremlins/grimble.webp" width="56" height="56" alt="Grimble">
+      <img src="assets/gremlins/noodle.webp" width="56" height="56" alt="Noodle">
+      <img src="assets/gremlins/dot.webp" width="56" height="56" alt="Dot">
+    </div>
+    <a class="enter" href="desks-preview-q7m4/">Enter the Desks</a>
+    <p class="hint">Got a guest login from Bryan? Use it inside.</p>
+    <p class="world"><a href="world.html">Or wander into Gremlin World</a></p>
+  </div>
+</main>
 </body>
 </html>
