@@ -384,6 +384,11 @@
       },
       playBuffer: function (info, buf, mode) {
         var p = parseMidi(buf);
+        // v6: a track record may be a variant of another file (tempo_scale < 1 = slower, transpose in semitones; drums untouched)
+        if (info && (info.tempo_scale || info.transpose)) { var k = 1 / (info.tempo_scale || 1), tr = info.transpose || 0;
+          p.notes.forEach(function (n) { n.t0 *= k; n.t1 *= k; if (n.ch !== 9) n.note = Math.max(12, Math.min(115, n.note + tr)); });
+          Object.keys(p.markers).forEach(function (m) { p.markers[m] = { tick: p.markers[m].tick, time: p.markers[m].time * k }; });
+          p.endTime *= k; p.secPerBar *= k; }
         this.playParsed(info, p, mode);
         return p;
       },

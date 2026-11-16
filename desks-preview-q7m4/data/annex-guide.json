@@ -1,0 +1,240 @@
+{
+ "_about": "v6: the in-game Survey Corps starter guide, generated from annex-lore/starter-guide.md (tmp6/build_guide.py). Rumors live in 'rumors' so new ones can be added as data as the Common Record grows (lore 96). Markdown: **bold** and *italic* only.",
+ "title": "The Survey Corps Starter Guide",
+ "subtitle": "What We Know, What We Don't, and How Not to Get Lost",
+ "sections": [
+  {
+   "title": "Welcome",
+   "blocks": [
+    {
+     "p": "You pulled the thread, and the wall said *\"Oh. Finally.\"* It says that to everyone, so don't take it personally. Or do. We've never decided."
+    },
+    {
+     "p": "You're standing in the **Door Station**, our training base, and the only room in the Elsewhere Annex we've managed to keep tidy. This guide is short because we don't know much yet. It gets longer as you find things out. That's the deal."
+    },
+    {
+     "p": "---"
+    }
+   ]
+  },
+  {
+   "title": "What You're Walking Into",
+   "blocks": [
+    {
+     "p": "The **Elsewhere Annex** is a space between worlds. Past the brass line in the north hallway, the halls go on and keep rearranging themselves: corridors, stairwells, mine tunnels, lamplit chambers, and beige stretches like an office nobody finished. Branching off them are **instances**, doors into whole worlds with their own peoples, dangers and stories. Some go deeper the more people explore them. We haven't found the bottom of any yet."
+    },
+    {
+     "p": "People live out here: settlers who came in long ago, folk from the instances, families born inside who've never seen a sky. There are towns, faiths and money, and four noble Houses who've run things for a very long time. Be polite to everyone. Ask nobody where they're from."
+    },
+    {
+     "p": "---"
+    }
+   ]
+  },
+  {
+   "title": "What We've Actually Uncovered",
+   "blocks": [
+    {
+     "p": "Honestly? Not much."
+    },
+    {
+     "li": "The halls shift. Some places don't. Doors only ever open from this side."
+    },
+    {
+     "li": "Something about the open halls wears people's minds down. Settlers call it **going easy**. Your Keepsake protects you from it. We don't fully know how."
+    },
+    {
+     "li": "There's a black figure called **Grenshol** who shows up as a green flicker. He's on our side. We're sure of that much, and not much else."
+    },
+    {
+     "li": "Our own logbook got torn to pieces in a shift. Its pages are out there somewhere. Bring them home."
+    },
+    {
+     "p": "What the Annex *is* and who made it, nobody knows, whatever they tell you over a drink."
+    },
+    {
+     "p": "---"
+    }
+   ]
+  },
+  {
+   "title": "Making Your Character",
+   "blocks": [
+    {
+     "p": "Step onto the **gear-up circle** and choose your class and background. Every one of them has a place out here."
+    },
+    {
+     "li": "**Warrior:** holds the line when the walls move. We train more of these than anything else."
+    },
+    {
+     "li": "**Barbarian:** runs hot enough to burn the fog back for a while. Useful. Loud."
+    },
+    {
+     "li": "**Ranger:** learns the hum and reads a shift before it comes."
+    },
+    {
+     "li": "**Rogue:** opens locks and knows which doors to leave shut."
+    },
+    {
+     "li": "**Cleric:** heals bodies and steadies minds, by faith or by the Keepsake they carry."
+    },
+    {
+     "li": "**Paladin:** binds an oath to their Keepsake and swears to bring the lost home."
+    },
+    {
+     "li": "**Sorcerer:** someone the Annex has touched. Magic in the blood, and lamps lean toward them."
+    },
+    {
+     "li": "**Warlock:** power by contract with something that doesn't take sides. Read it twice. Then read it again."
+    },
+    {
+     "p": "Old hands swear there are other paths nobody teaches here. We haven't confirmed any."
+    },
+    {
+     "p": "Then pick a **background**, who you were before: **Archivist** (sharp-eyed), **Wanderer** (hard to tire) or **Tinkerer** (lucky with gadgets)."
+    },
+    {
+     "p": "You'll also choose your **Keepsake**: whatever was in your hand or pocket when you pulled the thread. It's something you can hold, like a key, a ring or a ticket. If what matters is a song, carry it on something: a lyric sheet, a music box, a pick with the title scratched in."
+    },
+    {
+     "p": "We'll hand you a **Home crystal** before you go (see below)."
+    },
+    {
+     "p": "---"
+    }
+   ]
+  },
+  {
+   "title": "Training at the Base",
+   "blocks": [
+    {
+     "p": "Visit the **Training Closet** before you cross the brass line. Nothing in there counts: no experience, no loot, no harm. Fall over as often as you need. We all did."
+    },
+    {
+     "p": "Then read the notice board. Then read it again."
+    },
+    {
+     "p": "---"
+    }
+   ]
+  },
+  {
+   "title": "Going Out",
+   "blocks": [
+    {
+     "li": "**Cross the brass line** in the north hallway. The sign says THIS WAY (NOT THIS WAY). It's right both ways."
+    },
+    {
+     "li": "**Listen for the hum.** When its pitch changes, rooms are about to shift. Step into a hallway and wait. Hallways hold."
+    },
+    {
+     "li": "**Look for doors.** Find an instance's door in the halls and its twin here at the Station lights up for you, so you can walk in from base after that."
+    },
+    {
+     "li": "**Check the plaques.** Some doors are open. Some ask a riddle. Some state their terms on a brass plaque: how many may enter, and how seasoned they need to be."
+    },
+    {
+     "li": "**Explore together when you can.** Parties of up to three."
+    },
+    {
+     "p": "---"
+    }
+   ]
+  },
+  {
+   "title": "The Notice Board (Short Version)",
+   "blocks": [
+    {
+     "li": "You can lose your mind out there. It comes on like fog. Get back to a stable place when you feel it."
+    },
+    {
+     "li": "Keep your Keepsake close. Never give it away. Don't trust anything that asks for it."
+    },
+    {
+     "li": "If the door is nicer than the room, don't."
+    },
+    {
+     "li": "Warm, flickering lamps are safe. Steady light means watched. If you smell new pennies, leave."
+    },
+    {
+     "li": "A door that looks like home isn't."
+    },
+    {
+     "li": "A green flicker is Grenshol. Let him be."
+    },
+    {
+     "p": "---"
+    }
+   ]
+  },
+  {
+   "title": "Staying Found",
+   "blocks": [
+    {
+     "p": "**Stable places** barely change. Look for gently flickering lamps, our *STAYS PUT ✓* chalk mark, music that settles into a quiet chord, or a waystone that rings when touched. Each one you find goes on your map, and the fog in your head clears there (and here at base)."
+    },
+    {
+     "p": "**Your Home crystal** takes you to the nearest stable place you've found. In a few dead spots it fizzles. Be careful in those."
+    },
+    {
+     "p": "**Waystones** are tall crystals. Wake one by touching it, and you can travel between every waystone you've woken."
+    },
+    {
+     "p": "**Your Keepsake** is your way home through the Loose Stitch, and what keeps you yourself. No fight can take it. You can only part with it by choice: give it, trade it, or lend it to someone who swears they'll bring it back. Once it leaves your hands, you're stuck where you stand until it comes back. Sometimes the borrower returns it with thanks. If they don't, your friends can hunt them down and bring it home. Choose your friends well."
+    },
+    {
+     "p": "**Knocked out?** You won't die. In an instance, our rescue teams haul you out to its door. In the halls, you wake at the nearest stable place you've found. Sometimes something green gets to you first."
+    },
+    {
+     "p": "---"
+    }
+   ]
+  },
+  {
+   "title": "Working Together: The Common Record",
+   "blocks": [
+    {
+     "p": "The big board at base is the **Common Record**, shared by everyone. Floors cleared, loops freed, logbook pages recovered: it all goes up. An instance's fighting grounds reshuffle every time you go in, but what people *accomplish* stays, and clearing a floor opens the next one for everybody. Find something first and your name goes on the pin with the best reward. Find it later and you still get your copy and something for the trouble."
+    },
+    {
+     "p": "Nobody finishes this story alone. We've tried."
+    },
+    {
+     "p": "---"
+    }
+   ]
+  }
+ ],
+ "rumorsTitle": "Rumors",
+ "rumorsNote": "*Things we've heard. We haven't checked any of them. Some contradict each other. We add new ones as the Common Record grows, so check back.*",
+ "rumors": [
+  {
+   "id": "r1",
+   "text": "Someone swears the lost-and-found desk at the bottom of the Grotto had their grandmother's ring in it. She never set foot in the Annex."
+  },
+  {
+   "id": "r2",
+   "text": "The Houses found the Annex four hundred years ago. Or forty. A Kettlewell gran says the Annex found them."
+  },
+  {
+   "id": "r3",
+   "text": "Grenshol has left a fern frond in three different pockets this week. Nothing in the Annex grows ferns."
+  },
+  {
+   "id": "r4",
+   "text": "In Hask, the bell tower slides into the river at midnight, every night. One traveler swears that once the bell rang first, and the tower stood, and the whole fair went silent and turned to look at her."
+  },
+  {
+   "id": "r5",
+   "text": "Stare into raw amber long enough and you'll see home. A smuggler at the Drifting Whale says it's something else looking back."
+  },
+  {
+   "id": "r6",
+   "text": "There's a second stitch in the gallery that only opens for the right answer. Whoever finds it, tell us what's up there."
+  },
+  {
+   "id": "r7",
+   "text": "We opened a portal once, and something came out. (Pip says that isn't how it happened.)"
+  }
+ ]
+}

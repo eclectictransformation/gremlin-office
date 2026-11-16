@@ -68,7 +68,7 @@ export function createBattle({ el, hud, host, audio, cfg = {} }) {
   // ---------- start / end ----------
   function start(o) { // o: { title, hero, foes: [mob], rules, speed }
     if (B) return false; const R = o.rules;
-    B = { R, title: o.title || "A scuffle!", hero: { ...o.hero, g: o.hero.startGauge ?? C.heroStart, fill: clamp(C.heroFill - C.heroFillPerStride * (o.hero.speedMod || 0), C.heroFillMin, C.heroFillMax) },
+    B = { R, title: o.title || "A scuffle!", hero: { ...o.hero, g: o.hero.startGauge ?? C.heroStart, fill: o.hero.fill ? clamp(o.hero.fill, C.heroFillMin, C.heroFillMax) : clamp(C.heroFill - C.heroFillPerStride * (o.hero.speedMod || 0), C.heroFillMin, C.heroFillMax) },
       foes: o.foes.map((m, k) => ({ m, k, g: Math.random() * C.foeStartMax, fill: clamp((m.every || 2.4) * C.foeFillPerEvery, C.foeFillMin, C.foeFillMax) })),
       queue: [], busy: false, menuOpen: false, mode: "wait", picking: null, turns: 0, log: [], t0: performance.now(), speed: o.speed || 1, xp0: o.hero.xp ?? 0, done: false, raf: 0, last: performance.now(), armed: false, onToggleCompanion: o.onToggleCompanion, companionOnNow: o.companionOnNow, companionOn: o.companionOn !== false, toggleOnLabel: o.toggleOnLabel, toggleOffLabel: o.toggleOffLabel };
     root.hidden = false; endCard.hidden = true; hud.classList.add("o3-battling"); banner.textContent = B.title; caption.textContent = ""; caption.className = "btl-caption"; logEl.textContent = "";
@@ -139,24 +139,27 @@ export function createBattle({ el, hud, host, audio, cfg = {} }) {
     const R = B.R;
     if (kind === "main") { const ab = R.ability(), items = R.items(), potions = items.reduce((a, it) => a + it.count, 0);
       menu.append(btn(["⚔️", "Attack", B.armed ? "📝 rolling twice" : R.weaponName()], "cmd-attack", () => chooseTarget("attack")),
-        btn([ab.icon, ab.short || ab.name, ab.used && !ab.armed ? "used this scuffle" : ab.armed ? "armed" : ab.hint || ""], "cmd-ability", () => doAbility(), ab.used && !ab.armed ? "off" : ""),
+        R.abilities ? (() => { const L = R.abilities(), ok = L.filter((a) => !a.off).length; return btn(["✨", "Abilities", L.length ? `${ok} ready${B.armed ? " · armed" : ""}` : "none yet"], "cmd-ability", () => showMenu("abilities"), ok ? "" : "off"); })()
+          : btn([ab.icon, ab.short || ab.name, ab.used && !ab.armed ? "used this scuffle" : ab.armed ? "armed" : ab.hint || ""], "cmd-ability", () => doAbility(), ab.used && !ab.armed ? "off" : ""),
         btn(["🧪", "Item", potions ? `${potions} in your bag` : "bag is empty"], "cmd-item", () => (potions ? showMenu("items") : say("Your bag has nothing to drink. Maybe the next pickup.", "sys")), potions ? "" : "off"),
         btn(["🏃", "Flee", R.fleeHint()], "cmd-flee", () => doFlee())); return; }
-    if (kind === "items") { R.items().forEach((it) => menu.appendChild(btn([it.icon || "🍲", it.name, `×${it.count} · ${it.hint || ""}`], "item-" + it.id, () => act(async () => { R.useItem(it.id); }, "item"))));
+    if (kind === "abilities") { R.abilities().forEach((a) => menu.appendChild(btn([a.icon, a.name, a.off ? a.why || "not now" : a.hint || ""], "ab-" + a.id, () => doAbilityId(a), a.off ? "off" : "")));
+      menu.appendChild(btn(["←", "Back", ""], "cmd-back", () => showMenu("main"), "back")); return; }
+    if (kind === "items") { R.items().forEach((it) => menu.appendChild(btn([it.icon || "🍲", it.name, `×${it.count} · ${it.hint || ""}`], "item-" + it.id, () => (it.target ? chooseTarget("it:" + it.id) : act(async () => { R.useItem(it.id); }, "item")))));
       menu.appendChild(btn(["←", "Back", ""], "cmd-back", () => showMenu("main"), "back")); return; }
     if (kind === "target") { const live = B.foes.filter((f) => R.alive(f.m));
       live.forEach((f) => { f.ui.el.classList.add("pickable"); menu.appendChild(btn(["🎯", f.m.name, `${Math.max(0, f.m.hp)}/${f.m.maxHp} HP`], "target-" + f.k, () => B.picking(f.k), "tgt")); });
       menu.appendChild(btn(["←", "Back", ""], "cmd-back", () => showMenu("main"), "back")); }
   }
   function chooseTarget(what) { const R = B.R, live = B.foes.filter((f) => R.alive(f.m)); if (!live.length) return;
-    const go = (k) => { const f = B.foes[k]; if (!f || !R.alive(f.m)) return; what === "attack" ? doAttack(f) : doGizmo(f); };
+    const go = (k) => { const f = B.foes[k]; if (!f || !R.alive(f.m)) return; what === "attack" ? doAttack(f) : String(what).startsWith("ab:") ? doAbilityTarget(f, what.slice(3)) : String(what).startsWith("it:") ? doItemTarget(f, what.slice(3)) : doGizmo(f); };
     if (live.length === 1) return go(live[0].k); showMenu("target"); B.picking = go; say(what === "attack" ? "Who gets it? Tap a critter." : "Fling it at whom? Tap a critter.", "you"); }
   // run one of your moves: menu closes, gauges stay paused until it has played out, then your gauge starts over
   async function act(fn, kind) { if (!B || B.busy) return; B.busy = true; showMenu(null); B.foes.forEach((f) => f.ui.el.classList.remove("pickable"));
     const n0 = B.R.logCount(); try { await fn(); } catch (e) { console.warn("battle move failed", e); } if (B && !B.done) setTimeout(() => B && !B.done && setPose(B.hero.ui, "idle"), C.lunge + 160);
     const lines = B?.R.logsSince(n0) || []; if (lines.length) say(lines[lines.length - 1], kind);
     if (!B) return; renderParty(); renderFoes(); await wait(C.hold); if (!B) return;
-    B.turns++; B.hero.g = 0; B.menuOpen = false; B.hero.ui.el.classList.remove("active"); B.busy = false; showMenu(null); }
+    B.turns++; B.hero.g = B.R.afterAct ? clamp(B.R.afterAct() || 0, 0, 1) : 0; B.menuOpen = false; B.hero.ui.el.classList.remove("active"); B.busy = false; showMenu(null); }
   function doAttack(f) { act(async () => { const R = B.R, hp0 = f.m.hp; B.hero.ui.el.classList.remove("ready"); setPose(B.hero.ui, "attack"); anim(B.hero.ui.el, "lunge-l", C.lunge + 60); anim(B.hero.ui.el, "atk", C.lunge + 140); await wait(C.lunge * 0.6);
       const r = R.attack(f.m, B.armed); B.armed = false; if (!r) return; const dmg = Math.max(0, hp0 - Math.max(0, f.m.hp));
       if (r.hit) { anim(f.ui.el, "hit", 450); pop(f.ui.spr, r.crit ? `${dmg}!` : String(dmg), r.crit ? "crit" : "dmg"); } else pop(f.ui.spr, r.fumble ? "oops" : "miss", "miss");
@@ -168,6 +171,16 @@ export function createBattle({ el, hud, host, audio, cfg = {} }) {
     if (ab.kind === "target") return chooseTarget("gizmo");
     const hpB = R.hero().hp; if (ab.kind === "heal" && hpB >= R.hero().maxHp) { say("You're not out of breath yet. Still your turn.", "sys"); return; }
     act(async () => { anim(B.hero.ui.el, "cast", 500); await wait(250); R.useAbility(null); const got = R.hero().hp - hpB; if (got > 0) pop(B.hero.ui.spr, "+" + got, "heal"); }, "heal"); }
+  // v6: class abilities (R.abilities / R.useAbility(target, id))
+  function snapFoes() { return B.foes.map((f) => f.m.hp); }
+  function popFoes(hp0) { B.foes.forEach((f, i) => { const d = Math.max(0, hp0[i] - Math.max(0, f.m.hp)); if (d > 0) { anim(f.ui.el, "hit", 450); pop(f.ui.spr, String(d), "dmg"); } if (hp0[i] > 0 && !B.R.alive(f.m)) setTimeout(() => f.ui.el.classList.add("down"), 250); }); }
+  function doAbilityId(a) { const R = B.R; if (a.off) { say(a.why || `${a.name} isn't ready.`, "sys"); return; }
+    if (a.kind === "target" || a.kind === "markTarget") return chooseTarget("ab:" + a.id);
+    if (a.kind === "free" || a.kind === "arm") { if (R.useAbility(null, a.id)) { if (a.kind === "arm") B.armed = true; say(`${a.icon} ${a.name}. Still your turn.`, "you"); renderParty(); showMenu("main"); } else showMenu("main"); return; }
+    const hpB = R.hero().hp, hp0 = snapFoes();
+    act(async () => { anim(B.hero.ui.el, "cast", 500); await wait(250); R.useAbility(null, a.id); const got = R.hero().hp - hpB; if (got > 0) pop(B.hero.ui.spr, "+" + got, "heal"); popFoes(hp0); renderParty(); }, a.kind === "area" ? "hit" : "heal"); }
+  function doAbilityTarget(f, id) { act(async () => { const R = B.R, hp0 = snapFoes(); anim(B.hero.ui.el, "cast", 500); await wait(300); R.useAbility(f.m, id); popFoes(hp0); }, "hit"); }
+  function doItemTarget(f, id) { act(async () => { const R = B.R, hp0 = snapFoes(); anim(B.hero.ui.el, "cast", 500); await wait(300); R.useItem(id, f.m); popFoes(hp0); }, "hit"); }
   function doFlee() { act(async () => { const R = B.R, r = R.flee(); say(r.text, r.ok ? "sys" : "miss"); if (r.ok) { anim(B.hero.ui.el, "flee", 600); await wait(650); finish("fled"); } }, "sys"); }
 
   // ---------- companion turn: auto, small heal if you're low, otherwise a clumsy bonk ----------
@@ -198,9 +211,10 @@ export function createBattle({ el, hud, host, audio, cfg = {} }) {
 
   // ---------- their turn: one at a time, with a visible beat ----------
   async function foeTurn(f) { if (!B || B.busy) return; B.busy = true; const R = B.R, hp0 = R.hero().hp;
-    f.ui.el.classList.add("active"); say(`${f.m.icon || ""} ${f.m.name} is up…`, "foe"); await wait(380); if (!B) return;
+    f.ui.el.classList.add("active"); if (R.skipTurn && R.skipTurn(f.m)) { say(`${f.m.icon || ""} ${f.m.name} is held fast and loses its turn.`, "sys"); await wait(C.foeCaption); if (!B) return; f.g = 0; f.ui.el.classList.remove("active"); B.busy = false; return; }
+    say(`${f.m.icon || ""} ${f.m.name} is up…`, "foe"); await wait(380); if (!B) return;
     anim(f.ui.el, "lunge-r", C.lunge + 60); anim(f.ui.el, "atk", C.lunge + 140); await wait(C.lunge * 0.6); if (!B) return;
-    const palLive = B.pal && B.pal.hp > 0, hitPal = palLive && Math.random() < 0.28;
+    const palLive = B.pal && B.pal.hp > 0, hitPal = palLive && !(R.taunting && R.taunting()) && Math.random() < 0.28;
     if (hitPal) {
       const r = R.palHit ? R.palHit(f.m, B.pal) : { hit: false, dmg: 0 };
       if (r.hit) { B.pal.hp = Math.max(0, B.pal.hp - r.dmg); anim(B.pal.ui.el, "hit", 450); pop(B.pal.ui.spr, "−" + r.dmg, "ouch"); if (B.pal.hp <= 0) say(B.pal.koText, "ouch"); }
@@ -222,5 +236,8 @@ export function createBattle({ el, hud, host, audio, cfg = {} }) {
 
   return { start, active: () => !!B, end: (o = "abort") => { if (B) { B.done = true; cancelAnimationFrame(B.raf); close(o); } },
     state: () => B && { title: B.title, hero: { g: +B.hero.g.toFixed(2), fill: B.hero.fill, hp: B.R.hero().hp, maxHp: B.R.hero().maxHp }, pal: B.pal ? { id: B.pal.id, name: B.pal.name, hp: B.pal.hp, maxHp: B.pal.maxHp, g: +B.pal.g.toFixed(2), fill: B.pal.fill, lastAct: B.pal.lastAct, lastHeal: B.pal.lastHeal, down: B.pal.hp <= 0 } : null, foes: B.foes.map((f) => ({ name: f.m.name, hp: f.m.hp, alive: B.R.alive(f.m), g: +f.g.toFixed(2) })), menu: menu.dataset.kind, menuOpen: B.menuOpen, busy: B.busy, turns: B.turns, log: B.log.slice(-6), pose: B.hero.ui?.el.dataset.pose || "idle", heroCls: B.hero.ui ? [...B.hero.ui.el.classList].filter((c) => c !== "btl-fighter") : [], armed: B.armed, done: B.done, ended: !endCard.hidden },
+    healPal: (n) => { if (!B?.pal || B.pal.hp <= 0) return 0; const h0 = B.pal.hp; B.pal.hp = Math.min(B.pal.maxHp, B.pal.hp + n); renderParty(); return B.pal.hp - h0; },
+    revivePal: (n) => { if (!B?.pal || B.pal.hp > 0) return 0; B.pal.hp = Math.max(1, Math.min(B.pal.maxHp, n)); B.pal.g = 0; renderParty(); return B.pal.hp; },
+    palDown: () => !!(B?.pal && B.pal.hp <= 0), foeList: () => (B ? B.foes.map((f) => f.m) : []),
     setSpeed: (s) => { if (B) B.speed = s; C.speed = s; }, root };
 }

@@ -25,7 +25,7 @@ export function createAnnexAudio() {
   let ctx = null, master = null, musicBus = null, humBus = null, echo = null, sched = 0, nextT = 0, step = 0, running = false, steps = 0, mood = "annex", moodSteps = 0;
   let muted = false; try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch {}
   let scoreOn = true; // v5d2: the old 8-bar chiptune bed goes quiet while a MIDI scene plays (hum + cues keep running)
-  const humNodes = []; let pendingGesture = null, wantRun = false;
+  const humNodes = []; let pendingGesture = null, wantRun = false, humShiftOn = false, humLp = null;
   function ensure() {
     if (ctx) return ctx;
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
@@ -71,7 +71,7 @@ export function createAnnexAudio() {
   function pump() { if (!running || !ctx) return; while (nextT < ctx.currentTime + 0.2) { playStep(nextT); nextT += stepLen(); } }
   const humFor = () => (mood === "glimpse" ? 0 : mood === "alive" ? 0.05 : 0.03);
   function startHum() {
-    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 700; lp.connect(humBus);
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 700; lp.connect(humBus); humLp = lp;
     [[120, "sawtooth", 0.35], [240, "sawtooth", 0.12], [60, "sine", 0.6], [121.3, "sawtooth", 0.2]].forEach(([f, ty, v]) => {
       const o = ctx.createOscillator(), g = ctx.createGain(); o.type = ty; o.frequency.value = f; g.gain.value = v; o.connect(g); g.connect(lp); o.start(); humNodes.push(o); });
     const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.23; lg.gain.value = 0.006; lfo.connect(lg); lg.connect(humBus.gain); lfo.start(); humNodes.push(lfo);
@@ -96,6 +96,11 @@ export function createAnnexAudio() {
     get muted() { return muted; },
     setMood(m) { m = m || "annex"; if (m === mood) return; mood = m; step = 0; moodSteps = 0; if (ctx && running) humBus.gain.setTargetAtTime(humFor(), ctx.currentTime, 0.4); },
     get mood() { return mood; },
+    // v6: the shift warning is a change in the hum (pitch sags, it gets louder and brighter), not flickering lights.
+    humShift(on) { on = !!on; if (on === humShiftOn) return; humShiftOn = on; if (!ctx || !running) return; const t = ctx.currentTime;
+      humNodes.forEach((o) => { if (o.frequency && o.frequency.value > 1) o.detune.setTargetAtTime(on ? -140 : 0, t, on ? 0.35 : 0.6); });
+      if (humLp) humLp.frequency.setTargetAtTime(on ? 1400 : 700, t, 0.4); humBus.gain.setTargetAtTime(on ? humFor() * 2.6 : humFor(), t, 0.4); },
+    get humShifted() { return humShiftOn; },
     setScore(on) { scoreOn = !!on; },
     get scoreOn() { return scoreOn; },
     // little cues (all quiet, nothing harsh)

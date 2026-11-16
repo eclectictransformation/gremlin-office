@@ -382,3 +382,11 @@ body.in-office{touch-action:none;overscroll-behavior:none;-webkit-text-size-adju
 .btl-tog{margin:.35rem 0 0;display:flex;justify-content:center}
 .btl-tog button{min-height:36px;font:700 13px system-ui;border-radius:10px;padding:.25rem .7rem}
 .btl-end .btl-tog{margin-top:.6rem}
+/* v6: Survey Corps guide, Common Record, stable-place map */
+.o3-guide h3{margin:.9rem 0 .3rem;font-size:1.05rem;color:#c9b46a}
+.o3-guide h4{margin:.6rem 0 .2rem;font-size:.95rem}
+.o3-guide p,.o3-guide li{line-height:1.45}
+.o3-guide ul{margin:.2rem 0 .5rem 1.1rem;padding:0}
+.o3-rumors li{font-style:italic;margin:.25rem 0}
+.o3-locked{opacity:.55}
+.o3-stablemap{display:block;width:100%;max-width:520px;height:auto;border-radius:10px;margin:.5rem auto;background:#2a2a24}

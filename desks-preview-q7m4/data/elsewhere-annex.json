@@ -1,28 +1,77 @@
 {
  "_about": "Elsewhere Annex v2 (ET · Gremlin Desks only). The world is procedural: a seeded grid of cells. Each section has a crystal plaza at its 'center' cell; every other cell belongs to the nearest section and gets hallways (always safe) plus rooms off them (where grabbers and the rare almost-people live). To add a section: copy a row in 'sections', give it a new id, center [cellX, cellZ] a few cells from the others, palette, crystal and room mix. Cells are grid.cell metres square.",
- "version": 3,
+ "version": 6,
  "name": "The Elsewhere Annex",
- "tagline": "The Gremlins found it. They're still mapping it.",
+ "tagline": "The Survey Corps found it. They're still mapping it.",
  "lore": {
-  "grenshol": "Deep in the Annex the Gremlins found a portal. They poked it, prodded it, licked it (of course) and generally tried to figure out what it was. Something tall and curious came out. Its name is Grenshol. It isn't mad about it. It just wants to know what everything is, especially you.",
-  "firstSighting": "A gremlin note, taped to nothing: \"we opened a portal to see what it was. something tall came out. it's called Grenshol. it seems nice?? if it catches you it shows you where it came from. if YOU catch IT, it lets you look around.\"",
+  "grenshol": "Grenshol is a tall black figure who shows up as a soft green flicker. He can't speak, and he can't fully be here, but he plays with newcomers, nudges them toward doors, and pulls people out of trouble. Early on, the Gremlins found a round, warm portal that smelled of rain on ferns. Someone tapped on it and something tapped back, and for years they believed they had let him out. They had it backwards: he came through long before they found it. He's on our side.",
+  "firstSighting": "A green flicker at the end of the hall, and the smell of warm rain on ferns. That's Grenshol. The notice board says: let him be. He's on our side.",
   "clues": {
-   "enabled": false,
+   "enabled": true,
    "_future": "Lore-clue system (NOT built yet). Collectible clue notes about Grenshol, the portal and the Gremlins' mistake. Planned row shape: {id, title, text, section, cell:[di,dj], quad, requires:{clues:n}?}. Planned behaviour: spawn like curiosities, show under a 'Clues' tab in Pockets, save to progress.clues (same localStorage key, later the Desks database).",
    "notes": [
     {
-     "id": "clue-portal-1",
+     "id": "log-1",
      "title": "Survey page, torn",
-     "text": "Day 3. Found a round thing in the wall. It hums in B flat. Pip says it's a portal. Grimble says it's a very confident puddle.",
+     "day": "Day 1",
+     "text": "Pulled the thread from the gallery side. The wall said 'Oh. Finally.' Very polite. Set up the desk. Nobody has checked in yet. — Pip",
+     "section": "print",
+     "cell": [
+      2,
+      0
+     ],
+     "quad": 1
+    },
+    {
+     "id": "log-2",
+     "title": "Survey page, torn",
+     "day": "Day 3",
+     "text": "Found a round thing in a wall, deep in. Warm. Smells of rain on ferns. Pip says portal. Grimble says puddle. Nobody tapped it. Yet.",
      "section": "night",
      "cell": [
       2,
       1
      ],
-     "quad": 1,
-     "_example": true
+     "quad": 1
+    },
+    {
+     "id": "log-3",
+     "title": "Survey page, torn",
+     "day": "Day 4",
+     "text": "Someone tapped it. Something tapped back. Twice. We have decided this was our fault. (Pip, later, in pencil: it wasn't.)",
+     "section": "turn",
+     "cell": [
+      0,
+      -2
+     ],
+     "quad": 2
+    },
+    {
+     "id": "log-4",
+     "title": "Survey page, torn",
+     "day": "Day 19",
+     "text": "Some places don't move. Chalked the first one. STAYS PUT ✓. The settlers laughed: they've known for years. They call them anchors.",
+     "section": "stock",
+     "cell": [
+      2,
+      0
+     ],
+     "quad": 0
+    },
+    {
+     "id": "log-5",
+     "title": "Survey page, torn",
+     "day": "Day ??",
+     "text": "Lights perfectly still in that room. Smelled like new pennies. Door was lovely. We didn't. Good.",
+     "section": "shallows",
+     "cell": [
+      2,
+      0
+     ],
+     "quad": 3
     }
-   ]
+   ],
+   "_about": "v6: the Survey Corps logbook. Torn pages are found out in the halls (same placement shape as curiosities) and pinned on the Common Record at the Door Station. They carry clues, never House history."
   }
  },
  "characters": {
@@ -173,16 +222,15 @@
  "homeCrystal": {
   "icon": "🏠",
   "name": "Home crystal",
-  "given": "The Gremlins pressed a little 🏠 home crystal into your hand. Squeeze it any time to go back to the start.",
-  "used": "The home crystal tugs a thread and reels you back to the start.",
+  "given": "Pip presses a small Home crystal into your palm. Hold it and it takes you to the nearest stable place you've found. In a few dead spots it fizzles.",
+  "used": "The Home crystal warms in your hand, and the halls fold you back to somewhere that stays put: {place}.",
   "fizzle": [
-   "🫧 Your home crystal fizzles like flat soda. Something about this spot. Walk a little and try again.",
-   "🫧 Pfft. The crystal makes a sad kazoo noise. No signal here.",
-   "🫧 The crystal just… shrugs. A gremlin note nearby says \"we tried. we licked it. nothing.\""
+   "🫧 The Home crystal fizzles and goes cold. A dead spot. Walk a little and try again.",
+   "🫧 Nothing. The crystal won't answer here. The Survey Corps marks spots like this in red."
   ]
  },
  "lostHintSeconds": 240,
- "lostHint": "Lost? Good, that's the fun part. Your 🏠 home crystal still works (mostly).",
+ "lostHint": "Lost? Look for warm, gently flickering lamps or a STAYS PUT ✓ chalk mark. Your 🏠 Home crystal works too, mostly.",
  "deadPalette": {
   "wall": "#b9b2c4",
   "floor": "#6f6878",
@@ -204,7 +252,7 @@
     0,
     0
    ],
-   "blurb": "Yellow rooms, damp carpet, empty frames. Where the Loose Stitch lets out.",
+   "blurb": "The halls just past the brass line. Yellow rooms, damp carpet, empty frames.",
    "palette": {
     "wall": "#ebdc98",
     "floor": "#b6a466",
@@ -245,7 +293,7 @@
     "every": 150,
     "warn": 2.5,
     "blockChance": 0.1,
-    "warning": "The hum changes pitch… somewhere nearby, rooms are swapping places.",
+    "warning": "The hum drops half a note… somewhere nearby, rooms are about to swap places. Step into a hallway.",
     "done": "Something shifted. The Wrong Print isn't quite the same shape now."
    },
    "deadZones": [
@@ -312,7 +360,7 @@
     "every": 50,
     "warn": 2.5,
     "blockChance": 0.28,
-    "warning": "The hum changes pitch… a hallway is rearranging itself.",
+    "warning": "The hum changes pitch… a hallway is about to rearrange itself.",
     "done": "Something shifted. The Annex That Turns isn't quite the same shape now."
    },
    "deadZones": [],
@@ -367,7 +415,7 @@
     "every": 140,
     "warn": 2.5,
     "blockChance": 0.12,
-    "warning": "Cardboard creaks… the aisles are rearranging.",
+    "warning": "The hum thickens… the aisles are about to move.",
     "done": "Something shifted. The stockroom moved its aisles again."
    },
    "deadZones": [],
@@ -424,7 +472,7 @@
     "every": 110,
     "warn": 2.5,
     "blockChance": 0.15,
-    "warning": "A ticket machine dings… the floor is rearranging.",
+    "warning": "The hum wavers… the floor is about to rearrange.",
     "done": "Something shifted. Your number has been called somewhere else."
    },
    "deadZones": [],
@@ -478,7 +526,7 @@
     "every": 120,
     "warn": 2.5,
     "blockChance": 0.1,
-    "warning": "Water drips upward for a second… the tiles are rearranging.",
+    "warning": "The hum goes hollow, like water… the tiles are about to move.",
     "done": "Something shifted. The pools are somewhere else now."
    },
    "deadZones": [],
@@ -535,7 +583,7 @@
     "every": 90,
     "warn": 2.5,
     "blockChance": 0.2,
-    "warning": "A desk lamp clicks off… the night shift is rearranging.",
+    "warning": "The hum sinks low… the night shift is about to move the furniture.",
     "done": "Something shifted. The night shift moved the furniture again."
    },
    "deadZones": [
@@ -915,25 +963,31 @@
  },
  "grabberTypes": {
   "hem": {
-   "name": "the Hem",
+   "name": "a threadbare Reacher",
+   "reacher": true,
    "speed": 0.85,
    "notice": 5.5,
-   "telegraph": "You hear a soft drag of thread nearby…",
-   "caught": "The Hem caught your ankle and reeled you somewhere else entirely: {section}. (No harm done.)"
+   "reach": 3.2,
+   "telegraph": "Something long and pale is reaching out of a gap in the far wall…",
+   "caught": "A Reacher closes its fingers round your sleeve and tugs you through a gap in the wall. You stumble out somewhere else in the halls: {section}. (Reachers never take anyone to an instance.)"
   },
   "courtesy": {
-   "name": "the Courtesy",
+   "name": "a courteous Reacher",
+   "reacher": true,
    "speed": 0.8,
    "notice": 5.5,
-   "telegraph": "A polite little cough, somewhere close…",
-   "caught": "The Courtesy scooped you up, nodded, and set you down in {section}, facing the wrong way."
+   "reach": 3.2,
+   "telegraph": "A slow, polite knock from inside the wall. A long arm unfolds out of the gap…",
+   "caught": "The Reacher takes your hand like a dance partner and pulls you through the wall. You come out in {section}, facing the wrong way."
   },
   "bounceback": {
-   "name": "the Bounceback",
+   "name": "a heavy Reacher",
+   "reacher": true,
    "speed": 0.9,
    "notice": 5,
-   "telegraph": "Flump. Flump. Something soft is coming…",
-   "caught": "The Bounceback gave you a big squishy hug and spat you out right by the crystal in {section}.",
+   "reach": 3.0,
+   "telegraph": "Plaster cracks. Something reaches out of the wall, palm up…",
+   "caught": "The Reacher drags you through the wall and sets you down by the waystone in {section}. Rough, but not unkind.",
    "toPlaza": true
   }
  },
@@ -948,27 +1002,31 @@
   ]
  },
  "overlook": {
-  "note": "aha! this is where we found it.",
-  "noteBy": "— the Gremlins",
+  "note": "Aha. This is where we found it. Whatever it is.",
+  "noteBy": "— Pip, Survey Corps",
   "survey": [
    "The Wrong Print ✓",
    "The Annex That Turns ✓ (mostly)",
-   "The Soft Stockroom ✓ (it's deeper than it looks)",
+   "The Soft Stockroom ✓ (deeper than it looks)",
    "The Waiting Floor ✓ (still waiting)",
-   "The Tiled Shallows ✓ (bring socks)",
+   "The Tiled Shallows ✓",
    "The Night Shift ✓ (lights off)",
-   "Grenshol: ??? (our fault, sorry)",
+   "Grenshol: on our side. (We had the portal backwards.)",
    "Everything else: still mapping…"
   ],
   "master": true,
-  "_master": "The Overlook crystal is the Gremlins' master stone: from it you can hop to ANY section's plaza, even ones you haven't attuned."
+  "_master": "The Overlook crystal is the Gremlins' master stone: from it you can hop to ANY section's plaza, even ones you haven't attuned.",
+  "banner": [
+   "The Overlook",
+   "a quiet ledge above the Door Station · a stable place"
+  ]
  },
  "_about_v3": "v3 adds: lore (Grenshol + hooks for future clue notes), characters (hook for a future stats/dice-door system; not built), creature (Grenshol), minions (flitters), aliveMode (lights-change), stairwells (per-section stairChance), tvs, glimpse (the world behind the portal: glimpse.js + data/glimpse-world.json). Change names/lines freely; everything is read from here.",
  "creature": {
   "id": "grenshol",
   "name": "Grenshol",
-  "_name": "Bryan named it. Change here and it changes everywhere.",
-  "about": "A large, curious being from the other side of the portal. Never evil, never hurts anyone, never kills. It plays: peeks round corners, stands at the far end of hallways, sneaks up when you're not looking, and freezes like a cat on the counter when you look right at it.",
+  "_name": "Bryan named him. Change it here and it changes everywhere. Pronoun: he/him (canon).",
+  "about": "A tall black figure from somewhere else, seen as a soft green flicker. Never evil, never hurts anyone. He plays, watches, helps and nudges. Catching or tagging him means he carries you to an instance door you haven't found. He never goes inside instances.",
   "excludeSections": [
    "print"
   ],
@@ -994,36 +1052,70 @@
   "catchRadius": 0.9,
   "dimRadius": 10,
   "height": 3.3,
-  "color": "#130e1b",
-  "eyes": "#ffe9a8",
+  "color": "#0f1410",
+  "eyes": "#bff5c4",
   "lines": {
    "appear": [
-    "Far down the hall, something very tall is standing very still.",
-    "The lights at the end of the hallway dim. Something is having a look at you.",
-    "A long, curious hum, somewhere close. Grenshol is around."
+    "A soft green flicker at the far end of the hall. Something very tall is standing very still.",
+    "The air smells faintly of warm rain on ferns. Grenshol is near.",
+    "Two quiet taps on the wall beside you. Then a green flicker, down the hall."
    ],
    "freeze": [
-    "Grenshol freezes, like a cat caught on the counter. Quick! Tag it!",
-    "It goes completely still. It thinks you can't see it if it doesn't move.",
-    "It stops mid-step and pretends to be a coat rack."
+    "Grenshol goes perfectly still, as if that makes him invisible. Quick, tag him!",
+    "He stops mid-step and holds it. He's waiting to see what you'll do.",
+    "He freezes. The green flicker steadies for a moment."
    ],
    "flee": [
-    "…and it folds itself into a doorway that wasn't there. Gone. For now.",
-    "It giggles like a kettle and slides away round the corner.",
-    "It ducks away. You hear it bump into something, very politely."
+    "…and he folds into a doorway that wasn't there. Gone, for now.",
+    "A flicker, a rush of warm air, and he's gone.",
+    "He steps back into nothing. The fern smell lingers."
    ],
    "blink": [
-    "It's behind you now. It wants to play.",
-    "A cool little breeze on your neck. Grenshol moved."
+    "He's behind you now. He wants to play.",
+    "Warm, damp air on the back of your neck. Grenshol moved."
    ]
   },
-  "caught": "Grenshol got you! Long cool fingers, a curious hum, and the Annex folds away like a paper fan…",
-  "tagged": "You tagged Grenshol! It goes very still, then laughs like a kettle and opens the way to its home for you."
+  "caught": "Grenshol catches you. Long, careful fingers, a green flicker, and the halls fold away…",
+  "tagged": "You tag Grenshol! He goes still, then bows, very slightly, and the halls fold away…",
+  "flicker": "#7fe08a",
+  "carry": {
+   "_about": "v6 (lore fact 28): catch or tag = he carries you and sets you down OUTSIDE an instance door you haven't found yet; that door then lights up on the Station facade. He never goes in. If you've found every door he knows, he sets you down at the nearest stable place you've found.",
+   "doors": [
+    {
+     "id": "gate-turn",
+     "station": "sd-gate-turn",
+     "name": "the padlocked gate in the Annex That Turns"
+    }
+   ],
+   "setDown": "…warm, wet air, a last green flicker, and you're standing outside {door}. He's already gone. He never goes in.",
+   "allFound": "…he sets you down somewhere that stays put: {place}. Every door he knows, you've already found.",
+   "stationLit": "🚪 Back at the Door Station, a door just lit up for you: {door}.",
+   "fernFrond": "There's a fern frond in your pocket that wasn't there before. Nothing in the Annex grows ferns."
+  },
+  "teaser": {
+   "_about": "v6: the sensory teaser that replaces the full dinosaur-world tour (lore fact 32). Shown during the carry.",
+   "lines": [
+    "A green flicker. For half a heartbeat: tall ferns, warm rain, and the smell of wet earth from somewhere very old. Then it's gone.",
+    "Warm rain on ferns. Something huge breathing slowly, somewhere below. Then the halls again.",
+    "Green light, wet leaves against your face, a deep call from very far off. Then nothing."
+   ],
+   "item": "fern-frond"
+  },
+  "help": {
+   "_about": "v6 intensity roles: watching, helping, nudging, rare glimpse.",
+   "healText": "A green flicker brushes past you. Warm rain, the smell of ferns, and your bruises ease (+{hp} HP).",
+   "pointText": "Little stones, stacked into an arrow on the floor, pointing {dir}. Grenshol's work.",
+   "nudgeText": "A green flicker at the edge of your sight, and a long hand on your shoulder, steering you…",
+   "watchText": [
+    "A green flicker, watching from the end of the hall. He doesn't come closer.",
+    "Two taps on the wall. He's keeping an eye on you."
+   ]
+  }
  },
  "minions": {
-  "name": "flitters",
-  "single": "a flitter",
-  "about": "Grenshol's little moth-ish helpers. Mostly they flutter about. Sometimes one lands on an almost-person and drives it for a bit.",
+  "name": "lampwings",
+  "single": "a lampwing",
+  "about": "Small moth-like lampwings that drift after Grenshol. Sometimes one settles on an almost-person and steers them for a little while.",
   "count": 2,
   "aliveCount": 7,
   "possessEvery": [
@@ -1039,23 +1131,23 @@
   "eye": "#9cf7ff",
   "tint": "#7d6aa8",
   "possessed": [
-   "A flitter lands on an almost-person's head. Its eyes go a very bright blue.",
-   "Something small and fluttery climbs into an almost-person's ear. It straightens up and turns towards you."
+   "A lampwing settles on an almost-person's head. Its eyes go a soft, bright green.",
+   "Something small and fluttering lands on an almost-person's shoulder. It straightens up and turns towards you."
   ],
   "lines": [
-   "We are curious about your hands.",
-   "Hello, {nameOff}. Grenshol says hello. Grenshol says hello again.",
-   "What is a Tuesday. Show us a Tuesday.",
-   "Do you have a portal? We came out of one. It was very rude.",
-   "We like your walking. Do more walking.",
-   "Tag! No. Not tag. Hello."
+   "We followed the green. Did you see the green?",
+   "Hello, {nameOff}. He says hello. He can't say it himself.",
+   "Warm rain. Ferns. Do you know ferns?",
+   "He keeps it from falling down. We keep him company.",
+   "You walk like someone looking for a door.",
+   "Tag. No. Not tag. Hello."
   ],
   "release": [
    "It blinks. \"Sorry. What was I saying? Was I saying?\"",
    "Its eyes go back to normal. A flitter bumbles off towards the ceiling.",
    "It shakes its head like a wet dog and wanders back to its room."
   ],
-  "talkIntro": "Its eyes are glowing blue. Something small and fluttery is doing the talking."
+  "talkIntro": "Its eyes are glowing green. Something small and fluttering is doing the talking."
  },
  "aliveMode": {
   "prompt": "See what happens when the lights change?",
@@ -1216,16 +1308,36 @@
    "z": 5000
   },
   "lensScale": 0.6,
-  "tourText": "You're seeing through Grenshol's eyes. It's showing you where it came from.",
-  "exploreText": "You caught Grenshol! It lets you wander its home for a little while.",
+  "tourText": "You're seeing through Grenshol's eyes. He's showing you where he came from.",
+  "exploreText": "You caught Grenshol! He lets you wander his home for a little while.",
   "chooseTitle": "Grenshol holds still. Where to?",
-  "chooseText": "It remembers you. It can take you back somewhere you've been, or somewhere new.",
+  "chooseText": "He remembers you. He can take you back somewhere you've been, or somewhere new.",
   "thinText": "The glimpse is thinning… Grenshol is about to send you back.",
   "returnText": "…and Grenshol sets you down, very gently, in the Annex: {section}.",
-  "returnStartText": "…and Grenshol drops you, very gently, right back at the beginning: {section}."
+  "returnStartText": "…and Grenshol sets you down, very gently, back at the Door Station.",
+  "enabled": true,
+  "fullReveal": false,
+  "_flags": "v6: enabled = brief, vague glimpses only (teaser lens, heavy fog, 1–2 short views, then you're returned exactly where you were). fullReveal = the old full tour/explore of his world (off until Bryan's reveal).",
+  "brief": {
+   "views": [
+    1,
+    2
+   ],
+   "seconds": [
+    2.5,
+    4
+   ],
+   "fog": [
+    2,
+    16
+   ],
+   "lens": 1.6
+  },
+  "briefText": "For a moment you see through a green haze: somewhere warm, wet and very old…",
+  "briefReturn": "…and the halls come back, exactly where you were. Your sleeves are damp."
  },
  "beyond": {
-  "_about": "v5d2: the open Backrooms are calm exploring (no wandering critters, no Grenshol, no flitters, no light-switch rooms). Weird doors out in the Backrooms open onto short passages that are sealed off from the normal halls. Only inside those passages do small random critters and Grenshol show up. Grenshol is from another world: never in the instances (Mailroom, Grotto, Training Closet, gates). Zones are cell rectangles (origin [i,j], size [w,d]); every edge leaving a zone is sealed, every edge inside is open. A door sits flush on a closed wall of its cell (wall is picked automatically; 'wall' is the fallback that gets sealed if every arm is open). Change names/lines freely.",
+  "_about": "v5d2: the open open halls are calm exploring (no wandering critters, no Grenshol, no flitters, no light-switch rooms). Weird doors out in the open halls open onto short passages that are sealed off from the normal halls. Only inside those passages do small random critters and Grenshol show up. Grenshol is from another world: never in the instances (Mailroom, Grotto, Training Closet, gates). Zones are cell rectangles (origin [i,j], size [w,d]); every edge leaving a zone is sealed, every edge inside is open. A door sits flush on a closed wall of its cell (wall is picked automatically; 'wall' is the fallback that gets sealed if every arm is open). Change names/lines freely.",
   "doors": [
    {
     "id": "wd-turn",
@@ -1275,8 +1387,8 @@
      4,
      1
     ],
-    "arrive": "The door clicks shut behind you. The hum down here is a note lower. Small things skitter in the side rooms, and something tall might be about.",
-    "leave": "You step back through the wrong door. The normal Backrooms hum settles round you again.",
+    "arrive": "The door clicks shut behind you. The hum down here is a note lower. Small things skitter in the side rooms, and the lamps watch you a little too steadily.",
+    "leave": "You step back through the wrong door. The usual hum of the halls settles round you again.",
     "backPrompt": "🚪 Back through the wrong door",
     "backSign": "EXIT",
     "backSignSub": "(probably)",
@@ -1301,11 +1413,22 @@
        0
       ],
       "danger": true,
-      "traps": [],
+      "traps": [
+       {
+        "type": "snare",
+        "id": "pennies",
+        "pushRoom": true,
+        "text": "The floor tile clicks. The air tastes of new pennies, the steady light goes white, and your legs fold under you.",
+        "rescue": "A hand closes on your collar. The light goes green, warm rain, ferns, and you're back at the Door Station, smelling faintly of rain.",
+        "delay": 0.6
+       }
+      ],
       "sign": "THIS ONE'S DANGEROUS",
-      "signSub": "you might wanna be careful in here"
+      "signSub": "you might wanna be careful in here",
+      "pushRoom": true
      }
-    ]
+    ],
+    "intensity": 0.45
    },
    {
     "id": "bz-drain",
@@ -1319,7 +1442,7 @@
      3,
      2
     ],
-    "arrive": "The door that wasn't here yesterday lets you through, then forgets you. Somewhere a drain gurgles politely. Little critters live in the side rooms here, and Grenshol likes to visit.",
+    "arrive": "The door that wasn't here yesterday lets you through, then forgets you. Somewhere a drain gurgles. Little things live in the side rooms here, and a green flicker comes and goes.",
     "leave": "Back through the door. It looks very pleased with itself.",
     "backPrompt": "🚪 Back through the door that wasn't here",
     "backSign": "EXIT",
@@ -1345,13 +1468,220 @@
        1
       ],
       "danger": true,
-      "traps": [],
+      "traps": [
+       {
+        "type": "snare",
+        "id": "pennies-2",
+        "pushRoom": true,
+        "text": "The floor tile clicks. The air tastes of new pennies, the steady light goes white, and your legs fold under you.",
+        "rescue": "A hand closes on your collar. The light goes green, warm rain, ferns, and you're back at the Door Station, smelling faintly of rain.",
+        "delay": 0.6
+       }
+      ],
       "sign": "CAREFUL IN HERE",
-      "signSub": "no, really. we mean it this time."
+      "signSub": "steady light. smells like pennies. we mean it.",
+      "pushRoom": true
      }
-    ]
+    ],
+    "intensity": 0.4
    }
   ],
-  "_about_rooms": "zones[].rooms marks specific side rooms inside a zone: cell is relative to the zone origin, qi (0-3, optional) picks the quadrant room (else the first room in that cell). danger:true hangs a warning sign by the room's doorway. traps:[] is reserved for later silly traps (e.g. a trap that knocks you out and sends you back to the start); none are built yet, the list is read but ignored."
+  "_about_rooms": "zones[].rooms marks side rooms inside a zone (cell relative to the zone origin; qi optional). danger:true = a push room: steady, perfect light, a warning plate, and traps. v6 traps: type 'snare' knocks you out (never death, no XP or gear lost) and Grenshol's hand grabs your collar and returns you to the Door Station."
+ },
+ "_grabbersAbout": "v6: grabbers are Reachers (lore). Type ids stay hem/courtesy/bounceback so saved data and section rows don't change; only the names, lines and the 3D model changed. They tug you to another section of the open halls, never to an instance.",
+ "stable": {
+  "_about": "v6 stable places (lore 72-75): places that barely change. The shifter never re-rolls them (rooms use epoch 0 and no sliding walls). Marked by warm, gently flickering lamps, a STAYS PUT ✓ chalk mark, the settled 'stable' music scene and the waystone's ring. Each one you find is saved per player and drawn on your map (the rest stays fog). Knockouts in the open halls and the Home crystal go to the nearest one you've found. Plazas (every section's waystone center) count automatically.",
+  "plazas": true,
+  "chalk": "STAYS PUT ✓",
+  "chalkSub": "— Survey Corps",
+  "found": "📍 A stable place: {name}. It stays put. It's on your map now.",
+  "restLabel": "🪑 Sit for a breather (stable place)",
+  "restText": "You sit a while. The fog at the edge of your sight clears, and you get your breath back.",
+  "mapTitle": "🗺 Your map: places that stay put",
+  "mapNote": "Only stable places you've found are drawn. Everything between them is fog: no use drawing a hall that won't be there tomorrow.",
+  "lamp": {
+   "color": "#ffcf7a",
+   "base": 1.15,
+   "flicker": 0.22,
+   "speed": [
+    3,
+    7
+   ]
+  },
+  "places": [
+   {
+    "id": "st-station",
+    "name": "The Door Station",
+    "kind": "base",
+    "section": "print",
+    "cell": [
+     0,
+     0
+    ],
+    "spawn": "arrival",
+    "always": true
+   },
+   {
+    "id": "st-overlook",
+    "name": "The Overlook",
+    "kind": "lookout",
+    "spawn": "overlook-arrival",
+    "secret": true
+   },
+   {
+    "id": "st-bench",
+    "name": "The Old Bench",
+    "kind": "rest",
+    "section": "print",
+    "cell": [
+     -2,
+     0
+    ],
+    "blurb": "A bench that's stood in the same spot for as long as anyone remembers."
+   },
+   {
+    "id": "st-turnpost",
+    "name": "The Turning Post",
+    "kind": "rest",
+    "section": "turn",
+    "cell": [
+     0,
+     2
+    ],
+    "blurb": "The one corner of the Annex That Turns that doesn't."
+   },
+   {
+    "id": "st-stockcorner",
+    "name": "The Quiet Aisle",
+    "kind": "rest",
+    "section": "stock",
+    "cell": [
+     0,
+     2
+    ],
+    "blurb": "The shelves here stopped backing away years ago."
+   },
+   {
+    "id": "st-waitseat",
+    "name": "Seat Nine",
+    "kind": "rest",
+    "section": "waiting",
+    "cell": [
+     2,
+     0
+    ],
+    "blurb": "Every chair moves except this one."
+   },
+   {
+    "id": "st-shallowstep",
+    "name": "The Dry Step",
+    "kind": "rest",
+    "section": "shallows",
+    "cell": [
+     0,
+     -2
+    ],
+    "blurb": "One square of floor the water never reaches."
+   },
+   {
+    "id": "st-nightlamp",
+    "name": "The Night Lamp",
+    "kind": "rest",
+    "section": "night",
+    "cell": [
+     0,
+     2
+    ],
+    "blurb": "A desk lamp that's never once been switched off."
+   }
+  ]
+ },
+ "intensity": {
+  "_about": "v6 intensity (Bryan, Nov 15): some areas and moments ramp up. 0 = calm, 1 = as tense as it gets. Rises in zones past weird doors, push rooms, sections with a base value, and the longer you wander lost; falls in stable places and at the Station. As it climbs: harsh irregular light flicker (not the warm gentle flicker of stable places), the music drops to a dreary variant, and Grenshol appears and watches more often. All tunable here.",
+  "enabled": true,
+  "levels": [
+   {
+    "id": "calm",
+    "min": 0
+   },
+   {
+    "id": "uneasy",
+    "min": 0.35
+   },
+   {
+    "id": "dreary",
+    "min": 0.65
+   }
+  ],
+  "flicker": {
+   "from": 0.35,
+   "depth": 0.6,
+   "chancePerSecond": 3
+  },
+  "music": {
+   "from": 0.65,
+   "scene": "dreary"
+  },
+  "grenshol": {
+   "openHalls": true,
+   "watchFrom": 0.4,
+   "chaseOnlyInZones": true,
+   "appearEvery": [
+    [
+     0,
+     [
+      25,
+      45
+     ]
+    ],
+    [
+     0.35,
+     [
+      16,
+      26
+     ]
+    ],
+    [
+     0.65,
+     [
+      8,
+      14
+     ]
+    ]
+   ],
+   "helpChance": 0.35,
+   "helpHpBelow": 0.5,
+   "heal": [
+    1,
+    4,
+    1
+   ],
+   "pointChance": 0.3,
+   "stuckSeconds": 200,
+   "nudgeChance": 0.5,
+   "glimpseChance": 0.05,
+   "glimpseFrom": 0.5,
+   "glimpseCooldown": 240,
+   "_about": "openHalls: he may watch (never chase or catch) in the open halls once intensity >= watchFrom. In zones past weird doors he plays as before. appearEvery = [[minIntensity, [minSec, maxSec]], ...]. On a watch appearance: helpChance (a small heal if HP < helpHpBelow, else stones stacked into an arrow toward the nearest stable place you haven't found), nudge when you've been lost stuckSeconds, rare brief glimpse (glimpseChance, only above glimpseFrom, then a cooldown)."
+  },
+  "targets": {
+   "_about": "What intensity drifts toward. In a zone past a weird door: the zone's own 'intensity' (or zoneDefault); in a push room: pushRoom. In the open halls: sectionBase + being lost a long time (up to lostMax) + moments (a shift about to happen, low HP). Stable places and the Station: 0.",
+   "zoneDefault": 0.45,
+   "pushRoom": 0.85,
+   "sectionBase": {
+    "night": 0.2,
+    "turn": 0.12,
+    "shallows": 0.08
+   },
+   "lostAfter": 150,
+   "lostPerSecond": 0.002,
+   "lostMax": 0.15,
+   "shiftWarn": 0.15,
+   "lowHp": 0.15,
+   "lowHpBelow": 0.35
+  },
+  "riseRate": 0.05,
+  "fallRate": 0.04,
+  "stableFallRate": 0.12
  }
 }

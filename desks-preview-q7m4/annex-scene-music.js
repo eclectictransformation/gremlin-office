@@ -14,6 +14,8 @@ export const SCENE = {
   "backrooms-explore": "backrooms-explore", // the rest of the calm Backrooms
   "beyond-explore": "backrooms-explore",    // past a weird door (a zone may name its own track)
   "backrooms-battle": "mailroom-battle",    // a scuffle past a weird door
+  stable: "annex-station",                   // v6: a place that stays put (settled chord; reuses the Station bed until a new cue exists)
+  dreary: "annex-dreary",                    // v6: high intensity: the explore bed, slower, lower and darker
   // instances
   "starter-explore": "mailroom-explore",
   "starter-battle": "mailroom-battle",

@@ -1291,6 +1291,36 @@
    "preview_bytes": 141816,
    "preview_seconds": 28.09,
    "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "annex-dreary",
+   "title": "Carpet Hum (dreary)",
+   "role": "explore",
+   "area": [
+    "annex"
+   ],
+   "encounter": [],
+   "tags": [
+    "annex",
+    "explore",
+    "dreary",
+    "intensity",
+    "variant"
+   ],
+   "mood": "tense, heavy, the same hallways but wrong",
+   "variant_of": "backrooms-explore",
+   "tempo_scale": 0.78,
+   "transpose": -2,
+   "filter_hz": 1800,
+   "echo": 0.38,
+   "loop": true,
+   "file": "midi/backrooms-explore.mid",
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "intensity": 4,
+   "drums": false,
+   "change_description": "v6: a runtime variant of backrooms-explore (no new MIDI file): 78% tempo, two semitones down, darker filter, more echo. Played when the intensity system reaches 'dreary'."
   }
  ]
 }

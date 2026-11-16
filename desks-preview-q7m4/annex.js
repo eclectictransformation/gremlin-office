@@ -1,7 +1,7 @@
 // The Elsewhere Annex v3 (behind The Loose Stitch). Eclectic Transformation · Gremlin Desks only.
-// A Backrooms-inspired side world, now procedural: a seeded grid of cells streamed in around you and thrown away
+// A liminal-halls side world, now procedural: a seeded grid of cells streamed in around you and thrown away
 // behind you. Each section (data.sections) has a crystal plaza at its center cell; every other cell joins the nearest
-// section and gets SAFE hallways plus rooms off them. Grabbers and the rare almost-people only ever live inside rooms.
+// section and gets SAFE hallways plus rooms off them. Reachers and the rare almost-people only ever live inside rooms.
 // Sections slowly rearrange (rooms re-roll, hallway walls slide) around their crystal. Progress is per player in localStorage.
 // v3: Grenshol (a big, curious creature the Gremlins let out of a portal), its flitters, lights-change mode, Escher stairwells,
 // silly TVs, and the glimpse world (glimpse.js + data/glimpse-world.json).
@@ -65,10 +65,20 @@ export function createAnnex(kit, data, host) {
   (data.curiosities || []).forEach((c) => { const S = secById[c.section]; if (!S) return; const i = S.center[0] + c.cell[0], j = S.center[1] + c.cell[1], qi = c.quad ?? 0, sz = QUADS[qi][1];
     forced.add(edgeOf(i, j, sz > 0 ? "zp" : "zn")); const row = { ...c, i, j, qi, via: "z" }; curioDefs.push(row);
     if (!curioByCell.has(ck(i, j))) curioByCell.set(ck(i, j), []); curioByCell.get(ck(i, j)).push(row); });
+  // ---------- v6: stable places (data.stable). The shifter never re-rolls them; found ones are saved per player. ----------
+  const STB = data.stable || null, INT = data.intensity || null;
+  const stablePlaces = (STB?.places || []).map((q) => { const S = secById[q.section]; return S && q.cell ? { ...q, i: S.center[0] + q.cell[0], j: S.center[1] + q.cell[1] } : { ...q }; })
+    .filter((q) => q.i == null || !deadCells.has(ck(q.i, q.j)));
+  if (STB?.plazas) sections.forEach((S) => { if (S === startSec) return; stablePlaces.push({ id: "st-plaza-" + S.id, name: `${S.name} · waystone plaza`, kind: "plaza", i: S.center[0], j: S.center[1], plaza: true }); });
+  const stableByCell = new Map(); stablePlaces.forEach((q) => { if (q.i != null && q.kind !== "base") stableByCell.set(ck(q.i, q.j), q); });
+  const pageDefs = []; const CLU = data.lore?.clues || {};
+  if (CLU.enabled) (CLU.notes || []).forEach((n) => { const S = secById[n.section]; if (!S || !n.cell) return; const i = S.center[0] + n.cell[0], j = S.center[1] + n.cell[1], qi = n.quad ?? 0, sz = QUADS[qi][1];
+    if ((curioByCell.get(ck(i, j)) || []).some((c) => c.qi === qi) || deadCells.has(ck(i, j))) return; forced.add(edgeOf(i, j, sz > 0 ? "zp" : "zn")); const row = { ...n, type: "page", page: true, i, j, qi, via: "z" }; pageDefs.push(row);
+    if (!curioByCell.has(ck(i, j))) curioByCell.set(ck(i, j), []); curioByCell.get(ck(i, j)).push(row); });
   function edgeOpen(i, j, d) { const k = edgeOf(i, j, d); if (sealed.has(k)) return false; if (forced.has(k)) return true; const [a, b, ax] = k.split(","); const S = sectionOf(+a, +b); return hsh(+a, +b, ax, "edge") < (S.openness ?? 0.68); }
 
   // ---------- v5d2: weird doors and the sealed passages beyond them ----------
-  // The open Backrooms are calm. Only zones reached through a weird door get small critters and Grenshol.
+  // The open halls are calm. Only zones reached through a weird door get small critters and Grenshol chases (v6: he may watch elsewhere when intensity runs high).
   const BYD = data.beyond || {}, sealed = new Set(), zoneByCell = new Map(), zoneById = {}, wdoorByCell = new Map(), wdoorById = {};
   (BYD.zones || []).forEach((z) => { zoneById[z.id] = z; const [i0, j0] = z.origin, [w, d] = z.size || [1, 1]; z.cells = [];
     for (let i = i0; i < i0 + w; i++) for (let j = j0; j < j0 + d; j++) { zoneByCell.set(ck(i, j), z); z.cells.push([i, j]); } });
@@ -86,11 +96,12 @@ export function createAnnex(kit, data, host) {
 
   // A cell's plan is pure data (deterministic for a given epoch); tests read it via debug.plan().
   function planCell(i, j, ep) {
-    const S = sectionOf(i, j), key = ck(i, j), dz = deadCells.get(key) || null, center = centerOf.get(key) === S;
+    const S = sectionOf(i, j), key = ck(i, j), dz = deadCells.get(key) || null, center = centerOf.get(key) === S, stable = stableByCell.has(key);
+    if (stable) ep = 0; // v6: a stable place never re-rolls
     const arms = {}; DIRS.forEach((d) => (arms[d] = edgeOpen(i, j, d)));
     const hs = center ? C2 - PM : HW;
     const blk = []; // shifting hallway walls on the cell's own +x / +z edges
-    if (!center && S.shift?.blockChance) [["xp", "x"], ["zp", "z"]].forEach(([d, a]) => { if (arms[d] && !forced.has(EK(i, j, a)) && hsh(i, j, a, "blk", ep) < S.shift.blockChance) blk.push(d); });
+    if (!center && !stable && S.shift?.blockChance) [["xp", "x"], ["zp", "z"]].forEach(([d, a]) => { if (arms[d] && !forced.has(EK(i, j, a)) && hsh(i, j, a, "blk", ep) < S.shift.blockChance) blk.push(d); });
     const rooms = [];
     if (!center) {
       const Q = C2 - HW - GAP, cur = curioByCell.get(key) || [];
@@ -119,7 +130,7 @@ export function createAnnex(kit, data, host) {
     const bz = zoneByCell.get(key); // v5d2: data-marked danger rooms inside a zone beyond a weird door (traps: reserved, not built yet)
     if (bz && bz.rooms) bz.rooms.forEach((rd) => { if (bz.origin[0] + rd.cell[0] !== i || bz.origin[1] + rd.cell[1] !== j) return; const r = rooms.find((q) => rd.qi == null || q.qi === rd.qi);
       if (r) { r.danger = !!rd.danger; r.traps = rd.traps || []; r.warn = rd; } });
-    return { i, j, key, S, dead: dz, center, arms, hs, blk, rooms, ep };
+    return { i, j, key, S, dead: dz, center, arms, hs, blk, rooms, ep, stable: stable ? stableByCell.get(key).id : null };
   }
 
   // ---------- shared materials / geometry (chunks reuse these, so throwing a chunk away leaks nothing) ----------
@@ -295,6 +306,23 @@ export function createAnnex(kit, data, host) {
     host.threadWarp({ target: ent.wp, onK: (k) => ent.kit.yawn?.(k), swap: () => { ent.kit.yawn?.(0); arrive(sp, ent.e.destination, ent.e); } });
   }
 
+  // ---------- v6: stable-place props: warm, gently flickering lamps, a chalk STAYS PUT mark, somewhere to sit ----------
+  const chalkTex = once("t:chalk", () => canvasTex(512, 200, (c, w, h) => { c.clearRect(0, 0, w, h); c.strokeStyle = "rgba(245,242,230,0.92)"; c.fillStyle = "rgba(245,242,230,0.92)"; c.lineWidth = 6; c.font = "bold 64px 'Comic Sans MS', 'Marker Felt', system-ui"; c.textAlign = "center"; c.fillText(STB?.chalk || "STAYS PUT ✓", w / 2, 92); c.font = "italic 34px Georgia"; c.fillText(STB?.chalkSub || "", w / 2, 160); c.beginPath(); c.moveTo(60, 116); c.lineTo(w - 60, 112); c.stroke(); }));
+  function stableDecor(g, pl, ch) { const Lc = STB?.lamp || {}, hs = pl.hs, q = stableByCell.get(pl.key);
+    const lampM = new THREE.MeshStandardMaterial({ color: "#fff1cf", emissive: Lc.color || "#ffcf7a", emissiveIntensity: Lc.base ?? 1.15 }); ch.stableLamps = ch.stableLamps || [];
+    const walls = DIRS.filter((d) => !pl.arms[d]);
+    const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+    corners.forEach(([a, b], k) => { if (k % 3) return; const x = C2 + a * (hs - 0.4), z = C2 + b * (hs - 0.4); const sc = new THREE.Group(); sc.position.set(x, 2.15, z); g.add(sc);
+      box(0, -0.18, 0, 0.06, 0.36, 0.06, mat("#4a3a28"), sc); const bulb = new THREE.Mesh(once("geo:slamp", () => new THREE.SphereGeometry(0.13, 10, 8)), lampM); sc.add(bulb);
+      const sh = new THREE.Mesh(once("geo:sshade", () => new THREE.ConeGeometry(0.2, 0.16, 10, 1, true)), mat("#8a6a3a", { side: THREE.DoubleSide })); sh.position.y = 0.12; sc.add(sh); });
+    ch.stableLamps.push({ m: lampM, base: Lc.base ?? 1.15, amp: Lc.flicker ?? 0.22, sp: rnd(...(Lc.speed || [3, 7])), t: rnd(0, 9) });
+    // chalk: on a solid hub wall if there is one, and always on the floor
+    const fl = new THREE.Mesh(once("geo:chalkfl", () => new THREE.PlaneGeometry(1.6, 0.62)), new THREE.MeshBasicMaterial({ map: chalkTex, transparent: true, depthWrite: false })); fl.rotation.x = -Math.PI / 2; fl.position.set(C2, 0.012, C2 + Math.min(0.6, hs - 0.4)); g.add(fl);
+    if (walls.length) { const d = walls[0], o = hs - 0.16; const wm = new THREE.Mesh(once("geo:chalkw", () => new THREE.PlaneGeometry(1.5, 0.58)), new THREE.MeshBasicMaterial({ map: chalkTex, transparent: true, depthWrite: false }));
+      const P0 = { zn: [C2, C2 - o, 0], zp: [C2, C2 + o, Math.PI], xn: [C2 - o, C2, Math.PI / 2], xp: [C2 + o, C2, -Math.PI / 2] }[d]; wm.position.set(P0[0], 1.45, P0[1]); wm.rotation.y = P0[2]; g.add(wm);
+      const bx = { zn: [C2, C2 - o + 0.3], zp: [C2, C2 + o - 0.3], xn: [C2 - o + 0.3, C2], xp: [C2 + o - 0.3, C2] }[d]; const bench = new THREE.Group(); bench.position.set(bx[0], 0, bx[1]); bench.rotation.y = P0[2]; g.add(bench);
+      box(0, 0.42, 0, 1.2, 0.06, 0.34, mat("#6a4a2a"), bench); [-0.5, 0.5].forEach((xx) => box(xx, 0.2, 0, 0.06, 0.4, 0.3, mat("#4a3420"), bench)); }
+    ch.stableSpot = { id: q?.id, x: pl.i * C + C2, z: pl.j * C + C2 }; }
   // ---------- spawns ----------
   const plazaSpawn = (S) => ({ x: S.center[0] * C + C2, z: S.center[1] * C + C2 + 1.6, yaw: 0 }); // next to the crystal, facing it
   const arrivalSpawn = () => ({ x: startSec.center[0] * C + C2 + 2.4, z: startSec.center[1] * C + C - PM - 1.4, yaw: 0 }); // the Loose Stitch is right behind you
@@ -406,6 +434,7 @@ export function createAnnex(kit, data, host) {
         for (let x = a0 + 2; x < a1 - 0.5; x += 4) lightPanel(g, x, C2, M, (li++ === 1) && !pl.dead); }
     });
     if (!pl.center && !pl.dead) lightPanel(g, C2, C2, M, false);
+    if (pl.stable && !pl.center) stableDecor(g, pl, ch);
     // shifting hallway walls (owned +x/+z edges). Never dropped on top of you.
     pl.blk.forEach((d) => {
       const rect = d === "zp" ? { x0: lx + C2 - HW, x1: lx + C2 + HW, z0: lz + C - 0.1 - R, z1: lz + C + 0.1 + R } : { x0: lx + C - 0.1 - R, x1: lx + C + 0.1 + R, z0: lz + C2 - HW, z1: lz + C2 + HW };
@@ -432,7 +461,7 @@ export function createAnnex(kit, data, host) {
       if (rm.sw) ch.switches.push(makeSwitch(g, rm, ch));
       if (rm.grab) ch.grabbers.push(makeGrabberRt(rm, zR, ch, g));
       if (rm.npc) ch.npcs.push(makeNpcRt(rm, zR, ch, g));
-      if (rm.curio) { const cd = curioDefs.find((c) => c.id === rm.curio); if (cd) ch.curios.push(makeCurio(cd, g, rm.sx > 0 ? rm.x1 - 0.7 : rm.x0 + 0.7, rm.sz > 0 ? rm.z1 - 0.7 : rm.z0 + 0.7, ch)); }
+      if (rm.curio) { const cd = curioDefs.find((c) => c.id === rm.curio) || pageDefs.find((c) => c.id === rm.curio); if (cd) ch.curios.push(makeCurio(cd, g, rm.sx > 0 ? rm.x1 - 0.7 : rm.x0 + 0.7, rm.sz > 0 ? rm.z1 - 0.7 : rm.z0 + 0.7, ch)); }
       stats.roomsBuilt++; stats.roomsSeen.add(pl.key + ":" + pl.ep + ":" + rm.qi);
     });
     // the crystal plaza: section sign, crystal on its pedestal, maybe a return stitch
@@ -576,11 +605,20 @@ export function createAnnex(kit, data, host) {
     if (host.state().busy) return; if (here().dead) return fizzle();
     const ws = direct === true ? [] : (rpg?.gateWaystones?.() || []); // v5: woken gate waystones show up as extra stops on the Home crystal
     if (ws.length && !rpg?.inInstance()) return host.openPanel(`${data.homeCrystal?.icon || "🏠"} ${data.homeCrystal?.name || "Home crystal"}`, (pn) => { pn.dataset.rpgPanel = "home";
-      const b = el("button", "o3-btn", "🏠 Back to the start"); b.dataset.rpg = "home-start"; b.onclick = () => { host.closePanel(); setTimeout(() => useHome(true), 50); }; pn.appendChild(b);
+      const b = el("button", "o3-btn", "🏠 Nearest place that stays put"); b.dataset.rpg = "home-start"; b.onclick = () => { host.closePanel(); setTimeout(() => useHome(true), 50); }; pn.appendChild(b);
       pn.appendChild(el("p", "o3-small", "…or a gate waystone you've woken:")); rpg.waystoneList(pn); });
     audio.sfx("zip"); host.setZoom(false); prog.flags.homeUses = (prog.flags.homeUses || 0) + 1; save(); lostT = 0;
-    host.threadWarp({ swap: () => { place(arrivalSpawn(), data.homeCrystal?.used || "Back to the start."); rpg?.event("crystal", "home"); } });
+    const st = nearestStable(local(host.state().pos)); lastHome = { to: st.id, at: Date.now() };
+    host.threadWarp({ swap: () => { place(st.sp, fill(data.homeCrystal?.used || "Back to somewhere safe: {place}.").replace("{place}", st.name)); rpg?.event("crystal", "home"); } });
   }
+  let lastHome = null;
+  function stableFound(id) { const q = stablePlaces.find((x) => x.id === id); return !!(q && (q.always || (prog.stable || {})[id])); }
+  function stableSpawnOf(q) { if (q.spawn === "arrival" || q.kind === "base") return arrivalSpawn(); if (q.spawn) return resolveSpawn(q.spawn) || arrivalSpawn(); return q.plaza ? plazaSpawn(sectionOf(q.i, q.j)) : hubSpawn(q.i, q.j, 0); }
+  function nearestStable(p) { p = p || lastP; const [ci, cj] = cellOf(p.x, p.z); let best = null, bd = 1e9;
+    stablePlaces.forEach((q) => { if (!stableFound(q.id)) return; let d; if (q.kind === "base") d = Math.hypot(startSec.center[0] - ci, startSec.center[1] - cj); else if (q.i == null) { if (!OV) return; d = Math.hypot(startSec.center[0] - ci, startSec.center[1] - cj) + 0.5; } else d = Math.hypot(q.i - ci, q.j - cj); if (d < bd) { bd = d; best = q; } });
+    best = best || stablePlaces.find((q) => q.kind === "base") || { id: "st-station", name: "The Door Station", kind: "base" }; return { id: best.id, name: best.name, sp: stableSpawnOf(best) }; }
+  function findStable(id, quiet) { if (!STB || stableFound(id)) return false; (prog.stable ||= {})[id] = new Date().toISOString(); save(); const q = stablePlaces.find((x) => x.id === id);
+    if (!quiet) { host.toast(fill(STB.found || "📍 A stable place: {name}.").replace("{name}", q?.name || id)); audio.sfx("chime"); } return true; }
   function grab(gr) {
     gr.state = "cool"; gr.cool = 14; gr.told = false; audio.sfx("flump");
     const from = curSection(), to = otherSection(from), sp = dropIn(to, !!gr.d.toPlaza); lastGrab = { from: from.id, to: to.id, by: gr.type };
@@ -591,7 +629,10 @@ export function createAnnex(kit, data, host) {
   const curioTex = { memo: canvasTex(128, 160, (cx, w) => { cx.fillStyle = "#fffdf5"; cx.fillRect(0, 0, w, 160); cx.fillStyle = "#444"; for (let i = 0; i < 7; i++) cx.fillRect(14, 22 + i * 18, 100 - (i % 3) * 18, 5); cx.fillStyle = "#b03a2e"; cx.fillRect(14, 140, 50, 8); }),
     badge: canvasTex(160, 110, (cx, w) => { cx.fillStyle = "#fff"; cx.fillRect(0, 0, w, 110); cx.fillStyle = "#b03a2e"; cx.fillRect(0, 0, w, 34); cx.fillStyle = "#fff"; cx.font = "bold 20px system-ui"; cx.fillText("HELLO", 44, 24); cx.fillStyle = "#333"; cx.font = "italic 26px Georgia"; cx.fillText(nameOff, 20, 82); }) };
   const starterM = new THREE.MeshStandardMaterial({ color: "#d7dde0", emissive: "#bfe8ff", emissiveIntensity: 0.6, metalness: 0.5, roughness: 0.4 }), sparkM = new THREE.MeshBasicMaterial({ color: "#fffbe0" });
-  function makeCurio(c, parent, x, z, ch) { const g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g); const ty = data.curiosityTypes[c.type];
+  const pageTex = once("t:page", () => canvasTex(128, 160, (cx, w) => { cx.fillStyle = "#efe6cf"; cx.fillRect(0, 0, w, 160); cx.fillStyle = "#5a4a32"; for (let i = 0; i < 8; i++) cx.fillRect(12, 18 + i * 16, 96 - (i % 3) * 14, 3); cx.fillStyle = "#efe6cf"; cx.beginPath(); cx.moveTo(w, 120); cx.lineTo(w - 26, 160); cx.lineTo(w, 160); cx.fill(); }));
+  function makeCurio(c, parent, x, z, ch) { const g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g); const ty = c.page ? { name: "a torn survey page", icon: "📄" } : data.curiosityTypes[c.type];
+    if (c.page) { const it = cplane(pageTex, 0.24, 0.3, 0, 0.012, 0, 0, g); it.rotation.x = -Math.PI / 2; it.rotation.z = 0.5; const spark = new THREE.Mesh(once("geo:spark", () => new THREE.OctahedronGeometry(0.05, 0)), sparkM); spark.position.y = 0.45; g.add(spark);
+      g.visible = !(prog.pages || {})[c.id]; return { c, ty, g, item: it, spark, t: rnd(0, 6), lx: ch.lx + x, lz: ch.lz + z }; }
     box(0, 0.17, 0, 0.34, 0.34, 0.3, mat("#b08a5a", { roughness: 1 }), g);
     let item;
     if (c.type === "memo" || c.type === "badge") { item = cplane(curioTex[c.type], c.type === "memo" ? 0.22 : 0.2, c.type === "memo" ? 0.28 : 0.14, 0, 0.345, 0, 0, g); item.rotation.x = -Math.PI / 2; item.rotation.z = c.type === "memo" ? 0.3 : -0.4; }
@@ -599,7 +640,7 @@ export function createAnnex(kit, data, host) {
     const spark = new THREE.Mesh(once("geo:spark", () => new THREE.OctahedronGeometry(0.05, 0)), sparkM); spark.position.y = 0.6; g.add(spark);
     g.visible = !prog.curiosities.includes(c.id);
     return { c, ty, g, item, spark, t: rnd(0, 6), lx: ch.lx + x, lz: ch.lz + z }; }
-  function pickUp(cu) {
+  function pickUp(cu) { if (cu.c.page) return pickPage(cu.c.id, cu);
     if (prog.curiosities.includes(cu.c.id)) return; prog.curiosities.push(cu.c.id); save(); cu.g.visible = false; audio.sfx("pick"); refreshSeals(); rpg?.event("curio", cu.c.id);
     const n = prog.curiosities.length;
     host.openPanel(`${cu.ty.icon} You found ${cu.ty.name}`, (pn) => { pn.appendChild(el("p", null, fill(cu.ty.text))); pn.appendChild(el("p", "o3-small", `Pockets: ${n} curiosit${n === 1 ? "y" : "ies"}` + (n < goal ? ` · the Gremlins think ${goal} is a good start (optional)` : " ✓"))); });
@@ -663,31 +704,29 @@ export function createAnnex(kit, data, host) {
     }, { onClose: () => { n.talking = false; n.wait = rnd(1, 3); } });
   }
 
-  // ---------- gentle grabbers (rooms only; they relocate you to a whole new section) ----------
+  // ---------- Reachers (v6; internal name 'grabbers'): a long pale arm out of a gap in the wall. Rooms only; they tug you to another section, never an instance. ----------
+  const REACH = { hem: ["#d9d3c6", 0.055, 0], courtesy: ["#e8dfd2", 0.05, 1], bounceback: ["#bdb7ab", 0.075, 0] };
   function makeGrabber(type, parent) {
-    const g = new THREE.Group(); parent.add(g); const parts = [];
-    if (type === "hem") { const tm = mat("#d9cfb3", { roughness: 1 });
-      for (let i = 0; i < 6; i++) { const geo = once("geo:hem" + i, () => { const pts = []; for (let k = 0; k < 6; k++) pts.push(new THREE.Vector3(rnd(-0.4, 0.4), 0.1 + k * 0.34 + rnd(-0.1, 0.1), rnd(-0.4, 0.4))); return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, 0.025, 5); });
-        const m = new THREE.Mesh(geo, tm); g.add(m); parts.push(m); }
-      const ank = new THREE.Mesh(once("geo:ank", () => new THREE.TorusGeometry(0.3, 0.03, 5, 18)), tm); ank.rotation.x = Math.PI / 2; ank.position.y = 0.08; g.add(ank); parts.push(ank); }
-    else if (type === "courtesy") { const wm = mat("#4a3b2e");
-      const pole = new THREE.Mesh(once("geo:cpole", () => new THREE.CylinderGeometry(0.04, 0.05, 2.6, 8)), wm); pole.position.y = 1.3; g.add(pole);
-      box(0, 0.03, 0, 0.7, 0.05, 0.08, wm, g); box(0, 0.03, 0, 0.08, 0.05, 0.7, wm, g);
-      const top = new THREE.Group(); top.position.y = 2.45; g.add(top);
-      [0, 1.57, 3.14, 4.71].forEach((a) => { const h = box(Math.sin(a) * 0.14, 0, Math.cos(a) * 0.14, 0.03, 0.03, 0.22, wm, top); h.rotation.y = a; });
-      box(0, 0.22, 0, 0.36, 0.14, 0.36, mat("#2b2b30"), top); box(0, 0.16, 0, 0.5, 0.02, 0.5, mat("#2b2b30"), top);
-      box(0, -0.75, 0.1, 0.62, 1.2, 0.22, mat("#6c5a48"), top); parts.push(top); }
-    else { const lm = mat("#9b7fb8", { flatShading: true }); const lump = new THREE.Mesh(once("geo:lump", () => new THREE.IcosahedronGeometry(0.7, 1)), lm); lump.position.y = 0.62; g.add(lump); parts.push(lump);
-      [["#e8573f", 0.5, 0.95, 0.3], ["#5f9fd6", -0.45, 0.7, 0.4], ["#f3d98b", 0.1, 1.2, -0.35], ["#7fbf6a", -0.2, 0.4, -0.5]].forEach(([c, x, y, z]) => { const b = new THREE.Mesh(once("geo:blob", () => new THREE.IcosahedronGeometry(0.2, 0)), mat(c, { flatShading: true })); b.position.set(x, y - 0.62, z); lump.add(b); });
-      box(0.15, 0.25, 0.62, 0.3, 0.06, 0.04, mat("#3a2a3a"), lump); }
-    return { g, parts };
+    const g = new THREE.Group(); parent.add(g); const T = REACH[type] || REACH.hem, r = T[1], skin = mat(T[0], { roughness: 0.92 });
+    const hand = new THREE.Group(); hand.position.y = 1.15; g.add(hand);
+    box(0, 0, 0, r * 3.4, r * 1.1, r * 3.2, skin, hand);
+    const fingers = [-1.5, -0.5, 0.5, 1.5].map((k) => { const f = new THREE.Group(); f.position.set(k * r * 0.85, 0, r * 1.5); hand.add(f);
+      const a = new THREE.Mesh(once("geo:rf" + type, () => new THREE.CylinderGeometry(r * 0.26, r * 0.2, r * 5.2, 5)), skin); a.rotation.x = Math.PI / 2; a.position.z = r * 2.6; f.add(a); return f; });
+    const thumb = new THREE.Group(); thumb.position.set(r * 1.9, 0, r * 0.2); thumb.rotation.y = -0.9; hand.add(thumb); const tm = new THREE.Mesh(once("geo:rf" + type, () => new THREE.CylinderGeometry(r * 0.26, r * 0.2, r * 5.2, 5)), skin); tm.rotation.x = Math.PI / 2; tm.position.z = r * 1.8; tm.scale.y = 0.7; thumb.add(tm);
+    if (T[2]) box(0, 0, -r * 2.1, r * 3.9, r * 2.1, r * 1.1, mat("#f4f1ea"), hand); // a neat cuff: the courteous one
+    const segs = [0, 1, 2].map(() => { const m = new THREE.Mesh(once("geo:rseg" + type, () => new THREE.CylinderGeometry(r, r * 0.85, 1, 7)), skin); parent.add(m); return m; });
+    const joints = [0, 1].map(() => { const m = new THREE.Mesh(once("geo:rj" + type, () => new THREE.SphereGeometry(r * 1.2, 7, 5)), skin); parent.add(m); return m; });
+    return { g, parts: [hand, ...fingers], hand, fingers, segs, joints, reach: r };
   }
   function makeGrabberRt(rm, zone, ch, parent) {
     const d = data.grabberTypes?.[rm.grab] || {}; const k = makeGrabber(rm.grab, parent);
     const rect = { x0: rm.x0 + 0.5, x1: rm.x1 - 0.5, z0: rm.z0 + 0.5, z1: rm.z1 - 0.5 };
     const home = [rm.sx > 0 ? rect.x1 - 0.3 : rect.x0 + 0.3, rm.sz > 0 ? rect.z1 - 0.3 : rect.z0 + 0.3]; // the far corner, away from the hallway
     k.g.position.set(home[0], 0, home[1]);
-    return { d, type: rm.grab, ...k, rect, home, zone, ch, state: "home", told: false, cool: 0 };
+    // the gap in the wall it reaches out of (on the far side wall, behind its resting spot)
+    const gx = rm.sx > 0 ? rm.x1 - 0.03 : rm.x0 + 0.03, gap = new THREE.Mesh(once("geo:rgap", () => new THREE.CircleGeometry(0.3, 16)), once("m:rgap", () => new THREE.MeshBasicMaterial({ color: "#050505" })));
+    gap.scale.set(1, 1.7, 1); gap.position.set(gx, 1.45, home[1]); gap.rotation.y = rm.sx > 0 ? -Math.PI / 2 : Math.PI / 2; parent.add(gap);
+    return { d, type: rm.grab, ...k, rect, home, zone, ch, state: "home", told: false, cool: 0, anchor: new THREE.Vector3(gx + (rm.sx > 0 ? -0.05 : 0.05), 1.45, home[1]) };
   }
 
   // ---------- arriving, moving around, leaving ----------
@@ -699,7 +738,7 @@ export function createAnnex(kit, data, host) {
     if (data.shuffleOnEnter) { unloadAll(); sections.forEach((S) => (epochs[S.id] = Math.floor(Math.random() * 100000))); } // never quite the same twice (hallways stay put; rooms re-roll)
     host.enterAnnexMode(); place(sp); audio.start(); muteBtn.hidden = false; renderMute(); rpg?.onArrive(spawnId); ctl?.onArrive(spawnId);
     const firstCrystal = !prog.flags.homeCrystal; if (firstCrystal) { prog.flags.homeCrystal = new Date().toISOString(); save(); }
-    if (spawnId === "overlook-arrival") { prog.flags.foundOverlook = true; save(); banner("aha! this is where we found it.", "The Gremlins' Overlook · a secret way into the Elsewhere Annex"); }
+    if (spawnId === "overlook-arrival") { prog.flags.foundOverlook = true; save(); const Bn = data.overlook?.banner || ["The Overlook", "a quiet ledge above the Door Station"]; banner(Bn[0], Bn[1]); }
     else banner(data.name, data.tagline);
     if (firstCrystal) setTimeout(() => host.toast(data.homeCrystal?.given || "You have a home crystal."), 2600);
   }
@@ -723,6 +762,7 @@ export function createAnnex(kit, data, host) {
     const nStones = stoneDefs.filter((s) => attuned(s.id)).length;
     if (nStones) out.push(Object.assign(el("button", "o3-btn ghost", `💎 Waystones (${nStones})`), { onclick: () => openTravel(null) }));
     out.push(Object.assign(el("button", "o3-btn ghost", `🎒 Pockets ${prog.curiosities.length}/${goal}`), { onclick: openPockets }));
+    if (STB) { const mb = Object.assign(el("button", "o3-btn ghost o3-mapbtn", `🗺 Map ${stableList().filter((q) => q.found).length}`), { onclick: openStableMap, title: "Places that stay put (the rest is fog)" }); mb.dataset.annex = "map"; out.push(mb); }
     return out;
   }
 
@@ -743,10 +783,12 @@ export function createAnnex(kit, data, host) {
     if (cr.st === "frozen" && feet < 1 && Math.hypot(cr.x - p.x, cr.z - p.z) < (CRD?.tagRadius ?? 2)) return { key: "cr:tag", label: `✋ Tag ${CRD.name}!`, run: () => { if (cr.st === "frozen") crTagged(); } };
     const stoneCand = (s) => { if (!lv(s.y)) return; cand("ws:" + s.w.id, Math.hypot(s.lx - p.x, s.lz - p.z), 2.0, attuned(s.w.id) ? "💎 Crystal: travel" : "💎 Attune to this crystal", () => useStone(s)); };
     if (ovStone) stoneCand(ovStone);
+    if (feet < 1) stationProps.forEach((sp) => cand("sp:" + sp.key, Math.hypot(sp.x - p.x, sp.z - p.z), sp.r || 2.2, sp.label(), sp.run));
     chunks.forEach((ch) => {
       ch.stones.forEach(stoneCand);
       if (feet > 1) return;
       ch.curios.forEach((c) => { if (c.g.visible) cand("cu:" + c.c.id, Math.hypot(c.lx - p.x, c.lz - p.z), 1.6, `✋ Pick up ${c.ty.name}`, () => pickUp(c)); });
+      if (ch.stableSpot) cand("st:sit:" + ch.key, Math.hypot(ch.stableSpot.x - p.x, ch.stableSpot.z - p.z), 2.6, STB?.restLabel || "🪑 Sit for a breather", () => sitBreather());
       ch.wdoors.forEach((w) => cand("wd:" + w.d.id, Math.hypot(w.lx - p.x, w.lz - p.z), 2.2, w.d.prompt || "🚪 Open the door", () => useWeirdDoor(w)));
       ch.exits.forEach((ex) => { const locked = ex.x.requires && !reqMet(ex.x); cand("ex:" + ex.x.id + (locked ? ":l" : ""), Math.hypot(ex.lx - p.x, ex.lz - p.z), 2.2, locked ? ex.x.lockedPrompt : ex.x.prompt, () => useExit(ex)); });
       ch.stairs.forEach((st) => cand("st:" + st.cell + ":" + st.rm.qi, Math.hypot(st.lx - p.x, st.lz - p.z), 1.7, st.up ? "🪜 Climb the stairs" : "🪜 Go down the stairs", () => useStair(st)));
@@ -763,7 +805,7 @@ export function createAnnex(kit, data, host) {
   // ---------- shifting: each section slowly rearranges around its crystal ----------
   const shiftSt = {}; sections.forEach((S) => (shiftSt[S.id] = { t: 0, warnT: -1 }));
   let lastShift = null;
-  function startShift(S) { const st = shiftSt[S.id]; if (!S.shift || st.warnT >= 0) return; st.warnT = S.shift.warn ?? 2.5; host.toast(S.shift.warning || "Something is shifting…"); audio.sfx("nope"); }
+  function startShift(S) { const st = shiftSt[S.id]; if (!S.shift || st.warnT >= 0) return; const early = rpg?.has?.("humReader") ? 3 : 0; st.warnT = (S.shift.warn ?? 2.5) + early; st.early = early; host.toast((early ? "🎧 " : "") + (S.shift.warning || "The hum changes… something is about to shift.")); audio.humShift?.(true); }
   function applyShift(S, p) {
     epochs[S.id] = (epochs[S.id] || 0) + 1; const [ci, cj] = cellOf(p.x, p.z); let n = 0;
     [...chunks.values()].forEach((ch) => { if (ch.pl.S !== S || (ch.i === ci && ch.j === cj)) return; unloadCell(ch.key); loadCell(ch.i, ch.j); n++; }); // the cell you're standing in stays put
@@ -771,11 +813,88 @@ export function createAnnex(kit, data, host) {
   }
   function tickShift(dt, p, busy) {
     const S = sectionOf(...cellOf(p.x, p.z)); if (!S?.shift) return; const st = shiftSt[S.id];
-    if (st.warnT >= 0) { st.warnT -= dt; const M = secMats(S, false); M.light.emissiveIntensity = Math.random() < 0.5 ? 0.1 : M.lightBase;
-      if (st.warnT < 0) { M.light.emissiveIntensity = M.lightBase; st.t = 0; applyShift(S, p); } return; }
+    if (st.warnT >= 0) { st.warnT -= dt; // v6: the warning is the hum changing (annex-audio humShift); lights stay steady
+      if (st.warnT < 0) { audio.humShift?.(false); st.t = 0; applyShift(S, p); } return; }
     st.t += dt; if (!busy && S.shift.every && st.t > S.shift.every) startShift(S);
   }
 
+  // ---------- v6: survey pages, the Common Record, the starter guide, the stable-place map, the practice pad ----------
+  function pagesState() { const got = prog.pages || {}; return { total: pageDefs.length, found: pageDefs.filter((n) => got[n.id]).map((n) => n.id), defs: pageDefs.map((n) => ({ id: n.id, i: n.i, j: n.j, qi: n.qi, section: n.section })) }; }
+  function pickPage(id, cu) { const n = pageDefs.find((q) => q.id === id); if (!n || (prog.pages || {})[id]) return false; (prog.pages ||= {})[id] = new Date().toISOString(); save(); if (cu) cu.g.visible = false; else chunks.forEach((ch) => ch.curios.forEach((c) => { if (c.c.id === id) c.g.visible = false; })); audio.sfx("pick");
+    const k = Object.keys(prog.pages).length; host.openPanel(`📄 ${n.title || "Survey page, torn"}`, (pn) => { pn.dataset.annexPanel = "page"; if (n.day) pn.appendChild(el("p", "o3-small", n.day)); pn.appendChild(el("p", "o3-note", fill(n.text))); pn.appendChild(el("p", "o3-small", `Page ${k} of ${pageDefs.length}. It belongs on the Common Record at the Door Station.`)); }); host.updateActions(); return true; }
+  function stableList() { return stablePlaces.map((q) => ({ id: q.id, name: q.name, kind: q.kind, i: q.i ?? null, j: q.j ?? null, found: stableFound(q.id), secret: !!q.secret, blurb: q.blurb || "" })); }
+  function sitBreather() { const now = Date.now(), cdS = (rpg?.data?.()?.rests?.stableSitCooldown ?? 60) * 1000; if (lastSit && now - lastSit < cdS) { host.toast("You've only just sat down. Give it a minute."); return; } lastSit = now; lostT = 0; INS.v = Math.min(INS.v, 0.1);
+    if (!(rpg?.breather?.(STB?.restText))) host.toast(STB?.restText || "You sit a while."); }
+  let lastSit = 0;
+  function mdInline(t) { const f = document.createDocumentFragment(); String(t).split(/(\*\*[^*]+\*\*|\*[^*]+\*)/).forEach((part) => { if (!part) return; if (/^\*\*.*\*\*$/.test(part)) f.appendChild(el("b", null, part.slice(2, -2))); else if (/^\*.*\*$/.test(part)) f.appendChild(el("i", null, part.slice(1, -1))); else f.appendChild(document.createTextNode(part)); }); return f; }
+  let guideData = null; fetch("data/annex-guide.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => (guideData = d)).catch(() => {});
+  function openGuide() { const Gd = guideData; host.openPanel("📖 " + (Gd?.title || "The Survey Corps Starter Guide"), (pn) => { pn.dataset.annexPanel = "guide"; if (!Gd) { pn.appendChild(el("p", null, "The guide is still being copied out. Try again in a moment.")); return; }
+      pn.appendChild(el("p", "o3-small", Gd.subtitle || "")); const box2 = el("div", "o3-guide"); pn.appendChild(box2);
+      Gd.sections.forEach((sc) => { box2.appendChild(el("h3", null, sc.title)); let ul = null; sc.blocks.forEach((b) => { if (b.li) { if (!ul) { ul = el("ul"); box2.appendChild(ul); } const li = el("li"); li.appendChild(mdInline(fill(b.li))); ul.appendChild(li); return; } ul = null; if (b.h) box2.appendChild(el("h4", null, b.h)); else { const pp = el("p"); pp.appendChild(mdInline(fill(b.p))); box2.appendChild(pp); } }); });
+      box2.appendChild(el("h3", null, Gd.rumorsTitle || "Rumors")); if (Gd.rumorsNote) { const pp = el("p", "o3-small"); pp.appendChild(mdInline(Gd.rumorsNote)); box2.appendChild(pp); }
+      const ul = el("ul", "o3-rumors"); ul.dataset.annex = "rumors"; (Gd.rumors || []).forEach((r) => { const li = el("li"); li.appendChild(mdInline(fill(r.text))); ul.appendChild(li); }); box2.appendChild(ul); }, { wide: true }); }
+  function openRecord() { const R0 = rpg?.data?.()?.station?.record || {}; host.openPanel(R0.title || "📌 The Common Record", (pn) => { pn.dataset.annexPanel = "record"; pn.appendChild(el("p", null, R0.intro || ""));
+      pn.appendChild(el("h4", null, R0.doorsTitle || "Doors")); const ds = rpg?.doorsSummary?.() || []; ds.forEach((d) => pn.appendChild(el("div", "o3-note" + (d.open ? "" : " o3-locked"), `${d.open ? "🚪" : "🔒"} ${d.open ? d.name : "??? (not found yet)"}${d.open && d.where ? " · " + d.where : ""}`)));
+      pn.appendChild(el("h4", null, R0.pagesTitle || "Survey Corps logbook")); const got = prog.pages || {}, fp = pageDefs.filter((n) => got[n.id]); if (!fp.length) pn.appendChild(el("p", "o3-small", R0.noPages || "No pages yet."));
+      fp.sort((a, b) => String(a.id).localeCompare(String(b.id))).forEach((n) => { const d = el("div", "o3-note"); d.dataset.page = n.id; d.append(el("b", null, `${n.day ? n.day + " · " : ""}${n.title || "Survey page"}`), document.createTextNode(" " + fill(n.text))); pn.appendChild(d); });
+      pn.appendChild(el("p", "o3-small", `${fp.length} of ${pageDefs.length} pages pinned. ${R0.shared || ""}`)); }, { wide: true }); }
+  function openStableMap() { host.openPanel(STB?.mapTitle || "🗺 Your map", (pn) => { pn.dataset.annexPanel = "map"; pn.appendChild(el("p", "o3-small", STB?.mapNote || ""));
+      const L = stableList().filter((q) => q.found), cv = el("canvas", "o3-stablemap"); cv.width = 520; cv.height = 400; cv.dataset.annex = "stablemap"; pn.appendChild(cv); const c = cv.getContext("2d");
+      const pts = L.map((q) => ({ ...q, x: q.kind === "base" || q.i == null ? startSec.center[0] : q.i, y: q.kind === "base" || q.i == null ? startSec.center[1] - (q.i == null ? 0.7 : 0) : q.j })); const me = cellOf(lastP.x, lastP.z);
+      const xs = [...pts.map((q) => q.x), lastP.x / C - 0.5], ys = [...pts.map((q) => q.y), lastP.z / C - 0.5], x0 = Math.min(...xs) - 2, x1 = Math.max(...xs) + 2, y0 = Math.min(...ys) - 2, y1 = Math.max(...ys) + 2, sc = Math.min(500 / (x1 - x0), 380 / (y1 - y0));
+      const X = (x) => 10 + (x - x0) * sc, Y = (y) => 10 + (y - y0) * sc;
+      c.fillStyle = "#2a2a24"; c.fillRect(0, 0, 520, 400); for (let k = 0; k < 260; k++) { c.fillStyle = `rgba(200,200,180,${0.03 + Math.random() * 0.05})`; c.beginPath(); c.arc(Math.random() * 520, Math.random() * 400, 8 + Math.random() * 26, 0, 7); c.fill(); }
+      pts.forEach((q) => { const g2 = c.createRadialGradient(X(q.x), Y(q.y), 2, X(q.x), Y(q.y), 34); g2.addColorStop(0, "rgba(255,207,122,0.55)"); g2.addColorStop(1, "rgba(255,207,122,0)"); c.fillStyle = g2; c.beginPath(); c.arc(X(q.x), Y(q.y), 34, 0, 7); c.fill();
+        c.fillStyle = q.kind === "base" ? "#ffcf7a" : "#f3efd8"; c.beginPath(); c.arc(X(q.x), Y(q.y), q.kind === "base" ? 7 : 5, 0, 7); c.fill(); c.fillStyle = "#f3efd8"; c.font = "13px system-ui"; c.fillText(q.name, X(q.x) + 9, Y(q.y) + 4); });
+      const mx = lastP.x / C - 0.5, mz = lastP.z / C - 0.5; c.fillStyle = "#7fe0ff"; c.beginPath(); c.arc(X(mx), Y(mz), 5, 0, 7); c.fill(); c.font = "bold 12px system-ui"; c.fillText("you", X(mx) - 10, Y(mz) - 9);
+      const ul = el("div", "o3-small"); ul.textContent = `Found ${L.length} of ${stablePlaces.filter((q) => !q.secret || stableFound(q.id)).length}: ` + L.map((q) => q.name).join(" · "); pn.appendChild(ul); }, { wide: true }); }
+  // Station props: the Common Record pinboard (east wall), the starter-guide lectern, a practice pad (training base, lore 13)
+  const stationProps = [];
+  function buildStationProps() { const D2 = rpg?.data?.(); if (!D2?.station) return; const St = D2.station, bx = startSec.center[0] * C, bz = startSec.center[1] * C;
+    const rec = new THREE.Group(); rec.position.set(bx + C - PM - 0.22, 0, bz + 11.2); rec.rotation.y = -Math.PI / 2; root.add(rec);
+    box(0, 1.55, 0, 2.3, 1.3, 0.06, mat("#b48a5a", { roughness: 1 }), rec); box(0, 1.55, -0.01, 2.44, 1.44, 0.04, mat("#5a4028"), rec);
+    const recTex = canvasTex(1024, 560, (c2, w, h) => { c2.fillStyle = "#b48a5a"; c2.fillRect(0, 0, w, h); for (let k = 0; k < 900; k++) { c2.fillStyle = `rgba(80,50,20,${Math.random() * 0.18})`; c2.fillRect(Math.random() * w, Math.random() * h, 3, 3); }
+      const cols = ["#f3ead2", "#efe6cf", "#e8dcc0", "#f6f0dc"]; for (let k = 0; k < 14; k++) { const x = 40 + (k % 7) * 138 + Math.random() * 14, y = 70 + Math.floor(k / 7) * 230 + Math.random() * 20; c2.save(); c2.translate(x + 55, y + 70); c2.rotate((Math.random() - 0.5) * 0.18); c2.fillStyle = cols[k % 4]; c2.fillRect(-55, -70, 110, 140); c2.fillStyle = "#5a4a32"; for (let r = 0; r < 6; r++) c2.fillRect(-42, -50 + r * 18, 80 - (r % 3) * 16, 4); c2.fillStyle = "#b03a2e"; c2.beginPath(); c2.arc(0, -62, 7, 0, 7); c2.fill(); c2.restore(); }
+      c2.strokeStyle = "#8a2a1e"; c2.lineWidth = 3; c2.beginPath(); c2.moveTo(150, 120); c2.lineTo(560, 330); c2.lineTo(860, 130); c2.stroke(); });
+    cplane(recTex, 2.2, 1.2, 0, 1.55, 0.04, 0, rec); cplane(once("t:recsign", () => plate(St.record?.sign || "COMMON RECORD", St.record?.signSub || "", { w: 900, h: 200, bg: "#2e3a2a", fg: "#f3efd8", accent: "#c9b46a" })), 1.6, 0.36, 0, 2.42, 0.04, 0, rec);
+    stationProps.push({ key: "record", x: bx + C - PM - 1.0, z: bz + 11.2, r: 2.4, label: () => St.record?.label || "📌 Read the Common Record", run: openRecord });
+    const lec = new THREE.Group(); lec.position.set(bx + 12.9, 0, bz + 13.15); lec.rotation.y = -2.36; root.add(lec); const wd = mat("#6a4a2a", { roughness: 0.9 });
+    box(0, 0.5, 0, 0.12, 1.0, 0.12, wd, lec); box(0, 0.04, 0, 0.5, 0.08, 0.5, wd, lec); const top = box(0, 1.05, 0, 0.6, 0.05, 0.44, wd, lec); top.rotation.x = -0.35; const bk = box(0, 1.11, 0.0, 0.5, 0.04, 0.34, mat("#efe6cf"), lec); bk.rotation.x = -0.35; box(0, 1.135, 0.0, 0.02, 0.02, 0.34, mat("#7a2a1e"), lec).rotation.x = -0.35;
+    cplane(once("t:guidesign", () => plate(St.guide?.sign || "STARTER GUIDE", St.guide?.signSub || "read me first", { w: 640, h: 200, bg: "#2e3a2a", fg: "#f3efd8", accent: "#c9b46a" })), 0.62, 0.2, 0, 1.4, 0.1, 0, lec, { side: THREE.DoubleSide });
+    stationProps.push({ key: "guide", x: bx + 12.9, z: bz + 13.15, r: 1.9, label: () => St.guide?.label || "📖 Read the starter guide", run: openGuide });
+    const pad = new THREE.Group(); pad.position.set(bx + 3.4, 0, bz + 9.9); root.add(pad); const ring = new THREE.Mesh(once("geo:padring", () => new THREE.RingGeometry(0.75, 0.83, 32)), new THREE.MeshBasicMaterial({ color: "#f3efd8", transparent: true, opacity: 0.85 })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.012; pad.add(ring);
+    const post = new THREE.Group(); pad.add(post); box(0, 0.55, 0, 0.12, 1.1, 0.12, wd, post); const sack = new THREE.Mesh(once("geo:padsack", () => new THREE.CylinderGeometry(0.26, 0.3, 0.8, 10)), mat("#b8a47a", { roughness: 1 })); sack.position.y = 1.15; post.add(sack); box(0, 1.25, 0, 0.7, 0.08, 0.08, wd, post);
+    cplane(once("t:padsign", () => plate(St.pad?.sign || "PRACTICE PAD", St.pad?.signSub || "nothing here counts", { w: 640, h: 200, bg: "#2a5a4a", fg: "#f3fff4", accent: "#9ff0c8" })), 0.8, 0.25, 0, 2.0, 0, 0, pad, { side: THREE.DoubleSide }); padPost = post;
+    stationProps.push({ key: "pad", x: bx + 3.4, z: bz + 9.9, r: 1.9, label: () => St.pad?.label || "🎯 Practice pad", run: () => { const t = rpg?.practiceSwing?.(St.pad?.ac ?? 12); padHitT = 0.4; audio.sfx("click"); host.toast(t || St.pad?.text || "Thwack."); } }); }
+  let padPost = null, padHitT = 0;
+  // ---------- v6: intensity (data.intensity): some areas and moments ramp up ----------
+  const INS = { v: 0, target: 0, level: "calm", flick: 0, override: null, watchT: 0, lastGlimpse: -1e9, inStable: null, lastHelp: null, lastNudge: null, lastWatch: null };
+  const T0 = () => INT?.targets || {};
+  function intensityLevel(v) { let id = "calm"; (INT?.levels || []).forEach((L) => { if (v >= L.min) id = L.id; }); return id; }
+  function tickIntensity(dt, p, zone) { if (!INT?.enabled) { INS.v = 0; return; } const T = T0(), [i, j] = cellOf(p.x, p.z), z = zoneByCell.get(ck(i, j));
+    const atStation = i === startSec.center[0] && j === startSec.center[1], stable = stableByCell.get(ck(i, j)), inOv = OV && p.x >= OV.x0 && p.x <= OV.x1 && p.z >= OV.z0 && p.z <= OV.z1;
+    let tg; const zc = zoneCell(zone), rm = zc && zc.room != null ? chunks.get(ck(zc.i, zc.j))?.pl.rooms.find((r) => r.qi === zc.room) : null; inPushRoom = !!(rm && rm.danger);
+    if (atStation || stable || inOv) tg = 0;
+    else if (inPushRoom) tg = T.pushRoom ?? 0.85;
+    else if (z) tg = z.intensity ?? T.zoneDefault ?? 0.45;
+    else { tg = (T.sectionBase || {})[sectionOf(i, j).id] || 0; if (lostT > (T.lostAfter ?? 150)) tg += Math.min(T.lostMax ?? 0.15, (lostT - (T.lostAfter ?? 150)) * (T.lostPerSecond ?? 0.002));
+      if (Object.values(shiftSt).some((s) => s.warnT >= 0)) tg += T.shiftWarn ?? 0.15; const hp = rpg?.hpFrac?.(); if (hp != null && hp < (T.lowHpBelow ?? 0.35)) tg += T.lowHp ?? 0.15; }
+    if (INS.override != null) tg = INS.override; INS.target = Math.max(0, Math.min(1, tg));
+    const rate = INS.target > INS.v ? INT.riseRate ?? 0.05 : (tg === 0 ? INT.stableFallRate ?? 0.12 : INT.fallRate ?? 0.04); INS.v += Math.sign(INS.target - INS.v) * Math.min(Math.abs(INS.target - INS.v), rate * dt); if (INS.override != null) INS.v = INS.override;
+    INS.level = intensityLevel(INS.v);
+    const Fz = INT.flicker || {}; if (INS.flick > 0) INS.flick -= dt; else if (!inPushRoom && INS.v >= (Fz.from ?? 0.35) && Math.random() < (Fz.chancePerSecond ?? 3) * INS.v * dt) INS.flick = rnd(0.05, 0.18);
+    if (greenT > 0) greenT -= dt; }
+  const grInt = () => INT?.grenshol || {};
+  function appearEveryNow() { const L = grInt().appearEvery; if (!L) return null; let r = null; L.forEach(([min, rg]) => { if (INS.v >= min) r = rg; }); return r; }
+  function watchCellOK(i, j) { const g = grInt(); if (!INT?.enabled || !g.openHalls || INS.v < (g.watchFrom ?? 0.4)) return false; if (zoneByCell.get(ck(i, j)) || stableByCell.has(ck(i, j))) return false; if (i === startSec.center[0] && j === startSec.center[1]) return false; return !deadCells.has(ck(i, j)); }
+  const crCellOK = (i, j) => creatureOK(i, j) || watchCellOK(i, j);
+  function grenHelp(p) { const g = grInt(), H = CRD?.help || {}; const hp = rpg?.hpFrac?.();
+    if (hp != null && hp < (g.helpHpBelow ?? 0.5) && Math.random() < (g.helpChance ?? 0.35) * 2) { const h = g.heal || [1, 4, 1], n = rpg.heal?.(Math.floor(Math.random() * h[1]) + 1 + (h[2] || 0)) || 0; if (n) { INS.lastHelp = { kind: "heal", n, at: Date.now() }; greenT = 1.2; setTimeout(() => host.toast(fill(H.healText || "+{hp} HP").replace("{hp}", n)), 900); return true; } }
+    if (Math.random() < (g.pointChance ?? 0.3)) { const [ci, cj] = cellOf(p.x, p.z); const todo = stablePlaces.filter((q) => q.i != null && !stableFound(q.id)).sort((a, b) => Math.hypot(a.i - ci, a.j - cj) - Math.hypot(b.i - ci, b.j - cj))[0];
+      if (todo) { const dx = todo.i - ci, dz = todo.j - cj, dir = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? "east" : "west") : (dz > 0 ? "south" : "north"); INS.lastHelp = { kind: "point", to: todo.id, dir, at: Date.now() }; setTimeout(() => host.toast(fill(H.pointText || "Stones point {dir}.").replace("{dir}", dir)), 1200); return true; } }
+    return false; }
+  function grenNudge(p) { const g = grInt(); if (lostT < (g.stuckSeconds ?? 200) || Math.random() > (g.nudgeChance ?? 0.5)) return false; INS.lastNudge = { at: Date.now() }; host.toast(fill(CRD?.help?.nudgeText || "Something steers you…")); crCarry("nudge"); return true; }
+  function grenGlimpse() { const g = grInt(); if (!GLD.enabled || INS.v < (g.glimpseFrom ?? 0.5) || timeIn - INS.lastGlimpse < (g.glimpseCooldown ?? 240) || Math.random() > (g.glimpseChance ?? 0.05)) return false; INS.lastGlimpse = timeIn; enterGlimpse("brief"); return true; }
   // ---------- per-frame ----------
   const v2 = new THREE.Vector2();
   const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
@@ -789,14 +908,15 @@ export function createAnnex(kit, data, host) {
     if (rpg?.inInstance()) { if (cr.st !== "away" || cr.g.visible) crHide(); timeIn += dt; rpg.update(dt, ts, p, st); return; } // party instance: no streaming, shifting, Grenshol or flitters
     timeIn += dt; lostT += dt; flipT = Math.max(0, flipT - dt);
     if (!busy) stream(p, false);
-    tickShift(dt, p, busy); tickStairs(dt, p, st.feet || 0, busy);
+    tickShift(dt, p, busy); tickStairs(dt, p, st.feet || 0, busy); tickIntensity(dt, p, zone); tickStable(dt, p, ts, busy); tickTraps(dt, p, zone, busy);
     cache.forEach((v, k) => { if (v && v.flick && k.startsWith("sm:")) { v.ft += dt; v.flick.emissiveIntensity = (Math.sin(v.ft * 0.7) > -0.9 || Math.random() < 0.3) ? v.lightBase : 0.12; } });
+    if (padPost) { if (padHitT > 0) { padHitT -= dt; padPost.rotation.z = Math.sin(padHitT * 30) * padHitT * 0.5; } else padPost.rotation.z = 0; }
     const animStone = (s) => { s.cr.rotation.y = ts * 0.8 + s.t; s.cr.position.y = s.baseY + Math.sin(ts * 1.6 + s.t) * 0.05; s.ring.scale.setScalar(1 + Math.sin(ts * 2 + s.t) * 0.08); };
     if (ovStone) animStone(ovStone);
     const yaw = host.state().yaw, fx = -Math.sin(yaw), fz = -Math.cos(yaw);
     chunks.forEach((ch) => {
       ch.stones.forEach(animStone); ch.exits.forEach((ex) => ex.kit.anim(ts));
-      ch.curios.forEach((c) => { if (!c.g.visible) return; c.spark.position.y = 0.6 + Math.sin(ts * 2 + c.t) * 0.06; c.spark.rotation.y = ts * 2; c.spark.visible = Math.sin(ts * 1.3 + c.t) > -0.3; if (c.c.type === "starter") c.item.material.emissiveIntensity = 0.3 + Math.random() * 0.6; });
+      ch.curios.forEach((c) => { if (!c.g.visible) return; c.spark.position.y = (c.c.page ? 0.45 : 0.6) + Math.sin(ts * 2 + c.t) * 0.06; c.spark.rotation.y = ts * 2; c.spark.visible = Math.sin(ts * 1.3 + c.t) > -0.3; if (c.c.type === "starter") c.item.material.emissiveIntensity = 0.3 + Math.random() * 0.6; });
       const px = p.x - ch.lx, pz = p.z - ch.lz;
       ch.receders.forEach((r) => { const d = Math.hypot(r.bx - px, r.bz - pz), k = Math.max(0, Math.min(1, (4 - d) / 3));
         if (r.ax === "x") { const away = Math.sign(r.bx - px) || 1; r.g.position.x += ((r.bx + away * k * 0.9) - r.g.position.x) * Math.min(1, dt * 2); }
@@ -810,6 +930,16 @@ export function createAnnex(kit, data, host) {
     rpg?.update(dt, ts, p, st);
   }
 
+  function tickStable(dt, p, ts, busy) { if (!STB) return; const [i, j] = cellOf(p.x, p.z), q = stableByCell.get(ck(i, j));
+    chunks.forEach((ch) => (ch.stableLamps || []).forEach((L) => { L.t += dt; L.m.emissiveIntensity = L.base + L.amp * (0.6 * Math.sin(L.t * L.sp) + 0.4 * Math.sin(L.t * L.sp * 2.3 + 1.1)); }));
+    if (busy) return; INS.inStable = q ? q.id : null;
+    if (q && (q.plaza || Math.hypot(p.x - (i * C + C2), p.z - (j * C + C2)) < 3.2)) { if (findStable(q.id)) lostT = 0; }
+    if (OV && p.x >= OV.x0 && p.x <= OV.x1 && p.z >= OV.z0 && p.z <= OV.z1) findStable("st-overlook"); }
+  const trapsFired = new Set(); let trapT = 0, lastTrap = null;
+  function tickTraps(dt, p, zone, busy) { const zc = zoneCell(zone); if (!zc || zc.room == null || busy) { trapT = 0; return; } const ch = chunks.get(ck(zc.i, zc.j)), rm = ch?.pl.rooms.find((r) => r.qi === zc.room);
+    if (!rm?.danger || !(rm.traps || []).length || trapsFired.has(zone + ":" + ch.pl.ep)) { trapT = 0; return; } trapT += dt; if (trapT < 1.1) return; trapsFired.add(zone + ":" + ch.pl.ep); fireTrap(rm.traps[0]); }
+  function fireTrap(tr) { lastTrap = { id: tr.id, at: Date.now() }; audio.sfx("flump"); host.toast(tr.text || "A tile clicks."); greenT = 0;
+    setTimeout(() => { greenT = 2; if (rpg?.transformed?.() && rpg.knockoutTrap) rpg.knockoutTrap(tr.rescue); else host.threadWarp({ swap: () => place(arrivalSpawn(), tr.rescue || "A hand on your collar, and you're back at the Station.") }); lastTrap.placed = true; }, (tr.delay ?? 0.6) * 1000); }
   // ---------- v5d2: which music bed plays where (polled a few times a second; the player crossfades on a bar line) ----------
   let musicT = 0, musicNow = null;
   function musicScene(p) {
@@ -819,6 +949,8 @@ export function createAnnex(kit, data, host) {
     if (R.fight) return "backrooms-battle";
     if (OV && p.x >= OV.x0 && p.x <= OV.x1 && p.z >= OV.z0 && p.z <= OV.z1) return "station";
     const [i, j] = cellOf(p.x, p.z), z = zoneByCell.get(ck(i, j));
+    if (stableByCell.has(ck(i, j))) return "stable"; // v6: a settled chord in places that stay put
+    if (INT?.enabled && INS.v >= (INT.music?.from ?? 0.65)) return INT.music?.scene || "dreary"; // v6: intensity runs high
     if (z) return z.music || "beyond-explore";
     if (i === startSec.center[0] && j === startSec.center[1]) { const lx = p.x - i * C, lz = p.z - j * C, m = PM - 0.05; if (lx >= m && lx <= C - m && lz >= m && lz <= C - m) return "station"; }
     return sectionOf(i, j) === startSec ? "backrooms-arrival" : "backrooms-explore"; }
@@ -860,28 +992,32 @@ export function createAnnex(kit, data, host) {
   }
   function moveTo(gr, x, z, dt) { const gp = gr.g.position, r = gr.rect; v2.set(x - gp.x, z - gp.z); const d = v2.length(); if (d < 0.02) return;
     const sp = Math.min(d, (gr.d.speed || 0.8) * dt); gp.x = Math.max(r.x0, Math.min(r.x1, gp.x + v2.x / d * sp)); gp.z = Math.max(r.z0, Math.min(r.z1, gp.z + v2.y / d * sp)); gr.g.rotation.y = Math.atan2(v2.x, v2.y); }
-  function animGrabber(gr, ts) {
-    if (gr.type === "hem") gr.parts.forEach((m, i) => { m.rotation.y = ts * (0.3 + i * 0.07) * (i % 2 ? 1 : -1); });
-    else if (gr.type === "courtesy") gr.parts[0].rotation.x = Math.sin(ts * 1.4) * 0.12;
-    else { const s = 1 + Math.sin(ts * 5) * 0.08; gr.parts[0].scale.set(1 / Math.sqrt(s), s, 1 / Math.sqrt(s)); gr.parts[0].position.y = 0.62 + Math.abs(Math.sin(ts * 5)) * 0.12; }
-  }
+  const rA = new THREE.Vector3(), rB = new THREE.Vector3(), rUp = new THREE.Vector3(0, 1, 0), rD = new THREE.Vector3(), rPts = [0, 1, 2, 3].map(() => new THREE.Vector3());
+  function animGrabber(gr, ts) { if (!gr.segs) return; const stalk = gr.state === "stalk", gp = gr.g.position;
+    gr.hand.position.y = 1.15 + Math.sin(ts * 1.7 + gp.x) * 0.06; gr.hand.rotation.z = Math.sin(ts * 1.1) * 0.15;
+    gr.fingers.forEach((f, i) => (f.rotation.x = (stalk ? 0.15 : 0.55) + Math.sin(ts * (stalk ? 6 : 1.6) + i) * (stalk ? 0.25 : 0.1)));
+    rA.copy(gr.anchor); rB.set(gp.x, gr.hand.position.y, gp.z); const len = rA.distanceTo(rB), sag = 0.18 + Math.min(0.5, len * 0.08);
+    rPts.forEach((v, k) => { const t = k / 3; v.lerpVectors(rA, rB, t); v.y += Math.sin(t * Math.PI) * sag + (k === 1 || k === 2 ? Math.sin(ts * 1.3 + k) * 0.05 : 0); });
+    gr.segs.forEach((m, k) => { const a = rPts[k], b = rPts[k + 1]; rD.subVectors(b, a); const L = Math.max(0.05, rD.length()); m.position.copy(a).addScaledVector(rD, 0.5); m.scale.set(1, L, 1); m.quaternion.setFromUnitVectors(rUp, rD.normalize()); });
+    gr.joints.forEach((m, k) => m.position.copy(rPts[k + 1])); }
   const OVPAL = { bg: "#2b3340", fog: [30, 95], hemi: 1.15 };
   function atmos(zone) {
     if (zone === "annex:overlook") return OVPAL;
     if (String(zone).startsWith("annex:inst") && rpg) return rpg.atmos(zone);
-    if (zone === "annex:glimpse") return { bg: "#0e2a2c", fog: [5, 60], hemi: 1.2 };
+    if (zone === "annex:glimpse") return G.active === "brief" ? { bg: "#16301c", fog: GLD.brief?.fog || [2, 16], hemi: 1.0 } : { bg: "#0e2a2c", fog: [5, 60], hemi: 1.2 };
     const zc = zoneCell(zone); if (!zc) return null; const S = sectionOf(zc.i, zc.j), dead = deadCells.has(ck(zc.i, zc.j));
     const v = (prog.flags.sections ||= []); if (!v.includes(S.id)) { v.push(S.id); save(); }
     if (alive.on && S.id === alive.section) return { ...palOf(S, dead), ...(data.aliveMode?.palette || { bg: "#1a2a3a", fog: [2, 16], hemi: 0.75 }) };
     return palOf(S, dead);
   }
   function roomLabel(zone) {
-    if (zone === "annex:overlook") return "The Gremlins' Overlook (secret)";
+    if (zone === "annex:overlook") return "The Overlook · a stable place";
     if (String(zone).startsWith("annex:inst") && rpg) return rpg.roomLabel(zone);
-    if (zone === "annex:glimpse") return `${GW?.name || "Somewhere else"} · ${G.active === "tour" ? "seen through " + (CRD?.name || "its") + "'s eyes" : "exploring (you caught " + (CRD?.name || "it") + ")"}`;
+    if (zone === "annex:glimpse") return G.active === "brief" ? "Somewhere else · a glimpse" : `${GW?.name || "Somewhere else"} · ${G.active === "tour" ? "seen through " + (CRD?.name || "his") + " eyes" : "exploring (you caught " + (CRD?.name || "him") + ")"}`;
     const zc = zoneCell(zone); if (!zc) return data.name; const S = sectionOf(zc.i, zc.j), dz = deadCells.get(ck(zc.i, zc.j));
     if (dz) return `${S.name} · ${dz.z.name} (🚫 no crystal signal)`;
-    if (centerOf.get(ck(zc.i, zc.j)) === S) return `${S.name} · crystal plaza`;
+    if (centerOf.get(ck(zc.i, zc.j)) === S) return S === startSec ? `${rpg?.data?.()?.station?.name || "The Door Station"} · Survey Corps training base` : `${S.name} · waystone plaza`;
+    if (zc.room == null && stableByCell.has(ck(zc.i, zc.j))) return `${S.name} · ${stableByCell.get(ck(zc.i, zc.j)).name} (stays put ✓)`;
     if (zc.room == null) return S.name + (alive.on && S.id === alive.section ? " · 💡 the lights have changed" : "");
     const rm = chunks.get(ck(zc.i, zc.j))?.pl.rooms.find((r) => r.qi === zc.room);
     return `${S.name} · ${data.roomTypes?.[rm?.type]?.label || "a room"}`;
@@ -915,29 +1051,30 @@ export function createAnnex(kit, data, host) {
   let lastCatch = null, lastCaught = null;
   function crSay(kind) { const L = CRD?.lines?.[kind]; if (L?.length) host.toast(fill(pick(L)).replaceAll("{creature}", CRD.name)); }
   function crShow(x, z, p) { cr.x = x; cr.z = z; cr.g.position.set(x, 0, z); cr.g.rotation.y = Math.atan2(p.x - x, p.z - z); cr.g.visible = true; cr.fade = 1; cr.body.scale.y = (CRD?.height || 3.3) / 3.3; cr.stuck = 0; }
-  function crHide(next) { cr.st = "away"; cr.g.visible = false; cr.timer = next ?? rr(alive.on ? (CRD?.aliveAppearEvery || [6, 14]) : (CRD?.appearEvery || [25, 45])); }
+  function crHide(next) { cr.st = "away"; cr.g.visible = false; cr.watch = false; cr.timer = next ?? rr(alive.on ? (CRD?.aliveAppearEvery || [6, 14]) : (appearEveryNow() || CRD?.appearEvery || [25, 45])); }
   function crSpawn(p, opt = {}) { // pick a hallway end (the next junction along an open corridor) or a cell edge, in a creature-allowed cell
     const [ci, cj] = cellOf(p.x, p.z), cand = [];
     DIRS.forEach((d) => { if (!edgeOpen(ci, cj, d)) return; const [dx, dz] = DV[d];
       [[ci + dx, cj + dz, 1], [ci, cj, 0.5]].forEach(([i, j, k]) => { const x = ci * C + C2 + dx * C * k, z = cj * C + C2 + dz * C * k, dist = Math.hypot(x - p.x, z - p.z);
-        if (!creatureOK(i, j) || !walkOK(x, z) || dist < (opt.min ?? 6) || dist > (opt.max ?? 26)) return;
+        if (!crCellOK(i, j) || !walkOK(x, z) || dist < (opt.min ?? 6) || dist > (opt.max ?? 26)) return;
         const aligned = Math.abs(x - p.x) < 1.6 || Math.abs(z - p.z) < 1.6; cand.push({ x, z, dist, aligned, ahead: looking(x, z, p, 0.6) }); }); });
     let pool = cand.filter((c) => c.aligned); if (opt.ahead) pool = pool.filter((c) => c.ahead).length ? pool.filter((c) => c.ahead) : pool; if (!pool.length) pool = cand;
     const c = pick(pool); if (!c) return false;
-    crShow(c.x, c.z, p); cr.st = "peek"; cr.t = rr(CRD.peekSeconds || [5, 9]); cr.count++; audio.sfx("creak");
+    crShow(c.x, c.z, p); cr.st = "peek"; cr.t = rr(CRD.peekSeconds || [5, 9]); cr.count++; audio.sfx("creak"); cr.watch = !creatureOK(...cellOf(p.x, p.z)); greenT = 0.9;
     if (!prog.flags.metGrenshol) { prog.flags.metGrenshol = new Date().toISOString(); save(); banner(CRD.name, fill(data.lore?.firstSighting || "Something tall is watching from the end of the hall.")); }
+    else if (cr.watch) { const W = CRD?.help?.watchText; if (W?.length) host.toast(fill(pick(W))); INS.lastWatch = { at: Date.now(), v: +INS.v.toFixed(2) }; if (!grenGlimpse() && !grenNudge(p)) grenHelp(p); }
     else crSay("appear");
     return true; }
   function crBlink(p) { // reappear somewhere behind you (it's playing)
     const [fx, fz] = fwdOf(); for (let t = 0; t < 24; t++) { const a = Math.random() * Math.PI * 2, r = rnd(4, 7), x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r;
-      if ((Math.cos(a) * fx + Math.sin(a) * fz) > -0.2 || !walkOK(x, z) || !creatureOK(...cellOf(x, z))) continue; crShow(x, z, p); cr.st = "sneak"; audio.sfx("peek"); crSay("blink"); return true; }
+      if ((Math.cos(a) * fx + Math.sin(a) * fz) > -0.2 || !walkOK(x, z) || !crCellOK(...cellOf(x, z))) continue; crShow(x, z, p); cr.st = "sneak"; audio.sfx("peek"); crSay("blink"); return true; }
     return false; }
   function crStep(p, sp, dt) { const dx = p.x - cr.x, dz = p.z - cr.z, d = Math.hypot(dx, dz) || 1, s = sp * dt, nx = cr.x + dx / d * s, nz = cr.z + dz / d * s;
     if (walkOK(nx, nz)) { cr.x = nx; cr.z = nz; cr.stuck = 0; } else if (walkOK(nx, cr.z)) { cr.x = nx; cr.stuck = 0; } else if (walkOK(cr.x, nz)) { cr.z = nz; cr.stuck = 0; } else cr.stuck += dt;
     cr.g.position.set(cr.x, 0, cr.z); cr.g.rotation.y = Math.atan2(dx, dz); }
   function tickCreature(dt, ts, p, feet, busy) {
     if (!CRD) return;
-    const [ci, cj] = cellOf(p.x, p.z), ok = inAnnexNow && !G.active && feet < 1 && creatureOK(ci, cj);
+    const [ci, cj] = cellOf(p.x, p.z), ok = inAnnexNow && !G.active && feet < 1 && (cr.st === "held" || crCellOK(ci, cj));
     if (cr.st !== "away" && (!ok)) { crHide(); return; }
     // animation (it sways and peeks around corners)
     if (cr.g.visible) { cr.ph += dt; cr.head.rotation.z = Math.sin(cr.ph * 1.3) * 0.35; cr.head.rotation.y = Math.sin(cr.ph * 0.7) * 0.25; cr.arms.forEach((a, i) => (a.rotation.x = Math.sin(cr.ph * (cr.st === "sneak" ? 4 : 1.2) + i * Math.PI) * (cr.st === "sneak" ? 0.35 : 0.08)));
@@ -947,7 +1084,7 @@ export function createAnnex(kit, data, host) {
     if (cr.st === "away") { if (!ok || calm) return; cr.timer -= dt; if (cr.timer <= 0) { if (!crSpawn(p)) cr.timer = 3; } return; }
     if (cr.st === "peek" || cr.st === "sneak") {
       if (seen && !(alive.on && cr.st === "sneak" && Math.random() < 0.35 * dt * 4)) { cr.st = "frozen"; cr.t = (CRD.freezeSeconds ?? 2.6) * (alive.on ? 0.8 : 1); audio.sfx("peek"); crSay("freeze"); return; }
-      if (cr.st === "peek") { cr.t -= dt; cr.g.rotation.y = Math.atan2(p.x - cr.x, p.z - cr.z); if (cr.t <= 0) cr.st = "sneak"; return; }
+      if (cr.st === "peek") { cr.t -= dt; cr.g.rotation.y = Math.atan2(p.x - cr.x, p.z - cr.z); if (cr.t <= 0) { if (cr.watch) { cr.st = "flee"; cr.t = 0.9; crSay("flee"); } else cr.st = "sneak"; } return; } // v6: in the open halls he only watches
       if (!seen || alive.on) crStep(p, (alive.on ? CRD.huntSpeed : CRD.sneakSpeed) * (seen ? 0.35 : 1) || 1.5, dt);
       if (cr.stuck > 2.2) { if (!crBlink(p)) crHide(); return; }
       if (Math.hypot(cr.x - p.x, cr.z - p.z) < (CRD.catchRadius ?? 0.9)) return crCaught();
@@ -960,15 +1097,33 @@ export function createAnnex(kit, data, host) {
   }
   function crDim() { // lights near Grenshol go dim (and change colour in lights-change mode)
     const d = cr.g.visible ? Math.hypot(cr.x - lastP.x, cr.z - lastP.z) : 99, k = cr.g.visible ? Math.max(0.22, Math.min(1, (d - 2) / (CRD?.dimRadius || 10))) : 1;
-    const warn = Object.values(shiftSt).some((s) => s.warnT >= 0);
-    allLightMats((M) => { if (warn && M === secMats(curSection(), false)) return; M.light.emissiveIntensity = M.lightBase * k * (alive.on ? 0.8 : 1); });
+    // v6: Grenshol near = a soft green flicker on the lights (not steady); intensity = harsh irregular flicker; push rooms stay steady
+    const gk = cr.g.visible ? Math.max(0, 1 - d / ((CRD?.dimRadius || 10) * 1.2)) : 0, gAmt = Math.min(1, Math.max(gk * (0.55 + 0.45 * Math.sin(performance.now() / 140)), greenT > 0 ? 0.75 : 0));
+    const harsh = INS.flick > 0 ? (1 - (INT?.flicker?.depth ?? 0.6)) : 1, steady = inPushRoom;
+    allLightMats((M) => { if (M.light.userData.em0 == null) { M.light.userData.em0 = M.light.emissive.getHex(); M.flick.userData.em0 = M.flick.emissive.getHex(); }
+      M.light.emissiveIntensity = M.lightBase * (steady ? 1.25 : k * harsh) * (alive.on ? 0.8 : 1);
+      if (!alive.on) { if (gAmt > 0.01 && !steady) { tmpC.setHex(M.light.userData.em0).lerp(greenC, gAmt * 0.8); M.light.emissive.copy(tmpC); } else if (M.light.emissive.getHex() !== M.light.userData.em0) M.light.emissive.setHex(M.light.userData.em0); } });
     return k; }
+  const tmpC = new THREE.Color(), greenC = new THREE.Color(CRD?.flicker || "#7fe08a"); let greenT = 0, inPushRoom = false;
   function crCaught() { const from = curSection(); cr.st = "held"; cr.g.visible = false; lastCaught = { from: from.id, at: Date.now() };
     const gm = gmem(); gm.caughtBy = (gm.caughtBy || 0) + 1; save(); audio.sfx("flump"); host.toast(fill(CRD.caught || "Grenshol got you!"));
-    enterGlimpse("tour"); }
+    if (GLD.fullReveal) return enterGlimpse("tour"); crCarry("caught"); }
   function crTagged() { cr.st = "held"; const gm = gmem(), first = !(gm.catches > 0); gm.catches = (gm.catches || 0) + 1; save(); audio.sfx("chime"); lastCatch = { first, at: Date.now() };
     host.toast(fill(CRD.tagged || "You tagged Grenshol!"));
-    if (!first && gm.discovered?.length) return openGlimpseChoice(); enterGlimpse("explore", null); }
+    if (GLD.fullReveal) { if (!first && gm.discovered?.length) return openGlimpseChoice(); return enterGlimpse("explore", null); } crCarry("tagged"); }
+  // v6 (lore 28): caught or tagged, he carries you and sets you down OUTSIDE an instance door you haven't found (it lights up at the Station). He never goes in.
+  let lastCarry = null;
+  function carryDoorFound(id) { return !!(rpg?.doorFound?.(id) || prog.flags["carried:" + id]); }
+  function crCarry(kind) { const CA = CRD?.carry || {}, D2 = rpg?.data?.() || {}; cr.st = "held"; cr.g.visible = false;
+    const door = (CA.doors || []).find((d) => !carryDoorFound(d.id) && (D2.gates || []).some((g) => g.id === d.id && secById[g.section]));
+    let sp, text, lit = null;
+    if (door) { const gt = D2.gates.find((g) => g.id === door.id), S = secById[gt.section]; sp = hubSpawn(S.center[0] + gt.cell[0], S.center[1] + gt.cell[1], 0); text = fill(CA.setDown || "…you're outside {door}.").replace("{door}", door.name); lit = door; }
+    else { const st = nearestStable(lastP); sp = st.sp; text = fill(CA.allFound || "…somewhere that stays put: {place}.").replace("{place}", st.name); }
+    lastCarry = { kind, door: lit ? lit.id : null, at: Date.now(), placed: false }; const tz = CRD?.teaser?.lines;
+    audio.sfx("whoosh"); host.setZoom(false);
+    host.threadWarp({ swap: () => { crHide(); place(sp, text); greenT = 3.2; if (tz?.length) setTimeout(() => host.toast(fill(pick(tz))), 1600); lastCarry.placed = true; lastCarry.cell = cellOf(sp.x, sp.z); lastReturn = { from: kind, carry: true, home: false, door: lit ? lit.id : null, to: sectionOf(...cellOf(sp.x, sp.z)).id, at: Date.now() };
+      if (lit) { prog.flags["carried:" + lit.id] = new Date().toISOString(); save(); rpg?.discoverDoor?.(lit.id, true); setTimeout(() => host.toast(fill(CA.stationLit || "A door lit up: {door}.").replace("{door}", lit.name)), 3200); }
+      if (!prog.flags.fernFrond && CRD?.teaser?.item) { prog.flags.fernFrond = new Date().toISOString(); save(); rpg?.giveItem?.(CRD.teaser.item); setTimeout(() => host.toast(fill(CA.fernFrond || "A fern frond in your pocket.")), 5600); } } }); }
 
   // ---------- flitters (Grenshol's little helpers) + possession ----------
   const flit = (() => { const out = [], wm = new THREE.MeshBasicMaterial({ color: MND.color || "#d9cbe8", side: THREE.DoubleSide, transparent: true, opacity: 0.9 }), bm = new THREE.MeshBasicMaterial({ color: "#3a2f4a" }), em = new THREE.MeshBasicMaterial({ color: MND.eye || "#9cf7ff", fog: false });
@@ -1168,14 +1323,19 @@ export function createAnnex(kit, data, host) {
   const gbar = el("div", "o3-glimpsebar"); gbar.hidden = true; host.hud.appendChild(gbar);
   function openGlimpseChoice() { const gm = gmem(), W = glimpseWorld();
     host.openPanel("🦕 " + (GLD.chooseTitle || "Grenshol holds still. Where to?"), (pn) => {
-      pn.appendChild(el("p", null, fill(GLD.chooseText || "It remembers you. It can take you back somewhere you've already been, or somewhere new.")));
+      pn.appendChild(el("p", null, fill(GLD.chooseText || "He remembers you. He can take you back somewhere you've already been, or somewhere new.")));
       const row = el("div", "o3-prompts");
       (W?.spots || []).filter((s) => gm.discovered.includes(s.id)).forEach((s) => { const b = el("button", "o3-btn ghost small", "📍 " + s.name); b.dataset.spot = s.id; b.onclick = () => { host.closePanel(); enterGlimpse("explore", s.id); }; row.appendChild(b); });
       const nb = el("button", "o3-btn small", "✨ Somewhere new"); nb.dataset.spot = "new"; nb.onclick = () => { host.closePanel(); enterGlimpse("explore", null); }; row.appendChild(nb); pn.appendChild(row); }, { onClose: () => { if (cr.st === "held" && !G.active && !host.state().warp) crHide(); } }); }
   function tourPlan(W) { const T = W.data.tour || {}, n = Math.round(rnd(...(T.views || [4, 6]))), views = [...W.views].sort(() => Math.random() - 0.5).slice(0, n);
     let durs = views.map(() => rnd(T.min ?? 1.4, T.max ?? 5.5)); const sum = durs.reduce((a, b) => a + b, 0), k = (T.total || 20) / sum; durs = durs.map((d) => d * k);
     let at = 0; return { segs: views.map((v, i) => { const s = { v, t0: at, d: durs[i] }; at += durs[i]; return s; }), total: at, t: 0, idx: -1 }; }
+  function briefPlan(W) { const B = GLD.brief || {}, n = Math.max(1, Math.round(rnd(...(B.views || [1, 2])))), views = [...W.views].sort(() => Math.random() - 0.5).slice(0, n);
+    let at = 0; return { segs: views.map((v) => { const d = rnd(...(B.seconds || [2.5, 4])); const s = { v, t0: at, d }; at += d; return s; }), total: at, t: 0, idx: -1 }; }
+  let glimpseBack = null;
   function enterGlimpse(kind, spotId) {
+    if (kind !== "brief" && !GLD.fullReveal && GLD.enabled === false) return;
+    if (kind === "brief") { const ps = host.state(); glimpseBack = { x: ps.pos.x, z: ps.pos.z, yaw: ps.yaw, y: ps.feet || 0 }; }
     const W = glimpseWorld(); if (!W) { const S = otherSection(curSection()); cr.st = "away"; crHide(); return host.threadWarp({ swap: () => place(dropIn(S, false), "Grenshol tried to show you something, but the way was stuck. You land in " + S.name + ".") }); }
     audio.sfx("whoosh"); host.setZoom(false); const gm = gmem();
     let spot = W.spots.find((s) => s.id === spotId); if (!spot) { const fresh = W.spots.filter((s) => !gm.discovered.includes(s.id)); spot = pick(fresh.length ? fresh : W.spots); }
@@ -1183,19 +1343,22 @@ export function createAnnex(kit, data, host) {
       endAlive(true); crHide(); G.active = kind; G.spot = spot.id; G.t = 0; G.warnDone = false; G.lastSec = -1; gm.visits++;
       walkable.push(...W.walk); audio.setMood("glimpse");
       host.placeAnnex({ x: spot.wx, z: spot.wz, y: 0, yaw: spot.yaw || 0, pitch: 0 });
-      if (kind === "tour") { G.tour = tourPlan(W); host.setFreeze(true); banner(W.name, fill(GLD.tourText || "You see through Grenshol's eyes…")); }
-      else { G.tour = null; G.dur = W.data.explore?.seconds || 75; discover(spot); banner(W.name, fill(GLD.exploreText || "You caught Grenshol! It lets you look around its home for a bit.")); }
-      save(); host.updateActions(); } });
+      if (kind === "brief") { G.tour = briefPlan(W); host.setFreeze(true); host.toast(fill(GLD.briefText || "A green haze…")); }
+      else if (kind === "tour") { G.tour = tourPlan(W); host.setFreeze(true); banner(W.name, fill(GLD.tourText || "You see through Grenshol's eyes…")); }
+      else { G.tour = null; G.dur = W.data.explore?.seconds || 75; discover(spot); banner(W.name, fill(GLD.exploreText || "You caught Grenshol! He lets you look around his home for a bit.")); }
+      if (kind !== "brief") save(); host.updateActions(); } });
   }
   function discover(s) { const gm = gmem(); if (gm.discovered.includes(s.id)) return; gm.discovered.push(s.id); if (!gm.seen.includes(s.id)) gm.seen.push(s.id); save(); host.toast(`📍 ${s.name}. ${s.blurb || ""} (Grenshol will remember you liked it.)`); }
   function cleanupGlimpse() { if (!G.active) return; G.active = null; G.tour = null; for (let n = walkable.length - 1; n >= 0; n--) if (walkable[n].chunk === "glimpse") walkable.splice(n, 1); host.setFreeze(false); gbar.hidden = true; }
   let lastReturn = null;
-  function leaveGlimpse() { if (!G.active || host.state().warp) return; const was = G.active, home = was === "tour", S = home ? startSec : pick(sections); // v5d2: caught = dragged back to the beginning
+  function leaveGlimpse() { if (!G.active || host.state().warp) return; const was = G.active;
+    if (was === "brief") { const b = glimpseBack; return host.threadWarp({ swap: () => { cleanupGlimpse(); audio.setMood("annex"); lastReturn = { from: "brief", home: false, back: true, at: Date.now() }; crHide(); if (b) { host.placeAnnex({ x: b.x, z: b.z, y: b.y, yaw: b.yaw, pitch: 0 }); lastP = local(b); stream(lastP, true); } host.toast(fill(GLD.briefReturn || "…and you're back.")); } }); }
+    const home = was === "tour", S = home ? startSec : pick(sections); // v5d2: caught = dragged back to the beginning
     host.threadWarp({ swap: () => { cleanupGlimpse(); audio.setMood("annex"); const sp = home ? arrivalSpawn() : dropIn(S, false); lastReturn = { from: was, to: S.id, home, at: Date.now() }; crHide();
       place(sp, fill((home ? GLD.returnStartText : null) || GLD.returnText || "…and you're back in the Annex: {section}.").replace("{section}", S.name)); } }); }
   function tickGlimpse(dt, ts) {
     const W = GW; if (!W) return; W.update(dt, ts); if (host.state().warp) return; G.t += dt;
-    if (G.active === "tour") { const tp = G.tour; tp.t += dt; const i = tp.segs.findIndex((s) => tp.t >= s.t0 && tp.t < s.t0 + s.d);
+    if (G.active === "tour" || G.active === "brief") { const tp = G.tour; tp.t += dt; const i = tp.segs.findIndex((s) => tp.t >= s.t0 && tp.t < s.t0 + s.d);
       if (i !== tp.idx && i >= 0) { tp.idx = i; const sp = tp.segs[i].v.spot; if (sp) { const gm = gmem(); if (!gm.seen.includes(sp)) { gm.seen.push(sp); save(); } } }
       if (tp.t >= tp.total) leaveGlimpse(); return; }
     if (G.active === "explore") { const p = host.state().pos, left = Math.max(0, Math.ceil(G.dur - G.t));
@@ -1208,11 +1371,11 @@ export function createAnnex(kit, data, host) {
   function render(renderer, cam, mainScene, dt, ts) {
     if (G.active && GW && lens) {
       const U = lens.uniforms; U.uTime.value = ts; const far = cam.far, fov = cam.fov; cam.far = 220;
-      if (G.active === "tour" && G.tour) { const tp = G.tour, s = tp.segs[Math.max(0, tp.idx)], v = s.v, k = Math.min(1, Math.max(0, (tp.t - s.t0) / s.d)), O = GW.origin;
+      if ((G.active === "tour" || G.active === "brief") && G.tour) { const tp = G.tour, s = tp.segs[Math.max(0, tp.idx)], v = s.v, k = Math.min(1, Math.max(0, (tp.t - s.t0) / s.d)), O = GW.origin;
         cam.position.set(O.x + v.pos[0] + (v.drift?.[0] || 0) * k, v.pos[1] + (v.drift?.[1] || 0) * k, O.z + v.pos[2] + (v.drift?.[2] || 0) * k);
         tmpQ.set(O.x + v.look[0] + Math.sin(ts * 0.7) * 0.6, v.look[1] + Math.sin(ts * 0.9) * 0.3, O.z + v.look[2]); cam.lookAt(tmpQ); cam.rotation.z += Math.sin(ts * 0.6) * 0.06; cam.fov = 82;
         const into = tp.t - s.t0, out = s.t0 + s.d - tp.t; U.uBlink.value = into < 0.3 ? 0.02 + into / 0.3 : out < 0.22 ? 0.02 + out / 0.22 : 0;
-        U.uK.value = 0.55; U.uAb.value = 0.035; U.uWob.value = 0.02; U.uVig.value = 1.15; }
+        U.uK.value = 0.55; U.uAb.value = 0.035; U.uWob.value = 0.02; U.uVig.value = 1.15; if (G.active === "brief") { const L = GLD.brief?.lens ?? 1.6; U.uK.value = 0.55 * L; U.uAb.value = 0.05 * L; U.uWob.value = 0.03 * L; U.uVig.value = 1.15 * L; } }
       else { U.uBlink.value = 0; U.uK.value = 0.22; U.uAb.value = 0.012; U.uWob.value = 0.005; U.uVig.value = 0.95; }
       cam.updateProjectionMatrix(); lens.render(renderer, GW.scene, cam, GLD.lensScale || 0.6); cam.far = far; cam.fov = fov; cam.updateProjectionMatrix(); return true; }
     tickTVs(cam, ts);
@@ -1244,7 +1407,9 @@ export function createAnnex(kit, data, host) {
   rpg = createRPG({ THREE, mat, box, canvasTex, plate, cplane, planeGeo, root, host, el, audio, AX, AZ, C, C2, HW, R, walkable, hsh, ck, depthOf, startSec, secById, sectionOf, refreshBlockers, chunks, fill, setPlayerName, beyondZoneAt,
     deskName: () => host.me?.display_name || "you", OV, hubSpawn, place: (sp, t) => place(sp, t),
     placeRaw: (sp) => host.placeAnnex({ x: AX + sp.x, z: AZ + sp.z, y: sp.y || 0, yaw: sp.yaw || 0, pitch: sp.pitch ?? 0 }),
-    safeSpawn: (id) => (id && id !== "home" && stoneById[id] ? stoneById[id].spawnFn() : arrivalSpawn()) });
+    safeSpawn: (id) => (id && id !== "home" && stoneById[id] ? stoneById[id].spawnFn() : arrivalSpawn()),
+    stableSpawn: () => nearestStable(lastP), stationSpawn: () => arrivalSpawn(), pages: () => pagesState(), stablePlaces: () => stableList(), guide: () => guideData });
+  Promise.resolve(rpg.ready).then(() => { try { buildStationProps(); } catch (e) { console.warn('station props', e); } });
   // v5: a throwaway copy of any cell for the Control Room's viewing booth (no walk areas, nothing ticks, never in the chunk map)
   function boothCell(i, j) { const S = sectionOf(i, j), seen = stats.cellsSeen.has(ck(i, j)); const ch = buildCell(planCell(i, j, epochs[S.id] || 0)); root.remove(ch.g);
     ch.walk.forEach((r) => { const k = walkable.indexOf(r); if (k >= 0) walkable.splice(k, 1); }); stats.built--; if (!seen) stats.cellsSeen.delete(ck(i, j)); return ch; }
@@ -1308,6 +1473,12 @@ export function createAnnex(kit, data, host) {
       const axis = r.slope || "z", a0 = axis === "x" ? r.x0 : r.z0, a1 = axis === "x" ? r.x1 : r.z1, u = axis === "x" ? wx : wz;
       const tt = (u - a0) / Math.max(1e-4, a1 - a0); return y0 + Math.max(0, Math.min(1, tt)) * (r.y1 - y0); },
     home: useHome, shift: (id) => { const S = secById[id]; if (S) startShift(S); }, epoch: (id) => epochs[id],
+    stable: () => ({ places: stableList(), here: INS.inStable, lastHome, nearest: nearestStable(lastP) }), findStable: (id) => findStable(id, true), stableCell: (id) => { const q = stablePlaces.find((x) => x.id === id); return q && q.i != null ? { i: q.i, j: q.j } : null; },
+    intensity: (v, snap = true) => { if (v !== undefined) { INS.override = v; if (v != null && snap) INS.v = v; } return { v: +INS.v.toFixed(3), target: +INS.target.toFixed(3), level: INS.level, flick: INS.flick > 0, override: INS.override, inPushRoom, lastHelp: INS.lastHelp, lastNudge: INS.lastNudge, lastWatch: INS.lastWatch, green: greenT > 0 }; },
+    carry: (kind = "tagged") => crCarry(kind), lastCarry: () => lastCarry, glimpse: (kind = "brief") => enterGlimpse(kind), traps: () => ({ lastTrap, fired: [...trapsFired] }), fireTrap: () => { const z = (data.beyond?.zones || []).flatMap((q) => q.rooms || []).find((r) => (r.traps || []).length); if (z) fireTrap(z.traps[0]); return !!z; },
+    stationProps: () => stationProps.map((q) => ({ key: q.key, ...W3(q.x, 0, q.z), label: q.label() })), useProp: (k) => { const q = stationProps.find((x) => x.key === k); if (q) q.run(); return !!q; }, nearHere: () => { const st = host.state(); const b = near({ mode: "annex", pos: st.pos, feet: st.feet || 0, fwd: null }); return b ? b.label : null; },
+    teaser: () => { greenT = 4; const tz = CRD?.teaser?.lines; if (tz?.length) host.toast(fill(pick(tz))); return true; },
+    pages: () => pagesState(), pickPage: (id) => pickPage(id), openRecord: () => openRecord(), openGuide: () => openGuide(), openMap: () => openStableMap(), sit: () => sitBreather(), humShifted: () => !!audio.humShifted, grenWatchOK: (i, j) => watchCellOK(i, j),
     blockedLocal, misfireNext: (v = true) => { forceMisfire = v; }, lastMisfire: () => lastMisfire, lastGrab: () => lastGrab, cell: C,
     calm: (v = true) => { calm = !!v; if (calm) crHide(); }, creatureOK: (i, j) => creatureOK(i, j),
     creatureScan: (r = 14) => { const out = { ok: 0, bySection: {}, minDepth: 99, start: 0 }; for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) if (creatureOK(i, j)) { const S = sectionOf(i, j).id; out.ok++; out.bySection[S] = (out.bySection[S] || 0) + 1; out.minDepth = Math.min(out.minDepth, +depthOf(i, j).toFixed(2)); if (S === startSec.id) out.start++; } return out; },

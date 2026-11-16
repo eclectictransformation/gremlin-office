@@ -46,13 +46,108 @@ export function createRPG(ctx) {
   const prof = () => D.levels.prof[level() - 1];
   function stat(k) { const c = CH(); let v = c.stats[k]; (c.status || []).forEach((s) => (v += s.statMod?.[k] || 0)); return v; }
   const gearItems = () => Object.values(CH().gear || {}).filter(Boolean).map(item).filter(Boolean);
-  function maxHp() { const c = CH(); if (!c) return 0; const m = mod(stat("nerve")), L = level(); return Math.max(4, D.levels.hpBase + m) + (L - 1) * Math.max(1, D.levels.hpPerLevel + m); }
-  const ac = () => 10 + mod(stat("stride")) + gearItems().reduce((a, it) => a + (it.ac || 0), 0);
+  // v6 (Pip): level-1 HP = class hit die + Nerve mod; each level after adds (die / 2 + 1) + Nerve mod (min 1).
+  function maxHp() { const c = CH(); if (!c) return 0; const m = mod(stat("nerve")), L = level(), die = clsOf()?.die || 8; return Math.max(4, die + m) + (L - 1) * Math.max(1, die / 2 + 1 + m); }
+  // v6 armor tiers: clothes/light = full Stride, medium = Stride up to +2, heavy = no Stride but a flat +1. Thick Hide / Lamplean Skin when unarmored.
+  const ac = () => { const c = CH(), k = clsOf(), arm = item(c.gear.armor), tier = arm ? arm.tier || "light" : "clothes", T = D.armorTiers?.[tier] || {}, sm = mod(stat("stride"));
+    let base = 10 + Math.min(sm, T.strideMax ?? 99) + (arm?.ac || 0) + (tier === "heavy" ? 1 : 0);
+    if (tier === "clothes") { if (k?.unarmored === "thickHide") base = Math.max(base, Math.min(17, 10 + sm + mod(stat("nerve")))); if (k?.unarmored === "lamplean") base = Math.max(base, 12 + sm + (arm?.ac || 0)); }
+    return base + gearItems().filter((it) => it.slot !== "armor").reduce((a, it) => a + (it.ac || 0), 0) + (has("guard") ? 1 : 0); };
   const weapon = () => item(CH().gear.weapon) || item("fists");
   const atkBonus = () => { const w = weapon(); return mod(stat(w.stat)) + prof() + (w.hit || 0) + gearItems().filter((it) => it.slot !== "weapon").reduce((a, it) => a + (it.hit || 0), 0); };
   const dmgMod = () => mod(stat(weapon().stat));
   const pathOf = () => D.paths[CH().path];
-  function checkBonus(k, door) { const p = pathOf(); return mod(stat(k)) + (p.prof.includes(k) ? prof() : 0) + gearItems().reduce((a, it) => a + (it.check?.[k] || 0) + (door ? it.door || 0 : 0), 0); }
+  function checkBonus(k, door, isSave) { const p = pathOf(), kc = clsOf(); let pf = p.prof.includes(k) || (door && p.door) || (isSave && kc?.saves?.includes(k)) ? prof() : 0; if (door && has("fingers")) pf = prof() * 2;
+    return mod(stat(k)) + pf + gearItems().reduce((a, it) => a + (it.check?.[k] || 0) + (door ? it.door || 0 : 0), 0); }
+  // ---------- v6: classes, resources (per fight / Breather / Full Rest), Keepsakes ----------
+  const CLS = () => D?.classes?.list || {};
+  function clsOf() { const c = CH(); return (c && CLS()[c.cls]) || CLS().warrior || null; }
+  const lvIx = () => clamp(level(), 1, 5) - 1;
+  const byLv = (a) => (Array.isArray(a) ? a[Math.min(lvIx(), a.length - 1)] : a);
+  function has(fid) { const k = clsOf(); return !!k?.features?.some((f) => f.id === fid && level() >= f.lvl); }
+  function classVisible(id) { const k = CLS()[id]; if (!k) return false; if (!k.hidden) return true; const u = k.unlock || {}; if (u.flag && S.flags[u.flag]) return true; if (u.quest && S.quests[u.quest]?.done) return true; if (u.level && CH() && level() >= u.level) return true; return false; }
+  const classIds = () => (D?.classes?.order || Object.keys(CLS())).filter(classVisible);
+  function resMax(id) { const r = clsOf()?.resources?.[id]; if (!r) return 0; if (r.maxPerLevel) return r.maxPerLevel * level(); if (r.maxByLevel) return level() >= (r.from || 1) ? level() : 0; return byLv(r.max) || 0; }
+  function resNow(id) { const c = CH(); if (!c) return 0; c.res ||= {}; if (c.res[id] == null) c.res[id] = resMax(id); return clamp(c.res[id], 0, resMax(id)); }
+  function canPay(cost) { return !cost || Object.entries(cost).every(([k, n]) => resNow(k) >= n); }
+  function pay(cost) { if (!canPay(cost)) return false; const c = CH(); Object.entries(cost || {}).forEach(([k, n]) => (c.res[k] = resNow(k) - n)); save(); return true; }
+  let F = {}; // per-fight state
+  function fightReset() { F = { used: {}, turnUsed: {}, rage: false, mark: null, taunt: false, aim: false, smite: 0, twin: false, hurry: false, surge: false, allin: false, allinFoes: false, dodged: false, steadyUsed: false, sneakTurn: -1, turn: 0 }; }
+  fightReset();
+  function restoreRes(kind) { const c = CH(); if (!c) return; c.res ||= {}; Object.entries(clsOf()?.resources || {}).forEach(([id, r]) => { if (kind === "full" || r.recharge === "breather") c.res[id] = resMax(id); else if (r.breatherGain) c.res[id] = Math.min(resMax(id), resNow(id) + r.breatherGain); }); }
+  function rest(kind) { const c = CH(); if (!c) return false; restoreRes(kind); c.hp = maxHp(); if (kind === "full") { c.tmp = 0; footUsed = {}; restockGizmo(); } abilityUsed = false; save(); renderBar(); return true; }
+  function restockGizmo() { const c = CH(); if (c?.path === "tinkerer" && item("gizmo") && !c.inv.includes("gizmo")) c.inv.push("gizmo"); }
+  let footUsed = {}; const footKey = () => (inst.active ? "i:" + inst.id : "open");
+  function canWear(id) { const it = item(id), k = clsOf(); if (!it || !k) return true; if (it.slot === "armor") { const O = D.armorTiers?.order || ["clothes", "light", "medium", "heavy"]; return O.indexOf(it.tier || "light") <= O.indexOf(k.armor || "heavy"); } if (it.slot === "weapon" && k.weaponMaxDie) return (it.die || 4) <= k.weaponMaxDie; return true; }
+  function turnFill() { const T = D.combat?.turnSpeed || {}, k = clsOf(); return clamp((T.base ?? 2.4) - (T.perPrimary ?? 0.2) * mod(stat(k?.primary || "stride")), T.min ?? 1.5, T.max ?? 3.2); }
+  function migrate(c) { if (!c || !D) return c; const M = D.classes?.migration || {}; if (!c.cls || !CLS()[c.cls]) { c.cls = M[c.path] || "warrior"; c.classRepick = (c.classRepick || 0) + (M.freeRepick ?? 1); c.migratedAt = new Date().toISOString(); }
+    if (!D.paths[c.path]) c.path = "wanderer"; if (!Array.isArray(c.professions)) c.professions = []; if (!c.materials || typeof c.materials !== "object" || Array.isArray(c.materials)) c.materials = {};
+    if (!c.res || typeof c.res !== "object") c.res = {}; if (c.keepsake && !c.keepsake.state) c.keepsake.state = "held"; if (c.keepsake === undefined) c.keepsake = null; c.tmp = c.tmp || 0; c.v = 2; return c; }
+  // Keepsakes: picker at creation. Lending / trading / recovery = data model only (keepsakes.lending.enabled = false in data).
+  const KL = () => D?.keepsakes?.lending || {};
+  const ksNext = (state, ev) => KL().transitions?.[state]?.[ev] || null;
+  function ksTrapped(k) { k = k || CH()?.keepsake; return !!(k && KL().enabled && (KL().trappedWhile || []).includes(k.state)); }
+  function ksAct(ev, o = {}) { const c = CH(), k = c?.keepsake; if (!k) return { ok: false, why: "no keepsake" }; if (!KL().enabled && !o.force) return { ok: false, why: "lending is switched off" };
+    if (ev === "recover" && !(KL().pvpRecovery?.enabled) && !o.force) return { ok: false, why: "player-vs-player recovery is stubbed (needs server work)" };
+    const to = ksNext(k.state, ev); if (!to) return { ok: false, why: `can't ${ev} from ${k.state}` }; const from = k.state; k.state = to; k.history = [...(k.history || []).slice(-9), { ev, from, to, at: new Date().toISOString(), who: o.who || null }];
+    if (to === "lent") { k.lentTo = o.who || null; k.since = new Date().toISOString(); k.due = KL().dueSeconds ? new Date(Date.now() + KL().dueSeconds * 1000).toISOString() : null; } if (to === "returned" || to === "held") { k.lentTo = null; k.due = null; }
+    save(); return { ok: true, from, to }; }
+  function sneakDice() { const k = clsOf(); return k?.sneak ? byLv(k.sneak) : 0; }
+  const allyHere = () => companionActive() || partySize() > 1;
+  function mobSave(m, dc) { const d = roll(20), b = Math.floor((m.atk || 2) / 2), ok = d !== 1 && (d === 20 || d + b >= dc); return { d, b, tot: d + b, ok }; }
+  const spellDC = (k) => 8 + prof() + mod(stat(k));
+  function abilityList() { const c = CH(), k = clsOf(); if (!c || !k) return []; const L = level(), inB2 = battle.active();
+    return (k.actions || []).filter((a) => L >= a.lvl).map((a) => { let off = false, why = "";
+      if (a.perFight && (F.used[a.id] || 0) >= a.perFight) { off = true; why = "used this fight"; }
+      else if (a.perTurn && F.turnUsed[a.id]) { off = true; why = "used this turn"; }
+      else if (a.id === "rage" && F.rage) { off = true; why = "already running hot"; }
+      else if (a.kind === "markTarget") { if (!(F.used.markFree < (a.freePerFight || 0)) && !canPay(a.cost)) { off = true; why = "no Pathcraft left"; } }
+      else if (a.pool) { if (resNow(a.pool) <= 0) { off = true; why = "pool is empty"; } }
+      else if (!canPay(a.cost)) { off = true; why = `out of ${Object.keys(a.cost).map((r) => k.resources?.[r]?.name || r).join("/")}`; }
+      if (!off && (a.kind === "self") && c.hp >= maxHp()) { off = true; why = "you're at full HP"; }
+      if (!off && a.kind === "arm" && ((a.id === "smite" && F.smite) || (a.id === "aim" && F.aim))) { off = true; why = "already armed"; }
+      if (!off && a.kind === "revive" && !(inB2 && battle.palDown?.())) { off = true; why = "nobody is down"; }
+      if (!off && a.kind === "cleanse" && !(c.status || []).length) { off = true; why = "nothing to clear"; }
+      if (!off && ["target", "markTarget", "area"].includes(a.kind) && !liveFoes().length) { off = true; why = "no foes here"; }
+      const costTxt = a.cost ? Object.entries(a.cost).map(([r, n]) => `${n} ${k.resources?.[r]?.icon || r}`).join(" ") : "";
+      return { id: a.id, name: a.name, icon: a.icon, kind: a.kind, hint: (a.hint || "") + (costTxt ? ` · ${costTxt}` : ""), off, why, lvl: a.lvl }; }); }
+  function liveFoes() { if (battle.active()) return (battle.foeList?.() || []).filter((m) => !m.dead && m.hp > 0); return allMobs().filter((m) => !m.dead && sameRoom(m) && dist(m) < 9); }
+  function healSpec(h, statK) { if (!h) return 0; if (Array.isArray(h[0])) { const d = byLv(h); return rollN(d[0], d[1]).s + (statK ? mod(stat(statK)) : 0); } const extra = h[2] === "level" ? level() : typeof h[2] === "string" ? mod(stat(h[2])) : h[2] || 0; return rollN(h[0], h[1]).s + extra; }
+  function healHero(n, label) { const c = CH(), h0 = c.hp; c.hp = Math.min(maxHp(), c.hp + Math.max(1, n)); const got = c.hp - h0; addLog(`${label}: +${got} HP`, "heal"); popup(`+${got} HP`, "hit"); return got; }
+  function dmgFoe(m, n, label) { n = Math.max(0, n); m.hp -= n; m.hitT = 0.3; addLog(`${label}: ${n} damage to the ${m.name}`, n ? "hit" : "miss"); if (m.hp <= 0) killMob(m); return n; }
+  function blast(a, m, beam) { const k = clsOf(), dd = byLv(a.dmg); let n = rollN(dd[0], dd[1]).s, tag = `${a.icon} ${a.name} ${dd[0]}d${dd[1]}${beam ? " (beam " + beam + ")" : ""}`;
+    if (a.attack) { const r = resolveAttack(mod(stat(a.stat)) + prof(), m.ac, F.aim); F.aim = false; if (!r.hit) { addLog(`${tag}: 🎲 ${r.d20}${sg(r.bonus)} = ${r.total} vs AC ${m.ac} · miss`, "miss"); popup(`${a.icon} miss`, "miss"); return 0; } if (r.crit) n += rollN(dd[0], dd[1]).s; n += a.id === "bolt" ? mod(stat(a.stat)) : 0; if (a.id === "finebolt" && level() >= 2 && (k.clauses || []).includes("sharp")) n += Math.max(0, mod(stat("luck"))); }
+    if (a.save) { const sv = mobSave(m, spellDC(a.stat || k.primary)); if (sv.ok) { if (!a.saveHalf) { addLog(`${tag}: the ${m.name} saves (${sv.tot} vs DC ${spellDC(a.stat || k.primary)}) · no effect`, "miss"); return 0; } n = Math.floor(n / 2); tag += " (saved, half)"; } }
+    if (F.mark && F.mark === m.id) n += roll(4);
+    if (has("steady") && !F.steadyUsed && (a.kind === "area" || a.id === "glare")) { F.steadyUsed = true; n += Math.max(0, mod(stat("luck"))); }
+    return dmgFoe(m, n, tag); }
+  function useAbility(target, id) { const c = CH(); if (!transformed || !c || koBusy) return false; if (battle.active() && !inBattleCall) return false; const k = clsOf(); if (!k) return false;
+    const list = abilityList(); let A = id ? list.find((q) => q.id === id) : list.find((q) => !q.off && q.kind !== "free") || list.find((q) => !q.off); if (!A) { host.toast("No ability ready right now."); return false; }
+    if (A.off) { host.toast(`${A.icon} ${A.name}: ${A.why}.`); return false; } const a = k.actions.find((q) => q.id === A.id);
+    const foes = liveFoes(), m = target && !target.dead ? target : foes.sort((x, y) => (x.hp || 0) - (y.hp || 0))[0];
+    if (["target", "markTarget"].includes(a.kind) && !m) { host.toast("No one nearby."); return false; }
+    if (a.kind === "markTarget") { if ((F.used.markFree || 0) < (a.freePerFight || 0)) F.used.markFree = (F.used.markFree || 0) + 1; else if (!pay(a.cost)) return false; F.mark = m.id; addLog(`🎯 You mark the ${m.name}: +1d4 on your hits against it.`, "sys"); popup("🎯 marked", "hit"); }
+    else { if (!a.pool && !pay(a.cost)) return false;
+      if (a.kind === "self" && a.pool) { const want = Math.min(maxHp() - c.hp, resNow(a.pool), (a.chunk?.[0] || 5) + (a.chunk?.[1] === "level" ? level() : 0)); c.res[a.pool] = resNow(a.pool) - want; healHero(want, `${a.icon} ${a.name} (pool ${resNow(a.pool)} left)`); }
+      else if (a.kind === "self") healHero(healSpec(a.heal, a.healStat), `${a.icon} ${a.name}`);
+      else if (a.kind === "party") { healHero(healSpec(a.heal), `${a.icon} ${a.name}`); if (battle.active()) { const g = battle.healPal?.(healSpec(a.heal)) || 0; if (g) addLog(`${a.icon} ${a.name} reaches your companion too: +${g} HP`, "heal"); } }
+      else if (a.kind === "revive") { const hp = battle.revivePal?.(healSpec(a.heal)) || 0; addLog(hp ? `${a.icon} ${a.name}: your companion is back up (${hp} HP).` : `${a.icon} ${a.name}: nobody to lift.`, "heal"); }
+      else if (a.kind === "cleanse") { c.status = []; addLog(`${a.icon} ${a.name}: the fog lifts. Statuses cleared.`, "heal"); popup("🌫 cleared", "hit"); }
+      else if (a.kind === "target") { if (a.effect === "root") { m.skip = (m.skip || 0) + 1; if (!battle.active()) m.cd = Math.max(m.cd || 0, 3); addLog(`${a.icon} ${a.name}: the ${m.name} is caught and loses its next turn.`, "hit"); popup(`${a.icon} snared`, "hit"); }
+        else { const beams = byLv(a.beams || [1]); for (let b = 0; b < beams; b++) { const t = !m.dead ? m : liveFoes()[0]; if (t) blast(a, t, beams > 1 ? b + 1 : 0); }
+          if (F.twin) { F.twin = false; const t2 = liveFoes().find((q) => q !== m); if (t2) blast(a, t2, 0); } } }
+      else if (a.kind === "area") { if (a.effect === "stunSave") { liveFoes().forEach((q) => { const sv = mobSave(q, spellDC(k.primary)); if (!sv.ok) { q.skip = (q.skip || 0) + 1; if (!battle.active()) q.cd = Math.max(q.cd || 0, 3); } addLog(`${a.icon} ${a.name}: the ${q.name} ${sv.ok ? "shrugs it off" : "loses a turn"} (${sv.tot} vs DC ${spellDC(k.primary)})`, sv.ok ? "miss" : "hit"); }); c.status = (c.status || []).filter((x) => !/fog/i.test(x.id || "")); }
+        else liveFoes().forEach((q) => blast(a, q, 0)); }
+      else if (a.kind === "free") { if (a.id === "taunt") { F.taunt = true; addLog("🚪 Hold the Door: the foes turn on you.", "sys"); } if (a.id === "surge") { F.surge = true; addLog("⏩ Double Shift: you'll go again right after this.", "sys"); }
+        if (a.id === "rage") { F.rage = true; addLog("🔥 Run Hot: half damage from hits, +2 damage. The fog holds off.", "sys"); } if (a.id === "allin") { F.allin = true; addLog("💢 All In: advantage on your next attack; foes get advantage on you until your next turn.", "sys"); }
+        if (a.id === "twin") { F.twin = true; addLog("♊ Twin: your next blast also hits a second foe.", "sys"); } if (a.id === "hurry") { F.hurry = true; addLog("💨 Hurry: your gauge starts half full after this turn.", "sys"); } popup(`${a.icon} ${a.name}`, "hit"); }
+      else if (a.kind === "arm") { if (a.id === "smite") { F.smite = a.dice || [2, 8]; addLog("⚡ Oathstrike ready: your next hit adds 2d8.", "sys"); } if (a.id === "aim") { F.aim = true; footArmed = true; addLog("🎯 Steady Aim: your next attack rolls two d20s.", "sys"); } popup(`${a.icon} ready`, "hit"); } }
+    F.used[a.id] = (F.used[a.id] || 0) + 1; if (a.perTurn) F.turnUsed[a.id] = 1; abilityUsed = true;
+    audio.sfx("pick"); save(); renderBar(); tipEvent("ability"); return true; }
+  function openAbilities() { if (!transformed || !CH()) return; const K = clsOf(); panel("abilities", `${K.icon} ${K.name} abilities`, (pn) => { const L = abilityList(); if (!L.length) pn.appendChild(el("p", "o3-small", "No abilities yet."));
+      L.forEach((a) => { const b = el("button", "o3-btn ghost o3-wide" + (a.off ? " off" : ""), `${a.icon} ${a.name} · ${a.off ? a.why : a.hint}`); b.dataset.rpg = "ab-" + a.id; b.disabled = a.off; b.onclick = () => { host.closePanel(); setTimeout(() => useAbility(undefined, a.id), 30); }; pn.appendChild(b); });
+      const rs = Object.entries(K.resources || {}).filter(([id]) => resMax(id) > 0).map(([id, r]) => `${r.icon} ${r.name} ${resNow(id)}/${resMax(id)}`); if (rs.length) pn.appendChild(el("p", "o3-small", rs.join(" · "))); }); }
+  function afterAct() { F.turn++; F.turnUsed = {}; F.sneakTurn = -1; if (F.surge) { F.surge = false; return 1; } if (F.hurry) { F.hurry = false; return 0.5; } return has("slip") ? 0.3 : 0; }
   const partySize = () => (!inst.active ? 1 : D?.instances[inst.id]?.solo ? 1 : isTraining() ? clamp(sbParty || 1, 1, sandboxOn ? (D?.party?.max || 3) : (TR().partyMax || 1)) : clamp(Math.max(party.members.length, urlParty || 1), 1, D?.party?.max || 3));
   const TR = () => D?.training || {};
   const isTraining = () => inst.active && !!D?.instances[inst.id]?.training;
@@ -71,7 +166,7 @@ export function createRPG(ctx) {
   const mk = (t, title, fn, key) => { const b = el("button", "o3-btn ghost o3-rpgb", t); b.title = title; b.setAttribute("aria-label", title); b.dataset.rpg = key; b.onclick = fn; bBtns.appendChild(b); return b; };
   mk("📜", "Character sheet (C)", () => toggle("sheet", openSheet), "sheet"); mk("🎒", "Gear & bag (I)", () => toggle("gear", openGear), "gear");
   mk("🗒", "Quest log (J)", () => toggle("quests", openQuests), "quests"); mk("🎲", "Dice log (L)", () => toggle("log", openLog), "log");
-  const abBtn = mk("✨", "Ability (X)", () => useAbility(), "ability");
+  const abBtn = mk("✨", "Abilities (X)", () => openAbilities(), "ability");
   bar.append(bName, bHp, bXp, bBtns);
   const dlog = el("div", "o3-dicelog"); dlog.hidden = true; host.hud.appendChild(dlog);
   const pop = el("div", "o3-dicepop"); host.hud.appendChild(pop);
@@ -82,10 +177,10 @@ export function createRPG(ctx) {
   function renderBar() {
     const c = CH(); const show = transformed && inAnnex && !!c; bar.hidden = !show; dlog.hidden = !show; if (!show) return;
     const L = level(), mh = maxHp(), lo = D.levels.xp[L - 1], hi = D.levels.xp[L] ?? null;
-    bName.textContent = `${pathOf().icon} ${c.name} · Lv ${L}${isTraining() ? " · 🎓 practice" : ""}`;
+    bName.textContent = `${clsOf()?.icon || pathOf().icon} ${c.name} · Lv ${L} ${clsOf()?.name || ""}${isTraining() ? " · 🎓 practice" : ""}`;
     bHpF.style.width = clamp(c.hp / mh, 0, 1) * 100 + "%"; bHpT.textContent = `❤️ ${c.hp}/${mh}`;
     bXpF.style.width = (hi == null ? 100 : clamp((c.xp - lo) / (hi - lo), 0, 1) * 100) + "%"; bXpT.textContent = hi == null ? `⭐ ${c.xp} XP (max level)` : `⭐ ${c.xp}/${hi} XP`;
-    const ab = pathOf().ability; abBtn.textContent = ab.icon; abBtn.title = `${ab.name} (X)${abilityUsed ? " · used this scuffle" : ""}`; abBtn.disabled = abilityUsed && !footArmed; abBtn.classList.toggle("armed", footArmed);
+    const AL = abilityList(), rdy = AL.filter((a) => !a.off); abBtn.textContent = clsOf()?.icon || "✨"; abBtn.title = `Abilities (X): ${AL.map((a) => a.name + (a.off ? " (" + a.why + ")" : "")).join(" · ") || "none yet"}`; abBtn.disabled = !rdy.length; abBtn.classList.toggle("armed", !!(footArmed || F.smite || F.aim));
   }
   let logTotal = 0;
   function addLog(t, kind = "") { logTotal++; logs.push({ t, kind, at: Date.now() }); if (logs.length > 60) logs.shift();
@@ -97,7 +192,7 @@ export function createRPG(ctx) {
   addEventListener("keydown", (e) => {
     if (!inAnnex || !transformed || battle.active() || e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT" || e.repeat) return;
     const k = e.key.toLowerCase(); const map = { c: ["sheet", openSheet], i: ["gear", openGear], j: ["quests", openQuests], l: ["log", openLog] };
-    if (map[k]) { e.preventDefault(); toggle(...map[k]); } else if (k === "x" && !host.state().busy) { e.preventDefault(); useAbility(); }
+    if (map[k]) { e.preventDefault(); toggle(...map[k]); } else if (k === "x" && !host.state().busy) { e.preventDefault(); openAbilities(); }
   });
 
   // ---------- shared looks ----------
@@ -257,31 +352,46 @@ export function createRPG(ctx) {
     const ix = (p) => { const i = answers.indexOf(p); return i < 0 ? 99 : i; }, path = Object.keys(votes).sort((a, b) => votes[b] - votes[a] || ix(a) - ix(b))[0];
     const base = {}; D.paths[path].order.forEach((k, i) => (base[k] = D.creation.standardArray[i])); return { path, base }; }
   const finalStats = (base, path) => { const o = { ...base }; o[D.paths[path].main] += 1; return o; };
+  function classBase(cls) { const k = CLS()[cls]; const base = {}; (k?.order || STATS()).forEach((s, i) => (base[s] = D.creation.standardArray[i])); return base; }
+  function suggestClass(ai) { const Q = D.classes && D.creation.classQuiz?.byAnswer; if (!Q || !ai.length) return "warrior"; const v = {}; ai.forEach((a, q) => { const id = Q[q]?.[a]; if (id) v[id] = (v[id] || 0) + 1; }); return Object.keys(v).sort((x, y) => v[y] - v[x])[0] || "warrior"; }
   const pbCost = (base) => Object.values(base).reduce((a, v) => a + (D.creation.pointBuy.cost[v] ?? 99), 0);
   const cleanName = (s) => String(s || "").replace(/[<>{}\\]/g, "").replace(/\s+/g, " ").trim().slice(0, 24);
-  function validBuild(b) { if (!D.paths[b.path] || !cleanName(b.name)) return false; const v = STATS().map((k) => b.base[k]);
+  function validBuild(b) { if (!D.paths[b.path] || !cleanName(b.name)) return false; if (b.cls && !classVisible(b.cls)) return false; const v = STATS().map((k) => b.base[k]);
     if (b.method === "array") return [...v].sort((a, c) => c - a).join() === [...D.creation.standardArray].sort((a, c) => c - a).join();
     return v.every((x) => x >= D.creation.pointBuy.min && x <= D.creation.pointBuy.max) && pbCost(b.base) <= D.creation.pointBuy.points; }
-  function createChar(b) { if (!validBuild(b)) return false; const P = D.paths[b.path];
-    S.character = { v: 1, name: cleanName(b.name), path: b.path, method: b.method, base: { ...b.base }, stats: finalStats(b.base, b.path), xp: 0, hp: 0, gear: { weapon: P.weapon, armor: null, head: null, trinket: null }, inv: [], status: [], pendingStat: 0, waystones: {}, discovered: {}, companion: true, created_at: new Date().toISOString() };
-    (D.startGear || []).forEach((id) => { const it = item(id); if (it && !S.character.gear[it.slot]) S.character.gear[it.slot] = id; });
+  function keepsakeFrom(b) { const L = D.keepsakes?.list || []; if (b.keepsake && typeof b.keepsake === "object") return { id: b.keepsake.id || "custom", name: cleanKs(b.keepsake.name), icon: b.keepsake.icon || "✨", state: "held" };
+    const f = L.find((q) => q.id === b.keepsake) || L[0]; return f ? { id: f.id, name: f.name, icon: f.icon, state: "held" } : null; }
+  const cleanKs = (s) => String(s || "").replace(/[<>{}\\]/g, "").replace(/\s+/g, " ").trim().slice(0, D.keepsakes?.custom?.maxLen || 40) || "something small from home";
+  function createChar(b) { if (!validBuild(b)) return false; const P = D.paths[b.path], M = D.classes?.migration || {}; const cls = CLS()[b.cls] ? b.cls : M[b.path] || "warrior", K = CLS()[cls] || {};
+    S.character = { v: 2, name: cleanName(b.name), cls, path: b.path, method: b.method, base: { ...b.base }, stats: finalStats(b.base, b.path), xp: 0, hp: 0, gear: { weapon: K.weapon || P.weapon, armor: null, head: null, trinket: null }, inv: [], status: [], pendingStat: 0, waystones: {}, discovered: {}, companion: true,
+      keepsake: keepsakeFrom(b), res: {}, tmp: 0, professions: [], materials: {}, classRepick: 0, created_at: new Date().toISOString() };
+    if (P.weapon && P.weapon !== S.character.gear.weapon) S.character.inv.push(P.weapon);
+    (K.startArmor ? [K.startArmor] : D.startGear || []).forEach((id) => { const it = item(id); if (it && !S.character.gear[it.slot] && canWear(id)) S.character.gear[it.slot] = id; });
+    if (!S.character.gear.armor) (D.startGear || []).forEach((id) => { const it = item(id); if (it && !S.character.gear[it.slot] && canWear(id)) S.character.gear[it.slot] = id; });
+    restockGizmo(); restoreRes("full");
     S.character.hp = maxHp(); S.quests = {}; S.stash = []; S.counters = {}; save(); return true; }
   function openCreator() {
-    const answers = []; let qi = 0; const first = String(deskName() || "you").split(/\s+/)[0];
+    const answers = [], ansIx = []; let qi = 0; const first = String(deskName() || "you").split(/\s+/)[0];
     const idea = () => pickH(D.creation.nameIdeas, rng()).replaceAll("{name}", first).replace("{n}", String(100 + Math.floor(rng() * 900)));
     panel("creator", "🧵 Who are you in here?", (pn) => {
       const body = el("div", "o3-creator"); pn.appendChild(body);
       const quiz = () => { body.textContent = ""; const q = D.creation.quiz[qi];
         body.appendChild(el("p", "o3-small", `Three quick questions and the Annex will suggest who you are in here. You can change everything after. (${qi + 1}/${D.creation.quiz.length})`));
-        body.appendChild(el("p", "o3-riddle", q.q)); q.a.forEach((a, ai) => { const b = el("button", "o3-btn ghost o3-wide", a.t); b.dataset.rpg = "quiz-" + ai; b.onclick = () => { answers.push(a.path); qi++; audio.sfx("blip"); qi < D.creation.quiz.length ? quiz() : edit(suggest(answers)); }; body.appendChild(b); });
+        body.appendChild(el("p", "o3-riddle", q.q)); q.a.forEach((a, ai) => { const b = el("button", "o3-btn ghost o3-wide", a.t); b.dataset.rpg = "quiz-" + ai; b.onclick = () => { answers.push(a.path); ansIx.push(ai); qi++; audio.sfx("blip"); qi < D.creation.quiz.length ? quiz() : edit(suggest(answers)); }; body.appendChild(b); });
         const skip = el("button", "o3-btn ghost small", "Skip the quiz"); skip.dataset.rpg = "quiz-skip"; skip.onclick = () => edit(suggest(answers.length ? answers : ["wanderer"])); body.appendChild(skip); };
-      const edit = (sug) => { body.textContent = ""; const b = { name: idea(), path: sug.path, method: "array", base: { ...sug.base } };
-        body.appendChild(el("p", "o3-small", `The Annex thinks you're a ${D.paths[sug.path].icon} ${D.paths[sug.path].name}. Change anything you like, then approve it. Nothing saves until you do.`));
+      const edit = (sug) => { body.textContent = ""; const sc = suggestClass(ansIx), KL0 = D.keepsakes?.list || []; const b = { name: idea(), path: sug.path, cls: sc, method: "array", base: classBase(sc), keepsake: KL0[Math.floor(rng() * KL0.length)]?.id || null };
+        body.appendChild(el("p", "o3-small", `The Annex thinks you're a ${CLS()[sc]?.icon || ""} ${CLS()[sc]?.name || ""} with a ${D.paths[sug.path].icon} ${D.paths[sug.path].name} background. Change anything you like, then approve it. Nothing saves until you do.`));
+        const ch = el("div", "o3-paths o3-classes"); ch.dataset.rpg = "classes"; const ksBox = el("div", "o3-keepsake"); body.append(el("p", "o3-small o3-sect", "Class"), ch);
         const nl = el("label", null, "Name"); const ni = el("input"); ni.value = b.name; ni.maxLength = 24; ni.dataset.rpg = "name"; ni.oninput = () => { b.name = ni.value; draw(); }; body.append(nl, ni);
-        const paths = el("div", "o3-paths"), mth = el("div", "o3-method"), tbl = el("div", "o3-stats"), sum = el("div", "o3-note"); body.append(paths, mth, tbl, sum);
+        const paths = el("div", "o3-paths"), mth = el("div", "o3-method"), tbl = el("div", "o3-stats"), sum = el("div", "o3-note"); body.append(el("p", "o3-small o3-sect", "Background (a small perk)"), paths, el("p", "o3-small o3-sect", "Keepsake"), ksBox, el("p", "o3-small o3-sect", "Stats"), mth, tbl, sum);
         const ok = el("button", "o3-btn"); ok.dataset.rpg = "approve"; const err = el("p", "o3-small"); body.append(ok, err);
         function draw() {
-          paths.textContent = ""; Object.entries(D.paths).forEach(([id, p]) => { const pb = el("button", "o3-pathcard" + (b.path === id ? " on" : "")); pb.dataset.rpg = "path-" + id; pb.append(el("b", null, `${p.icon} ${p.name}`), el("span", null, p.blurb)); pb.onclick = () => { b.path = id; draw(); }; paths.appendChild(pb); });
+          ch.textContent = ""; classIds().forEach((id) => { const k = CLS()[id]; const cb = el("button", "o3-pathcard o3-classcard" + (b.cls === id ? " on" : "")); cb.dataset.rpg = "class-" + id; cb.append(el("b", null, `${k.icon} ${k.name}`), el("span", null, k.blurb), el("small", null, `d${k.die} HP · ${D.armorTiers?.[k.armor]?.name || k.armor} armor · ${D.stats.find((x) => x.id === k.primary)?.name} first`)); cb.onclick = () => { if (b.cls === id) return; b.cls = id; if (b.method === "array") b.base = classBase(id); draw(); }; ch.appendChild(cb); });
+          paths.textContent = ""; Object.entries(D.paths).forEach(([id, p]) => { const pb = el("button", "o3-pathcard" + (b.path === id ? " on" : "")); pb.dataset.rpg = "path-" + id; pb.append(el("b", null, `${p.icon} ${p.name}`), el("span", null, p.perk || p.blurb)); pb.onclick = () => { b.path = id; draw(); }; paths.appendChild(pb); });
+          ksBox.textContent = ""; if (D.keepsakes) { ksBox.appendChild(el("p", "o3-small", D.keepsakes.pickerText)); const ksel = el("select"); ksel.dataset.rpg = "keepsake"; ksel.setAttribute("aria-label", "Keepsake"); (D.keepsakes.list || []).forEach((q) => { const o = el("option", null, `${q.icon} ${q.name}`); o.value = q.id; if (b.keepsake === q.id) o.selected = true; ksel.appendChild(o); });
+            if (D.keepsakes.custom?.enabled) { const o = el("option", null, "✍️ Something else…"); o.value = "__custom"; if (typeof b.keepsake === "object" && b.keepsake) o.selected = true; ksel.appendChild(o); }
+            ksel.onchange = () => { b.keepsake = ksel.value === "__custom" ? { id: "custom", name: "", icon: "✨" } : ksel.value; draw(); }; ksBox.appendChild(ksel);
+            if (typeof b.keepsake === "object" && b.keepsake) { const ki = el("input"); ki.placeholder = D.keepsakes.custom.hint; ki.maxLength = D.keepsakes.custom.maxLen || 40; ki.value = b.keepsake.name || ""; ki.dataset.rpg = "keepsake-custom"; ki.oninput = () => { b.keepsake.name = ki.value; }; ksBox.appendChild(ki); } }
           mth.textContent = ""; [["array", `Standard array (${D.creation.standardArray.join(", ")})`], ["points", `Point buy (${D.creation.pointBuy.points} pts)`]].forEach(([id, t]) => { const mb = el("button", "o3-btn small" + (b.method === id ? "" : " ghost"), t); mb.dataset.rpg = "method-" + id;
             mb.onclick = () => { if (b.method === id) return; b.method = id; if (id === "points") { STATS().forEach((k) => (b.base[k] = Math.min(b.base[k], D.creation.pointBuy.max))); let g = 0; while (pbCost(b.base) > D.creation.pointBuy.points && g++ < 40) { const k = STATS().sort((x, y) => b.base[y] - b.base[x])[0]; b.base[k]--; } } else Object.assign(b.base, suggest([b.path]).base); draw(); }; mth.appendChild(mb); });
           tbl.textContent = ""; const fin = finalStats(b.base, b.path);
@@ -292,8 +402,9 @@ export function createRPG(ctx) {
               mi.onclick = () => { if (b.base[s.id] > D.creation.pointBuy.min) { b.base[s.id]--; draw(); } }; pl.onclick = () => { const t = { ...b.base, [s.id]: b.base[s.id] + 1 }; if (t[s.id] <= D.creation.pointBuy.max && pbCost(t) <= D.creation.pointBuy.points) { b.base[s.id]++; draw(); } }; row.append(mi, el("b", null, String(b.base[s.id])), pl); }
             row.append(el("span", "o3-sfinal", `→ ${fin[s.id]}${D.paths[b.path].main === s.id ? "*" : ""} (${sg(mod(fin[s.id]))})`)); tbl.appendChild(row); });
           if (b.method === "points") tbl.appendChild(el("p", "o3-small", `Points left: ${D.creation.pointBuy.points - pbCost(b.base)} (8 costs 0, 15 costs 9)`));
-          const P = D.paths[b.path], w = item(P.weapon), m = (k) => mod(fin[k]), hp = Math.max(4, D.levels.hpBase + m("nerve"));
-          sum.textContent = `* +1 from your path. ❤️ HP ${hp} · 🛡 AC ${10 + m("stride") + 1} (with the cardigan) · ⚔️ ${w.name}: d20${sg(m(w.stat) + D.levels.prof[0])} to hit, d${w.die}${m(w.stat) ? sg(m(w.stat)) : ""} damage · ${P.ability.icon} ${P.ability.name}: ${P.ability.text}`;
+          const P = D.paths[b.path], K = CLS()[b.cls] || {}, w = item(K.weapon || P.weapon), m = (k) => mod(fin[k]), hp = Math.max(4, (K.die || 8) + m("nerve"));
+          const f1 = (K.features || []).filter((f) => f.lvl === 1).map((f) => f.name).join(", ");
+          sum.textContent = `* +1 from your background. ❤️ HP ${hp} (d${K.die || 8}) · ⚔️ ${w.name}: d20${sg(m(w.stat) + D.levels.prof[0])} to hit, d${w.die}${m(w.stat) ? sg(m(w.stat)) : ""} damage · Level 1: ${f1} · Saves: ${(K.saves || []).map((x) => D.stats.find((q) => q.id === x)?.name).join(" + ")} · Background: ${P.perk || ""}`;
           const v = validBuild(b); ok.disabled = !v; ok.textContent = `✅ Looks right. Become ${cleanName(b.name) || "…"}`; err.textContent = v ? "Approving saves this character in this browser." : "Give your character a name (and keep the stats valid).";
         }
         ok.onclick = () => { if (!createChar(b)) return; host.closePanel(); transform(true); }; draw(); };
@@ -303,18 +414,23 @@ export function createRPG(ctx) {
   }
   function openBecome() { const c = CH();
     panel("become", "🧵 The stitched circle", (pn) => {
-      pn.appendChild(el("p", null, `Your Annex self is waiting: ${pathOf().icon} ${c.name}, Level ${level()} ${pathOf().name}.`));
+      pn.appendChild(el("p", null, `Your Annex self is waiting: ${clsOf()?.icon || ""} ${c.name}, Level ${level()} ${clsOf()?.name || ""} (${pathOf().name}).`));
+      if (!c.keepsake && D.keepsakes) { pn.appendChild(el("p", "o3-small", D.keepsakes.pickerText)); const row = el("div", "o3-prompts"); (D.keepsakes.list || []).slice(0, 10).forEach((q) => { const kb = el("button", "o3-btn ghost small", `${q.icon} ${q.name}`); kb.dataset.rpg = "ks-" + q.id; kb.onclick = () => { c.keepsake = { id: q.id, name: q.name, icon: q.icon, state: "held" }; save(); host.closePanel(); openBecome(); }; row.appendChild(kb); }); pn.appendChild(row); }
+      if (c.classRepick > 0) { pn.appendChild(el("p", "o3-small", `Classes have arrived. You were set as a ${clsOf()?.name} from your old path. You have ${c.classRepick} free re-pick:`)); const row = el("div", "o3-prompts"); classIds().forEach((id) => { const k = CLS()[id]; const kb = el("button", "o3-btn ghost small" + (c.cls === id ? " on" : ""), `${k.icon} ${k.name}`); kb.dataset.rpg = "repick-" + id; kb.onclick = () => { repickClass(id); host.closePanel(); openBecome(); }; row.appendChild(kb); }); pn.appendChild(row); }
       pn.appendChild(el("p", "o3-small", `❤️ ${c.hp}/${maxHp()} · 🛡 AC ${ac()} · ⚔️ ${weapon().name}${(c.status || []).length ? " · " + c.status.map((s) => s.text).join(", ") : ""}`));
       const go = el("button", "o3-btn", `✨ Become ${c.name}`); go.dataset.rpg = "become"; go.onclick = () => { host.closePanel(); transform(false); }; pn.appendChild(go);
       const re = el("button", "o3-btn ghost small", "🔁 Start a new character"); re.dataset.rpg = "recreate"; let sure = false;
       re.onclick = () => { if (!sure) { sure = true; re.textContent = "Really? Level, gear and quests reset. Tap again."; return; } resetChar(); host.closePanel(); setTimeout(openCreator, 50); }; pn.appendChild(re);
     }); }
+  function repickClass(id) { const c = CH(); if (!c || !(c.classRepick > 0) || !classVisible(id)) return false; c.cls = id; c.classRepick--; c.res = {}; restoreRes("full"); const K = CLS()[id]; if (K.weapon && item(K.weapon) && !ownsItem(K.weapon)) c.inv.push(K.weapon);
+    ["armor", "weapon"].forEach((sl) => { if (c.gear[sl] && !canWear(c.gear[sl])) { c.inv.push(c.gear[sl]); c.gear[sl] = sl === "weapon" ? (K.weapon && canWear(K.weapon) ? (c.inv.splice(c.inv.indexOf(K.weapon), 1), K.weapon) : null) : null; } });
+    c.hp = maxHp(); save(); renderBar(); addLog(`🛡 You're a ${K.name} now.`, "sys"); return true; }
   function resetChar() { S.character = null; S.quests = {}; S.stash = []; S.counters = {}; save(); transformed = false; setPlayerName(null); renderBar(); }
   function openCircle() { if (!D) return; if (transformed) { host.toast(`You're already ${CH().name}. The circle hums approvingly.`); return; } CH() ? openBecome() : openCreator(); }
-  function transform(isNew) { const c = CH(); if (!c) return; transformed = true; fightGroup = null; abilityUsed = false; footArmed = false; c.hp = clamp(c.hp || maxHp(), 1, maxHp()); save();
+  function transform(isNew) { const c = CH(); if (!c) return; migrate(c); transformed = true; fightGroup = null; abilityUsed = false; footArmed = false; fightReset(); restoreRes("full"); c.hp = clamp(c.hp || maxHp(), 1, maxHp()); save();
     setPlayerName(c.name); fxT.textContent = `✨ ${c.name}`; fx.classList.remove("on"); void fx.offsetWidth; fx.classList.add("on"); audio.sfx("whoosh");
-    host.toast(fill(D.circle.become).replace("{char}", c.name)); addLog(`🧵 You became ${c.name} (${pathOf().name}).`, "sys"); progress("flag", "transformed"); renderBar(); renderTip(); host.updateActions();
-    if (isNew) setTimeout(() => { if (transformed && !host.state().busy) host.toast("📜 C = sheet · 🎒 I = gear · 🗒 J = quests · 🎲 L = dice log · X = ability"); }, 3400); }
+    host.toast(fill(D.circle.become).replace("{char}", c.name)); addLog(`🧵 You became ${c.name} (${clsOf()?.name || ""}, ${pathOf().name}).`, "sys"); progress("flag", "transformed"); renderBar(); renderTip(); host.updateActions();
+    if (isNew) setTimeout(() => { if (transformed && !host.state().busy) host.toast("📜 C = sheet · 🎒 I = gear · 🗒 J = quests · 🎲 L = dice log · X = abilities"); }, 3400); }
 
   // ---------- XP, levels, quests ----------
   // v5: XP falloff for content well below you (data: xpFalloff). Returns the fraction of XP you get.
@@ -323,8 +439,9 @@ export function createRPG(ctx) {
   function gainXP(n0, why, clvl, raw) { const c = CH(); if (!c) return; let n = n0;
     if (!raw) { const B = instBand(); if (B) { const L = level(); if (L >= (B.zeroAt ?? 99)) { addLog(`⭐ 0 XP · ${why} (you've outgrown this place)`, "sys"); return; } if (L > (B.fullMax ?? 99)) { n = B.token ?? 1; why += " (just a token — you've outgrown this place)"; } }
       else if (clvl) { const f = xpScale(clvl); n = f > 0 ? Math.max(D.xpFalloff?.minXP || 1, Math.round(n0 * f)) : 0; if (!n) { addLog(`⭐ 0 XP · ${why} (level ${clvl} is too far below you, level ${level()})`, "sys"); return; } if (n < n0) why += ` (reduced: level ${clvl} content)`; } }
-    if (!n) return; if (isTraining() && !TR().grantXP) { trainXP += n; addLog(`🎓 Practice: ${n} XP would go here (${why}). XP is off in training.`, "sys"); return; } const L0 = level(), h0 = maxHp(); c.xp += n; const L1 = level(); addLog(`⭐ +${n} XP · ${why}`, "xp");
-    if (L1 > L0) { c.hp += maxHp() - h0; for (let L = L0 + 1; L <= L1; L++) if (D.levels.statUpAt.includes(L)) c.pendingStat = (c.pendingStat || 0) + 1;
+    if (!n) return; if (isTraining() && !TR().grantXP) { trainXP += n; addLog(`🎓 Practice: ${n} XP would go here (${why}). XP is off in training.`, "sys"); return; } const L0 = level(), h0 = maxHp(), rk = Object.keys(clsOf()?.resources || {}), r0 = rk.map((id) => [id, resNow(id), resMax(id)]); c.xp += n; const L1 = level(); addLog(`⭐ +${n} XP · ${why}`, "xp");
+    if (L1 > L0) { c.hp += maxHp() - h0; c.res ||= {}; r0.forEach(([id, now, mx]) => { c.res[id] = Math.max(0, now + Math.max(0, resMax(id) - mx)); }); // v6: a level-up adds the new pool capacity
+ for (let L = L0 + 1; L <= L1; L++) if (D.levels.statUpAt.includes(L)) c.pendingStat = (c.pendingStat || 0) + 1;
       lastLevelUp = { from: L0, to: L1, at: Date.now() }; audio.sfx("chime"); popup(`⬆️ LEVEL ${L1}!`, "lvl"); addLog(`⬆️ Level ${L1}! Max HP ${maxHp()}${c.pendingStat ? " · pick a stat to raise" : ""}`, "lvl");
       setTimeout(() => { if (battle.active()) { pendingLvl = L1; return; } if (!host.state().busy && !koBusy) openLevelUp(); else host.toast(`⬆️ Level ${L1}! Open your sheet (C) to see what changed.`); }, 350); }
     save(); renderBar(); }
@@ -338,7 +455,7 @@ export function createRPG(ctx) {
       const st = (S.quests[q.id] ||= { n: 0, done: false }); if (st.done) return; st.n++; if (st.n >= q.count) { st.done = true; st.at = new Date().toISOString(); audio.sfx("chime");
         host.toast(`🗒 Quest complete: ${q.name} (+${q.xp} XP${q.loot ? ", " + item(q.loot).name : ""})`); addLog(`🗒 Quest complete: ${q.name}`, "quest"); if (q.loot) giveItem(q.loot); gainXP(q.xp, "quest: " + q.name); } });
     save(); }
-  function event(kind, a) { if (!D) return; if (kind === "crystal") { S.lastCrystal = a || null; save(); if (transformed && CH()) { const c = CH(), had = (c.status || []).length; c.status = []; c.hp = maxHp(); abilityUsed = false; save(); renderBar(); if (had) setTimeout(() => host.toast("💎 The crystal hums. Statuses cleared, HP full."), 900); } return; }
+  function event(kind, a) { if (!D) return; if (kind === "crystal") { S.lastCrystal = a || null; save(); if (transformed && CH()) { const c = CH(), had = (c.status || []).length; c.status = []; rest("full"); c.hp = maxHp(); abilityUsed = false; save(); renderBar(); if (had) setTimeout(() => host.toast("💎 The crystal hums. Statuses cleared, HP full."), 900); } return; }
     if (!transformed || !CH()) return;
     if (kind === "curio") { gainXP(D.xp.curio, "found a curiosity"); progress("curio"); }
     if (kind === "attune") gainXP(D.xp.attune, "attuned a crystal"); }
@@ -346,7 +463,7 @@ export function createRPG(ctx) {
   // ---------- items ----------
   const EQUIP = ["weapon", "armor", "head", "trinket"];
   function giveItem(id, quiet) { const c = CH(), it = item(id); if (!c || !it) return false; if (it.unique && ownsItem(id)) { if (!quiet) addLog(`You already have the ${it.name}.`, "sys"); return false; } let eq = false;
-    if (EQUIP.includes(it.slot)) { const cur = item(c.gear[it.slot]); if (!cur || (it.value || 0) > (cur.value || 0)) { if (c.gear[it.slot]) c.inv.push(c.gear[it.slot]); c.gear[it.slot] = id; eq = true; } else c.inv.push(id); } else c.inv.push(id);
+    if (EQUIP.includes(it.slot)) { const cur = item(c.gear[it.slot]); if (canWear(id) && (!cur || (it.value || 0) > (cur.value || 0))) { if (c.gear[it.slot]) c.inv.push(c.gear[it.slot]); c.gear[it.slot] = id; eq = true; } else c.inv.push(id); } else c.inv.push(id);
     save(); renderBar(); if (!quiet) addLog(`🎁 ${it.name}${eq ? " (equipped)" : ""}`, "loot"); return eq; }
   function rollLoot(tier) { const t = D.loot.tiers[clamp(tier, 0, 4)], tot = t.reduce((a, r) => a + r[1], 0); let u = rng() * tot; for (const [id, w] of t) { u -= w; if (u < 0) return id; } return t[0][0]; }
   function itemLine(it) { if (!it) return ""; if (it.slot === "weapon") return `d${it.die} · ${D.stats.find((s) => s.id === it.stat).name}${it.hit ? " · +" + it.hit + " hit" : ""}`; return it.text.split(". ")[0]; }
@@ -356,8 +473,10 @@ export function createRPG(ctx) {
   function openBox(bx) { if (bx.opened) return; if (!transformed) return nudge(true); bx.opened = true; S.world.loot[bx.key] = new Date().toISOString();
     let id; const rs = D.quests.find((q) => q.type === "fetch"); if (rs && !S.quests[rs.id]?.done && !CH().inv.includes(rs.item) && !S.flags.parcelFound) { id = rs.item; S.flags.parcelFound = true; } else id = rollLoot(bx.tier + (bx.chest ? 1 : 0));
     giveItem(id); bx.lid.rotation.x = -1.6; bx.spark.visible = false; bx.q.visible = false; save(); lootPanel(id, bx.chest ? "🧰 Behind the dice door:" : "📦 In the box:"); }
-  function useItem(id) { const c = CH(), it = item(id), i = c.inv.indexOf(id); if (!it || i < 0 || it.slot !== "use") return; const h = rollN(it.heal[0], it.heal[1]).s + it.heal[2]; c.inv.splice(i, 1); c.hp = Math.min(maxHp(), c.hp + h); addLog(`${it.icon || "🍲"} ${it.name}: ${it.heal[0]}d${it.heal[1]}+${it.heal[2]} = +${h} HP`, "heal"); save(); renderBar(); }
-  function equip(id) { const c = CH(), it = item(id), i = c.inv.indexOf(id); if (!it || i < 0 || !EQUIP.includes(it.slot)) return false; c.inv.splice(i, 1); if (c.gear[it.slot]) c.inv.push(c.gear[it.slot]); c.gear[it.slot] = id; save(); renderBar(); return true; }
+  function useItem(id, target) { const c = CH(), it = item(id), i = c.inv.indexOf(id); if (!it || i < 0 || it.slot !== "use") return;
+    if (it.dmg) { const m = target && !target.dead ? target : liveFoes()[0]; if (!m) { host.toast("Nobody to throw it at."); return; } c.inv.splice(i, 1); const d = rollN(it.dmg[0], it.dmg[1]); dmgFoe(m, d.s + (it.dmg[2] || 0), `${it.icon || "🪀"} ${it.name} ${it.dmg[0]}d${it.dmg[1]} [${d.r.join(",")}]`); save(); renderBar(); return; }
+    let h = rollN(it.heal[0], it.heal[1]).s + it.heal[2], bonus = ""; if (id === "soup" && c.path === "wanderer") { const x = roll(4); h += x; bonus = ` + Wanderer d4 [${x}]`; } c.inv.splice(i, 1); c.hp = Math.min(maxHp(), c.hp + h); addLog(`${it.icon || "🍲"} ${it.name}: ${it.heal[0]}d${it.heal[1]}+${it.heal[2]}${bonus} = +${h} HP`, "heal"); save(); renderBar(); }
+  function equip(id) { const c = CH(), it = item(id), i = c.inv.indexOf(id); if (!it || i < 0 || !EQUIP.includes(it.slot)) return false; if (!canWear(id)) { host.toast(`A ${clsOf()?.name} can't use the ${it.name} (${it.slot === "armor" ? (D.armorTiers?.[it.tier]?.name || it.tier) + " armor" : "too heavy a weapon"}).`); return false; } c.inv.splice(i, 1); if (c.gear[it.slot]) c.inv.push(c.gear[it.slot]); c.gear[it.slot] = id; save(); renderBar(); return true; }
 
   // ---------- combat (click / E to swing; critters swing back on a timer; all rolls are d20 + modifier vs AC) ----------
   function resolveAttack(bonus, targetAc, adv) { const r1 = roll(20), r2 = adv ? roll(20) : null, d = adv ? Math.max(r1, r2) : r1, total = d + bonus; return { d20: d, rolls: adv ? [r1, r2] : [r1], bonus, total, ac: targetAc, crit: d === 20, fumble: d === 1, hit: d === 20 || (d !== 1 && total >= targetAc) }; }
@@ -366,11 +485,15 @@ export function createRPG(ctx) {
   const sameRoom = (m) => curZone === m.zone;
   function attackMob(m, skipRange) { if (battle.active() && !inBattleCall) return null; if (!transformed || !m || m.dead || koBusy || host.state().busy || cd > 0) return null;
     if (!skipRange && (!sameRoom(m) || dist(m) > D.mobs.reach)) { host.toast(`Too far. Get closer to the ${m.name}.`); return null; }
-    cd = D.mobs.playerCooldown; const adv = footArmed, wp = weapon(), r = resolveAttack(atkBonus(), m.ac, adv); lastAttack = { ...r, mob: m.name, id: m.id }; m.cd = Math.max(m.cd, 0.6); tipEvent("attack");
+    cd = D.mobs.playerCooldown * (has("extra") && !battle.active() ? 0.65 : 1); F.allinFoes = false; const adv = footArmed || F.aim || F.allin; if (F.allin) { F.allin = false; F.allinFoes = true; } F.aim = false; const wp = weapon(), r = resolveAttack(atkBonus(), m.ac, adv); lastAttack = { ...r, mob: m.name, id: m.id }; m.cd = Math.max(m.cd, 0.6); tipEvent("attack");
     const rs = r.rolls.length > 1 ? `[${r.rolls.join(", ")}]→${r.d20}` : `${r.d20}`;
     if (r.fumble) { cd = 2.0; footArmed = false; addLog(`🎲 ${rs}: natural 1! ${rpick(D.mobs.fumbles)}`, "miss"); popup("🎲 1 · fumble!", "miss"); audio.sfx("nope"); renderBar(); return r; }
     if (!r.hit) { footArmed = false; addLog(`🎲 ${rs}${sg(r.bonus)} = ${r.total} vs AC ${m.ac} · miss (${m.name})`, "miss"); popup(`🎲 ${r.total} vs AC ${m.ac} · miss`, "miss"); audio.sfx("blip"); renderBar(); return r; }
-    const dice = rollN(r.crit ? 2 : 1, wp.die); let dmg = dice.s + dmgMod(), extra = ""; if (adv && CH().path === "archivist") { const f = rollN(r.crit ? 2 : 1, 4); dmg += f.s; extra = ` + footnote d4 [${f.r.join(",")}]`; } footArmed = false; dmg = Math.max(1, dmg);
+    const dice = rollN(r.crit ? 2 : 1, wp.die); let dmg = dice.s + dmgMod(), extra = ""; footArmed = false;
+    if (has("drilled") && wp.slot === "weapon" && wp !== item("fists")) { dmg += 2; extra += " +2 drilled"; } if (F.rage && ["stride", "nerve"].includes(wp.stat)) { dmg += 2; extra += " +2 hot"; }
+    if (F.mark && F.mark === m.id) { const x = roll(4); dmg += x; extra += ` + mark d4 [${x}]`; }
+    if (sneakDice() && F.sneakTurn !== F.turn && (adv || allyHere())) { const sd = rollN(sneakDice() * (r.crit ? 2 : 1), 6); dmg += sd.s; F.sneakTurn = F.turn; extra += ` + cheap shot ${sd.r.length}d6 [${sd.r.join(",")}]`; }
+    if (F.smite) { const sm2 = rollN(F.smite[0] * (r.crit ? 2 : 1), F.smite[1]); dmg += sm2.s; F.smite = 0; extra += ` + oathstrike [${sm2.r.join(",")}]`; } dmg = Math.max(1, dmg);
     m.hp -= dmg; m.hitT = 0.25; r.dmg = dmg; lastAttack.dmg = dmg; audio.sfx(r.crit ? "chime" : "click");
     addLog(`🎲 ${rs}${sg(r.bonus)} = ${r.total} vs AC ${m.ac} · ${r.crit ? "CRIT! " : "hit! "}${wp.name} ${r.crit ? "2" : ""}d${wp.die} [${dice.r.join(",")}]${dmgMod() ? sg(dmgMod()) : ""}${extra} = ${dmg}`, r.crit ? "crit" : "hit");
     popup(r.crit ? `🎲 20! CRIT · ${dmg} dmg` : `🎲 ${r.total} vs AC ${m.ac} · hit · ${dmg} dmg`, r.crit ? "crit" : "hit"); if (r.crit) host.toast(rpick(D.mobs.crits));
@@ -386,19 +509,14 @@ export function createRPG(ctx) {
     const it = item(id); const cm = sm(it.slot === "weapon" ? "#d8a64a" : it.slot === "use" ? "#7fc8a0" : "#a8c8e8", { emissive: "#fff2a8", emissiveIntensity: 0.35 }); const b = new THREE.Mesh(G("loot", () => new THREE.OctahedronGeometry(0.16, 0)), cm); b.position.y = 0.4; g.add(b);
     const d = { g, b, id, lx: (ch ? ch.lx : IX) + m.g.position.x, lz: (ch ? ch.lz : IZ) + m.g.position.z, taken: false, key: (!ch && m.boss && inst.id) ? preBossKey(inst.id) : undefined }; (ch ? ch.rpg.drops : inst.drops).push(d); addLog(`💎 The ${m.name} dropped something: ${it.name}`, "loot"); return d; }
   function takeDrop(d) { if (d.taken) return; d.taken = true; d.g.visible = false; if (d.key) { S.world.loot[d.key] = new Date().toISOString(); save(); } giveItem(d.id); lootPanel(d.id, "✋ You pick up:"); }
-  function hurt(n, by) { const c = CH(); if (!c || koBusy) return; c.hp = Math.max(0, c.hp - n); hurtEl.classList.remove("on"); void hurtEl.offsetWidth; hurtEl.classList.add("on"); save(); renderBar(); if (c.hp <= 0) knockout(by); }
-  function mobAttack(m) { const r = resolveAttack(m.atk, ac(), false); m.n++;
-    if (m.boss && m.def.special && m.n % m.def.special.every === 0) { const sp = m.def.special, d = roll(20), b = checkBonus(sp.stat), tot = d + b, ok = tot >= sp.dc, dm = rollN(sp.dice[0], sp.dice[1]).s + m.dmgB, got = ok ? Math.floor(dm / 2) : dm;
+  function hurt(n, by) { const c = CH(); if (!c || koBusy) return; if (c.tmp > 0) { const a = Math.min(c.tmp, n); c.tmp -= a; n -= a; } c.hp = Math.max(0, c.hp - n); hurtEl.classList.remove("on"); void hurtEl.offsetWidth; hurtEl.classList.add("on"); save(); renderBar(); if (c.hp <= 0) knockout(by); }
+  function mobAttack(m) { const r = resolveAttack(m.atk, ac(), !!F.allinFoes); m.n++;
+    if (m.boss && m.def.special && m.n % m.def.special.every === 0) { const sp = m.def.special, d = roll(20), b = checkBonus(sp.stat, false, true), tot = d + b, ok = tot >= sp.dc, dm = rollN(sp.dice[0], sp.dice[1]).s + m.dmgB, got = ok ? Math.floor(dm / 2) : dm;
       addLog(`🌪 ${sp.name}! ${sp.text} ${D.stats.find((s) => s.id === sp.stat).name} save ${d}${sg(b)} = ${tot} vs DC ${sp.dc} · ${ok ? "half" : "full"} damage: ${got}`, ok ? "miss" : "ouch"); popup(`🌪 ${sp.name} · ${got} dmg`, "ouch"); hurt(got, m.name); return; }
     if (!r.hit) { addLog(`${m.icon} ${m.name} rolls ${r.d20}${sg(m.atk)} = ${r.total} vs your AC ${r.ac} · misses`, "miss"); return; }
-    const dm = Math.max(1, rollN(r.crit ? 2 : 1, m.die).s + m.dmgB); addLog(`${m.icon} ${m.name} rolls ${r.d20}${sg(m.atk)} = ${r.total} vs AC ${r.ac} · ${rpick(m.def.hitText)} (−${dm} HP)`, "ouch"); audio.sfx("flump"); hurt(dm, m.name); }
-  function useAbility(target) { const c = CH(); if (!transformed || !c || koBusy) return false; if (battle.active() && !inBattleCall) return false; const ab = pathOf().ability; if (abilityUsed) { host.toast(`${ab.icon} ${ab.name} is used up until this scuffle ends (or a crystal recharges it).`); return false; }
-    if (ab.id === "footnote") { footArmed = true; abilityUsed = true; addLog(`📝 Footnote ready: your next attack or door check rolls two d20s.`, "sys"); popup("📝 Footnote ready", "hit"); }
-    else if (ab.id === "secondwind") { if (c.hp >= maxHp()) { host.toast("You're not out of breath yet."); return false; } const h = roll(8) + level(); c.hp = Math.min(maxHp(), c.hp + h); abilityUsed = true; addLog(`🌬 Second Wind: 1d8+${level()} = +${h} HP`, "heal"); popup(`🌬 +${h} HP`, "hit"); }
-    else if (ab.id === "gizmo") { const foes = allMobs().filter((m) => !m.dead && sameRoom(m)).sort((a, b) => dist(a) - dist(b)), m = target && !target.dead ? target : foes[0];
-      if (!m || (!target && dist(m) > 6)) { host.toast("No one nearby to fling a gizmo at."); return false; } const d = rollN(2, 6); m.hp -= d.s; m.hitT = 0.3; abilityUsed = true; addLog(`🪀 Gizmo: 2d6 [${d.r.join(",")}] = ${d.s} damage to the ${m.name}`, "hit"); popup(`🪀 ${d.s} dmg`, "hit"); if (m.hp <= 0) killMob(m); }
-    audio.sfx("pick"); save(); renderBar(); tipEvent("ability"); return true; }
-  const allMobs = () => { const out = []; if (inst.active) inst.mobs.forEach((m) => out.push(m)); else chunks.forEach((ch) => ch.rpg?.mobs.forEach((m) => out.push(m))); return out; };
+    let dm = Math.max(1, rollN(r.crit ? 2 : 1, m.die).s + m.dmgB), why = ""; if (F.rage) { dm = Math.max(1, Math.floor(dm / 2)); why = " (halved: running hot)"; } else if (has("dodge") && !F.dodged) { F.dodged = true; dm = Math.max(1, Math.floor(dm / 2)); why = " (halved: rolled with it)"; }
+    addLog(`${m.icon} ${m.name} rolls ${r.d20}${sg(m.atk)} = ${r.total} vs AC ${r.ac} · ${rpick(m.def.hitText)} (−${dm} HP${why})`, "ouch"); audio.sfx("flump"); hurt(dm, m.name); }
+  const allMobs = () => { const out = []; if (inst.active) inst.mobs.forEach((m) => out.push(m)); else chunks.forEach((ch) => ch.rpg?.mobs.forEach((m) => out.push(m))); gmMobs.forEach((m) => { if (!out.includes(m)) out.push(m); }); return out; };
 
   // ---------- v5b/v5c: battles (side view, wait-style turn gauges; module: annex-battle.js) ----------
   // Per-instance battleMode: "atb-turns" (current side-view wait-style turns) or "realtime" (existing open-world style).
@@ -421,8 +539,9 @@ export function createRPG(ctx) {
   // optional pose frames per avatar (data: avatars.static[].poses = { idle, attack, hurt, victory, hold }); missing ones fall back to CSS transforms
   const avatarPoses = (src) => { const e = (D?.avatars?.static || []).find((a) => a.src === src); return e?.poses && typeof e.poses === "object" ? e.poses : null; };
   const PATH_COL = { archivist: "#6a5a9a", wanderer: "#4a7a5a", tinkerer: "#9a6a3a" };
+  const CLS_COL = { warrior: "#6a6a7a", barbarian: "#8a4a3a", ranger: "#4a7a4a", rogue: "#4a4a5a", cleric: "#b89a4a", paladin: "#7a8ab8", sorcerer: "#c87a3a", warlock: "#5a3a7a" };
   function avatarUrl() { const c = CH(); return ext.avatarUrl?.() || c?.avatar || null; }
-  function heroInfo() { const c = CH(); return { name: c.name, hp: c.hp, maxHp: maxHp(), xp: c.xp, level: level(), color: PATH_COL[c.path] || "#5b7a4a", avatar: avatarUrl(), speedMod: mod(stat("stride")),
+  function heroInfo() { const c = CH(); return { name: c.name, hp: c.hp, maxHp: maxHp(), xp: c.xp, level: level(), color: CLS_COL[c.cls] || PATH_COL[c.path] || "#5b7a4a", avatar: avatarUrl(), speedMod: mod(stat(clsOf()?.primary || "stride")), fill: turnFill(),
     weaponIcon: WEAPON_ICON[c.gear.weapon] || item(c.gear.weapon)?.icon || "👊", weaponName: weapon().name, poses: avatarPoses(avatarUrl()),
     gearIcons: ["head", "armor"].map((k) => c.gear[k] && (GEAR_ICON[c.gear[k]] || (k === "head" ? "🎩" : "🦺"))).filter(Boolean) }; }
   // enemy portraits: each critter's own 3D model, photographed once into a small picture (cached per kind)
@@ -437,7 +556,7 @@ export function createRPG(ctx) {
   function freeArt() { if (artR) { try { artR.dispose(); artR.forceContextLoss(); } catch {} artR = null; } }
   function foeView(m) { return Object.assign(m, { art: foeArt(m) }); }
   function startBattle(foes, zone) { const I = inst.active ? D.instances[inst.id] : null, k = /:run:(\d+)$/.exec(zone || ""), stp = I?.steps && k ? I.steps[+k[1]] : null;
-    abilityUsed = false; footArmed = false; fightGroup = "battle:" + zone; battleZone = zone; battleBoss = foes.some((m) => m.boss || m.gmBoss); renderBar(); host.setFreeze?.(true); host.closePanel?.();
+    abilityUsed = false; footArmed = false; fightReset(); fightGroup = "battle:" + zone; battleZone = zone; battleBoss = foes.some((m) => m.boss || m.gmBoss); renderBar(); host.setFreeze?.(true); host.closePanel?.();
     battleList = foes.slice(); foes.forEach(foeView); freeArt(); const c = CH(); lastBattle = { zone, xp0: c.xp, lvl0: level(), logT0: logTotal, foes: foes.map((m) => m.name), at: Date.now(), outcome: null };
     const C = D.companion, palOn = companionActive();
     battle.start({ title: stp ? stp.name : isTraining() ? `🎓 Practice bout · ${I.short || I.name}` : `A scuffle in ${I ? I.short || I.name : "the Annex"}`, hero: heroInfo(), foes, speed: battleSpeed,
@@ -449,15 +568,16 @@ export function createRPG(ctx) {
   const battleRules = {
     hero: () => heroInfo(), alive: (m) => !m.dead && m.hp > 0, isKO: () => koBusy || !CH() || CH().hp <= 0,
     weaponName: () => `${weapon().name} · d${weapon().die}`,
-    attack: inB((m, armed) => { cd = 0; if (armed) footArmed = true; return attackMob(m, true); }),
+    attack: inB((m, armed) => { cd = 0; if (armed) footArmed = true; const r = attackMob(m, true); if (r && has("extra") && !koBusy) { const t = !m.dead ? m : (battle.foeList?.() || []).find((q) => !q.dead && q.hp > 0); if (t) { cd = 0; addLog("⚔️ Extra Attack!", "sys"); const r2 = attackMob(t, true); if (r2?.hit && !r.hit) return r2; } } return r; }),
     palStrike: inB((m) => { const C = D.companion, r = resolveAttack(C.atk, m.ac, false); if (!r.hit) { addLog(`${C.name} trips at the ${m.name} and misses.`, "miss"); return r; } const dmg = Math.max(1, rollN(1, C.die).s); m.hp -= dmg; m.hitT = 0.3; addLog(`${C.name} ${rpick(C.attackTexts).replace("{name}", m.name)} (−${dmg} HP)`, "hit"); if (m.hp <= 0) killMob(m); return Object.assign(r, { dmg }); }),
     palHeal: inB((p) => { const C = D.companion, h = p?.heal || C.heal || [1, 4, 1], c = CH(); if (!c) return { got: 0 }; const amount = Math.max(1, rollN(h[0], h[1]).s + (h[2] || 0)); const before = c.hp; c.hp = Math.min(maxHp(), c.hp + amount); const got = c.hp - before; save(); renderBar(); addLog(`${C.name} ${C.healText}  +${got} HP`, "heal"); return { got, amount }; }),
     palHit: inB((m, pal) => { const r = resolveAttack(m.atk, pal.ac ?? 11, false); if (!r.hit) { addLog(`${m.icon || ""} ${m.name} swings at ${pal.name} and misses.`, "miss"); return { hit: false, dmg: 0, text: `${m.name} misses ${pal.name}` }; } const dmg = Math.max(1, rollN(1, m.die).s + (m.dmgB || 0)); addLog(`${m.icon || ""} ${m.name} bonks ${pal.name} (−${dmg} HP)`, "ouch"); return { hit: true, dmg, text: `${m.name} bonks ${pal.name} (−${dmg} HP)` }; }),
+    abilities: () => abilityList(), afterAct: () => afterAct(), taunting: () => !!F.taunt, skipTurn: (m) => { if (m.skip > 0) { m.skip--; return true; } return false; },
     ability: () => { const ab = pathOf().ability; return { name: ab.name, short: ab.name.split(" (")[0], icon: ab.icon, used: abilityUsed, armed: footArmed, kind: ab.id === "footnote" ? "arm" : ab.id === "gizmo" ? "target" : "heal",
       hint: ab.id === "footnote" ? "next attack rolls twice" : ab.id === "gizmo" ? "2d6, no roll needed" : `heal 1d8+${level()}` }; },
-    useAbility: inB((target) => useAbility(target || undefined)),
-    items: () => { const c = CH(), n = {}; c.inv.forEach((id) => { const it = item(id); if (it?.slot === "use") n[id] = (n[id] || 0) + 1; }); return Object.entries(n).map(([id, count]) => { const it = item(id); return { id, name: it.name, icon: it.icon, count, hint: `heals ${it.heal[0]}d${it.heal[1]}+${it.heal[2]}` }; }); },
-    useItem: (id) => useItem(id),
+    useAbility: inB((target, id) => useAbility(target || undefined, id)),
+    items: () => { const c = CH(), n = {}; c.inv.forEach((id) => { const it = item(id); if (it?.slot === "use") n[id] = (n[id] || 0) + 1; }); return Object.entries(n).map(([id, count]) => { const it = item(id); return it.dmg ? { id, name: it.name, icon: it.icon, count, target: true, hint: `${it.dmg[0]}d${it.dmg[1]} damage, no roll` } : { id, name: it.name, icon: it.icon, count, hint: `heals ${it.heal[0]}d${it.heal[1]}+${it.heal[2]}` }; }); },
+    useItem: inB((id, m) => useItem(id, m)),
     fleeHint: () => { const b = mod(stat("stride")); return `d20${sg(b)} vs ${fleeDC()}`; },
     flee: () => { const d = roll(20), b = mod(stat("stride")), tot = d + b, dc = fleeDC(), ok = d !== 1 && (d === 20 || tot >= dc);
       addLog(`🏃 Flee: d20 ${d}${sg(b)} = ${tot} vs ${dc} · ${ok ? "you scarper back the way you came" : "you trip over a parcel. Still here!"}`, ok ? "sys" : "miss");
@@ -467,7 +587,7 @@ export function createRPG(ctx) {
     summary: (b) => { const c = CH(), got = c.xp - lastBattle.xp0, lines = [], L = level(); const loot = logs.slice(Math.max(0, logs.length - (logTotal - lastBattle.logT0))).filter((l) => l.kind === "loot" || l.kind === "quest").map((l) => l.t);
       lines.push(got > 0 ? `⭐ +${got} XP` : isTraining() ? "🎓 Practice: nothing counts in here." : "⭐ No XP this time (too easy for you)."); if (L > lastBattle.lvl0) lines.push(`⬆️ Level ${L}! Max HP ${maxHp()}.`);
       loot.forEach((t) => lines.push(t)); lines.push(`❤️ ${c.hp}/${maxHp()} HP · ${b.turns} turn${b.turns === 1 ? "" : "s"}`); return { title: b.foes.some((f) => f.m.boss) ? "🏆 Boss down!" : "🎉 Scuffle won!", lines }; },
-    onEnd: (outcome) => { lastBattle.outcome = outcome; host.setFreeze?.(false); fightGroup = null; battleBoss = false; footArmed = false; renderBar(); host.updateActions?.();
+    onEnd: (outcome) => { lastBattle.outcome = outcome; host.setFreeze?.(false); fightGroup = null; battleBoss = false; footArmed = false; if (outcome === "win" && has("clauses") && (clsOf()?.clauses || []).includes("signature") && CH()) { CH().tmp = Math.max(CH().tmp || 0, Math.max(1, mod(stat("luck"))) + level()); addLog(`✒️ Second Signature: ${CH().tmp} temporary HP.`, "heal"); } fightReset(); renderBar(); host.updateActions?.();
       if (outcome === "win") { try { audio.playSting?.("victory-jingle"); } catch (e) {} } // v5d2: short sting, then the area bed comes back
       if (outcome === "fled") { const sp = fleeSpot(); if (sp) ctx.placeRaw(sp); tbGraceUntil = performance.now() + 2500; host.toast("🏃 You got away. The critters stay where they are (and remember you)."); }
       else tbGraceUntil = performance.now() + 600;
@@ -487,28 +607,29 @@ export function createRPG(ctx) {
 
   // ---------- knockout: Grenshol to the rescue (never death) ----------
   function pickCons(force) { const L = D.knockout.consequences; if (force) return L.find((c) => c.id === force) || L[0]; const tot = L.reduce((a, c) => a + c.weight, 0); let u = rng() * tot; for (const c of L) { u -= c.weight; if (u < 0) return c; } return L[0]; }
-  function knockout(by, force) { if (koBusy || !CH()) return; if (isTraining()) return trainingKO(by); koBusy = true; const c = CH(), K = D.knockout, L = level(), lo = D.levels.xp[L - 1], loss = Math.floor((c.xp - lo) * K.xpLossPct);
+  function knockout(by, force, opts = {}) { if (koBusy || !CH()) return; if (isTraining()) return trainingKO(by); koBusy = true; const c = CH(), K = D.knockout, L = level(), lo = D.levels.xp[L - 1], loss = Math.floor((c.xp - lo) * K.xpLossPct);
     c.xp = Math.max(lo, c.xp - loss); let cons = pickCons(force), note = null, stolen = null;
-    if (inst.active && cons.id === "steal") cons = pickCons("lampshade"); // v5d2: Grenshol isn't in the instances, so nothing gets 'borrowed' in there
+    if (opts.trap) { c.xp += loss; } if ((inst.active || opts.trap) && cons.id === "steal") cons = pickCons("fog"); // v5d2: Grenshol isn't in the instances, so nothing gets 'borrowed' in there
     if (cons.id === "steal") { const cand = EQUIP.map((s) => c.gear[s]).filter((id) => id && !item(id).keep).sort((a, b) => (item(b).value || 0) - (item(a).value || 0));
-      if (cand.length) { stolen = cand[0]; const it = item(stolen); c.gear[it.slot] = null; { const alt = c.inv.filter((q) => item(q)?.slot === it.slot).sort((x, y) => (item(y).value || 0) - (item(x).value || 0))[0]; if (alt) { c.inv.splice(c.inv.indexOf(alt), 1); c.gear[it.slot] = alt; } } note = rpick(cons.note).replace("{item}", it.name.toLowerCase()); S.stash.push({ item: stolen, note, at: new Date().toISOString() }); } else cons = pickCons("lampshade"); }
-    if (cons.id !== "steal" && !(c.status || []).some((s) => s.id === cons.id)) (c.status ||= []).push({ id: cons.id, text: cons.status, statMod: cons.statMod || null });
+      if (cand.length) { stolen = cand[0]; const it = item(stolen); c.gear[it.slot] = null; { const alt = c.inv.filter((q) => item(q)?.slot === it.slot).sort((x, y) => (item(y).value || 0) - (item(x).value || 0))[0]; if (alt) { c.inv.splice(c.inv.indexOf(alt), 1); c.gear[it.slot] = alt; } } note = rpick(cons.note).replace("{item}", it.name.toLowerCase()); S.stash.push({ item: stolen, note, at: new Date().toISOString() }); } else cons = pickCons("fog"); }
+    if (opts.trap && K.trap?.noConsequence) cons = { id: "none", text: opts.rescue || "" }; else if (cons.id !== "steal" && !(c.status || []).some((s) => s.id === cons.id)) (c.status ||= []).push({ id: cons.id, text: cons.status, statMod: cons.statMod || null });
     const wasInst = inst.active ? inst.from : null; c.hp = 0; footArmed = false; abilityUsed = false; fightGroup = null;
-    lastKO = { by: by || null, loss, xp: c.xp, cons: cons.id, stolen, note, inInstance: !!wasInst, at: Date.now(), placed: false }; save(); renderBar();
-    addLog(`💫 Knocked out${by ? " by the " + by : ""}. −${loss} XP.`, "ouch"); audio.sfx("flump");
+    const lossN = opts.trap ? 0 : loss; lastKO = { by: by || null, loss: lossN, xp: c.xp, cons: cons.id, stolen, note, inInstance: !!wasInst, trap: !!opts.trap, keepsake: c.keepsake ? c.keepsake.state : null, at: Date.now(), placed: false }; fightReset(); save(); renderBar();
+    addLog(`💫 Knocked out${by ? " by the " + by : ""}.${lossN ? " −" + lossN + " XP." : ""}`, "ouch"); audio.sfx("flump");
     koT.textContent = K.fade; ko.classList.add("on");
-    setTimeout(() => { koT.textContent = (wasInst && K.carryInstance) || K.carry; if (wasInst) leaveInstance(true); const sp = wasInst ? hubSpawn(wasInst.i, wasInst.j, 0) : safeSpawn(S.lastCrystal); place(sp); lastKO.placed = true; lastKO.to = sp; c.hp = maxHp(); save(); renderBar(); host.updateActions(); }, 1400 * koSpeed);
+    setTimeout(() => { koT.textContent = (wasInst && K.carryInstance) || K.carry; if (wasInst) leaveInstance(true); const st = !wasInst && !opts.trap && ctx.stableSpawn ? ctx.stableSpawn() : null; const sp = wasInst ? hubSpawn(wasInst.i, wasInst.j, 0) : opts.trap ? (ctx.stationSpawn ? ctx.stationSpawn() : safeSpawn("home")) : st ? st.sp : safeSpawn(S.lastCrystal); place(sp); lastKO.placed = true; lastKO.to = sp; lastKO.stable = st ? st.id : null;
+      if (st) lastKO.stableName = st.name; if (opts.trap) koT.textContent = opts.rescue || koT.textContent; c.hp = maxHp(); save(); renderBar(); host.updateActions(); }, 1400 * koSpeed);
     setTimeout(() => { ko.classList.remove("on"); koBusy = false;
       panel("knockout", "💫 " + K.noteTitle, (pn) => { pn.dataset.cons = cons.id;
         if (stolen) { pn.appendChild(el("div", "o3-note o3-gnote", note)); pn.appendChild(el("p", "o3-small", `Your ${item(stolen).name} is gone. It's on the list in Grenshol's stash (see your sheet). Maybe you can win it back one day.`)); }
-        else pn.appendChild(el("p", null, cons.text));
-        pn.appendChild(el("p", "o3-small", `You lost ${loss} XP (never a whole level). HP back to full. You're ${wasInst ? "back by the party portal" : "by a crystal"}, safe and slightly rumpled.`)); }); }, 3600 * koSpeed); }
+        else if (cons.text) pn.appendChild(el("p", null, cons.text));
+        pn.appendChild(el("p", "o3-small", `${lossN ? `You lost ${lossN} XP (never a whole level). ` : "Nothing lost. "}HP back to full. ${wasInst ? "You're back by the door you came in." : opts.trap ? "You're back at the Door Station." : lastKO.stableName ? fill(D.knockout.openHalls || "You wake at {place}.").replace("{place}", lastKO.stableName) : "You're somewhere safe."} Your Keepsake is still with you.`)); }); }, 3600 * koSpeed); }
 
   // ---------- dice doors ----------
   function openDoor(dr) { if (!transformed) return nudge(true); const st = D.stats.find((s) => s.id === dr.P.stat), b = checkBonus(dr.P.stat, true);
     panel("door", "🎲 A dice door", (pn) => { pn.appendChild(el("p", "o3-riddle", D.doors.labels[dr.P.stat])); pn.appendChild(el("p", "o3-small", `${st.icon} ${st.name} check · DC ${dr.P.dc} · you roll d20${sg(b)}${pathOf().prof.includes(dr.P.stat) ? " (includes proficiency)" : ""}`));
       const out = el("p", "o3-riddleout"); const btn = el("button", "o3-btn", "🎲 Roll d20"); btn.dataset.rpg = "door-roll"; pn.append(btn);
-      if (CH().path === "archivist" && (!abilityUsed || footArmed)) { const fb = el("button", "o3-btn ghost small", footArmed ? "📝 Footnote armed" : "📝 Use Footnote (roll twice)"); fb.dataset.rpg = "door-foot"; fb.onclick = () => { if (!footArmed) { footArmed = true; abilityUsed = true; renderBar(); } fb.textContent = "📝 Footnote armed"; }; pn.append(fb); }
+      if (CH().path === "archivist" && (!footUsed[footKey()] || footArmed)) { const fb = el("button", "o3-btn ghost small", footArmed ? "📝 Footnote armed" : "📝 Use Footnote (roll twice, once per instance)"); fb.dataset.rpg = "door-foot"; fb.onclick = () => { if (!footArmed) { footArmed = true; footUsed[footKey()] = 1; renderBar(); } fb.textContent = "📝 Footnote armed"; }; pn.append(fb); }
       pn.appendChild(out); btn.onclick = () => { const r = doorRoll(dr); if (!r) { out.textContent = "The door is still sulking. Give it a second."; out.className = "o3-riddleout no"; return; } out.textContent = r.text; out.className = "o3-riddleout " + (r.ok ? "ok" : "no"); if (r.ok) { btn.disabled = true; setTimeout(() => host.closePanel(), 1100); } }; }); }
   function doorRoll(dr) { if (dr.open || Date.now() < dr.waitUntil) return null; const b = checkBonus(dr.P.stat, true), adv = footArmed, r1 = roll(20), r2 = adv ? roll(20) : null, d = adv ? Math.max(r1, r2) : r1, tot = d + b, ok = tot >= dr.P.dc; footArmed = false;
     const rs = adv ? `[${r1}, ${r2}]→${d}` : `${d}`, sn = D.stats.find((s) => s.id === dr.P.stat).name; lastDoor = { d20: d, bonus: b, total: tot, dc: dr.P.dc, ok, stat: dr.P.stat, key: dr.key };
@@ -556,7 +677,7 @@ export function createRPG(ctx) {
   function enterInstance(p) { const id = p.pp.instance; const Ienter = D.instances[id]; if (Ienter?.resetOnEnter) resetInstanceProgress(id); resetMinimap(); buildInstance(id); ext.onEnter?.(id, p); inst.id = id; inst.from = { i: p.i, j: p.j, id: p.pp.id, spawn: p.spawn || null }; party.instance = id; audio.sfx("zip");
     return host.threadWarp({ target: null, swap: () => { inst.active = true; if (D.instances[id].training) startTraining(); spawnInstance(id); fightGroup = null; abilityUsed = false; const I0 = D.instances[id], s = I0.size, sp0 = I0.spawn || { x: s / 2, z: s - 2, yaw: 0, y: 0 }; lastP = { x: IX + sp0.x, z: IZ + sp0.z };
       ctx.placeRaw({ x: IX + sp0.x, z: IZ + sp0.z, yaw: sp0.yaw || 0, y: sp0.y || 0 }); host.toast(D.instances[id].training ? `${D.instances[id].name} · ${D.instances[id].control ? "admin only (nothing here counts)" : "practice mode (nothing here counts)"}` : D.instances[id].solo ? `${D.instances[id].name} · solo · level ${(D.instances[id].levelRange || [D.instances[id].level || 1]).join("–")}` : `${D.instances[id].name} · party of ${partySize()}`); addLog(`🌀 Entered ${D.instances[id].name} (${D.instances[id].control ? "admin" : D.instances[id].training ? "practice" : D.instances[id].solo ? "solo" : "party of " + partySize()})`, "sys"); renderBar(); renderTip(); host.updateActions(); showMinimap(true); revealMap(curZone); drawMinimap(); } }); }
-  function leaveInstance(quiet) { if (!inst.active) return; const from = inst.from; const done = () => { if (battle.active()) battle.end("left"); const was = inst.id; if (isTraining()) endTraining(); inst.active = false; ext.onLeave?.(was); party.instance = null; inst.mobs.forEach((m) => m.g.parent?.remove(m.g)); inst.drops.forEach((d) => d.g.parent?.remove(d.g)); inst.mobs = []; inst.drops = []; fightGroup = null; if (D.instances[was]?.resetOnEnter) resetInstanceProgress(was); showMinimap(false); resetMinimap(); };
+  function leaveInstance(quiet) { if (!inst.active) return; const from = inst.from; const done = () => { if (battle.active()) battle.end("left"); const was = inst.id; if (isTraining()) endTraining(); inst.active = false; ext.onLeave?.(was); party.instance = null; inst.mobs.forEach((m) => m.g.parent?.remove(m.g)); inst.drops.forEach((d) => d.g.parent?.remove(d.g)); inst.mobs = []; inst.drops = []; fightGroup = null; if (D.instances[was]?.resetOnEnter) resetInstanceProgress(was); showMinimap(false); resetMinimap(); if (CH() && !D.instances[was]?.training) rest("full"); };
     if (quiet) { done(); return; } audio.sfx("zip"); host.threadWarp({ swap: () => { done(); place(from.spawn || hubSpawn(from.i, from.j, 0), from.spawn ? TR().backText : "Back in the Annex hallway. Just you again."); renderBar(); renderTip(); host.updateActions(); } }); }
   function bossDown(m) { if (isTraining()) { tipEvent("boss"); if (TR().grantLoot && m.def.loot) dropLoot(null, m, m.def.loot); inst.mobs.forEach((q) => { if (!q.dead) { q.dead = true; q.deadT = 0; } }); host.toast(`The ${m.name} ${m.def.dieText}`); return; }
     S.world.bosses[inst.id] = new Date().toISOString(); progress("boss", inst.id); afterBoss(inst.id); if (m.def.loot) dropLoot(null, m, m.def.loot); inst.mobs.forEach((q) => { if (!q.dead) { q.dead = true; q.deadT = 0; } }); save();
@@ -598,7 +719,8 @@ export function createRPG(ctx) {
       inst.drops.push({ g, b, id: pk.item, lx: IX + x, lz: IZ + z, taken: false, key }); }); }
   function runStepCheck(k) { const I = D.instances[inst.id]; if (!I?.steps) return; if (inst.mobs.some((q) => q.run === k && !q.dead)) return; S.world.mobs[runKey(k)] = new Date().toISOString(); save();
     const left = I.steps.filter((st, q) => st.type === "fight" && !S.world.mobs[runKey(q)]).length; setTimeout(() => host.toast(`✅ ${I.steps[k].name.split(" · ")[0]} cleared${left ? ` · ${left} fight${left > 1 ? "s" : ""} to go` : " · only the boss is left"}`), 500); }
-  function runRest(I) { const c = CH(); if (!c) return; c.hp = maxHp(); abilityUsed = false; save(); renderBar(); audio.sfx("pick"); host.toast(I.rest.text); addLog("🛋 Rested: HP full, ability recharged.", "heal"); }
+  function runRest(I) { const c = CH(); if (!c) return; rest("breather"); audio.sfx("pick"); host.toast(I.rest.text); addLog("🛋 A breather: HP full, per-breather abilities back (big ones wait for a Full Rest).", "heal"); }
+  function breather(text) { if (!transformed || !CH()) return false; rest("breather"); audio.sfx("pick"); addLog("🪑 A breather in a stable place: HP full, per-breather abilities back.", "heal"); if (text) host.toast(text); return true; }
   function runProgress(id = "starter") { const I = D?.instances[id]; if (!I?.steps) return null; const key = (k) => `run:${id}:${k}`; const fights = I.steps.map((st, k) => [st, k]).filter(([st]) => st.type === "fight");
     return { fights: fights.length, cleared: fights.filter(([, k]) => S.world.mobs[key(k)]).length, boss: !!S.world.bosses[id], rests: I.steps.filter((st) => st.type === "rest").length, pickups: (I.pickups || []).length, taken: (I.pickups || []).filter((_, q) => S.world.loot[`run:${id}:p${q}`]).length }; }
   function afterBoss(id) { const I = D.instances[id];
@@ -942,6 +1064,17 @@ export function createRPG(ctx) {
       box(foyer.x + 1.15, y0 + 2.15, z, 0.12, 1.5, 0.12, wood, g).rotation.z = -0.55;
       box(foyer.x - hw, y0 + 0.08, z, 0.5, 0.16, 0.5, woodD, g);
       box(foyer.x + hw, y0 + 0.08, z, 0.5, 0.16, 0.5, woodD, g);
+    })();
+    // v6: the Survey Corps outpost at the Grotto entrance (field table, logbook, lantern, tarp, sign)
+    (function addOutpost() {
+      const y = foyer.y || 0, x = foyer.x - 3.3, z = foyer.z + 1.2, OP = I.outpost || {};
+      box(x, y + 0.74, z, 1.3, 0.06, 0.7, wood, g); [[-0.58, -0.28], [0.58, -0.28], [-0.58, 0.28], [0.58, 0.28]].forEach(([a, b]) => box(x + a, y + 0.37, z + b, 0.06, 0.74, 0.06, woodD, g));
+      box(x - 0.2, y + 0.79, z, 0.42, 0.04, 0.3, sm("#efe6cf"), g); box(x - 0.2, y + 0.8, z, 0.02, 0.045, 0.3, sm("#7a2a1e"), g);
+      const lan = new THREE.Mesh(G("clantern", () => new THREE.CylinderGeometry(0.08, 0.1, 0.18, 8)), lamp); lan.position.set(x + 0.42, y + 0.87, z - 0.1); g.add(lan);
+      const tarp = box(x, y + 2.25, z, 1.9, 0.04, 1.3, sm("#5a6a3a", { roughness: 1 }), g); tarp.rotation.x = 0.12;
+      box(x - 0.9, y + 1.12, z - 0.6, 0.06, 2.25, 0.06, woodD, g); box(x + 0.9, y + 1.12, z - 0.6, 0.06, 2.25, 0.06, woodD, g);
+      cplane(M("t:opsign", () => plate(OP.sign || "SURVEY CORPS", OP.signSub || "Mine Mouth outpost · sign the log", { w: 720, h: 220, bg: "#2e3a2a", fg: "#f3efd8", accent: "#c9b46a" })), 1.1, 0.34, x, y + 1.75, z - 0.58, 0, g, { side: THREE.DoubleSide });
+      addBlk(x, z, 1.35, 0.75);
     })();
     // mid-way foundry / workshop in the gallery
     const gal = caveRoom(I, "gallery");
@@ -1301,7 +1434,7 @@ export function createRPG(ctx) {
     cplane(M("t:wtfsign", wtfSignTex), 1.15, 0.46, 0, 1.55, 0.02, 0, sg);
     const disc = hiddenDisc(g, x, 1.2, z, 0.7); disc.userData.run = openThreshold; disc.userData.maxD = 5;
     threshProp = { g, disc, lx: x, lz: z, label: (St.threshold && St.threshold.label) || "A slightly odd threshold" }; }
-  function openThreshold() { const Th = D.station?.threshold || {}; panel("threshold", Th.title || "A slightly odd threshold", (pn) => { pn.appendChild(el("p", "o3-riddle", Th.text || "The hall leans a little. The lamp is upside down. A sign says THIS WAY (NOT THIS WAY).")); pn.appendChild(el("p", "o3-small", Th.sub || "Weird, not dangerous. This is where the Station ends and the Backrooms begin.")); }); }
+  function openThreshold() { const Th = D.station?.threshold || {}; panel("threshold", Th.title || "A slightly odd threshold", (pn) => { pn.appendChild(el("p", "o3-riddle", Th.text || "The hall leans a little. The lamp is upside down. A sign says THIS WAY (NOT THIS WAY).")); pn.appendChild(el("p", "o3-small", Th.sub || "Weird, not dangerous. This is where the Station ends and the shifting halls begin.")); }); }
   function addStationBlockers() {
     const St = D.station, L = St?.layout || {}, sc = startSec.center, ch = chunks.get(ck(sc[0], sc[1])); if (!ch || ch._stationBlk || !St) return;
     ch._stationBlk = true; const ox = sc[0] * C, oz = sc[1] * C, F = L.facade || {}, Dk = L.desk || {}, Tr = L.train || {};
@@ -1447,7 +1580,7 @@ export function createRPG(ctx) {
       const dr = r.door; if (dr && dr.swing > 0 && dr.swing < 1) { dr.swing = Math.min(1, dr.swing + dt * 2.5); dr.g.scale.y = Math.max(0.001, 1 - dr.swing); if (dr.swing >= 1) dr.g.visible = false; }
       [r.box, r.box2].forEach((b) => { if (b && !b.opened) { b.spark.position.y = 0.75 + Math.sin(ts * 2) * 0.05; b.spark.rotation.y = ts * 2; } });
       if (r.portal) r.portal.disc.rotation.z = -ts * 1.5; r.drops.forEach((d) => { if (!d.taken) { d.b.rotation.y = ts * 2; d.b.position.y = 0.4 + Math.sin(ts * 3) * 0.05; } }); });
-    if (fighting) { const grp = fighting.ch ? fighting.ch.key : "inst"; if (grp !== fightGroup) { fightGroup = grp; abilityUsed = false; footArmed = false; renderBar(); } }
+    if (fighting) { const grp = fighting.ch ? fighting.ch.key : "inst"; if (grp !== fightGroup) { fightGroup = grp; abilityUsed = false; footArmed = false; fightReset(); renderBar(); } }
     if (transformed && CH() && !fighting && !busy && /:h$/.test(st.zone || "")) { regenT += dt; if (regenT > D.mobs.regenEvery && CH().hp < maxHp()) { regenT = 0; CH().hp++; save(); renderBar(); } } else regenT = 0;
   }
   function tickMob(m, dt, ts, px, pz, zone, busy, yaw) { const gp = m.g.position, B = m.big || 1; m.barG.rotation.y = yaw; const f = Math.max(0, m.hp / m.maxHp); m.fg.scale.x = Math.max(0.001, f) * 0.58; m.fg.position.x = -0.29 * (1 - f);
@@ -1489,13 +1622,18 @@ export function createRPG(ctx) {
     gmMobs.forEach((m) => !m.dead && out.push(m.hitMesh)); chunks.forEach((ch) => { if (!ch.rpg) return; ch.rpg.mobs.forEach((m) => !m.dead && out.push(m.hitMesh)); if (ch.rpg.portal) out.push(ch.rpg.portal.disc); }); return out; }
 
   // ---------- panels ----------
-  function openSheet() { const c = CH(); if (!c) return; const P = pathOf(), L = level(), w = weapon();
+  function openSheet() { const c = CH(); if (!c) return; const P = pathOf(), L = level(), w = weapon(), K = clsOf();
     panel("sheet", `📜 ${c.name}`, (pn) => {
-      pn.appendChild(el("p", "o3-small", `Level ${L} ${P.icon} ${P.name} · XP ${c.xp}${D.levels.xp[L] != null ? " / " + D.levels.xp[L] : " (max level)"} · proficiency ${sg(prof())}`));
+      pn.appendChild(el("p", "o3-small", `Level ${L} ${K.icon} ${K.name} · ${P.icon} ${P.name} background · d${K.die} hit die · saves ${K.saves.map((x) => D.stats.find((q) => q.id === x).name).join(" + ")} · XP ${c.xp}${D.levels.xp[L] != null ? " / " + D.levels.xp[L] : " (max level)"} · proficiency ${sg(prof())}`));
       pn.appendChild(el("p", null, `❤️ HP ${c.hp}/${maxHp()} · 🛡 AC ${ac()} · ⚔️ ${w.name}: d20${sg(atkBonus())} to hit, d${w.die}${sg(dmgMod())} damage`));
       const t = el("div", "o3-stats"); D.stats.forEach((s) => { const r = el("div", "o3-statrow"); r.dataset.stat = s.id; const v = stat(s.id);
         r.append(el("span", "o3-sname", `${s.icon} ${s.name}`), el("b", null, String(v)), el("span", "o3-sfinal", `${sg(mod(v))}${P.prof.includes(s.id) ? " · proficient " + sg(mod(v) + prof()) : ""}`), el("span", "o3-small o3-sabout", s.about)); t.appendChild(r); }); pn.appendChild(t);
-      pn.appendChild(el("p", null, `${P.ability.icon} ${P.ability.name}${abilityUsed ? " (used this scuffle)" : ""}: ${P.ability.text}`));
+      if (c.keepsake) pn.appendChild(el("p", "o3-note o3-ks", `${c.keepsake.icon || "✨"} Keepsake: ${c.keepsake.name}. Keep it close. It's never lost in a fight.`));
+      const rs = Object.entries(K.resources || {}).filter(([id]) => resMax(id) > 0).map(([id, r]) => `${r.icon} ${r.name} ${resNow(id)}/${resMax(id)} (${r.recharge === "breather" ? "back each Breather" : r.breatherGain ? "+" + r.breatherGain + " per Breather, all at a Full Rest" : "back at a Full Rest"})`);
+      if (rs.length) pn.appendChild(el("p", "o3-small", rs.join(" · "))); if (c.tmp) pn.appendChild(el("p", "o3-small", `✒️ Temporary HP: ${c.tmp}`));
+      const fl = el("div", "o3-feats"); (K.features || []).filter((f) => f.lvl <= Math.max(L, 5)).forEach((f) => fl.appendChild(el("div", "o3-note" + (f.lvl > L ? " o3-locked" : ""), `${f.lvl > L ? "🔒 L" + f.lvl + " · " : ""}${f.name}: ${f.text}`))); pn.appendChild(fl);
+      if (K.later) pn.appendChild(el("p", "o3-small", `Later: ${K.later}`));
+      pn.appendChild(el("p", "o3-small", `${P.icon} ${P.name}: ${P.perk || P.ability.text} · ⏱ turn gauge ${turnFill().toFixed(1)}s (from your ${D.stats.find((q) => q.id === K.primary).name})`));
       if (D.companion) { const on = companionOn(); pn.appendChild(el("p", "o3-small", D.companion.blurb)); const tb = el("button", "o3-btn" + (on ? "" : " ghost"), on ? D.companion.toggleOn : D.companion.toggleOff); tb.dataset.rpg = "companion-toggle"; tb.onclick = () => { setCompanion(!companionOn()); host.closePanel(); openSheet(); }; pn.appendChild(tb); }
       if ((c.status || []).length) pn.appendChild(el("p", "o3-small", "Status: " + c.status.map((s) => s.text).join(" · ")));
       statPick(pn);
@@ -1523,7 +1661,7 @@ export function createRPG(ctx) {
     buildBoard(); buildStation();
     const sc = startSec.center; buildCircle(sc[0] * C + 5.0, sc[1] * C + 12.0, 0, "start"); if (OV) buildCircle(OV.x0 + 3.2, OV.z1 - 1.6, OV.y, "overlook"); buildOverlookTraining();
     chunks.forEach((ch) => onCell(ch)); refreshBlockers(); }
-  const ready = fetch("data/annex-rpg.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) { D = d; init(); } return !!d; }).catch(() => false);
+  const ready = fetch("data/annex-rpg.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) { D = d; if (S.character) { migrate(S.character); save(); } init(); } return !!d; }).catch(() => false);
 
   const roomLabel = (z) => { const I = D?.instances[inst.id]; if (I?.layout === "run" || I?.layout === "cave") { const k = /:run:(\d+)$/.exec(z || curZone || ""); const stp = k ? I.steps[+k[1]] : null; if (stp) return `${I.short || I.name} · ${stp.name}`; if (I.layout === "cave") { const rm = caveRooms(I).find((r) => caveZone(r) === (z || curZone)); return `${I.short || I.name} · ${rm ? rm.label : "the mouth"}`; } return `${I.short || I.name} · the entrance`; } if (I?.solo) return `${I.name} · solo · level ${I.level}`; return roomLabel0(); };
   const roomLabel0 = () => `${D?.instances[inst.id]?.name || "An instance"} · ${isControl() ? "admin only · nothing here counts" : isTraining() ? "practice (nothing here counts)" : "party of " + partySize()}`;
@@ -1536,8 +1674,14 @@ export function createRPG(ctx) {
     ready: () => ready, loaded: () => !!D, seed, force: (arr) => { forced.length = 0; forced.push(...arr); }, roll, rollN, mod, resolveAttack: (bonus, a, adv) => resolveAttack(bonus, a, adv),
     state: () => { const c = CH(); return { transformed, inAnnex, hasChar: !!c, char: c && JSON.parse(JSON.stringify(c)), level: c ? level() : 0, maxHp: c ? maxHp() : 0, ac: c ? ac() : 0, atk: c ? atkBonus() : 0, prof: c ? prof() : 0,
       quests: JSON.parse(JSON.stringify(S.quests)), stash: S.stash.slice(), world: JSON.parse(JSON.stringify(S.world)), counters: JSON.parse(JSON.stringify(S.counters)), lastCrystal: S.lastCrystal, flags: { ...S.flags },
-      inInstance: inst.active, instance: inst.id, partySize: partySize(), urlParty, party: JSON.parse(JSON.stringify(party)), lastAttack, lastKO, lastLevelUp, lastDoor, nudges, inTraining: isTraining(), trainXP, tip: tipIdx, tipShown: !tipEl.hidden, sandboxOn: sandboxAllowed(), sandboxUsed, sbParty, training: { ...TR(), tips: undefined, portals: undefined }, koBusy, footArmed, abilityUsed, log: logs.slice(-8).map((l) => l.t), barShown: !bar.hidden, cd, openKind }; },
-    create: (b) => createChar({ method: "array", ...b }), transform: () => transform(false), reset: () => { S = blank(); save(); transformed = false; setPlayerName(null); renderBar(); },
+      inInstance: inst.active, instance: inst.id, partySize: partySize(), urlParty, party: JSON.parse(JSON.stringify(party)), lastAttack, lastKO, lastLevelUp, lastDoor, nudges, inTraining: isTraining(), trainXP, tip: tipIdx, tipShown: !tipEl.hidden, sandboxOn: sandboxAllowed(), sandboxUsed, sbParty, training: { ...TR(), tips: undefined, portals: undefined }, koBusy, footArmed, abilityUsed, cls: c ? c.cls : null, res: c ? Object.fromEntries(Object.keys(clsOf()?.resources || {}).map((k) => [k, { now: resNow(k), max: resMax(k) }])) : null, fight: { ...F }, turnFill: c ? turnFill() : 0, abilities: c ? abilityList() : [], log: logs.slice(-8).map((l) => l.t), barShown: !bar.hidden, cd, openKind }; },
+    create: (b) => createChar({ method: "array", ...b }), transform: () => transform(false),
+    logs: (n = 12) => logs.slice(-n).map((q) => q.t), fight: () => JSON.parse(JSON.stringify(F)),
+    turnFill: () => (CH() && D ? turnFill() : null), res: (id) => ({ now: resNow(id), max: resMax(id) }), abilities: () => abilityList(), hasFeature: (f) => has(f), sheetText: () => { openSheet?.(); const p = document.querySelector(".o3-panel:not([hidden])"); return p ? p.innerText : ""; },
+    classes: () => D && { order: classIds(), list: CLS() }, useAbility: (id, mobId) => { const m = mobId ? findMob(mobId) : null; return useAbility(m || undefined, id); }, rest: (k) => rest(k), breather: (t) => breather(t), repick: (id) => repickClass(id),
+    migrate: (c) => migrate(c), canWear: (id) => canWear(id), equip: (id) => equip(id), give: (id) => giveItem(id, true), useItem: (id) => useItem(id),
+    keepsake: { info: () => CH()?.keepsake || null, next: (st, ev) => ksNext(st, ev), act: (ev, o) => ksAct(ev, o), trapped: () => ksTrapped(), config: () => KL() },
+    setFight: (o) => Object.assign(F, o || {}), knockoutTrap: (rescue) => knockout(null, null, { trap: true, rescue }), reset: () => { S = blank(); save(); transformed = false; setPlayerName(null); renderBar(); },
     plan: (pl) => rpgPlan(pl), scaled: (k, t) => { const s = scaled(k, t); delete s.def; return s; }, circle: (id = "start") => { const c = circles.find((q) => q.id === id); return c && { ...W3(c.x, c.y, c.z) }; },
     mobs: () => { const out = []; const f = (m) => { const w = mobWorldLocal(m); out.push({ id: m.id, kind: m.kind, name: m.name, hp: m.hp, maxHp: m.maxHp, ac: m.ac, atk: m.atk, dmgB: m.dmgB, xp: m.xp, dead: m.dead, state: m.state, zone: m.zone, boss: !!m.boss, y: w.y ?? m.g?.position?.y ?? 0, ...W3(w.x, w.y ?? m.g?.position?.y ?? 0, w.z) }); };
       chunks.forEach((ch) => ch.rpg?.mobs.forEach(f)); inst.mobs.forEach(f); gmMobs.forEach(f); return out.map((o) => ({ ...o, gm: String(o.id).startsWith("gm:") })); },
@@ -1572,7 +1716,16 @@ export function createRPG(ctx) {
   const api5 = { musicState: () => ({ inst: inst.active ? inst.id : null, fight: !!(fightGroup || battle.active()), boss: !!(battleBoss && battle.active()) }), ext, gmSpawn, gateWaystones, travelWaystone, waystoneList, enterInstance: (p) => enterInstance(p), leaveInstance: () => leaveInstance(), data: () => D, instId: () => (inst.active ? inst.id : null), isControl, partySize: () => partySize(),
     party: () => ({ id: party.id, members: party.members.map((m) => ({ ...m })), max: D?.party?.max || 3 }),
     setParty: (id, members) => { party.id = id || null; const mine = { id: host.me?.id || "me", me: true }; party.members = [mine, ...(members || []).filter((m) => m.id !== mine.id)].slice(0, D?.party?.max || 3); return party.members.length; },
-    lastPos: () => ({ ...lastP }), zone: () => curZone, sandboxOpen: () => openSandbox(), spawnHere: (k, t) => SB.spawn(k, t), statsFor: (k, t) => { const s = statsFor(k, t); if (s) delete s.def; return s; } };
+    lastPos: () => ({ ...lastP }), zone: () => curZone,
+    // v6 hooks used by annex.js (Grenshol help/carry, traps, stable places, Common Record, practice pad)
+    has: (f) => !!CH() && has(f), hpFrac: () => (CH() && transformed ? CH().hp / Math.max(1, maxHp()) : 1),
+    heal: (n) => { const c = CH(); if (!c || !transformed) return 0; const h0 = c.hp; c.hp = Math.min(maxHp(), c.hp + Math.max(1, n | 0)); save(); renderBar(); return c.hp - h0; },
+    doorFound: (id) => !!CH()?.discovered?.[id], discoverDoor: (id) => markDiscovered(id), giveItem: (id) => giveItem(id, true), breather: (t) => breather(t),
+    knockoutTrap: (rescue) => knockout(null, null, { trap: true, rescue }),
+    doorsSummary: () => (D?.station?.doors || []).map((d) => ({ id: d.id, name: d.theme?.name || d.id, open: doorIsOpen(d), where: d.dest?.type === "instance" ? "through the Door Station" : "" })),
+    practiceSwing: (ac) => { const c = CH(); if (!c) return null; if (!transformed) return "Step into your Annex self first (the crystal), then take a swing."; const wp = weapon(), r = resolveAttack(atkBonus(), ac, false), dd = [1, wp?.die || 4, 0];
+      const dmg = r.hit ? Math.max(1, rollN(dd[0] * (r.crit ? 2 : 1), dd[1]).s + (dd[2] || 0) + mod(stat(wp?.stat || "brawn"))) : 0;
+      const t = `🎯 ${r.d20}${r.bonus >= 0 ? "+" : ""}${r.bonus} = ${r.total} vs AC ${ac} · ${r.crit ? "critical!" : r.hit ? "hit" : r.fumble ? "natural 1" : "miss"}${r.hit ? ` · ${dmg} damage` : ""} (practice: nothing counts)`; addLog(t, r.hit ? "hit" : "miss"); return t; }, sandboxOpen: () => openSandbox(), spawnHere: (k, t) => SB.spawn(k, t), statsFor: (k, t) => { const s = statsFor(k, t); if (s) delete s.def; return s; } };
   debug.runProgress = runProgress; debug.enterStarter = () => enterStarter(); debug.enterGrotto = () => enterGrotto(); debug.starterDoor = () => { const tp = sportals()[0]; return tp && { ...W3(tp.lx, 0, tp.lz), spawn: { ...W3(tp.spawn.x, 0, tp.spawn.z), yaw: tp.spawn.yaw } }; };
   debug.stationDoors = () => stationDoorList(); debug.stationDoor = (id) => stationDoorList().find((d) => d.id === (id || "sd-mailroom")); debug.departures = () => D.station && { ...D.station.departures, rows: stationRows(D.station), stations: stationRows(D.station), board: departBoard && W3(departBoard.lx, 0, departBoard.lz) }; debug.openDepartures = openDepartures;
   debug.stations = () => stationRows(D.station); debug.train = () => trainInfo(); debug.threshold = () => thresholdInfo(); debug.desk = () => deskInfo(); debug.stationLayout = () => ({ doors: stationDoorList(), train: trainInfo(), threshold: thresholdInfo(), desk: deskInfo() });
