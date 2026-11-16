@@ -5,12 +5,14 @@
 // Everything in the room is sandboxed like the Training Closet (instances.control.training = true): nothing you do in here is kept.
 import { createNet } from "./annex-net.js";
 import { createChat } from "./annex-chat.js";
+import { createParty } from "./annex-party.js";
 export function createControl(ctx) {
   const { THREE, root, host, el, rpg, OV, overlookSpots, box, mat, cplane, plate, canvasTex, planeGeo, C, C2, HW, AX, AZ, sections, sectionOf, startSec, chunks, boothCell, audio } = ctx;
   const isLocal = (() => { try { return /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname); } catch { return false; } })();
   const net = createNet({ sb: host.sb, me: host.me, demo: host.demo, isLocal });
   let D = null; rpg.ready.then((ok) => { if (ok) D = rpg.data(); });
   const chat = createChat({ net, host, el, rpg, demo: host.demo, sb: host.sb, me: host.me, D: () => D, inControl: () => rpg.instId() === "control" });
+  const partyMod = createParty({ THREE, root, host, el, rpg, net, AX, AZ });
   const CFG = () => D?.control || {};
   const T = { door: null, room: null, props: [], booth: null, pin: null, outPos: { x: startSec.center[0] * C + C2, z: startSec.center[1] * C + C2, y: 0 }, portal: null, portalAt: null, carry: null, flashes: [], dots: [], figs: new Map(), inAnnex: false, partyRefresh: null, invites: [], mapT: 0 };
   const hashCol = (id) => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return `hsl(${h % 360},65%,55%)`; };
@@ -198,7 +200,17 @@ export function createControl(ctx) {
     for (const a of A.static) { if (a.adminOnly && !net.isAdmin()) continue; if (host.demo ? a.demoAdmin && net.isAdmin() : nm.includes(a.match)) return a.src; } return null; }
   Object.assign(rpg.ext, { avatarUrl: () => { const u = myAvatar(); net.N.selfAvatar = u; return u; }, isAdmin: () => net.isAdmin(), buildControl, portalParty, onPartyGo,
     controlButtons: () => [btn("🛰 Control desk", "desk-btn", () => openDesk(), "o3-btn ghost")],
-    onLeave: (id) => { const P = rpg.party(); if (P.id && P.members.length > 1 && !D?.instances[id]?.training) { net.sendParty({ type: "leave", to: "*", party: P.id }); } if (!D?.instances[id]?.training) rpg.setParty(null, []); T.carry = null; } });
+    partyDoor: (pn, id, go) => partyMod.decorateDoor(pn, id, go),
+    prepareEnter: (id, p) => partyMod.prepareEnter(id, p),
+    onEnter: (id, p) => partyMod.onEnter(id, p),
+    afterEnter: (id, p) => partyMod.afterEnter(id, p),
+    onRunEvent: (type, payload) => partyMod.onLocalEvent(type, payload),
+    partySend: (m) => partyMod.sendGrotto(m),
+    partyOn: (f) => partyMod.onGrotto(f),
+    partyActive: () => partyMod.active(),
+    partyCode: () => partyMod.code(),
+    selfId: () => partyMod.selfId?.() || net.N.selfId,
+    onLeave: (id) => { partyMod.onLeave(id); const P = rpg.party(); if (P.id && P.members.length > 1 && !D?.instances[id]?.training) { net.sendParty({ type: "leave", to: "*", party: P.id }); } if (!D?.instances[id]?.training) rpg.setParty(null, []); T.carry = null; } });
 
   // ---------- teammates walking around (simple figures; the cartoon avatar billboard replaces the body later) ----------
   function makeFig(p) { const g = new THREE.Group(), col = hashCol(p.id); root.add(g);
@@ -212,7 +224,7 @@ export function createControl(ctx) {
     g.position.set(p.x, p.y || 0, p.z); return { g, tag, tex, body, bb, name: p.name }; }
   function dropFig(id) { const f = T.figs.get(id); if (!f) return; root.remove(f.g); f.g.traverse((o) => { if (o.isMesh) { o.geometry !== planeGeo && o.geometry.dispose(); o.material.map?.dispose?.(); o.material.dispose(); } }); T.figs.delete(id); }
   function syncFigs(dt) { const myInst = rpg.instId(), myParty = rpg.party().id, yaw = host.state().yaw, seen = new Set();
-    net.players().forEach((p) => { const show = T.inAnnex && (p.inst || null) === (myInst || null) && (!myInst || (p.party && p.party === myParty)); if (!show) return; seen.add(p.id);
+    net.players().forEach((p) => { const show = T.inAnnex && (p.inst || null) === (myInst || null) && (!myInst || (p.party && p.party === myParty)); if (!show || (partyMod.hidingNetFigs() && p.party && p.party === myParty)) return; seen.add(p.id);
       let f = T.figs.get(p.id); if (!f) { f = makeFig(p); T.figs.set(p.id, f); } const a = Math.min(1, dt * 6); f.g.position.x += (p.x - f.g.position.x) * a; f.g.position.z += (p.z - f.g.position.z) * a; f.g.position.y = p.y || 0; f.body.rotation.y = p.yaw || 0; f.tag.rotation.y = yaw; if (f.bb) f.bb.rotation.y = yaw; });
     [...T.figs.keys()].forEach((id) => { if (!seen.has(id)) dropFig(id); }); }
 
@@ -224,7 +236,7 @@ export function createControl(ctx) {
   function update(dt, ts, p, st) { if (!D) return; net.tick(dt); const inst = rpg.instId();
     if (!inst) T.outPos = { x: p.x, z: p.z, y: st.feet || 0 };
     if (T.portalAt && Math.hypot(p.x - T.portalAt.x, p.z - T.portalAt.z) > 6) { T.portal = null; T.portalAt = null; T.partyRender = null; }
-    net.track({ x: p.x, z: p.z, y: st.feet || 0, yaw: host.state().yaw, inst, portal: T.portal, party: rpg.party().id }); chat.update(p, inst, rpg.party().id);
+    net.track({ x: p.x, z: p.z, y: st.feet || 0, yaw: host.state().yaw, inst, portal: T.portal, party: rpg.party().id || partyMod.code() }); chat.update(p, inst, rpg.party().id); partyMod.update(dt, p, st);
     syncFigs(dt); T.mapT += dt; if (T.mapT > 0.4) { T.mapT = 0; renderChip(); if (inst === "control") { drawMap(mapCanvas, { big: true }); mapTex.needsUpdate = true; } }
     const B = T.booth; if (B?.inner && inst === "control") { if (B.spin) { B.yaw += dt * 0.6; applyBooth(); }
       const here = [...net.players().values()].filter((q) => !q.inst && B.cell && cellOfL(q.x, q.z).join() === B.cell.join());
@@ -241,5 +253,6 @@ export function createControl(ctx) {
     door: () => T.door && { x: AX + T.door.lx, z: AZ + T.door.lz, y: T.door.y, spawn: { x: AX + T.door.spawn.x, z: AZ + T.door.spawn.z, y: T.door.spawn.y, yaw: T.door.spawn.yaw } },
     openDoor, enterControl: () => (net.isAdmin() && T.door ? openDoor() : null), openDesk, boothOp, loadBooth, lookIntoBooth, moveProp, props: () => T.props.map((p) => ({ id: p.id, x: +p.g.position.x.toFixed(2), z: +p.g.position.z.toFixed(2) })),
     setPin: (x, z) => { T.pin = { x, z }; return T.pin; }, sendGM: (c) => net.sendGM(c), fakes: () => net.fakes(), demoPlace: net.demoPlace, demoRelease: net.demoRelease, mapDots: () => drawMap(document.createElement("canvas")), chat: chat.debug };
-  return { update, onArrive, onLeave, debug, net };
+  Object.assign(debug, { party: partyMod });
+  return { update, onArrive, onLeave, debug, net, party: partyMod };
 }

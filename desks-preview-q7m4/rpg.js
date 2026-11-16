@@ -9,6 +9,7 @@
 // v5c: slower 5e-inspired XP curve; Mailroom is 3 fights, rest, 3 fights, rest, boss (levels 1–3); Door Station in the arrival plaza with themed doors, a tidy train teaser, and a weird Backrooms threshold.
 // v5d: instance resets on re-entry; The Gently Declining Grotto (stage 1 cave crawl); instance minimap; Snorble, a solo-only companion dragon.
 import { createBattle } from "./annex-battle.js";
+import { attachGrottoRun } from "./annex-grotto-run.js";
 export function createRPG(ctx) {
   const { THREE, box, canvasTex, plate, cplane, root, host, el, audio, AX, AZ, C, C2, HW, R, walkable, hsh, ck, depthOf, startSec, sectionOf, place, refreshBlockers, chunks, fill, setPlayerName, deskName, hubSpawn, safeSpawn, OV } = ctx;
   let D = null; const pickH = (arr, u) => arr[Math.min(arr.length - 1, Math.floor(u * arr.length))];
@@ -27,9 +28,10 @@ export function createRPG(ctx) {
 
   // ---------- saved state ----------
   const KEY = "et-desks-annex-rpg-v1:" + (host.me?.id || "anon");
-  const blank = () => ({ v: 1, character: null, quests: {}, stash: [], world: { mobs: {}, doors: {}, loot: {}, bosses: {} }, counters: {}, flags: {}, lastCrystal: null });
+  const blank = () => ({ v: 1, character: null, quests: {}, stash: [], world: { mobs: {}, doors: {}, loot: {}, bosses: {} }, counters: {}, flags: {}, lastCrystal: null, cards: [] });
   let S = blank();
   try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && typeof s === "object") S = { ...blank(), ...s, world: { ...blank().world, ...(s.world || {}) } }; } catch {}
+  S.cards = Array.isArray(S.cards) ? S.cards : [];
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ ...S, ...(trainSnap || {}), updated_at: new Date().toISOString() })); } catch {} }; // in training only the pre-closet snapshot is ever written
   const CH = () => S.character;
 
@@ -508,7 +510,7 @@ export function createRPG(ctx) {
   function dropLoot(ch, m, id) { if (item(id)?.unique && ownsItem(id)) return null; const g = new THREE.Group(); g.position.set(m.g.position.x, m.g.position.y || 0, m.g.position.z); (ch ? ch.g : inst.g).add(g);
     const it = item(id); const cm = sm(it.slot === "weapon" ? "#d8a64a" : it.slot === "use" ? "#7fc8a0" : "#a8c8e8", { emissive: "#fff2a8", emissiveIntensity: 0.35 }); const b = new THREE.Mesh(G("loot", () => new THREE.OctahedronGeometry(0.16, 0)), cm); b.position.y = 0.4; g.add(b);
     const d = { g, b, id, lx: (ch ? ch.lx : IX) + m.g.position.x, lz: (ch ? ch.lz : IZ) + m.g.position.z, taken: false, key: (!ch && m.boss && inst.id) ? preBossKey(inst.id) : undefined }; (ch ? ch.rpg.drops : inst.drops).push(d); addLog(`💎 The ${m.name} dropped something: ${it.name}`, "loot"); return d; }
-  function takeDrop(d) { if (d.taken) return; d.taken = true; d.g.visible = false; if (d.key) { S.world.loot[d.key] = new Date().toISOString(); save(); } giveItem(d.id); lootPanel(d.id, "✋ You pick up:"); }
+  function takeDrop(d) { if (d.taken) return; d.taken = true; d.g.visible = false; if (d.key) { S.world.loot[d.key] = new Date().toISOString(); save(); ext.onRunEvent?.("loot", d.key); } giveItem(d.id); lootPanel(d.id, "✋ You pick up:"); }
   function hurt(n, by) { const c = CH(); if (!c || koBusy) return; if (c.tmp > 0) { const a = Math.min(c.tmp, n); c.tmp -= a; n -= a; } c.hp = Math.max(0, c.hp - n); hurtEl.classList.remove("on"); void hurtEl.offsetWidth; hurtEl.classList.add("on"); save(); renderBar(); if (c.hp <= 0) knockout(by); }
   function mobAttack(m) { const r = resolveAttack(m.atk, ac(), !!F.allinFoes); m.n++;
     if (m.boss && m.def.special && m.n % m.def.special.every === 0) { const sp = m.def.special, d = roll(20), b = checkBonus(sp.stat, false, true), tot = d + b, ok = tot >= sp.dc, dm = rollN(sp.dice[0], sp.dice[1]).s + m.dmgB, got = ok ? Math.floor(dm / 2) : dm;
@@ -674,12 +676,21 @@ export function createRPG(ctx) {
       const pl = el("p", "o3-small", `Party: ${n}/${D.party.max}${urlParty > 1 ? " (test party from the &party flag)" : party.members.length > 1 ? "" : ext.portalParty ? "" : " (solo for now; teammates join once Desks multiplayer is switched on)"}. The room inside scales to your party. Out in the Annex it's always just you.`); pl.dataset.rpg = "party-line"; pn.appendChild(pl);
       if (ext.portalParty) ext.portalParty(pn, p, () => { const k = clamp(Math.max(party.members.length, urlParty || 1), 1, D.party.max); pl.firstChild.textContent = `Party: ${k}/${D.party.max}. The room inside scales to your party. Out in the Annex it's always just you.`; });
       const go = el("button", "o3-btn", "🌀 Step through"); go.dataset.rpg = "portal-go"; go.onclick = () => { host.closePanel(); ext.onPartyGo?.(p); enterInstance(p); }; pn.appendChild(go); }); }
-  function enterInstance(p) { const id = p.pp.instance; const Ienter = D.instances[id]; if (Ienter?.resetOnEnter) resetInstanceProgress(id); resetMinimap(); buildInstance(id); ext.onEnter?.(id, p); inst.id = id; inst.from = { i: p.i, j: p.j, id: p.pp.id, spawn: p.spawn || null }; party.instance = id; audio.sfx("zip");
-    return host.threadWarp({ target: null, swap: () => { inst.active = true; if (D.instances[id].training) startTraining(); spawnInstance(id); fightGroup = null; abilityUsed = false; const I0 = D.instances[id], s = I0.size, sp0 = I0.spawn || { x: s / 2, z: s - 2, yaw: 0, y: 0 }; lastP = { x: IX + sp0.x, z: IZ + sp0.z };
-      ctx.placeRaw({ x: IX + sp0.x, z: IZ + sp0.z, yaw: sp0.yaw || 0, y: sp0.y || 0 }); host.toast(D.instances[id].training ? `${D.instances[id].name} · ${D.instances[id].control ? "admin only (nothing here counts)" : "practice mode (nothing here counts)"}` : D.instances[id].solo ? `${D.instances[id].name} · solo · level ${(D.instances[id].levelRange || [D.instances[id].level || 1]).join("–")}` : `${D.instances[id].name} · party of ${partySize()}`); addLog(`🌀 Entered ${D.instances[id].name} (${D.instances[id].control ? "admin" : D.instances[id].training ? "practice" : D.instances[id].solo ? "solo" : "party of " + partySize()})`, "sys"); renderBar(); renderTip(); host.updateActions(); showMinimap(true); revealMap(curZone); drawMinimap(); } }); }
+  let wantSoloRun = false;
+  function enterInstance(p) { const id = p.pp.instance; const Ienter = D.instances[id]; const prep = ext.prepareEnter?.(id, p);
+    if (Ienter?.resetOnEnter && !prep?.keepProgress) resetInstanceProgress(id);
+    if (id === "grotto" && grotto) {
+      const seed = prep?.seed;
+      if (seed != null || ext.partyActive?.() || ext.partyCode?.() || wantSoloRun) { grotto.plan(seed ?? ((Date.now() & 0x7fffffff) || 1), { party: !!(ext.partyActive?.() || ext.partyCode?.()) }); wantSoloRun = false; }
+      else grotto.clear();
+    }
+    resetMinimap(); buildInstance(id); if (id === "grotto") grotto?.afterBuild?.(Ienter); ext.onEnter?.(id, p); inst.id = id; inst.from = { i: p.i, j: p.j, id: p.pp.id, spawn: p.spawn || null }; party.instance = id; audio.sfx("zip");
+    return host.threadWarp({ target: null, swap: () => { inst.active = true; if (D.instances[id].training) startTraining(); spawnInstance(id); ext.afterEnter?.(id, p); fightGroup = null; abilityUsed = false; const I0 = D.instances[id], s = I0.size, sp0 = I0.spawn || { x: s / 2, z: s - 2, yaw: 0, y: 0 }; lastP = { x: IX + sp0.x, z: IZ + sp0.z };
+      ctx.placeRaw({ x: IX + sp0.x, z: IZ + sp0.z, yaw: sp0.yaw || 0, y: sp0.y || 0 }); const partyRun = id === "grotto" && !!grotto?.current() && !grotto.current().solo; host.toast(D.instances[id].training ? `${D.instances[id].name} · ${D.instances[id].control ? "admin only (nothing here counts)" : "practice mode (nothing here counts)"}` : partyRun ? `${D.instances[id].name} · party of ${Math.max(partySize(), 2)}` : D.instances[id].solo ? `${D.instances[id].name} · solo · level ${(D.instances[id].levelRange || [D.instances[id].level || 1]).join("–")}` : `${D.instances[id].name} · party of ${partySize()}`); addLog(`🌀 Entered ${D.instances[id].name} (${D.instances[id].control ? "admin" : D.instances[id].training ? "practice" : partyRun ? "party of " + Math.max(partySize(), 2) : D.instances[id].solo ? "solo" : "party of " + partySize()})`, "sys"); renderBar(); renderTip(); host.updateActions(); showMinimap(true); revealMap(curZone); drawMinimap(); } }); }
   function leaveInstance(quiet) { if (!inst.active) return; const from = inst.from; const done = () => { if (battle.active()) battle.end("left"); const was = inst.id; if (isTraining()) endTraining(); inst.active = false; ext.onLeave?.(was); party.instance = null; inst.mobs.forEach((m) => m.g.parent?.remove(m.g)); inst.drops.forEach((d) => d.g.parent?.remove(d.g)); inst.mobs = []; inst.drops = []; fightGroup = null; if (D.instances[was]?.resetOnEnter) resetInstanceProgress(was); showMinimap(false); resetMinimap(); if (CH() && !D.instances[was]?.training) rest("full"); };
     if (quiet) { done(); return; } audio.sfx("zip"); host.threadWarp({ swap: () => { done(); place(from.spawn || hubSpawn(from.i, from.j, 0), from.spawn ? TR().backText : "Back in the Annex hallway. Just you again."); renderBar(); renderTip(); host.updateActions(); } }); }
   function bossDown(m) { if (isTraining()) { tipEvent("boss"); if (TR().grantLoot && m.def.loot) dropLoot(null, m, m.def.loot); inst.mobs.forEach((q) => { if (!q.dead) { q.dead = true; q.deadT = 0; } }); host.toast(`The ${m.name} ${m.def.dieText}`); return; }
+    if (inst.id === "grotto" && grotto?.current()) { inst.mobs.forEach((q) => { if (!q.dead) { q.dead = true; q.deadT = 0; } }); grotto.onLocalWin("boss"); ext.onRunEvent?.("clear", "boss"); return; }
     S.world.bosses[inst.id] = new Date().toISOString(); progress("boss", inst.id); afterBoss(inst.id); if (m.def.loot) dropLoot(null, m, m.def.loot); inst.mobs.forEach((q) => { if (!q.dead) { q.dead = true; q.deadT = 0; } }); save();
     host.toast(`The ${m.name} ${m.def.dieText}`); }
 
@@ -717,7 +728,7 @@ export function createRPG(ctx) {
     (I.pickups || []).forEach((pk, q) => { const key = `run:${id}:p${q}`; if (S.world.loot[key] || !item(pk.item) || (item(pk.item).unique && ownsItem(pk.item))) return; const sg = R0.seg(pk.step), x = R0.x0 + 1 + ((q * 1.7) % (R0.W - 2)), z = sg.z0 + 1.2;
       const g = new THREE.Group(); g.position.set(x, 0, z); inst.g.add(g); const it = item(pk.item); const b = new THREE.Mesh(G("loot", () => new THREE.OctahedronGeometry(0.16, 0)), sm(it.slot === "use" ? "#7fc8a0" : "#a8c8e8", { emissive: "#fff2a8", emissiveIntensity: 0.35 })); b.position.y = 0.4; g.add(b);
       inst.drops.push({ g, b, id: pk.item, lx: IX + x, lz: IZ + z, taken: false, key }); }); }
-  function runStepCheck(k) { const I = D.instances[inst.id]; if (!I?.steps) return; if (inst.mobs.some((q) => q.run === k && !q.dead)) return; S.world.mobs[runKey(k)] = new Date().toISOString(); save();
+  function runStepCheck(k) { const I = D.instances[inst.id]; if (inst.id === "grotto" && grotto?.current() && inst.mobs.some((q) => q.runBeat === "golem")) { if (inst.mobs.some((q) => q.runBeat === "golem" && !q.dead)) return; grotto.onLocalWin("golem"); ext.onRunEvent?.("clear", "golem"); return; } if (!I?.steps) return; if (inst.mobs.some((q) => q.run === k && !q.dead)) return; S.world.mobs[runKey(k)] = new Date().toISOString(); save(); ext.onRunEvent?.("clear", k);
     const left = I.steps.filter((st, q) => st.type === "fight" && !S.world.mobs[runKey(q)]).length; setTimeout(() => host.toast(`✅ ${I.steps[k].name.split(" · ")[0]} cleared${left ? ` · ${left} fight${left > 1 ? "s" : ""} to go` : " · only the boss is left"}`), 500); }
   function runRest(I) { const c = CH(); if (!c) return; rest("breather"); audio.sfx("pick"); host.toast(I.rest.text); addLog("🛋 A breather: HP full, per-breather abilities back (big ones wait for a Full Rest).", "heal"); }
   function breather(text) { if (!transformed || !CH()) return false; rest("breather"); audio.sfx("pick"); addLog("🪑 A breather in a stable place: HP full, per-breather abilities back.", "heal"); if (text) host.toast(text); return true; }
@@ -1164,7 +1175,61 @@ export function createRPG(ctx) {
       });
     });
   }
+
+  function spawnGrottoRun(id, I) {
+    const rooms = caveRooms(I), n = Math.max(1, partySize());
+    const golemBeat = grotto.current()?.beats.find((b) => b.kind === "golem");
+    const gal = caveRoom(I, golemBeat?.roomId || "gallery");
+    if (gal && !grotto.current()?.done.golem) {
+      const rect = { x0: gal.x - gal.w / 2 + 0.6, x1: gal.x + gal.w / 2 - 0.6, z0: gal.z - gal.d / 2 + 0.5, z1: gal.z + gal.d / 2 - 0.5 };
+      const zone = caveZone(gal), y = gal.y || 0;
+      const list = golemBeat?.data?.mobs || [["pebble", 0], ["moss", 0]];
+      list.forEach(([kind, tier], q) => {
+        const sc0 = scaled(kind, tier); if (I.xpMult != null) sc0.xp = Math.max(1, Math.round(sc0.xp * I.xpMult));
+        const m = newMob(sc0, makeMobMesh(D.enemies[kind].mesh || kind, inst.g), gal.x - 1.0 + q * 1.4, gal.z - 0.6, rect, zone, null, "run:golem:" + q, y);
+        m.runBeat = "golem"; m.run = "golem"; inst.mobs.push(m);
+      });
+    }
+    const br = caveRoom(I, "boss");
+    if (br && !grotto.current()?.done.boss && !S.world.bosses[id]) {
+      const Gdata = grotto.data()?.boss || {}, bd = I.boss;
+      const boss = { kind: "boss", def: { ...bd, name: Gdata.name || bd.name, icon: Gdata.icon || "🧸" }, name: Gdata.name || bd.name, icon: Gdata.icon || "🧸", maxHp: bd.hp, ac: bd.ac, atk: bd.atk, die: bd.die, dmgB: 0, xp: bd.xp, speed: bd.speed, every: bd.every, boss: true, clvl: (I.levelRange || [I.level || 1])[1] || I.level || 1 };
+      const rect = { x0: br.x - br.w / 2 + 0.6, x1: br.x + br.w / 2 - 0.6, z0: br.z - br.d / 2 + 0.5, z1: br.z + br.d / 2 - 0.5 };
+      const m = newMob(boss, makeMobMesh(bd.mesh || "stalag", inst.g, 1.4), br.x - 1.1, br.z - 1.6, rect, caveZone(br), null, "run:boss", br.y || 0);
+      m.runBeat = "boss"; inst.mobs.push(m);
+    }
+  }
+  function startBeatFight(kind) {
+    if (!inst.active) return;
+    let foes = inst.mobs.filter((m) => !m.dead && (m.runBeat === kind || (kind === "boss" && m.boss)));
+    if (!foes.length) { spawnGrottoRun(inst.id, D.instances[inst.id]); foes = inst.mobs.filter((m) => !m.dead && (m.runBeat === kind || (kind === "boss" && m.boss))); }
+    if (foes.length) startBattle(foes, foes[0].zone);
+  }
+  function applyRunProgress(p) {
+    if (!p) return;
+    (p.cleared || []).forEach((k) => {
+      const key = typeof k === "number" ? runKey(k) : (String(k).startsWith("run:") ? k : runKey(k));
+      S.world.mobs[key] = S.world.mobs[key] || new Date().toISOString();
+      inst.mobs.filter((m) => m.run === k || m.runBeat === k).forEach((m) => { m.dead = true; m.hp = 0; if (m.g) m.g.visible = false; });
+    });
+    if (p.boss) { S.world.bosses[inst.id || "grotto"] = S.world.bosses[inst.id || "grotto"] || new Date().toISOString(); inst.mobs.filter((m) => m.boss).forEach((m) => { m.dead = true; m.hp = 0; if (m.g) m.g.visible = false; }); }
+    (p.loot || []).forEach((k) => { S.world.loot[k] = S.world.loot[k] || new Date().toISOString(); inst.drops.filter((d) => d.key === k && !d.taken).forEach((d) => { d.taken = true; if (d.g) d.g.visible = false; }); });
+  }
+  function roomAt(wx, wz) {
+    if (!inst.active) return null;
+    const I = D.instances[inst.id];
+    if (I?.layout === "cave") {
+      const x = wx - IX, z = wz - IZ;
+      return caveRooms(I).find((r) => Math.abs(x - r.x) <= r.w / 2 && Math.abs(z - r.z) <= r.d / 2) || null;
+    }
+    return { id: inst.id, label: I?.name };
+  }
+  function markGrottoBoss() {
+    S.world.bosses.grotto = new Date().toISOString(); progress("boss", "grotto"); afterBoss("grotto"); save(); ext.onRunEvent?.("boss", "grotto");
+  }
+
   function spawnCave(id, I) {
+    if (id === "grotto" && grotto?.current()) return spawnGrottoRun(id, I);
     const rooms = caveRooms(I);
     I.steps.forEach((st, k) => {
       const rm = rooms.find((q) => q.id === st.room) || rooms.find((q) => q.step === k);
@@ -1301,9 +1366,12 @@ export function createRPG(ctx) {
       const go = el("button", "o3-btn", pr.boss ? "🗡 Walk through again (the parcels will have opinions again)" : "🗡 Step into the Mailroom"); go.dataset.rpg = "starter-go"; go.onclick = () => { host.closePanel(); enterStarter(tp); }; pn.appendChild(go); }); }
   const enterStarter = (tp) => { tp = tp || sportals()[0]; if (!tp) return null; return enterInstance({ pp: { id: "sp-mailroom", instance: "starter" }, i: startSec.center[0], j: startSec.center[1], spawn: tp.spawn }); };
   function openGrotto(d) { if (!transformed) return nudge(true); const I = D.instances.grotto, pr = runProgress("grotto");
+    const stepIn = () => enterInstance({ pp: { id: d.def.id, instance: "grotto" }, i: startSec.center[0], j: startSec.center[1], spawn: d.spawn });
     panel("grotto", `🪨 ${I.name}`, (pn) => { pn.appendChild(el("p", "o3-riddle", I.door.label)); pn.appendChild(el("p", null, I.intro));
-      pn.appendChild(el("p", "o3-small", `Solo · content level ${I.levelRange.join("–")} · real XP and loot. The run resets when you step in. Unique finds stay found. Progress last visit: ${pr.cleared}/${pr.fights} fights, boss ${pr.boss ? "beaten" : "waiting"}, ${pr.taken}/${pr.pickups} pickups.`));
-      const go = el("button", "o3-btn", "🪨 Step into the Grotto"); go.dataset.rpg = "grotto-go"; go.onclick = () => { host.closePanel(); enterInstance({ pp: { id: d.def.id, instance: "grotto" }, i: startSec.center[0], j: startSec.center[1], spawn: d.spawn }); }; pn.appendChild(go); }); }
+      pn.appendChild(el("p", "o3-small", `Content level ${I.levelRange.join("–")} · real XP and loot. The run resets when you step in. Unique finds stay found. Progress last visit: ${pr.cleared}/${pr.fights} fights, boss ${pr.boss ? "beaten" : "waiting"}, ${pr.taken}/${pr.pickups} pickups.`));
+      if (ext.partyDoor) ext.partyDoor(pn, "grotto", () => {});
+      const go = el("button", "o3-btn", "🪨 Step into the Grotto"); go.dataset.rpg = "grotto-go"; go.onclick = () => { host.closePanel(); stepIn(); }; pn.appendChild(go);
+      const solo = el("button", "o3-btn ghost", "🪨 Begin a survey run (solo)"); solo.dataset.rpg = "grotto-solo"; solo.onclick = () => { wantSoloRun = true; host.closePanel(); stepIn(); }; pn.appendChild(solo); }); }
   const enterGrotto = () => { const d = stationDoors.find((q) => q.def.id === "sd-grotto"); if (!d) return null; return enterInstance({ pp: { id: "sd-grotto", instance: "grotto" }, i: startSec.center[0], j: startSec.center[1], spawn: d.spawn }); };
   // gates (solo, deep) -> per-character waystones
   function openGate(p) { maybeDiscover(p.pp); const I = D.instances[p.pp.instance], gt = p.pp, c = CH(), awake = !!c?.waystones?.[gt.waystone.id];
@@ -1352,8 +1420,18 @@ export function createRPG(ctx) {
     box(0, 1.05, -0.03, 1.15, 2.1, 0.04, doorM, g); box(0, 2.14, -0.02, 1.25, 0.08, 0.06, frameM, g); box(-0.62, 1.05, -0.02, 0.06, 2.1, 0.06, frameM, g); box(0.62, 1.05, -0.02, 0.06, 2.1, 0.06, frameM, g);
     box(0, 1.22, 0.0, 0.42, 0.07, 0.03, sm(open0 ? col.slot : hexDim(col.slot, 0.45), { metalness: 0.6, roughness: 0.3 }), g);
     if (def.theme.decor === "mail") box(0.32, 1.62, 0.025, 0.22, 0.18, 0.02, sm(open0 ? "#d8c878" : "#4a4030"), g); // stamp
-    if (def.theme.decor === "cave") { const rk = sm(open0 ? "#5a5348" : "#2a2620", { roughness: 1 }); box(-0.7, 1.05, -0.07, 0.26, 2.05, 0.24, rk, g); box(0.7, 1.05, -0.07, 0.28, 2.05, 0.24, rk, g); box(0, 2.12, -0.07, 1.42, 0.16, 0.24, rk, g);
-      const lan = new THREE.Mesh(G("doorlantern", () => new THREE.CylinderGeometry(0.06, 0.07, 0.14, 8)), sm(open0 ? "#e0b25a" : "#4a4030", { emissive: open0 ? "#c9a45a" : "#000000", emissiveIntensity: open0 ? 0.95 : 0 })); lan.position.set(-0.55, 1.85, 0.1); g.add(lan); }
+    if (def.theme.decor === "cave") {
+      const rk = sm(open0 ? "#5a5348" : "#2a2620", { roughness: 1 });
+      if (def.id === "sd-grotto") {
+        // flush in the wall like the office cubicle doors (t651u); no jutting rock columns
+        box(0, 2.16, -0.02, 1.28, 0.1, 0.05, rk, g);
+        const lan = new THREE.Mesh(G("doorlantern", () => new THREE.CylinderGeometry(0.05, 0.06, 0.12, 8)), sm(open0 ? "#e0b25a" : "#4a4030", { emissive: open0 ? "#c9a45a" : "#000000", emissiveIntensity: open0 ? 0.9 : 0 }));
+        lan.position.set(-0.46, 1.82, 0.02); g.add(lan);
+      } else {
+        box(-0.7, 1.05, -0.07, 0.26, 2.05, 0.24, rk, g); box(0.7, 1.05, -0.07, 0.28, 2.05, 0.24, rk, g); box(0, 2.12, -0.07, 1.42, 0.16, 0.24, rk, g);
+        const lan = new THREE.Mesh(G("doorlantern", () => new THREE.CylinderGeometry(0.06, 0.07, 0.14, 8)), sm(open0 ? "#e0b25a" : "#4a4030", { emissive: open0 ? "#c9a45a" : "#000000", emissiveIntensity: open0 ? 0.95 : 0 })); lan.position.set(-0.55, 1.85, 0.1); g.add(lan);
+      }
+    }
     const lockG = new THREE.Group(); lockG.position.set(0.28, 1.0, 0.05); g.add(lockG);
     box(0, 0.05, 0, 0.16, 0.2, 0.08, sm("#3a3a32", { metalness: 0.5, roughness: 0.4 }), lockG);
     const sh = new THREE.Mesh(G("lockring", () => new THREE.TorusGeometry(0.07, 0.018, 6, 12)), sm("#5a5a50", { metalness: 0.6, roughness: 0.35 })); sh.position.y = 0.16; lockG.add(sh);
@@ -1581,6 +1659,7 @@ export function createRPG(ctx) {
       const dr = r.door; if (dr && dr.swing > 0 && dr.swing < 1) { dr.swing = Math.min(1, dr.swing + dt * 2.5); dr.g.scale.y = Math.max(0.001, 1 - dr.swing); if (dr.swing >= 1) dr.g.visible = false; }
       [r.box, r.box2].forEach((b) => { if (b && !b.opened) { b.spark.position.y = 0.75 + Math.sin(ts * 2) * 0.05; b.spark.rotation.y = ts * 2; } });
       if (r.portal) r.portal.disc.rotation.z = -ts * 1.5; r.drops.forEach((d) => { if (!d.taken) { d.b.rotation.y = ts * 2; d.b.position.y = 0.4 + Math.sin(ts * 3) * 0.05; } }); });
+    if (inst.active && inst.id === "grotto") grotto?.update?.();
     if (fighting) { const grp = fighting.ch ? fighting.ch.key : "inst"; if (grp !== fightGroup) { fightGroup = grp; abilityUsed = false; footArmed = false; fightReset(); renderBar(); } }
     if (transformed && CH() && !fighting && !busy && /:h$/.test(st.zone || "")) { regenT += dt; if (regenT > D.mobs.regenEvery && CH().hp < maxHp()) { regenT = 0; CH().hp++; save(); renderBar(); } } else regenT = 0;
   }
@@ -1662,7 +1741,17 @@ export function createRPG(ctx) {
     buildBoard(); buildStation();
     const sc = startSec.center; buildCircle(sc[0] * C + 5.0, sc[1] * C + 12.0, 0, "start"); if (OV) buildCircle(OV.x0 + 3.2, OV.z1 - 1.6, OV.y, "overlook"); buildOverlookTraining();
     chunks.forEach((ch) => onCell(ch)); refreshBlockers(); }
-  const ready = fetch("data/annex-rpg.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) { D = d; if (S.character) { migrate(S.character); save(); } init(); } return !!d; }).catch(() => false);
+  let grotto = attachGrottoRun({
+    host, el, audio, AX, AZ, IX, IZ, ext, THREE,
+    CH, save, giveItem, item, partySize, seedFn: seed, roll,
+    openSheet, leaveInstance: () => leaveInstance(), rest, maxHp,
+    heal: (n) => { const c = CH(); if (!c) return 0; const h0 = c.hp; c.hp = Math.min(maxHp(), c.hp + Math.max(1, n | 0)); save(); renderBar(); return c.hp - h0; },
+    lastPos: () => lastP, extras: () => inst.extras, pushExtra: (x) => inst.extras.push(x),
+    caveRoom: (I, id) => caveRoom(I || D?.instances?.grotto, id), selfId: () => ext.selfId?.() || host.me?.id || "me",
+    startBeatFight, ensureItem: (id, rec) => { if (D && rec && !D.items[id]) D.items[id] = rec; },
+    markBoss: markGrottoBoss,
+  });
+  const ready = fetch("data/annex-rpg.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) { D = d; S.cards = Array.isArray(S.cards) ? S.cards : []; if (S.character) { migrate(S.character); save(); } init(); } return !!d; }).catch(() => false);
 
   const roomLabel = (z) => { const I = D?.instances[inst.id]; if (I?.layout === "run" || I?.layout === "cave") { const k = /:run:(\d+)$/.exec(z || curZone || ""); const stp = k ? I.steps[+k[1]] : null; if (stp) return `${I.short || I.name} · ${stp.name}`; if (I.layout === "cave") { const rm = caveRooms(I).find((r) => caveZone(r) === (z || curZone)); return `${I.short || I.name} · ${rm ? rm.label : "the mouth"}`; } return `${I.short || I.name} · the entrance`; } if (I?.solo) return `${I.name} · solo · level ${I.level}`; return roomLabel0(); };
   const roomLabel0 = () => `${D?.instances[inst.id]?.name || "An instance"} · ${isControl() ? "admin only · nothing here counts" : isTraining() ? "practice (nothing here counts)" : "party of " + partySize()}`;
@@ -1717,7 +1806,7 @@ export function createRPG(ctx) {
   const api5 = { musicState: () => ({ inst: inst.active ? inst.id : null, fight: !!(fightGroup || battle.active()), boss: !!(battleBoss && battle.active()) }), ext, gmSpawn, gateWaystones, travelWaystone, waystoneList, enterInstance: (p) => enterInstance(p), leaveInstance: () => leaveInstance(), data: () => D, instId: () => (inst.active ? inst.id : null), isControl, partySize: () => partySize(),
     party: () => ({ id: party.id, members: party.members.map((m) => ({ ...m })), max: D?.party?.max || 3 }),
     setParty: (id, members) => { party.id = id || null; const mine = { id: host.me?.id || "me", me: true }; party.members = [mine, ...(members || []).filter((m) => m.id !== mine.id)].slice(0, D?.party?.max || 3); return party.members.length; },
-    lastPos: () => ({ ...lastP }), zone: () => curZone,
+    lastPos: () => ({ ...lastP }), zone: () => curZone, applyRunProgress, roomAt, grotto: () => grotto,
     // v6 hooks used by annex.js (Grenshol help/carry, traps, stable places, Common Record, practice pad)
     has: (f) => !!CH() && has(f), hpFrac: () => (CH() && transformed ? CH().hp / Math.max(1, maxHp()) : 1),
     heal: (n) => { const c = CH(); if (!c || !transformed) return 0; const h0 = c.hp; c.hp = Math.min(maxHp(), c.hp + Math.max(1, n | 0)); save(); renderBar(); return c.hp - h0; },
@@ -1727,7 +1816,7 @@ export function createRPG(ctx) {
     practiceSwing: (ac) => { const c = CH(); if (!c) return null; if (!transformed) return "Step into your Annex self first (the crystal), then take a swing."; const wp = weapon(), r = resolveAttack(atkBonus(), ac, false), dd = [1, wp?.die || 4, 0];
       const dmg = r.hit ? Math.max(1, rollN(dd[0] * (r.crit ? 2 : 1), dd[1]).s + (dd[2] || 0) + mod(stat(wp?.stat || "brawn"))) : 0;
       const t = `🎯 ${r.d20}${r.bonus >= 0 ? "+" : ""}${r.bonus} = ${r.total} vs AC ${ac} · ${r.crit ? "critical!" : r.hit ? "hit" : r.fumble ? "natural 1" : "miss"}${r.hit ? ` · ${dmg} damage` : ""} (practice: nothing counts)`; addLog(t, r.hit ? "hit" : "miss"); return t; }, sandboxOpen: () => openSandbox(), spawnHere: (k, t) => SB.spawn(k, t), statsFor: (k, t) => { const s = statsFor(k, t); if (s) delete s.def; return s; } };
-  debug.runProgress = runProgress; debug.enterStarter = () => enterStarter(); debug.enterGrotto = () => enterGrotto(); debug.starterDoor = () => { const tp = sportals()[0]; return tp && { ...W3(tp.lx, 0, tp.lz), spawn: { ...W3(tp.spawn.x, 0, tp.spawn.z), yaw: tp.spawn.yaw } }; };
+  debug.runProgress = runProgress; debug.enterStarter = () => enterStarter(); debug.enterGrotto = () => enterGrotto(); debug.grotto = () => grotto; debug.grottoRun = () => grotto?.state?.(); debug.applyRunProgress = applyRunProgress; debug.roomAt = roomAt; debug.cards = () => (S.cards || []).slice(); debug.starterDoor = () => { const tp = sportals()[0]; return tp && { ...W3(tp.lx, 0, tp.lz), spawn: { ...W3(tp.spawn.x, 0, tp.spawn.z), yaw: tp.spawn.yaw } }; };
   debug.stationDoors = () => stationDoorList(); debug.stationDoor = (id) => stationDoorList().find((d) => d.id === (id || "sd-mailroom")); debug.departures = () => D.station && { ...D.station.departures, rows: stationRows(D.station), stations: stationRows(D.station), board: departBoard && W3(departBoard.lx, 0, departBoard.lz) }; debug.openDepartures = openDepartures;
   debug.stations = () => stationRows(D.station); debug.train = () => trainInfo(); debug.threshold = () => thresholdInfo(); debug.desk = () => deskInfo(); debug.stationLayout = () => ({ doors: stationDoorList(), train: trainInfo(), threshold: thresholdInfo(), desk: deskInfo() });
   debug.discover = (id) => markDiscovered(id || "gate-turn"); debug.openStationDoor = (id) => { const d = stationDoors.find((q) => q.def.id === (id || "sd-mailroom")); if (d) openStationDoor(d); return !!d; };

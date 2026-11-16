@@ -398,3 +398,41 @@ body.in-office{touch-action:none;overscroll-behavior:none;-webkit-text-size-adju
 .o3-finishers{margin:.4rem 0 .6rem}
 .o3-sash{padding-left:.2rem}
 .o3-sash[data-first="1"]{font-weight:600}
+
+
+/* Party HUD, avatar picker, stare / boss finale overlays.
+   Party card lives in the right column under the minimap so it never covers
+   the left joystick, the right jump button, or the action-button stack above it. */
+.o3-partyhud{position:absolute;left:auto;right:.65rem;top:calc(8.2rem + 132px + .4rem);bottom:auto;z-index:12;width:132px;max-width:min(132px,calc(100vw - 10rem));padding:.28rem .35rem;border-radius:10px;background:rgba(14,24,34,.82);color:#f3efd8;font:600 11px/1.25 system-ui;box-shadow:2px 2px 0 rgba(0,0,0,.35);pointer-events:auto}
+.o3-partyhud[hidden]{display:none!important}
+.o3-partyhud-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.o3-partyhud-code{opacity:.8;font-size:10px;letter-spacing:.06em}
+.o3-partygo{margin-top:.25rem;min-height:32px;width:100%;padding:.15rem .25rem;font-size:11px}
+.o3-cambtn{min-width:44px}
+.o3-partydoor{margin:.4rem 0}
+.o3-partyavs{display:flex;gap:.4rem;flex-wrap:wrap}
+.o3-partyav{display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.25rem;border:2px solid transparent;border-radius:8px;background:#1c1a16;color:#f3efd8;min-width:64px}
+.o3-partyav.on{border-color:#c9b45a;background:rgba(201,180,90,.15)}
+.o3-partyav img{image-rendering:pixelated;width:48px;height:48px}
+.o3-partyjoin{display:flex;gap:.35rem;align-items:center}
+.o3-partycode{width:6.5rem;text-transform:uppercase;letter-spacing:.12em;font:700 14px/1 system-ui;padding:.35rem .4rem;border-radius:8px;border:1px solid #6a5a3a;background:#111;color:#f3efd8}
+.o3-grotto-opts{display:grid;gap:.3rem;margin:.3rem 0 .6rem}
+.o3-grotto-ans{width:100%;margin:.35rem 0}
+.o3-stare{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(6,8,10,.72);padding:1.2rem}
+.o3-stare[hidden]{display:none!important}
+.o3-stare-card{max-width:26rem;width:100%;background:#1a1612;color:#f3efd8;border:2px solid #c9b45a;border-radius:16px;padding:1.1rem 1.2rem;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.o3-stare-card h2{margin:.2rem 0 .6rem;font-size:1.15rem}
+.o3-stare-text{font:500 1.05rem/1.45 system-ui;margin:.4rem 0 1rem}
+.o3-stare-num{font:800 4.2rem/1 system-ui;color:#e8d889;text-shadow:0 2px 0 #000}
+.o3-stare-hold{font-size:3rem}
+.o3-stare-skip{margin-top:.7rem}
+.o3-btn.on{border-color:#c9b45a;background:rgba(201,180,90,.16)}
+@media (pointer:coarse) and (max-height:560px){
+  .o3-partyhud{top:calc(4.9rem + 110px + .3rem);width:110px;max-width:110px}
+}
+@media (min-width:900px) and (min-height:700px){
+  .o3-partyhud{width:148px;max-width:148px;top:calc(8.2rem + 148px + .45rem)}
+}
+@media (max-width:480px){
+  .o3-stare-num{font-size:3.4rem}
+}

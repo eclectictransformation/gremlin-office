@@ -1,10 +1,10 @@
 // Desks service worker: caches the app shell ONLY.
 // Never caches Supabase (API, auth, storage/signed photo URLs) or any other cross-origin request.
-const CACHE = "desks-shell-v21";
-const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "office3d.js", "annex.js", "annex-audio.js", "glimpse.js", "rpg.js", "control.js", "annex-net.js", "annex-chat.js", "annex-battle.js", "data/elsewhere-annex.json", "data/glimpse-world.json", "data/annex-rpg.json", "vendor/three.module.min.js", "manifest.webmanifest",
+const CACHE = "desks-shell-v22";
+const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "office3d.js", "annex.js", "annex-audio.js", "glimpse.js", "rpg.js", "control.js", "annex-net.js", "annex-chat.js", "annex-battle.js", "annex-party.js", "annex-grotto-run.js", "data/elsewhere-annex.json", "data/glimpse-world.json", "data/annex-rpg.json", "data/grotto-run.json", "vendor/three.module.min.js", "manifest.webmanifest",
   "annex-midi-player.js", "annex-scene-music.js", "data/annex-music.json", "data/annex-guide.json",
   "midi/annex-station.mid", "midi/backrooms-arrival.mid", "midi/backrooms-explore.mid", "midi/mailroom-explore.mid", "midi/mailroom-battle.mid",
-  "midi/grotto-explore.mid", "midi/grotto-battle.mid", "midi/grotto-boss.mid", "midi/deep-boss.mid", "midi/victory-jingle.mid", "midi/snorble-theme.mid",
+  "midi/grotto-explore.mid", "midi/grotto-battle.mid", "midi/grotto-boss.mid", "midi/deep-boss.mid", "midi/victory-jingle.mid", "midi/stare-fanfare.mid", "midi/snorble-theme.mid",
   "midi/office-theme.mid", "midi/cathouse-play.mid",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "assets/bryan-avatar.webp",
   "assets/gallery/tea-under-the-old-oak.webp", "assets/gallery/still-life-with-tea-and-small-visitors.webp",
@@ -26,7 +26,7 @@ self.addEventListener("fetch", (e) => {
       .catch(() => caches.match(req).then((m) => m || caches.match("index.html"))));
     return;
   }
-  if (SHELL.some((s) => url.pathname.endsWith(s.replace("./", "")) && s !== "./")) {
-    e.respondWith(caches.match(req).then((m) => m || fetch(req)));
+  if (url.pathname.includes("/assets/avatars/pixel/") || SHELL.some((s) => url.pathname.endsWith(s.replace("./", "")) && s !== "./")) {
+    e.respondWith(caches.match(req).then((m) => m || fetch(req).then((r) => { if (r.ok && url.pathname.includes("/assets/avatars/pixel/")) { const cp = r.clone(); caches.open(CACHE).then((c) => c.put(req, cp)); } return r; })));
   }
 });

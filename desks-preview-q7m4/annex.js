@@ -1490,6 +1490,7 @@ export function createAnnex(kit, data, host) {
   }
   const tmpQ = new THREE.Vector3();
   function render(renderer, cam, mainScene, dt, ts) {
+    if (!(G.active && GW && lens) && flipT <= 0) ctl?.party?.applyCamera?.(cam);
     if (G.active && GW && lens) {
       const U = lens.uniforms; U.uTime.value = ts; const far = cam.far, fov = cam.fov; cam.far = 220;
       if ((G.active === "tour" || G.active === "brief") && G.tour) { const tp = G.tour, s = tp.segs[Math.max(0, tp.idx)], v = s.v, k = Math.min(1, Math.max(0, (tp.t - s.t0) / s.d)), O = GW.origin;

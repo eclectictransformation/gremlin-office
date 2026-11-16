@@ -1,0 +1,698 @@
+{
+ "_about": "Elsewhere Annex: The Gently Declining Grotto, a ~15-minute seeded co-op (or solo-scaled) run. Content from Trevor's ideas (Nov 16, 2026) plus Bryan's campfire stare moment. Comedy stays charming; the cave stays moody. Placeholders marked TODO-TREVOR can be swapped without code changes. Original riddles only. No Backrooms language. No photo uploads.",
+ "enabled": true,
+ "targetMinutes": 15,
+ "timing": {
+  "customs": 2,
+  "setpiece": 2,
+  "riddle": 1.5,
+  "campfire": 2.5,
+  "golem": 2.5,
+  "boss": 3.5,
+  "_sumNote": "Suggested flow: customs 2 + two set pieces 4 + riddle 1.5 + campfire 2.5 + golem 2.5 + second riddle 1.5 + boss 3.5 ≈ 17.5 at a leisurely pace, about 15 if they don't linger."
+ },
+ "flow": [
+  "customs",
+  "setpiece",
+  "setpiece",
+  "riddle",
+  "campfire",
+  "golem",
+  "riddle",
+  "boss"
+ ],
+ "flowNote": "Fixed order for a readable 15-minute arc. The two set pieces and two riddles are drawn and shuffled from their pools using the run seed, so each run is different but both players share it.",
+ "battleRule": "local-copies-both-must-win",
+ "battleRuleAbout": "Each player fights their own copy in the existing turn-based battle. The room clears when both have won (solo: when you win). Shared mid-fight targeting (Golem facing, Fluffington same-turn snip) is approximated with sync windows, not a fully shared ATB field.",
+ "conditions": [
+  {
+   "id": "echo-cave",
+   "name": "Echo Cave",
+   "text": "Your last words come back a moment later, slightly more embarrassed than you left them.",
+   "mechanic": "flavor"
+  },
+  {
+   "id": "sticky-floor",
+   "name": "Sticky Floor",
+   "text": "The clay tugs at every step, like the cave would like you to stay for tea.",
+   "mechanic": "flavor"
+  },
+  {
+   "id": "glowworm-night",
+   "name": "Glowworm Night",
+   "text": "The ceiling is a slow green sky. Without a lantern, the next turn is a rumour.",
+   "mechanic": "flavor"
+  },
+  {
+   "id": "low-gravity",
+   "name": "Low Gravity",
+   "text": "Drips hesitate on their way down. So do you.",
+   "mechanic": "flavor"
+  }
+ ],
+ "bossMoods": [
+  {
+   "id": 1,
+   "name": "Dramatic",
+   "line": "He throws a small stitch over his shoulder like a cape that keeps falling off."
+  },
+  {
+   "id": 2,
+   "name": "Sleepy",
+   "line": "He announces a turn, yawns, and sometimes simply… doesn't take it."
+  },
+  {
+   "id": 3,
+   "name": "Vain",
+   "line": "He stops to smooth his fur. A button eye winks at itself."
+  },
+  {
+   "id": 4,
+   "name": "Paranoid",
+   "line": "He keeps peeking behind pillars that he is fairly sure were not there a moment ago."
+  },
+  {
+   "id": 5,
+   "name": "Poetic",
+   "line": "The insults arrive in rhyme, and he looks very pleased about it."
+  },
+  {
+   "id": 6,
+   "name": "Needy",
+   "line": "Compliment him and he may actually sew a little health back into you. He would like that."
+  }
+ ],
+ "nat": {
+  "1": {
+   "toast": "A pigeon drops from a hole that should not have a pigeon, steals your hat, and leaves.",
+   "title": "Hatless"
+  },
+  "20": {
+   "toast": "A tiny invisible bard plays two seconds of hype and is never seen again.",
+   "sting": "stare-fanfare",
+   "title": "Hyped"
+  }
+ },
+ "entryHall": {
+  "sign": "THE MINE MOUTH",
+  "signSub": "surveyors set up camp here",
+  "gear": {
+   "prompt": "🧥 Gear up",
+   "title": "Gear-up station",
+   "text": "A crate of borrowed straps and a scratched mirror. Open your pack and change what you're wearing. To become someone else entirely, leave and step into the stitched circle back at the Station."
+  },
+  "vendor": {
+   "prompt": "🧺 Sell a find",
+   "title": "Camp vendor",
+   "name": "Mickle, who keeps the kettle",
+   "text": "Mickle will take something you don't want and hand you a Fizzy Pocket Potion, no questions, no receipts. 'The cave already asked enough questions today.'",
+   "give": "potion"
+  },
+  "change": {
+   "prompt": "🧵 Change who you are",
+   "title": "Change character",
+   "text": "The stitched circle at the Door Station is what remakes you. Leave the mouth and step into it. Your camp here will wait."
+  },
+  "party": {
+   "prompt": "🤝 Start a run together",
+   "title": "Play together (test)"
+  }
+ },
+ "customs": {
+  "id": "customs",
+  "kind": "customs",
+  "room": {
+   "id": "customs",
+   "label": "Goblin Customs",
+   "type": "lobby"
+  },
+  "minutes": 2,
+  "title": "🛂 Goblin Customs",
+  "prompt": "🛂 Present your travel form",
+  "officer": [
+   "Snag the Stamp",
+   "Clerk Bog",
+   "Deputy Lint"
+  ],
+  "intro": [
+   "A folding table, a wooden stamp the size of a kettle, and a goblin in a cap that says INSPECTOR. 'Forms. Two halves. You do not fill in your own half. That would be cheating, and also boring.'",
+   "'Welcome to Goblin Customs, which is not a country, but has stamps, so.' The goblin licks a pencil. 'Each of you answers about the OTHER one. No peeking.'"
+  ],
+  "denied": [
+   "DENIED.",
+   "DENIED, with feeling.",
+   "The stamp comes down like a small verdict."
+  ],
+  "ok": [
+   "APPROVED, in a wobbly way. The goblin looks briefly sentimental, then professional again.",
+   "A damp stamp. You're in. Try not to drip on the form."
+  ],
+  "bribe": {
+   "prompt": "🧦 Bribe with a sock (if you have one)",
+   "ok": "The goblin pockets the sock with great dignity. 'This never happened, and also I will wear it later.'",
+   "need": "You do not have a sock. The goblin already knew."
+  },
+  "solo": "The goblin glances behind you, sees no one, and sighs. 'Fine. Fill both halves. Pretend you have a mysterious colleague. I do it all the time.'",
+  "questions": [
+   {
+    "id": "tea",
+    "q": "When they are tired, what do they actually want?",
+    "opts": [
+     "A quiet cup of something warm",
+     "A walk, no talking",
+     "To be handed a snack and not asked questions",
+     "To tell a long story first"
+    ]
+   },
+   {
+    "id": "map",
+    "q": "On a path that forks, who are they?",
+    "opts": [
+     "The one who opens the map",
+     "The one who says 'this way feels right'",
+     "The one who waits to see what you do",
+     "The one who suggests sitting down"
+    ]
+   },
+   {
+    "id": "tavern",
+    "q": "At a tavern, they order…",
+    "opts": [
+     "Whatever you are having",
+     "The special, with suspicion",
+     "Something they've had before and liked",
+     "The thing with the strangest name"
+    ]
+   },
+   {
+    "id": "dark",
+    "q": "In a dark cave, they are most likely to…",
+    "opts": [
+     "Count the drips to stay calm",
+     "Make a small joke",
+     "Reach for your hand and pretend it was the wall",
+     "Go first, badly, on purpose"
+    ]
+   }
+  ],
+  "need": 2
+ },
+ "setpieces": [
+  {
+   "id": "mushroom",
+   "kind": "puzzle",
+   "title": "The Mushroom of Opposite Size",
+   "room": {
+    "label": "A Mushroom With Opinions",
+    "type": "puzzle"
+   },
+   "minutes": 2,
+   "prompt": "🍄 Consider the mushroom",
+   "intro": "A pale glowcap the size of a stool sits in the path. One bite — figuratively; you only have to stand in the light — and you grow. The other side shrinks you. The ceiling ahead is too low for a giant, and the lever in the wall is behind a gap only a tiny person could crawl.",
+   "solo": "A second, smaller glowcap is already crushed and acting as a timer-stone. Stand on the giant plate to hold the ceiling; it will stay down for a few seconds so you can slip through as your smaller self.",
+   "hold": "The giant leans on the ceiling. It complains, but it holds.",
+   "needGiant": "The gap is open only while someone large is holding the ceiling.",
+   "ok": "The lever clicks. The ceiling remembers how to be a ceiling. You both return to regular size, slightly dustier.",
+   "bonk": "The giant bonks their head, in a historically accurate way."
+  },
+  {
+   "id": "echo-door",
+   "kind": "puzzle",
+   "title": "The Echo Door",
+   "room": {
+    "label": "The Echo Door",
+    "type": "puzzle"
+   },
+   "minutes": 2,
+   "prompt": "🚪 Listen to the door",
+   "intro": "A stone door with four runes. Each of you must pick one, in secret. If they match, the door is pleased. If they do not, it sighs and the runes change places.",
+   "solo": "The cave offers to echo your choice if you wait a moment. Pick once, then wait for your echo — or pick twice, carefully.",
+   "runes": [
+    "ᚠ",
+    "ᚢ",
+    "ᚦ",
+    "ᚨ"
+   ],
+   "runeNames": [
+    "cattle",
+    "aurochs",
+    "thorn",
+    "ash"
+   ],
+   "miss": [
+    "The door sighs. The runes shuffle themselves, a little dramatically.",
+    "A disappointed drip falls on the lintel."
+   ],
+   "hint3": "The door, very quietly: 'One of you is overthinking.'",
+   "ok": "The runes agree. The door, who has standards, lets you through."
+  },
+  {
+   "id": "blind-bridge",
+   "kind": "puzzle",
+   "title": "The Blind Guide Bridge",
+   "room": {
+    "label": "The Blind Guide Bridge",
+    "type": "puzzle"
+   },
+   "minutes": 2,
+   "prompt": "🛡 The bridge that isn't",
+   "intro": "A gap, and what might be a bridge if you could see it. It only shows in the polished lid of a Survey Corps shield. One of you holds the shield and guides. The other walks.",
+   "solo": "You prop the shield on a rock. A faint painted line appears, as if a previous surveyor got tired of explaining.",
+   "guide": "You hold the shield. Tell them where to step.",
+   "walk": "The bridge is a rumour in the metal. Listen.",
+   "fall": "You find the ledge, and a grumpy toll bat who would like a small apology and nothing else.",
+   "ok": "The far side is real, which is a relief for everyone involved, including the bat."
+  },
+  {
+   "id": "plates",
+   "kind": "puzzle",
+   "title": "Two Stones That Miss Each Other",
+   "room": {
+    "label": "The Twin Plates",
+    "type": "puzzle"
+   },
+   "minutes": 2,
+   "prompt": "🪨 The two plates",
+   "intro": "Two pressure plates, a body's-length apart, and a gate that wants them both. The cave, it seems, would like you to stand together without standing in the same place.",
+   "solo": "A sticky timer-stone will keep your first plate held for a few seconds if you step off it quickly.",
+   "ok": "Both stones agree you were here at the same time. The gate, who is not a romantic, opens anyway."
+  },
+  {
+   "id": "lantern-runes",
+   "kind": "puzzle",
+   "title": "The Unlit Reading",
+   "room": {
+    "label": "The Dark Reading",
+    "type": "puzzle"
+   },
+   "minutes": 2,
+   "prompt": "🏮 Hold the lantern",
+   "intro": "Runes on the far wall that only wake in lantern-light. One of you has to hold the light. The other has to get close enough to read. The lantern does not throw far if you both walk off with it.",
+   "solo": "A hook in the wall will hold the lantern for you, though it swings and is slightly judgemental.",
+   "held": "The lantern is up. The wall is trying to be read.",
+   "ok": "The runes decide they have been seen, and the way on stops being coy."
+  }
+ ],
+ "skull": {
+  "name": "The Sarcastic Skull",
+  "prompt": "💀 Ask the Sarcastic Skull for a hint",
+  "intro": "A skull on a small pillow of moss. It has seen better rooms. It will roll a d20 for you, once per riddle, each of you.",
+  "bands": {
+   "low": [
+    1,
+    5
+   ],
+   "nudge": [
+    6,
+    15
+   ],
+   "strong": [
+    16,
+    19
+   ],
+   "answer": [
+    20,
+    20
+   ]
+  },
+  "low": [
+   "Have you tried being smarter?",
+   "I too once believed thinking was optional.",
+   "A daring guess would at least be entertaining."
+  ],
+  "nudge": [
+   "You're facing the right wall, which is more than some people manage.",
+   "It's in the cave, obviously. Be more particular.",
+   "If it were a person, it would be slightly damp and very patient."
+  ],
+  "strong": [
+   "Closer. If you were a drip, you'd already have landed on it.",
+   "I shouldn't say, and I am about to almost say it."
+  ],
+  "answerPrefix": "Fine. It's ",
+  "answerSuffix": ". I apologise for the competence."
+ },
+ "riddles": [
+  {
+   "id": "moss-cup",
+   "q": "Twelve drips fill a cup. The cup is gone. The floor is dry. Where did the water go, if nobody drank?",
+   "answers": [
+    "moss",
+    "the moss",
+    "into the moss",
+    "moss drank it",
+    "the green"
+   ],
+   "nudge": "Look at what stays green in a dark hall.",
+   "strong": "The soft green carpet has been thirsty all morning.",
+   "minutes": 1.5
+  },
+  {
+   "id": "echo-twice",
+   "q": "In an echoing hall you clapped once and heard yourself twice. You clapped again and heard yourself not at all. What changed?",
+   "answers": [
+    "moss",
+    "a soft place",
+    "i stood in moss",
+    "covered the wall",
+    "a nook",
+    "overhang",
+    "under an overhang",
+    "the soft wall"
+   ],
+   "nudge": "Sound is particular about what it can bounce from.",
+   "strong": "You stepped somewhere that swallows a clap."
+  },
+  {
+   "id": "hot-lamp",
+   "q": "Two lamps face each other. One is lit. Why is the unlit lamp warmer?",
+   "answers": [
+    "just put out",
+    "it was just put out",
+    "recently lit",
+    "just blown out",
+    "it was lit a moment ago",
+    "still cooling",
+    "it was on"
+   ],
+   "nudge": "Heat is a kind of memory.",
+   "strong": "The dark lamp had a job a moment ago."
+  },
+  {
+   "id": "chalk-arrows",
+   "q": "A chalk arrow points left. An older chalk arrow points right. The wall between them is newer than both. Which way should you go?",
+   "answers": [
+    "through",
+    "forward",
+    "neither",
+    "the new wall",
+    "into the repair",
+    "through the wall",
+    "the repair",
+    "straight"
+   ],
+   "nudge": "The newest stone is trying to tell you something the arrows no longer can.",
+   "strong": "The arrows disagree because the way on was rebuilt between them."
+  },
+  {
+   "id": "soft-rock",
+   "q": "The soft rock is softer after you sit, and firmer after you leave. It is not a mood. What is it doing?",
+   "answers": [
+    "remembering warmth",
+    "taking your heat",
+    "warming",
+    "cooling after",
+    "holding heat",
+    "a sponge",
+    "giving heat back",
+    "compressing"
+   ],
+   "nudge": "It changes with you, then without you.",
+   "strong": "You lent it a little heat, and it is in the process of giving it back."
+  },
+  {
+   "id": "seven-stones",
+   "q": "The stone-kin count in piles. Three stones is a warning. Five stones is a meal. Seven were here this morning; four remain. What happened at noon?",
+   "answers": [
+    "a warning",
+    "warning",
+    "someone was warned",
+    "a warning was taken",
+    "three were used",
+    "they used a warning"
+   ],
+   "nudge": "Subtract like a careful cousin of Grumblepile.",
+   "strong": "Seven take away the warning-number leaves what you can still see."
+  },
+  {
+   "id": "smoking-lantern",
+   "q": "A pocket lantern smokes when you stand still and clears when you walk. It isn't broken. What is it telling you?",
+   "answers": [
+    "still air",
+    "bad air",
+    "a dead end",
+    "dead air",
+    "a still pocket",
+    "the air isn't moving",
+    "stale air"
+   ],
+   "nudge": "It is a conversation with the air, not with the wick.",
+   "strong": "When you stop, you are standing in air that has been standing too."
+  },
+  {
+   "id": "pool-letters",
+   "q": "Every drop that hits the pool writes a letter, then the letter fades. After a long watch, the same five letters keep returning. They are not a name. What are they spelling?",
+   "answers": [
+    "rings",
+    "ring",
+    "ripple",
+    "r i n g s"
+   ],
+   "nudge": "Watch the water, not the alphabet you hoped for.",
+   "strong": "The letters are only the shape the pool makes when it is spoken to."
+  },
+  {
+   "id": "heavy-dark",
+   "q": "The dark in this alcove is heavier than the dark in the hall, though both share a lamp. You can scoop the alcove's dark with a cup. What did you actually scoop?",
+   "answers": [
+    "cold",
+    "cold air",
+    "a cold pocket",
+    "cold draft",
+    "the cold",
+    "draft",
+    "heavy air"
+   ],
+   "nudge": "The lamp is not the only thing that can be gathered.",
+   "strong": "Your cup is full of the cold that settled here and would not leave."
+  },
+  {
+   "id": "two-shadows",
+   "q": "One lamp, two shadows. One of them does not wave back. Which one is safe to follow?",
+   "answers": [
+    "the one that waves",
+    "your own",
+    "mine",
+    "the one that moves with me",
+    "the one that matches",
+    "your shadow"
+   ],
+   "nudge": "One of them has been a stalagmite its whole life and is tired of being asked.",
+   "strong": "Follow the shadow that agrees with your hand."
+  },
+  {
+   "id": "quiet-drips",
+   "q": "The drips keep time until they don't. When they stop, the cave is not finished raining. What are you standing under?",
+   "answers": [
+    "overhang",
+    "a ledge",
+    "the lip",
+    "shelter",
+    "an overhang",
+    "a dry lip",
+    "the shelf"
+   ],
+   "nudge": "The rain didn't end. Your ceiling did.",
+   "strong": "A ledge is catching what the hall would like to drop on you."
+  },
+  {
+   "id": "lamp-yesterday",
+   "q": "A lantern with no flame still marks the way, so long as someone carried it here yesterday. What is it showing you?",
+   "answers": [
+    "soot",
+    "a scorch",
+    "scorch mark",
+    "the soot",
+    "a burn",
+    "a ring of soot",
+    "smoke stain"
+   ],
+   "nudge": "Light leaves a less polite cousin behind.",
+   "strong": "Look for what the flame wrote on the stone when it was still employed."
+  }
+ ],
+ "campfire": {
+  "id": "campfire",
+  "kind": "bond",
+  "minutes": 2.5,
+  "title": "A Surveyor's Fire",
+  "room": {
+   "label": "The Surveyors' Fire",
+   "type": "rest"
+  },
+  "prompt": "🔥 Sit by the fire",
+  "intro": "A careful little fire in a ring of damp stones. Someone left two tin cups and a kettle that has known better tea. The cave is quieter here, on purpose.",
+  "rest": "You sit. The fire does not fix the cave, but it does fix the next few minutes.",
+  "toad": {
+   "name": "The Oracle Toad",
+   "prompt": "🐸 Consult the Oracle Toad",
+   "intro": [
+    "A toad in a very small waistcoat clears its throat. 'I will ask each of you a private thing about the other. If you agree, I shall be moved, and luck will briefly be moved with me.'",
+    "The toad is already emotional and you haven't started."
+   ],
+   "questions": [
+    {
+     "id": "order",
+     "q": "When you stop at a tavern, what do they order?",
+     "opts": [
+      "Whatever you're having",
+      "The special, suspiciously",
+      "An old favourite",
+      "The strangest name on the board"
+     ]
+    },
+    {
+     "id": "path",
+     "q": "Who are they on a path?",
+     "opts": [
+      "Map reader",
+      "Vibes",
+      "The one who waits",
+      "The one who sits down first"
+     ]
+    },
+    {
+     "id": "morning",
+     "q": "On a slow morning, they are…",
+     "opts": [
+      "First to the kettle",
+      "Last to leave the blankets",
+      "Already talking",
+      "Already outside"
+     ]
+    }
+   ],
+   "match": "+1 luck settles on both of you, like a polite moth. The toad is not crying. (The toad is crying.)",
+   "miss": "The toad pats a stone with a tiny hand. 'People are difficult. I remain fond of you anyway.'",
+   "solo": "The toad looks at the empty seat, then at you. 'Answer as if they were here. I will hold the other half for later.'"
+  },
+  "toast": {
+   "name": "Campfire Toast",
+   "prompt": "🍞 Make a toast",
+   "intro": "Each of you picks a small, silly word. The fire combines them into a blessing that will not impress a wizard and will, briefly, impress a cave.",
+   "words": [
+    "Damp Socks",
+    "Courage",
+    "Second Breakfast",
+    "Spare Lanterns",
+    "Quiet Hands",
+    "Left Turns",
+    "Warm Pockets",
+    "Untidy Maps",
+    "Shared Spoons",
+    "Late Bravery"
+   ],
+   "buff": "Blessing of {a} and {b}",
+   "ok": "The fire accepts your toast. For a little while, you carry the {buff}."
+  },
+  "ration": {
+   "name": "One Ration, Two Heroes",
+   "prompt": "🍄 The last glowcap",
+   "item": "glowcap",
+   "intro": "There is one glowcap, faintly warm, smelling like rain on a pantry shelf. It is not a magic mushroom. It is a glowcap, and there is only the one.",
+   "split": "You split it. Both of you heal a little. The cave, who was watching, files you under Sharesies.",
+   "all": "You eat it all. You feel fine. Your partner gets a sharp, useful kind of patience, and the title Noted.",
+   "titleSplit": "Sharesies",
+   "titleAll": "Noted",
+   "soloSplit": "You split it with the cave. The cave is not very hungry. You heal a little anyway."
+  },
+  "stare": {
+   "id": "stare",
+   "prompt": "👁 A quiet moment",
+   "ready": "Are you ready?",
+   "yes": "Yes",
+   "waiting": "Waiting for your partner…",
+   "skip": "Skip",
+   "text": "Now, if you're playing this with someone you love, look them in the eyes and just stare at each other for five seconds. Who knows who's watching anymore.",
+   "holdSeconds": 5,
+   "countFrom": 3,
+   "fanfare": "stare-fanfare",
+   "after": "Good job. You've acknowledged that you love each other. And if you didn't look at each other… someone knows.",
+   "continue": "Continue",
+   "soloReady": "The fire doesn't mind if it's just you. When you're ready, the count will start."
+  }
+ },
+ "golem": {
+  "id": "golem",
+  "kind": "fight",
+  "minutes": 2.5,
+  "title": "The Grudge Golem",
+  "room": {
+   "label": "A Grudge, Standing",
+   "type": "fight"
+  },
+  "intro": "It is made of packed clay and old complaints. It only really minds being hit from the side it isn't facing. It turns to glare at whoever struck last, and mutters, without much invention, 'rude.'",
+  "mutter": [
+   "rude",
+   "rude, actually",
+   "I saw that",
+   "that was rude"
+  ],
+  "cleared": "The golem sits down in a heap of its own opinions. For a moment it looks like it might apologise. It does not.",
+  "bothMustWin": true,
+  "waiting": "Waiting for your partner to finish their grudge…",
+  "mobs": [
+   [
+    "pebble",
+    0
+   ],
+   [
+    "moss",
+    0
+   ]
+  ],
+  "_note": "Full 'only damaged from the un-faced side' shared-field combat is stubbed as flavor plus local copies; both must win to clear. TODO-TREVOR: facing lines."
+ },
+ "boss": {
+  "id": "fluffington",
+  "kind": "boss",
+  "minutes": 3.5,
+  "title": "Sir Fluffington the Unstitched",
+  "name": "Sir Fluffington the Unstitched",
+  "room": {
+   "label": "A Sewing That Went Wrong",
+   "type": "boss"
+  },
+  "about": "A cursed giant plush owlbear, sewn by a lonely wizard. He has grievances, a shrinking FINAL FORM, and more stuffing than dignity.",
+  "intro": "He is very large, and also a toy, and also sincerely offended. A loose thread trembles at his wrist like a pulse.",
+  "grievances": [
+   "Grievance 14: you stepped on my tail. I don't have a tail. You made me feel like I had one.",
+   "Grievance 7: the lamp is looking at me.",
+   "Grievance 22: no one complimented the stitching on my left ear, which took a weekend.",
+   "Grievance 3: I was promised a knighting and received a nickname.",
+   "Grievance 11: you came in pairs, which feels like an ambush and also like a party I wasn't invited to.",
+   "TODO-TREVOR: more grievances welcome."
+  ],
+  "finalForm": "FINAL FORM!",
+  "finalFormNote": "He is smaller each time he says it. Stuffing puffs out when you hit him.",
+  "sew": "He is sewing himself. Both of you must snip the thread, or he will heal.",
+  "snip": "✂️ Snip the thread",
+  "waitingSnip": "Waiting for your partner to snip…",
+  "finale": "Each of you, take a thread. On the count, both tap.",
+  "unravel": "He unravels into a dignified pile of fluff. A button eye squeaks, very quietly: '...worth it.'",
+  "loot": "pillow-naps",
+  "lootName": "Pillow of Eternal Naps",
+  "cardTitle": "A Quiet Unravelling",
+  "card": "You and yours walked the Gently Declining Grotto, argued with a golem, toasted a fire, and unstitched a knight. The cave, for the moment, is still.",
+  "cleared": "Sir Fluffington is a pillow, more or less, and the far dark is no longer locked.",
+  "_todo": "TODO-TREVOR: additional boss-personality lines, shrink beats, compliment-heal for the Needy mood."
+ },
+ "items": {
+  "pillow-naps": {
+   "name": "Pillow of Eternal Naps",
+   "slot": "trinket",
+   "unique": true,
+   "value": 6,
+   "icon": "🛏",
+   "text": "A button-eyed pillow that used to have grievances. After a Full Rest, you wake with +1 HP more than you should. It snores, very politely."
+  },
+  "glowcap": {
+   "name": "Glowcap",
+   "slot": "use",
+   "value": 1,
+   "icon": "🍄",
+   "text": "A faintly warm cave-cap. Not a magic mushroom. A glowcap. Best shared, or at least discussed."
+  }
+ },
+ "_future": "A fuller Grotto would add later stages below this run (branching forks, a second rest deeper down, shared turn-based party combat on one field, Golem facing as true co-op, Fluffington shrinks visibly each FINAL FORM, Sticky Floor / Low Gravity as real movement, and Mickle the vendor paying in a small cave currency). This pass is the 15-minute seeded loop with local-copy fights, synced puzzles, and the campfire stare."
+}

@@ -100,7 +100,7 @@
    "orchestral": false,
    "preview_seconds": 30.0,
    "preview_bytes": 150681,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "mailroom-explore",
@@ -198,7 +198,7 @@
    "orchestral": false,
    "preview_seconds": 30.0,
    "preview_bytes": 76360,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "mailroom-battle",
@@ -217,7 +217,7 @@
     "staccato",
     "comic"
    ],
-   "mood": "quick, silly, a little frantic — still more slapstick than danger",
+   "mood": "quick, silly, a little frantic \u2014 still more slapstick than danger",
    "tempo": 132,
    "key": "A",
    "mode": "aeolian",
@@ -298,7 +298,7 @@
    "orchestral": false,
    "preview_seconds": 29.09,
    "preview_bytes": 137352,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "grotto-explore",
@@ -396,7 +396,7 @@
    "orchestral": false,
    "preview_seconds": 29.09,
    "preview_bytes": 155495,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "grotto-battle",
@@ -495,7 +495,7 @@
    "orchestral": false,
    "preview_seconds": 28.57,
    "preview_bytes": 130559,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "grotto-boss",
@@ -515,7 +515,7 @@
     "comic",
     "heavy"
    ],
-   "mood": "heavy and comic-menacing — a stalagmite who got ideas",
+   "mood": "heavy and comic-menacing \u2014 a stalagmite who got ideas",
    "tempo": 120,
    "key": "E",
    "mode": "aeolian",
@@ -596,7 +596,7 @@
    "orchestral": false,
    "preview_seconds": 28.5,
    "preview_bytes": 166546,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "deep-boss",
@@ -696,7 +696,7 @@
    "orchestral": false,
    "preview_seconds": 30.0,
    "preview_bytes": 134072,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "victory-jingle",
@@ -794,7 +794,102 @@
    "orchestral": false,
    "preview_seconds": 8.0,
    "preview_bytes": 29166,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
+  },
+  {
+   "id": "stare-fanfare",
+   "title": "Two Lamps Lit",
+   "role": "sting",
+   "area": [
+    "all"
+   ],
+   "encounter": [
+    "stare",
+    "bonding"
+   ],
+   "tags": [
+    "stare",
+    "sting",
+    "fanfare",
+    "original"
+   ],
+   "mood": "a short original 8-bit triumph, lamps lit, not a borrowed victory riff",
+   "tempo": 140,
+   "key": "G",
+   "mode": "ionian",
+   "meter": "4/4",
+   "bars": 6,
+   "intro_bars": 0,
+   "length_bars": 6,
+   "loop": false,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 6,
+    "start_tick": 0,
+    "end_tick": 0,
+    "crossfade_bars": 0
+   },
+   "texture": "square lead, synth bass, glock spark; G-major arpeggio then a stepwise fall",
+   "instruments": {
+    "lead": 81,
+    "bass": 39,
+    "pad": 0,
+    "perc": 10
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 81,
+     "name": "Lead 1 (square)"
+    },
+    {
+     "slot": "bass",
+     "gm": 39,
+     "name": "Synth Bass 1"
+    },
+    {
+     "slot": "perc",
+     "gm": 10,
+     "name": "Glockenspiel"
+    }
+   ],
+   "layers": {
+    "drums": false,
+    "drone": false,
+    "bass": true,
+    "pad": false,
+    "bells": true,
+    "echo": 0.08
+   },
+   "intensity": 3,
+   "drums": false,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/stare-fanfare.mid",
+   "preview": null,
+   "seed": 8841,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.18,
+   "filter_hz": 4200,
+   "echo": 0.08,
+   "pattern": "stare-fanfare",
+   "length_sec": 2.571,
+   "loop_sec": null,
+   "midi_bytes": 379,
+   "voices_peak": 4,
+   "chiptune": true,
+   "orchestral": false,
+   "preview_seconds": 3.0,
+   "preview_bytes": 0,
+   "preview_renderer": "hand-written Type-1 SMF (no FluidSynth). Original jingle, not a licensed victory melody."
   },
   {
    "id": "snorble-theme",
@@ -812,7 +907,7 @@
     "derpy",
     "motif"
    ],
-   "mood": "a derpy little motif — clumsy, friendly, slightly off the beat",
+   "mood": "a derpy little motif \u2014 clumsy, friendly, slightly off the beat",
    "tempo": 108,
    "key": "F",
    "mode": "ionian",
@@ -893,7 +988,7 @@
    "orchestral": false,
    "preview_seconds": 8.89,
    "preview_bytes": 50867,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "backrooms-arrival",
@@ -994,7 +1089,7 @@
    "orchestral": false,
    "preview_bytes": 177549,
    "preview_seconds": 28.42,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "backrooms-explore",
@@ -1092,7 +1187,7 @@
    "orchestral": false,
    "preview_bytes": 153827,
    "preview_seconds": 30.0,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "office-theme",
@@ -1192,7 +1287,7 @@
    "orchestral": false,
    "preview_bytes": 240987,
    "preview_seconds": 28.97,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "cathouse-play",
@@ -1290,7 +1385,7 @@
    "orchestral": false,
    "preview_bytes": 141816,
    "preview_seconds": 28.09,
-   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth \u2014 that package could not be installed on this box."
   },
   {
    "id": "annex-dreary",

@@ -8,7 +8,7 @@
 // Demo mode (?demo=1, localhost only): no network. You are a fake admin (add &as=player to be a normal player) and two fake
 // teammates (Vince, Juhani) wander the first hallways so the map, figures, parties and spawn-in-front can be tested offline.
 export function createNet({ sb, me, demo, isLocal }) {
-  const listeners = { players: [], gm: [], party: [], status: [], chat: [], voice: [] };
+  const listeners = { players: [], gm: [], party: [], status: [], chat: [], voice: [], run: [] };
   const emit = (k, v) => listeners[k].forEach((f) => { try { f(v); } catch (e) { console.error(e); } });
   const asPlayer = (() => { try { return /[?&]as=player\b/.test(location.search); } catch { return false; } })();
   const N = { status: "off", admin: false, adminChecked: false, players: new Map(), selfId: me?.id || "me", selfName: me?.display_name || "you", demo: !!demo, log: [] };
@@ -56,6 +56,7 @@ export function createNet({ sb, me, demo, isLocal }) {
         Object.entries(st).forEach(([id, arr]) => { if (id === N.selfId) return; const v = arr[arr.length - 1]; if (v && typeof v === "object") N.players.set(id, { id, name: String(v.n || "?").slice(0, 40), x: +v.x || 0, z: +v.z || 0, y: +v.y || 0, yaw: +v.yw || 0, inst: v.in || null, portal: v.pt || null, party: v.pa || null, av: cleanAv(v.av), t: +v.t || 0 }); });
         emit("players", N.players); })
         .on("broadcast", { event: "party" }, ({ payload }) => onParty(payload))
+        .on("broadcast", { event: "run" }, ({ payload }) => emit("run", payload))
         .subscribe((s) => { if (s === "SUBSCRIBED") { setStatus("online"); lastSent = null; } else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT") setStatus("offline"); });
       gmCh = sb.channel("annex-gm", { config: { private: true, broadcast: { self: true, ack: true } } });
       gmCh.on("broadcast", { event: "gm" }, ({ payload }) => onGM(payload, "realtime")).subscribe(() => {});
@@ -111,6 +112,13 @@ export function createNet({ sb, me, demo, isLocal }) {
       return true; }
     if (!annexCh || N.status !== "online") return false; annexCh.send({ type: "broadcast", event: "party", payload: msg }).catch(() => {}); return true;
   }
+  // Instance party-run sync (Grotto first). Same private "annex" channel; no new tables. Filtered by party code in annex-party.js.
+  function sendRun(p) {
+    const msg = { ...p, from: N.selfId, fromName: N.selfName, at: Date.now() };
+    if (demo) { emit("run", msg); return true; }
+    if (!annexCh || N.status !== "online") return false;
+    annexCh.send({ type: "broadcast", event: "run", payload: msg }).catch(() => {}); return true;
+  }
   // ---------- chat (text + voice clip messages; the chat module decides who hears what) ----------
   async function sendChat(event, msg) {
     if (demo) { setTimeout(() => demoHear(event, msg), 0); return { ok: true, demo: true }; }
@@ -128,6 +136,6 @@ export function createNet({ sb, me, demo, isLocal }) {
   function demoPlace(id, x, z, extra = {}) { const f = fakes.find((q) => q.id === id); if (!f) return false; Object.assign(f, { x, z, to: null, hold: 1e9 }, extra); return true; }
   function demoRelease(id) { const f = fakes.find((q) => q.id === id); if (f) f.hold = 0; return !!f; }
 
-  return { N, on: (k, f) => listeners[k].push(f), join, leave, track, tick, players, sendGM, sendParty, sendChat, rejoinChat: joinChat, checkAdmin, isAdmin: () => N.admin, status: () => N.status,
+  return { N, on: (k, f) => listeners[k].push(f), join, leave, track, tick, players, sendGM, sendParty, sendRun, sendChat, rejoinChat: joinChat, checkAdmin, isAdmin: () => N.admin, status: () => N.status,
     demoPlace, demoSay, demoVoice, demoRelease, fakes: () => fakes.map((f) => ({ id: f.id, name: f.name, x: f.x, z: f.z, got: f.got.slice(), party: f.party, inst: f.inst })) };
 }

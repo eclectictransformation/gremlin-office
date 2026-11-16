@@ -1,3695 +1,3716 @@
 {
- "_about": "Elsewhere Annex v4: Annex characters, d20 checks, silly gear, mobs, quests, dice doors, party portals. Eclectic Transformation · Gremlin Desks only. Everything here is original; d20 math follows SRD 5.2.1 (modifier = floor((score-10)/2), proficiency, d20 + mod vs DC/AC). Rules engine: rpg.js. Add rows to quests/items/enemies/riddles to extend.",
- "version": 6,
- "attribution": "This work includes material from the System Reference Document 5.2.1 (\"SRD 5.2.1\") by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.",
- "compatLine": "Compatible with fifth edition.",
- "stats": [
-  {
-   "id": "luck",
-   "name": "Luck",
-   "icon": "🍀",
-   "about": "loot, odd devices, the Annex breaking its own rules in your favour",
-   "export": "CHA (and a small luck pool)"
-  },
-  {
-   "id": "nerve",
-   "name": "Nerve",
-   "icon": "🫀",
-   "about": "hit points, staying put when something giggles, heavy swings",
-   "export": "CON / WIS"
-  },
-  {
-   "id": "wits",
-   "name": "Wits",
-   "icon": "🧠",
-   "about": "riddles, odd locks, aiming a stapler",
-   "export": "INT"
-  },
-  {
-   "id": "stride",
-   "name": "Stride",
-   "icon": "👟",
-   "about": "armor class, dodging, most weapons",
-   "export": "DEX / STR"
-  }
- ],
- "creation": {
-  "standardArray": [
-   15,
-   14,
-   12,
-   10
-  ],
-  "pointBuy": {
-   "points": 22,
-   "min": 8,
-   "max": 15,
-   "cost": {
-    "8": 0,
-    "9": 1,
-    "10": 2,
-    "11": 3,
-    "12": 4,
-    "13": 5,
-    "14": 7,
-    "15": 9
-   }
-  },
-  "aiHook": "Future: an AI-assisted creator (free text -> suggested build + one-line backstory). The player still edits and must approve before it saves.",
-  "quiz": [
-   {
-    "q": "A door in the Annex is humming at you. You…",
-    "a": [
-     {
-      "t": "read the small print on the frame first",
-      "path": "archivist"
-     },
-     {
-      "t": "are already through it",
-      "path": "wanderer"
-     },
-     {
-      "t": "open the panel to see what makes it hum",
-      "path": "tinkerer"
-     }
-    ]
-   },
-   {
-    "q": "What did you always keep in your desk drawer?",
-    "a": [
-     {
-      "t": "labelled folders, colour-coded",
-      "path": "archivist"
-     },
-     {
-      "t": "a map of somewhere you haven't been yet",
-      "path": "wanderer"
-     },
-     {
-      "t": "one spring, three batteries and a key to nothing",
-      "path": "tinkerer"
-     }
-    ]
-   },
-   {
-    "q": "Something moves in the vents. You…",
-    "a": [
-     {
-      "t": "write it down: time, sound, direction",
-      "path": "archivist"
-     },
-     {
-      "t": "walk the other way, quickly",
-      "path": "wanderer"
-     },
-     {
-      "t": "tap back and listen",
-      "path": "tinkerer"
-     }
-    ]
-   }
-  ],
-  "nameIdeas": [
-   "{name} of the Brass Line",
-   "{name} the Surveyor",
-   "{name} Lampbearer",
-   "Wayfarer {name}",
-   "{name} of the Long Hall"
-  ],
-  "classQuiz": {
-   "_about": "v6: the three-question quiz now suggests a class too (by answer index).",
-   "byAnswer": [
-    [
-     "rogue",
-     "warrior",
-     "sorcerer"
-    ],
-    [
-     "cleric",
-     "ranger",
-     "warlock"
-    ],
-    [
-     "paladin",
-     "barbarian",
-     "rogue"
-    ]
-   ]
-  }
- },
- "paths": {
-  "archivist": {
-   "name": "Archivist",
-   "icon": "📚",
-   "main": "wits",
-   "order": [
-    "wits",
-    "nerve",
-    "luck",
-    "stride"
-   ],
-   "prof": [
-    "wits"
-   ],
-   "weapon": "stapler",
-   "blurb": "You kept records before you came here. You read plaques twice and remember which door was which.",
-   "perk": "Proficiency on Wits checks. Once per instance, one riddle or plaque gives you a hint.",
-   "ability": {
-    "id": "footnote",
-    "name": "Footnote",
-    "icon": "📝",
-    "text": "Advantage on one check per instance (roll two d20s, keep the higher)."
-   }
-  },
-  "wanderer": {
-   "name": "Wanderer",
-   "icon": "🧭",
-   "main": "stride",
-   "order": [
-    "stride",
-    "nerve",
-    "wits",
-    "luck"
-   ],
-   "prof": [
-    "stride"
-   ],
-   "door": true,
-   "weapon": "umbrella",
-   "blurb": "You've always walked a little further than the map. Halls that move don't bother you much.",
-   "perk": "Proficiency on route and door checks. You spot STAYS PUT ✓ marks from farther off, and soup heals you an extra 1d4.",
-   "ability": {
-    "id": "waysense",
-    "name": "Way-Sense",
-    "icon": "🧭",
-    "text": "Stable places show up on your map from a cell further away. Soup heals +1d4."
-   }
-  },
-  "tinkerer": {
-   "name": "Tinkerer",
-   "icon": "🔧",
-   "main": "luck",
-   "order": [
-    "luck",
-    "wits",
-    "stride",
-    "nerve"
-   ],
-   "prof": [
-    "luck"
-   ],
-   "weapon": "chicken",
-   "blurb": "You fix things, sometimes by making them stranger. Waystones seem to like you.",
-   "perk": "Proficiency on Luck and device checks. You carry one Spring Gizmo (2d6, thrown) and build another at each Full Rest.",
-   "ability": {
-    "id": "gizmo",
-    "name": "Spring Gizmo",
-    "icon": "🪀",
-    "text": "Throwable: 2d6 damage, no attack roll. You carry one at a time and build a new one at each Full Rest."
-   }
-  }
- },
- "levels": {
-  "_about": "House XP curve, cumulative XP to reach each level (cap 25). v5c (Nov 14 2026): early levels follow a slower, 5e-inspired pace so a single scuffle cannot ding level 2, and the first instance cannot push you past level 3. L2=150, L3=400, then a wide jump to L4=1000 (the same kind of 3e–5e early gap). After that the steps grow steadily (~600, then +100 per level) through 20, and a bit steeper from 21–25. Proficiency follows SRD 5.2.1 by level (+2 at 1-4, +3 at 5-8, +4 at 9-12, +5 at 13-16, +6 at 17-20), extended the same way past 20 (+7 at 21-24, +8 at 25). HP = hpBase + Nerve mod, then hpPerLevel + Nerve mod (min 1) per level. A stat point at each statUpAt level.",
-  "xp": [
-   0,
-   150,
-   400,
-   1000,
-   1600,
-   2300,
-   3100,
-   4000,
-   5000,
-   6100,
-   7300,
-   8600,
-   10000,
-   11500,
-   13100,
-   14800,
-   16600,
-   18500,
-   20500,
-   22600,
-   25000,
-   27600,
-   30400,
-   33400,
-   36600
-  ],
-  "prof": [
-   2,
-   2,
-   2,
-   2,
-   3,
-   3,
-   3,
-   3,
-   4,
-   4,
-   4,
-   4,
-   5,
-   5,
-   5,
-   5,
-   6,
-   6,
-   6,
-   6,
-   7,
-   7,
-   7,
-   7,
-   8
-  ],
-  "hpBase": 8,
-  "hpPerLevel": 5,
-  "statUpAt": [
-   3,
-   5,
-   8,
-   11,
-   14,
-   17,
-   20,
-   23
-  ],
-  "statMax": 20,
-  "cap": 25
- },
- "xp": {
-  "curio": 25,
-  "riddle": 20,
-  "door": 15,
-  "attune": 10
- },
- "items": {
-  "fists": {
-   "name": "Polite Fists",
-   "slot": "weapon",
-   "die": 4,
-   "stat": "stride",
-   "value": 0,
-   "keep": true,
-   "text": "Always with you. Very apologetic."
-  },
-  "newspaper": {
-   "name": "Rolled-Up Newspaper",
-   "slot": "weapon",
-   "die": 4,
-   "stat": "stride",
-   "value": 1,
-   "text": "Yesterday's news. Hits like it."
-  },
-  "stapler": {
-   "name": "Office Stapler",
-   "slot": "weapon",
-   "die": 6,
-   "stat": "wits",
-   "value": 2,
-   "text": "Ka-chunk. Aim carefully."
-  },
-  "chicken": {
-   "name": "Rubber Chicken Flail",
-   "slot": "weapon",
-   "die": 6,
-   "stat": "luck",
-   "value": 2,
-   "text": "Squeaks on every hit. Enemies find this confusing."
-  },
-  "ruler": {
-   "name": "Forty-Centimetre Ruler",
-   "slot": "weapon",
-   "die": 6,
-   "stat": "stride",
-   "hit": 1,
-   "value": 3,
-   "text": "Longer than it has any right to be. +1 to hit."
-  },
-  "umbrella": {
-   "name": "Umbrella of Mild Weather",
-   "slot": "weapon",
-   "die": 8,
-   "stat": "stride",
-   "value": 3,
-   "text": "Opens with a whump. Mostly for drama.",
-   "unique": true
-  },
-  "punch": {
-   "name": "Three-Hole Punch",
-   "slot": "weapon",
-   "die": 8,
-   "stat": "wits",
-   "value": 4,
-   "text": "Leaves very tidy dents."
-  },
-  "lamp": {
-   "name": "Desk Lamp Mace",
-   "slot": "weapon",
-   "die": 8,
-   "stat": "nerve",
-   "value": 4,
-   "text": "Still plugged into something. Don't ask what."
-  },
-  "mop": {
-   "name": "Mop of Destiny",
-   "slot": "weapon",
-   "die": 10,
-   "stat": "stride",
-   "value": 6,
-   "text": "Chosen by a puddle. Hums faintly."
-  },
-  "tape": {
-   "name": "Tape Dispenser Morningstar",
-   "slot": "weapon",
-   "die": 10,
-   "stat": "luck",
-   "value": 5,
-   "text": "Heavy. Sticky. Unwise."
-  },
-  "jug": {
-   "name": "Water Cooler Jug",
-   "slot": "weapon",
-   "die": 12,
-   "stat": "nerve",
-   "value": 6,
-   "text": "Two-handed. Glug."
-  },
-  "cardigan": {
-   "name": "Cardigan of Mild Protection",
-   "slot": "armor",
-   "ac": 1,
-   "value": 1,
-   "text": "+1 AC. Clothes: counts as unarmored. Elbow patches.",
-   "tier": "clothes"
-  },
-  "bubble": {
-   "name": "Bubble-Wrap Vest",
-   "slot": "armor",
-   "ac": 2,
-   "value": 3,
-   "text": "+2 AC. Light armor. Pops when you're hit.",
-   "tier": "light"
-  },
-  "cardboard": {
-   "name": "Cardboard Plate Armour",
-   "slot": "armor",
-   "ac": 3,
-   "value": 5,
-   "text": "+3 AC. Medium armor: Stride adds at most +2. Stamped THIS SIDE UP.",
-   "tier": "medium"
-  },
-  "cone": {
-   "name": "Traffic Cone Helm",
-   "slot": "head",
-   "ac": 1,
-   "value": 2,
-   "text": "+1 AC. You can hear the ocean."
-  },
-  "visor": {
-   "name": "Accountant's Visor",
-   "slot": "head",
-   "check": {
-    "wits": 1
-   },
-   "value": 2,
-   "text": "+1 to Wits checks. Very green.",
-   "unique": true
-  },
-  "badge": {
-   "name": "Laminated Name Badge",
-   "slot": "trinket",
-   "check": {
-    "luck": 1
-   },
-   "value": 2,
-   "text": "+1 to Luck checks. The name on it is almost yours.",
-   "unique": true
-  },
-  "keyring": {
-   "name": "Key Ring of Many Doors",
-   "slot": "trinket",
-   "door": 2,
-   "value": 3,
-   "text": "+2 to dice-door checks. None of the keys fit anything."
-  },
-  "mint": {
-   "name": "Lucky Breath Mint",
-   "slot": "trinket",
-   "hit": 1,
-   "value": 3,
-   "text": "+1 to hit. Fresh confidence."
-  },
-  "clips": {
-   "name": "Paperclip Chainmail Scarf",
-   "slot": "trinket",
-   "ac": 1,
-   "value": 3,
-   "text": "+1 AC. Jingles."
-  },
-  "soup": {
-   "name": "Vending Machine Soup",
-   "slot": "use",
-   "heal": [
-    2,
-    4,
-    2
-   ],
-   "value": 1,
-   "text": "Heals 2d4+2. Flavour: 'soup'.",
-   "icon": "🍲"
-  },
-  "parcel": {
-   "name": "A Mislabelled Parcel",
-   "slot": "quest",
-   "value": 0,
-   "text": "Addressed to 'The Annex, Over There'. Drop it in the Gremlins' outbox by the entrance circle."
-  },
-  "potion": {
-   "name": "Fizzy Pocket Potion",
-   "slot": "use",
-   "heal": [
-    1,
-    8,
-    2
-   ],
-   "value": 1,
-   "icon": "🧪",
-   "text": "Heals 1d8+2. Tastes like a battery that's trying its best."
-  },
-  "lucky-pebble": {
-   "name": "Lucky Pebble",
-   "slot": "trinket",
-   "check": {
-    "luck": 1
-   },
-   "value": 2,
-   "icon": "🪨",
-   "unique": true,
-   "text": "+1 to Luck checks. It keeps trying to be helpful and mostly just sits there, proudly."
-  },
-  "pocket-lantern": {
-   "name": "Pocket Lantern",
-   "slot": "trinket",
-   "value": 2,
-   "icon": "🏮",
-   "unique": true,
-   "text": "A tiny lantern that is almost too pleased with itself. Doesn't light much. Looks nice on a belt."
-  },
-  "filing-plate": {
-   "name": "Filing-Cabinet Plate",
-   "slot": "armor",
-   "tier": "heavy",
-   "ac": 4,
-   "value": 7,
-   "text": "+4 AC. Heavy armor: Stride doesn't count. Clanks on every stair."
-  },
-  "fern-frond": {
-   "name": "Fern Frond",
-   "slot": "quest",
-   "value": 0,
-   "icon": "🌿",
-   "keep": true,
-   "text": "Still damp, and warm, like it came from somewhere with rain. Nothing in the Annex grows ferns."
-  },
-  "gizmo": {
-   "name": "Spring Gizmo",
-   "slot": "use",
-   "dmg": [
-    2,
-    6,
-    0
-   ],
-   "value": 1,
-   "icon": "🪀",
-   "text": "Throw it: 2d6 damage to one foe, no attack roll."
-  },
-  "survey-page": {
-   "name": "Survey page, torn",
-   "slot": "quest",
-   "value": 0,
-   "icon": "📄",
-   "text": "A page from the Survey Corps logbook. It belongs on the Common Record."
-  }
- },
- "startGear": [
-  "cardigan"
- ],
- "loot": {
-  "_about": "Weighted tables by depth tier (0 = near the entrance, 4 = very deep). Mobs drop on a group clear (chance), boxes and dice-door rooms always give one.",
-  "tiers": [
-   [
-    [
-     "soup",
-     4
-    ],
-    [
-     "newspaper",
-     2
-    ],
-    [
-     "badge",
-     2
-    ],
-    [
-     "cone",
-     2
-    ],
-    [
-     "ruler",
-     1
-    ],
-    [
-     "visor",
-     1
-    ],
-    [
-     "potion",
-     2
-    ]
-   ],
-   [
-    [
-     "soup",
-     3
-    ],
-    [
-     "ruler",
-     2
-    ],
-    [
-     "bubble",
-     2
-    ],
-    [
-     "cone",
-     2
-    ],
-    [
-     "mint",
-     1
-    ],
-    [
-     "keyring",
-     1
-    ],
-    [
-     "punch",
-     1
-    ],
-    [
-     "potion",
-     2
-    ]
-   ],
-   [
-    [
-     "soup",
-     3
-    ],
-    [
-     "punch",
-     2
-    ],
-    [
-     "lamp",
-     2
-    ],
-    [
-     "bubble",
-     2
-    ],
-    [
-     "clips",
-     1
-    ],
-    [
-     "mint",
-     1
-    ],
-    [
-     "keyring",
-     1
-    ]
-   ],
-   [
-    [
-     "soup",
-     2
-    ],
-    [
-     "lamp",
-     2
-    ],
-    [
-     "tape",
-     1
-    ],
-    [
-     "cardboard",
-     1
-    ],
-    [
-     "clips",
-     2
-    ],
-    [
-     "jug",
-     1
-    ]
-   ],
-   [
-    [
-     "soup",
-     2
-    ],
-    [
-     "tape",
-     2
-    ],
-    [
-     "jug",
-     2
-    ],
-    [
-     "cardboard",
-     2
-    ],
-    [
-     "mop",
-     1
-    ],
-    [
-     "filing-plate",
-     2
-    ]
-   ]
-  ],
-  "mobDropChance": 0.45
- },
- "enemies": {
-  "dust": {
-   "name": "Dust Bunny",
-   "icon": "🐇",
-   "hp": 5,
-   "ac": 10,
-   "atk": 2,
-   "die": 4,
-   "xp": 15,
-   "speed": 1.6,
-   "every": 2.2,
-   "hitText": [
-    "sneezes on you",
-    "nibbles your shoelace",
-    "rolls into your shin"
-   ],
-   "dieText": "poofs into a small grey cloud.",
-   "level": 1
-  },
-  "moth": {
-   "name": "Static Moth",
-   "icon": "🦋",
-   "hp": 6,
-   "ac": 12,
-   "atk": 3,
-   "die": 4,
-   "xp": 20,
-   "speed": 2.0,
-   "every": 2.0,
-   "fly": true,
-   "hitText": [
-    "zaps your earlobe",
-    "crackles at you",
-    "sticks your hair up"
-   ],
-   "dieText": "flickers off like an old monitor.",
-   "level": 1
-  },
-  "sock": {
-   "name": "Sock Wraith",
-   "icon": "🧦",
-   "hp": 9,
-   "ac": 11,
-   "atk": 3,
-   "die": 6,
-   "xp": 30,
-   "speed": 1.2,
-   "every": 2.4,
-   "hitText": [
-    "wraps around your ankle",
-    "whispers 'where's my pair'",
-    "smells faintly of dryer"
-   ],
-   "dieText": "finds its pair and floats away, happy.",
-   "level": 2
-  },
-  "wisp": {
-   "name": "Hold-Music Wisp",
-   "icon": "🎵",
-   "hp": 8,
-   "ac": 12,
-   "atk": 3,
-   "die": 6,
-   "xp": 25,
-   "speed": 1.4,
-   "every": 2.3,
-   "fly": true,
-   "hitText": [
-    "plays the same four bars at you",
-    "says 'your call is important'",
-    "hums smugly"
-   ],
-   "dieText": "is finally connected to a representative.",
-   "level": 2
-  },
-  "cabinet": {
-   "name": "Feral Filing Cabinet",
-   "icon": "🗄",
-   "hp": 14,
-   "ac": 13,
-   "atk": 4,
-   "die": 6,
-   "xp": 45,
-   "speed": 0.8,
-   "every": 2.6,
-   "hitText": [
-    "chomps you with its top drawer",
-    "files you under 'misc.'",
-    "slams a drawer on your fingers"
-   ],
-   "dieText": "goes very still and alphabetises itself.",
-   "level": 3
-  },
-  "sprite": {
-   "name": "Paper-Cut Sprite",
-   "icon": "📄",
-   "hp": 6,
-   "ac": 11,
-   "atk": 3,
-   "die": 4,
-   "xp": 10,
-   "speed": 1.8,
-   "every": 2.0,
-   "fly": true,
-   "hitText": [
-    "gives you a tiny paper cut",
-    "flaps itself at you"
-   ],
-   "dieText": "folds into a paper crane and leaves.",
-   "level": 1
-  },
-  "dummy": {
-   "name": "Practice Dummy",
-   "icon": "🎯",
-   "mesh": "dummy",
-   "hp": 6,
-   "ac": 8,
-   "atk": 0,
-   "die": 4,
-   "xp": 10,
-   "speed": 0,
-   "every": 3.4,
-   "training": true,
-   "hitText": [
-    "wobbles into you",
-    "boops you with a felt arm",
-    "tips over onto your foot"
-   ],
-   "dieText": "flops over. A tiny flag pops up: 'GOOD JOB!'",
-   "level": 1
-  },
-  "sleepy": {
-   "name": "Sleepy Dust Bunny",
-   "icon": "😴",
-   "mesh": "dust",
-   "hp": 5,
-   "ac": 9,
-   "atk": 1,
-   "die": 4,
-   "xp": 10,
-   "speed": 0.6,
-   "every": 3.2,
-   "training": true,
-   "hitText": [
-    "yawns at you aggressively",
-    "sleep-nibbles your sock"
-   ],
-   "dieText": "curls up into a nap-sized cloud.",
-   "level": 1
-  },
-  "drip": {
-   "name": "Polite Drip",
-   "icon": "💧",
-   "mesh": "drip",
-   "hp": 6,
-   "ac": 10,
-   "atk": 2,
-   "die": 4,
-   "xp": 20,
-   "speed": 1.2,
-   "every": 2.4,
-   "hitText": [
-    "drips apologetically on your head",
-    "splashes your sleeve as if to say sorry",
-    "forms a very small puddle underfoot"
-   ],
-   "dieText": "goes splat, then apologises one last time.",
-   "level": 2
-  },
-  "cavebat": {
-   "name": "Opinionated Bat",
-   "icon": "🦇",
-   "mesh": "cavebat",
-   "hp": 7,
-   "ac": 11,
-   "atk": 2,
-   "die": 4,
-   "xp": 25,
-   "speed": 1.8,
-   "every": 2.3,
-   "hitText": [
-    "swoops by with a tiny lecture",
-    "flaps a wing at your ear",
-    "insists you are standing in its air"
-   ],
-   "dieText": "lands, folds up, and looks unimpressed.",
-   "level": 2
-  },
-  "pebble": {
-   "name": "Helpful Pebble",
-   "icon": "🪨",
-   "mesh": "pebble",
-   "hp": 8,
-   "ac": 12,
-   "atk": 2,
-   "die": 4,
-   "xp": 30,
-   "speed": 1.0,
-   "every": 2.6,
-   "hitText": [
-    "rolls helpfully into your shin",
-    "offers itself as a stepping stone at the worst moment",
-    "bonks you, then waits to be thanked"
-   ],
-   "dieText": "settles down, finally convinced it has helped enough.",
-   "level": 2
-  },
-  "echo": {
-   "name": "Echo With Teeth",
-   "icon": "😮",
-   "mesh": "echo",
-   "hp": 9,
-   "ac": 11,
-   "atk": 3,
-   "die": 4,
-   "xp": 35,
-   "speed": 1.4,
-   "every": 2.5,
-   "hitText": [
-    "repeats your last step, a bit sharper",
-    "nips the air next to you",
-    "gives your words a tiny bite"
-   ],
-   "dieText": "fades, leaving only a polite aftertaste of sound.",
-   "level": 3
-  },
-  "moss": {
-   "name": "Ambitious Moss",
-   "icon": "🌿",
-   "mesh": "moss",
-   "hp": 8,
-   "ac": 10,
-   "atk": 2,
-   "die": 4,
-   "xp": 30,
-   "speed": 0.8,
-   "every": 2.7,
-   "hitText": [
-    "tries to grow on your boot",
-    "pats you with a damp tuft",
-    "spreads a little further than is strictly necessary"
-   ],
-   "dieText": "settles into a modest, decorative clump.",
-   "level": 3
-  }
- },
- "mobs": {
-  "_about": "One small group per seeded cell, only in rooms (never hallways, plazas, curiosity nooks, grabber/almost-person/stair/switch rooms). A cleared cell is remembered in localStorage and never spawns again, so mobs can't be camped. Stats scale with depth tier = floor(depth / tierEvery), capped at 4. Overworld groups are always solo (party size never applies outside party-portal instances).",
-  "minDepth": 1.5,
-  "chance": 0.22,
-  "chancePerDepth": 0.012,
-  "chanceMax": 0.4,
-  "tierEvery": 3,
-  "count": [
-   1,
-   3
-  ],
-  "scale": {
-   "hpPerTier": 0.3,
-   "acPerTwoTiers": 1,
-   "atkPerTier": 0.5,
-   "dmgPerTier": 0.5,
-   "xpPerTier": 0.3
-  },
-  "bySection": {
-   "print": [
-    "dust",
-    "dust",
-    "moth"
-   ],
-   "turn": [
-    "moth",
-    "dust",
-    "wisp"
-   ],
-   "stock": [
-    "sock",
-    "dust",
-    "cabinet"
-   ],
-   "waiting": [
-    "wisp",
-    "sock",
-    "moth"
-   ],
-   "shallows": [
-    "moth",
-    "sock",
-    "wisp"
-   ],
-   "night": [
-    "cabinet",
-    "wisp",
-    "sock"
-   ]
-  },
-  "reach": 2.6,
-  "playerCooldown": 0.85,
-  "mobReach": 1.25,
-  "regenEvery": 3,
-  "fumbles": [
-   "You swing so hard you spin all the way round. Dizzy!",
-   "Your weapon slips out of your hand and boops you on the nose.",
-   "You trip over absolutely nothing. The carpet looks smug.",
-   "You apologise mid-swing. It throws off your aim."
-  ],
-  "crits": [
-   "CRITICAL! A swing so good the lights flicker in applause.",
-   "CRITICAL! Somewhere, a Gremlin cheers.",
-   "CRITICAL! That one's going in the survey."
-  ],
-  "_about_v5d2": "v5d2: overworld critters only spawn in zones beyond a weird door (data/elsewhere-annex.json beyond.zones[].mobs: chance, tier, count, kinds). The minDepth/chance/bySection numbers above are kept for reference and as a pool fallback; the open Backrooms have no critters."
- },
- "doors": {
-  "_about": "A few room doorways are shut by a dice door. Roll d20 + stat modifier (+ proficiency if your path has it) vs the DC. Fail = a funny consequence and a short wait, never a permanent lockout. DCs barely climb with depth.",
-  "minDepth": 1.5,
-  "chance": 0.12,
-  "dc": [
-   10,
-   12,
-   12,
-   13,
-   14
-  ],
-  "retrySeconds": 4,
+  "_about": "Elsewhere Annex v4: Annex characters, d20 checks, silly gear, mobs, quests, dice doors, party portals. Eclectic Transformation \u00b7 Gremlin Desks only. Everything here is original; d20 math follows SRD 5.2.1 (modifier = floor((score-10)/2), proficiency, d20 + mod vs DC/AC). Rules engine: rpg.js. Add rows to quests/items/enemies/riddles to extend.",
+  "version": 6,
+  "attribution": "This work includes material from the System Reference Document 5.2.1 (\"SRD 5.2.1\") by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.",
+  "compatLine": "Compatible with fifth edition.",
   "stats": [
-   "wits",
-   "wits",
-   "nerve",
-   "stride",
-   "luck"
-  ],
-  "labels": {
-   "wits": "This door has a riddle carved in it. It's mostly about doors.",
-   "nerve": "The door is breathing. Gently. Put your hand on it anyway?",
-   "stride": "The handle keeps moving down the door. Catch it.",
-   "luck": "The door is a coin-operated door. You have no coins. Try anyway?"
-  },
-  "fails": [
-   "The door blows a raspberry at you. Rude.",
-   "The door opens… onto another closed door, which then closes the first one.",
-   "You're covered in a light dusting of glitter. The door seems pleased.",
-   "The door says 'Nope' in your own voice.",
-   "The handle comes off in your hand, then reattaches itself, offended.",
-   "A tiny slot opens and a gremlin hand gives you a sticker that says TRY AGAIN."
-  ],
-  "success": "The door sighs, clicks, and swings open. There's something in here."
- },
- "boxes": {
-  "chance": 0.1,
-  "minDepth": 1
- },
- "quests": [
-  {
-   "id": "sign-in",
-   "name": "Sign In, Please",
-   "type": "flag",
-   "flag": "transformed",
-   "count": 1,
-   "xp": 20,
-   "text": "Step into the stitched circle at the entrance and become your Annex self."
-  },
-  {
-   "id": "lost-found",
-   "name": "Lost & Found",
-   "type": "curio",
-   "count": 1,
-   "xp": 40,
-   "text": "Find a curiosity. They're usually in little nooks near a crystal."
-  },
-  {
-   "id": "return-sender",
-   "name": "Return to Sender",
-   "type": "fetch",
-   "item": "parcel",
-   "count": 1,
-   "xp": 60,
-   "loot": "badge",
-   "text": "Somewhere in a cardboard box there's a mislabelled parcel. Bring it back to the Gremlins' outbox by the entrance circle."
-  },
-  {
-   "id": "small-talk",
-   "name": "Small Talk",
-   "type": "riddle",
-   "count": 1,
-   "xp": 40,
-   "text": "Ask an almost-person a question.",
-   "_about": "The talk panel has the player asking the almost-person. Completes when they ask (a talk prompt), or still when they answer a riddle (older path)."
-  },
-  {
-   "id": "dust-mgmt",
-   "name": "Dust Management",
-   "type": "kill",
-   "count": 3,
-   "xp": 60,
-   "loot": "mint",
-   "text": "Defeat 3 Annex critters. They live in rooms, never in the hallways."
-  },
-  {
-   "id": "sesame",
-   "name": "Open Sesame-ish",
-   "type": "door",
-   "count": 1,
-   "xp": 40,
-   "text": "Get a dice door open."
-  },
-  {
-   "id": "big-filing",
-   "name": "The Big Filing",
-   "type": "boss",
-   "boss": "records",
-   "count": 1,
-   "xp": 150,
-   "hidden": true,
-   "text": "Step through a party portal and calm the Grand Feral Filing Cabinet."
-  }
- ],
- "riddles": [
-  {
-   "id": "r-stairs",
-   "q": "What goes up and down but never moves?",
-   "a": [
-    "Stairs",
-    "An elevator",
-    "Your mood"
-   ],
-   "ok": 0,
-   "yes": "\"Correct. Unless they're the Escher ones. Then: also correct.\"",
-   "no": "\"Close. Not really. But close.\""
-  },
-  {
-   "id": "r-towel",
-   "q": "What gets wetter the more it dries?",
-   "a": [
-    "A sponge",
-    "A towel",
-    "The carpet in here"
-   ],
-   "ok": 1,
-   "yes": "\"Yes. The carpet ALSO counts, but don't tell it.\"",
-   "no": "\"That's damp of you. Try again sometime.\""
-  },
-  {
-   "id": "r-name",
-   "q": "What belongs to you, but other people use it more than you do?",
-   "a": [
-    "Your name",
-    "Your stapler",
-    "Your chair"
-   ],
-   "ok": 0,
-   "yes": "\"Yes, {name}. Or is it {nameOff}? We use it a lot.\"",
-   "no": "\"No, but I will be borrowing that.\""
-  },
-  {
-   "id": "r-keys",
-   "q": "What has keys but can't open a single door?",
-   "a": [
-    "A janitor",
-    "A keyboard",
-    "This door"
-   ],
-   "ok": 1,
-   "yes": "\"Correct. I tried every key. Nothing.\"",
-   "no": "\"Oh, a janitor can open doors. That's their whole thing.\""
-  },
-  {
-   "id": "r-hole",
-   "q": "The more you take, the more you leave behind. What are they?",
-   "a": [
-    "Footsteps",
-    "Snacks",
-    "Meetings"
-   ],
-   "ok": 0,
-   "yes": "\"Footsteps! I've been following yours.\"",
-   "no": "\"Meetings DO leave a lot behind, but no.\""
-  }
- ],
- "knockout": {
-  "_about": "v6 (lore 89): 0 HP never kills. In the open halls you wake at the nearest stable place you've found; in a push-room trap Grenshol grabs your collar and you land at the Station; in an instance the Gremlins haul you to its door. You lose 10% of this level's XP progress (never a level) and may get one small consequence. Your Keepsake is never taken.",
-  "xpLossPct": 0.1,
-  "fade": "The light goes soft and grey, and the hum fades…",
-  "carry": "Long, careful steps. Warm air that smells of rain on ferns. Then somewhere that stays put.",
-  "consequences": [
-   {
-    "id": "steal",
-    "weight": 3,
-    "note": [
-     "\"Kept your {item} safe for you. Come and find it. — G\"",
-     "\"{item}: borrowed. Will return. — G\"",
-     "\"Your {item} is with me. You'll see it again. — G\""
-    ]
-   },
-   {
-    "id": "boots",
-    "weight": 2,
-    "text": "Your boots are laced together. Stride −1 until you touch a crystal.",
-    "status": "Boots laced together (−1 Stride)",
-    "statMod": {
-     "stride": -1
-    }
-   },
-   {
-    "id": "fog",
-    "weight": 2,
-    "text": "There's a faint fog at the edge of your thoughts. It'll lift at a crystal.",
-    "status": "A little foggy (cosmetic)"
-   },
-   {
-    "id": "fern",
-    "weight": 1,
-    "text": "There's a damp fern leaf stuck to your sleeve. Nobody here grows ferns.",
-    "status": "Fern on your sleeve (cosmetic)"
-   }
-  ],
-  "noteTitle": "A note, tucked into your collar",
-  "carryInstance": "Two Gremlins haul you out by the collar, carefully, and prop you up by the door you came in.",
-  "openHalls": "You wake at {place}. It stays put.",
-  "trap": {
-   "noXPLoss": true,
-   "noConsequence": true,
-   "_about": "push-room snare traps: knockout with no XP loss and no consequence; you land at the Door Station."
-  }
- },
- "partyPortals": [
-  {
-   "id": "pp-print",
-   "section": "print",
-   "cell": [
-    0,
-    2
-   ],
-   "instance": "records",
-   "label": "A swirly door marked 'GROUP BOOKINGS ONLY (1–3)'"
-  },
-  {
-   "id": "pp-stock",
-   "section": "stock",
-   "cell": [
-    0,
-    -2
-   ],
-   "instance": "records",
-   "label": "A swirly door marked 'TEAM-BUILDING EXERCISE (1–3)'"
-  }
- ],
- "party": {
-  "_about": "Max party size is 3. Normal Annex exploration is always SOLO (no scaling). Parties only form at party portals, which lead to separate instanced rooms; mobs and the boss scale by partySize (1–3). Real multiplayer later = a Supabase realtime channel per instance filling party.members; the debug URL flag &party=N (clamped to 3) fakes extra members for testing.",
-  "max": 3
- },
- "instances": {
-  "records": {
-   "name": "The Records Room (party instance)",
-   "size": 14,
-   "palette": {
-    "wall": "#c9c2a2",
-    "floor": "#6f7458",
-    "ceil": "#e9e3c8",
-    "bg": "#3a3a2c",
-    "fog": [
-     6,
-     40
-    ],
-    "hemi": 1.1
-   },
-   "intro": "A huge, echoing records room. Every drawer is labelled 'MISC.' One of the cabinets is breathing.",
-   "boss": {
-    "name": "The Grand Feral Filing Cabinet",
-    "icon": "🗄",
-    "hp": 40,
-    "ac": 13,
-    "atk": 4,
-    "die": 8,
-    "xp": 150,
-    "speed": 0.7,
-    "every": 2.6,
-    "hitText": [
-     "files you under 'P' for 'Pending'",
-     "chomps you with its bottom drawer",
-     "slams four drawers at once"
-    ],
-    "special": {
-     "every": 3,
-     "name": "Paperwork Avalanche",
-     "stat": "stride",
-     "dc": 12,
-     "dice": [
-      2,
-      6
-     ],
-     "text": "It flings a blizzard of forms!"
+    {
+      "id": "luck",
+      "name": "Luck",
+      "icon": "\ud83c\udf40",
+      "about": "loot, odd devices, the Annex breaking its own rules in your favour",
+      "export": "CHA (and a small luck pool)"
     },
-    "dieText": "lets out a long, papery sigh and lies down. All its drawers slide shut. It's purring.",
-    "loot": "mop"
-   },
-   "minion": "sprite",
-   "scale": {
-    "hpPerExtra": 0.6,
-    "dmgPerExtra": 1,
-    "minionsPerMember": 1
-   },
-   "done": "The Grand Feral Filing Cabinet is asleep. (It'll wake for a new party once Desks multiplayer is on.)",
-   "short": "Records Room",
-   "level": 3,
-   "battleMode": "realtime",
-   "turnBased": false
+    {
+      "id": "nerve",
+      "name": "Nerve",
+      "icon": "\ud83e\udec0",
+      "about": "hit points, staying put when something giggles, heavy swings",
+      "export": "CON / WIS"
+    },
+    {
+      "id": "wits",
+      "name": "Wits",
+      "icon": "\ud83e\udde0",
+      "about": "riddles, odd locks, aiming a stapler",
+      "export": "INT"
+    },
+    {
+      "id": "stride",
+      "name": "Stride",
+      "icon": "\ud83d\udc5f",
+      "about": "armor class, dodging, most weapons",
+      "export": "DEX / STR"
+    }
+  ],
+  "creation": {
+    "standardArray": [
+      15,
+      14,
+      12,
+      10
+    ],
+    "pointBuy": {
+      "points": 22,
+      "min": 8,
+      "max": 15,
+      "cost": {
+        "8": 0,
+        "9": 1,
+        "10": 2,
+        "11": 3,
+        "12": 4,
+        "13": 5,
+        "14": 7,
+        "15": 9
+      }
+    },
+    "aiHook": "Future: an AI-assisted creator (free text -> suggested build + one-line backstory). The player still edits and must approve before it saves.",
+    "quiz": [
+      {
+        "q": "A door in the Annex is humming at you. You\u2026",
+        "a": [
+          {
+            "t": "read the small print on the frame first",
+            "path": "archivist"
+          },
+          {
+            "t": "are already through it",
+            "path": "wanderer"
+          },
+          {
+            "t": "open the panel to see what makes it hum",
+            "path": "tinkerer"
+          }
+        ]
+      },
+      {
+        "q": "What did you always keep in your desk drawer?",
+        "a": [
+          {
+            "t": "labelled folders, colour-coded",
+            "path": "archivist"
+          },
+          {
+            "t": "a map of somewhere you haven't been yet",
+            "path": "wanderer"
+          },
+          {
+            "t": "one spring, three batteries and a key to nothing",
+            "path": "tinkerer"
+          }
+        ]
+      },
+      {
+        "q": "Something moves in the vents. You\u2026",
+        "a": [
+          {
+            "t": "write it down: time, sound, direction",
+            "path": "archivist"
+          },
+          {
+            "t": "walk the other way, quickly",
+            "path": "wanderer"
+          },
+          {
+            "t": "tap back and listen",
+            "path": "tinkerer"
+          }
+        ]
+      }
+    ],
+    "nameIdeas": [
+      "{name} of the Brass Line",
+      "{name} the Surveyor",
+      "{name} Lampbearer",
+      "Wayfarer {name}",
+      "{name} of the Long Hall"
+    ],
+    "classQuiz": {
+      "_about": "v6: the three-question quiz now suggests a class too (by answer index).",
+      "byAnswer": [
+        [
+          "rogue",
+          "warrior",
+          "sorcerer"
+        ],
+        [
+          "cleric",
+          "ranger",
+          "warlock"
+        ],
+        [
+          "paladin",
+          "barbarian",
+          "rogue"
+        ]
+      ]
+    }
+  },
+  "paths": {
+    "archivist": {
+      "name": "Archivist",
+      "icon": "\ud83d\udcda",
+      "main": "wits",
+      "order": [
+        "wits",
+        "nerve",
+        "luck",
+        "stride"
+      ],
+      "prof": [
+        "wits"
+      ],
+      "weapon": "stapler",
+      "blurb": "You kept records before you came here. You read plaques twice and remember which door was which.",
+      "perk": "Proficiency on Wits checks. Once per instance, one riddle or plaque gives you a hint.",
+      "ability": {
+        "id": "footnote",
+        "name": "Footnote",
+        "icon": "\ud83d\udcdd",
+        "text": "Advantage on one check per instance (roll two d20s, keep the higher)."
+      }
+    },
+    "wanderer": {
+      "name": "Wanderer",
+      "icon": "\ud83e\udded",
+      "main": "stride",
+      "order": [
+        "stride",
+        "nerve",
+        "wits",
+        "luck"
+      ],
+      "prof": [
+        "stride"
+      ],
+      "door": true,
+      "weapon": "umbrella",
+      "blurb": "You've always walked a little further than the map. Halls that move don't bother you much.",
+      "perk": "Proficiency on route and door checks. You spot STAYS PUT \u2713 marks from farther off, and soup heals you an extra 1d4.",
+      "ability": {
+        "id": "waysense",
+        "name": "Way-Sense",
+        "icon": "\ud83e\udded",
+        "text": "Stable places show up on your map from a cell further away. Soup heals +1d4."
+      }
+    },
+    "tinkerer": {
+      "name": "Tinkerer",
+      "icon": "\ud83d\udd27",
+      "main": "luck",
+      "order": [
+        "luck",
+        "wits",
+        "stride",
+        "nerve"
+      ],
+      "prof": [
+        "luck"
+      ],
+      "weapon": "chicken",
+      "blurb": "You fix things, sometimes by making them stranger. Waystones seem to like you.",
+      "perk": "Proficiency on Luck and device checks. You carry one Spring Gizmo (2d6, thrown) and build another at each Full Rest.",
+      "ability": {
+        "id": "gizmo",
+        "name": "Spring Gizmo",
+        "icon": "\ud83e\ude80",
+        "text": "Throwable: 2d6 damage, no attack roll. You carry one at a time and build a new one at each Full Rest."
+      }
+    }
+  },
+  "levels": {
+    "_about": "House XP curve, cumulative XP to reach each level (cap 25). v5c (Nov 14 2026): early levels follow a slower, 5e-inspired pace so a single scuffle cannot ding level 2, and the first instance cannot push you past level 3. L2=150, L3=400, then a wide jump to L4=1000 (the same kind of 3e\u20135e early gap). After that the steps grow steadily (~600, then +100 per level) through 20, and a bit steeper from 21\u201325. Proficiency follows SRD 5.2.1 by level (+2 at 1-4, +3 at 5-8, +4 at 9-12, +5 at 13-16, +6 at 17-20), extended the same way past 20 (+7 at 21-24, +8 at 25). HP = hpBase + Nerve mod, then hpPerLevel + Nerve mod (min 1) per level. A stat point at each statUpAt level.",
+    "xp": [
+      0,
+      150,
+      400,
+      1000,
+      1600,
+      2300,
+      3100,
+      4000,
+      5000,
+      6100,
+      7300,
+      8600,
+      10000,
+      11500,
+      13100,
+      14800,
+      16600,
+      18500,
+      20500,
+      22600,
+      25000,
+      27600,
+      30400,
+      33400,
+      36600
+    ],
+    "prof": [
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      4,
+      4,
+      4,
+      4,
+      5,
+      5,
+      5,
+      5,
+      6,
+      6,
+      6,
+      6,
+      7,
+      7,
+      7,
+      7,
+      8
+    ],
+    "hpBase": 8,
+    "hpPerLevel": 5,
+    "statUpAt": [
+      3,
+      5,
+      8,
+      11,
+      14,
+      17,
+      20,
+      23
+    ],
+    "statMax": 20,
+    "cap": 25
+  },
+  "xp": {
+    "curio": 25,
+    "riddle": 20,
+    "door": 15,
+    "attune": 10
+  },
+  "items": {
+    "fists": {
+      "name": "Polite Fists",
+      "slot": "weapon",
+      "die": 4,
+      "stat": "stride",
+      "value": 0,
+      "keep": true,
+      "text": "Always with you. Very apologetic."
+    },
+    "newspaper": {
+      "name": "Rolled-Up Newspaper",
+      "slot": "weapon",
+      "die": 4,
+      "stat": "stride",
+      "value": 1,
+      "text": "Yesterday's news. Hits like it."
+    },
+    "stapler": {
+      "name": "Office Stapler",
+      "slot": "weapon",
+      "die": 6,
+      "stat": "wits",
+      "value": 2,
+      "text": "Ka-chunk. Aim carefully."
+    },
+    "chicken": {
+      "name": "Rubber Chicken Flail",
+      "slot": "weapon",
+      "die": 6,
+      "stat": "luck",
+      "value": 2,
+      "text": "Squeaks on every hit. Enemies find this confusing."
+    },
+    "ruler": {
+      "name": "Forty-Centimetre Ruler",
+      "slot": "weapon",
+      "die": 6,
+      "stat": "stride",
+      "hit": 1,
+      "value": 3,
+      "text": "Longer than it has any right to be. +1 to hit."
+    },
+    "umbrella": {
+      "name": "Umbrella of Mild Weather",
+      "slot": "weapon",
+      "die": 8,
+      "stat": "stride",
+      "value": 3,
+      "text": "Opens with a whump. Mostly for drama.",
+      "unique": true
+    },
+    "punch": {
+      "name": "Three-Hole Punch",
+      "slot": "weapon",
+      "die": 8,
+      "stat": "wits",
+      "value": 4,
+      "text": "Leaves very tidy dents."
+    },
+    "lamp": {
+      "name": "Desk Lamp Mace",
+      "slot": "weapon",
+      "die": 8,
+      "stat": "nerve",
+      "value": 4,
+      "text": "Still plugged into something. Don't ask what."
+    },
+    "mop": {
+      "name": "Mop of Destiny",
+      "slot": "weapon",
+      "die": 10,
+      "stat": "stride",
+      "value": 6,
+      "text": "Chosen by a puddle. Hums faintly."
+    },
+    "tape": {
+      "name": "Tape Dispenser Morningstar",
+      "slot": "weapon",
+      "die": 10,
+      "stat": "luck",
+      "value": 5,
+      "text": "Heavy. Sticky. Unwise."
+    },
+    "jug": {
+      "name": "Water Cooler Jug",
+      "slot": "weapon",
+      "die": 12,
+      "stat": "nerve",
+      "value": 6,
+      "text": "Two-handed. Glug."
+    },
+    "cardigan": {
+      "name": "Cardigan of Mild Protection",
+      "slot": "armor",
+      "ac": 1,
+      "value": 1,
+      "text": "+1 AC. Clothes: counts as unarmored. Elbow patches.",
+      "tier": "clothes"
+    },
+    "bubble": {
+      "name": "Bubble-Wrap Vest",
+      "slot": "armor",
+      "ac": 2,
+      "value": 3,
+      "text": "+2 AC. Light armor. Pops when you're hit.",
+      "tier": "light"
+    },
+    "cardboard": {
+      "name": "Cardboard Plate Armour",
+      "slot": "armor",
+      "ac": 3,
+      "value": 5,
+      "text": "+3 AC. Medium armor: Stride adds at most +2. Stamped THIS SIDE UP.",
+      "tier": "medium"
+    },
+    "cone": {
+      "name": "Traffic Cone Helm",
+      "slot": "head",
+      "ac": 1,
+      "value": 2,
+      "text": "+1 AC. You can hear the ocean."
+    },
+    "visor": {
+      "name": "Accountant's Visor",
+      "slot": "head",
+      "check": {
+        "wits": 1
+      },
+      "value": 2,
+      "text": "+1 to Wits checks. Very green.",
+      "unique": true
+    },
+    "badge": {
+      "name": "Laminated Name Badge",
+      "slot": "trinket",
+      "check": {
+        "luck": 1
+      },
+      "value": 2,
+      "text": "+1 to Luck checks. The name on it is almost yours.",
+      "unique": true
+    },
+    "keyring": {
+      "name": "Key Ring of Many Doors",
+      "slot": "trinket",
+      "door": 2,
+      "value": 3,
+      "text": "+2 to dice-door checks. None of the keys fit anything."
+    },
+    "mint": {
+      "name": "Lucky Breath Mint",
+      "slot": "trinket",
+      "hit": 1,
+      "value": 3,
+      "text": "+1 to hit. Fresh confidence."
+    },
+    "clips": {
+      "name": "Paperclip Chainmail Scarf",
+      "slot": "trinket",
+      "ac": 1,
+      "value": 3,
+      "text": "+1 AC. Jingles."
+    },
+    "soup": {
+      "name": "Vending Machine Soup",
+      "slot": "use",
+      "heal": [
+        2,
+        4,
+        2
+      ],
+      "value": 1,
+      "text": "Heals 2d4+2. Flavour: 'soup'.",
+      "icon": "\ud83c\udf72"
+    },
+    "parcel": {
+      "name": "A Mislabelled Parcel",
+      "slot": "quest",
+      "value": 0,
+      "text": "Addressed to 'The Annex, Over There'. Drop it in the Gremlins' outbox by the entrance circle."
+    },
+    "potion": {
+      "name": "Fizzy Pocket Potion",
+      "slot": "use",
+      "heal": [
+        1,
+        8,
+        2
+      ],
+      "value": 1,
+      "icon": "\ud83e\uddea",
+      "text": "Heals 1d8+2. Tastes like a battery that's trying its best."
+    },
+    "lucky-pebble": {
+      "name": "Lucky Pebble",
+      "slot": "trinket",
+      "check": {
+        "luck": 1
+      },
+      "value": 2,
+      "icon": "\ud83e\udea8",
+      "unique": true,
+      "text": "+1 to Luck checks. It keeps trying to be helpful and mostly just sits there, proudly."
+    },
+    "pocket-lantern": {
+      "name": "Pocket Lantern",
+      "slot": "trinket",
+      "value": 2,
+      "icon": "\ud83c\udfee",
+      "unique": true,
+      "text": "A tiny lantern that is almost too pleased with itself. Doesn't light much. Looks nice on a belt."
+    },
+    "filing-plate": {
+      "name": "Filing-Cabinet Plate",
+      "slot": "armor",
+      "tier": "heavy",
+      "ac": 4,
+      "value": 7,
+      "text": "+4 AC. Heavy armor: Stride doesn't count. Clanks on every stair."
+    },
+    "fern-frond": {
+      "name": "Fern Frond",
+      "slot": "quest",
+      "value": 0,
+      "icon": "\ud83c\udf3f",
+      "keep": true,
+      "text": "Still damp, and warm, like it came from somewhere with rain. Nothing in the Annex grows ferns."
+    },
+    "gizmo": {
+      "name": "Spring Gizmo",
+      "slot": "use",
+      "dmg": [
+        2,
+        6,
+        0
+      ],
+      "value": 1,
+      "icon": "\ud83e\ude80",
+      "text": "Throw it: 2d6 damage to one foe, no attack roll."
+    },
+    "survey-page": {
+      "name": "Survey page, torn",
+      "slot": "quest",
+      "value": 0,
+      "icon": "\ud83d\udcc4",
+      "text": "A page from the Survey Corps logbook. It belongs on the Common Record."
+    },
+    "pillow-naps": {
+      "name": "Pillow of Eternal Naps",
+      "slot": "trinket",
+      "unique": true,
+      "value": 6,
+      "icon": "\ud83d\udecf",
+      "text": "A button-eyed pillow that used to have grievances. After a Full Rest, you wake with +1 HP more than you should. It snores, very politely."
+    },
+    "glowcap": {
+      "name": "Glowcap",
+      "slot": "use",
+      "value": 1,
+      "icon": "\ud83c\udf44",
+      "text": "A faintly warm cave-cap. Not a magic mushroom. A glowcap. Best shared, or at least discussed."
+    }
+  },
+  "startGear": [
+    "cardigan"
+  ],
+  "loot": {
+    "_about": "Weighted tables by depth tier (0 = near the entrance, 4 = very deep). Mobs drop on a group clear (chance), boxes and dice-door rooms always give one.",
+    "tiers": [
+      [
+        [
+          "soup",
+          4
+        ],
+        [
+          "newspaper",
+          2
+        ],
+        [
+          "badge",
+          2
+        ],
+        [
+          "cone",
+          2
+        ],
+        [
+          "ruler",
+          1
+        ],
+        [
+          "visor",
+          1
+        ],
+        [
+          "potion",
+          2
+        ]
+      ],
+      [
+        [
+          "soup",
+          3
+        ],
+        [
+          "ruler",
+          2
+        ],
+        [
+          "bubble",
+          2
+        ],
+        [
+          "cone",
+          2
+        ],
+        [
+          "mint",
+          1
+        ],
+        [
+          "keyring",
+          1
+        ],
+        [
+          "punch",
+          1
+        ],
+        [
+          "potion",
+          2
+        ]
+      ],
+      [
+        [
+          "soup",
+          3
+        ],
+        [
+          "punch",
+          2
+        ],
+        [
+          "lamp",
+          2
+        ],
+        [
+          "bubble",
+          2
+        ],
+        [
+          "clips",
+          1
+        ],
+        [
+          "mint",
+          1
+        ],
+        [
+          "keyring",
+          1
+        ]
+      ],
+      [
+        [
+          "soup",
+          2
+        ],
+        [
+          "lamp",
+          2
+        ],
+        [
+          "tape",
+          1
+        ],
+        [
+          "cardboard",
+          1
+        ],
+        [
+          "clips",
+          2
+        ],
+        [
+          "jug",
+          1
+        ]
+      ],
+      [
+        [
+          "soup",
+          2
+        ],
+        [
+          "tape",
+          2
+        ],
+        [
+          "jug",
+          2
+        ],
+        [
+          "cardboard",
+          2
+        ],
+        [
+          "mop",
+          1
+        ],
+        [
+          "filing-plate",
+          2
+        ]
+      ]
+    ],
+    "mobDropChance": 0.45
+  },
+  "enemies": {
+    "dust": {
+      "name": "Dust Bunny",
+      "icon": "\ud83d\udc07",
+      "hp": 5,
+      "ac": 10,
+      "atk": 2,
+      "die": 4,
+      "xp": 15,
+      "speed": 1.6,
+      "every": 2.2,
+      "hitText": [
+        "sneezes on you",
+        "nibbles your shoelace",
+        "rolls into your shin"
+      ],
+      "dieText": "poofs into a small grey cloud.",
+      "level": 1
+    },
+    "moth": {
+      "name": "Static Moth",
+      "icon": "\ud83e\udd8b",
+      "hp": 6,
+      "ac": 12,
+      "atk": 3,
+      "die": 4,
+      "xp": 20,
+      "speed": 2.0,
+      "every": 2.0,
+      "fly": true,
+      "hitText": [
+        "zaps your earlobe",
+        "crackles at you",
+        "sticks your hair up"
+      ],
+      "dieText": "flickers off like an old monitor.",
+      "level": 1
+    },
+    "sock": {
+      "name": "Sock Wraith",
+      "icon": "\ud83e\udde6",
+      "hp": 9,
+      "ac": 11,
+      "atk": 3,
+      "die": 6,
+      "xp": 30,
+      "speed": 1.2,
+      "every": 2.4,
+      "hitText": [
+        "wraps around your ankle",
+        "whispers 'where's my pair'",
+        "smells faintly of dryer"
+      ],
+      "dieText": "finds its pair and floats away, happy.",
+      "level": 2
+    },
+    "wisp": {
+      "name": "Hold-Music Wisp",
+      "icon": "\ud83c\udfb5",
+      "hp": 8,
+      "ac": 12,
+      "atk": 3,
+      "die": 6,
+      "xp": 25,
+      "speed": 1.4,
+      "every": 2.3,
+      "fly": true,
+      "hitText": [
+        "plays the same four bars at you",
+        "says 'your call is important'",
+        "hums smugly"
+      ],
+      "dieText": "is finally connected to a representative.",
+      "level": 2
+    },
+    "cabinet": {
+      "name": "Feral Filing Cabinet",
+      "icon": "\ud83d\uddc4",
+      "hp": 14,
+      "ac": 13,
+      "atk": 4,
+      "die": 6,
+      "xp": 45,
+      "speed": 0.8,
+      "every": 2.6,
+      "hitText": [
+        "chomps you with its top drawer",
+        "files you under 'misc.'",
+        "slams a drawer on your fingers"
+      ],
+      "dieText": "goes very still and alphabetises itself.",
+      "level": 3
+    },
+    "sprite": {
+      "name": "Paper-Cut Sprite",
+      "icon": "\ud83d\udcc4",
+      "hp": 6,
+      "ac": 11,
+      "atk": 3,
+      "die": 4,
+      "xp": 10,
+      "speed": 1.8,
+      "every": 2.0,
+      "fly": true,
+      "hitText": [
+        "gives you a tiny paper cut",
+        "flaps itself at you"
+      ],
+      "dieText": "folds into a paper crane and leaves.",
+      "level": 1
+    },
+    "dummy": {
+      "name": "Practice Dummy",
+      "icon": "\ud83c\udfaf",
+      "mesh": "dummy",
+      "hp": 6,
+      "ac": 8,
+      "atk": 0,
+      "die": 4,
+      "xp": 10,
+      "speed": 0,
+      "every": 3.4,
+      "training": true,
+      "hitText": [
+        "wobbles into you",
+        "boops you with a felt arm",
+        "tips over onto your foot"
+      ],
+      "dieText": "flops over. A tiny flag pops up: 'GOOD JOB!'",
+      "level": 1
+    },
+    "sleepy": {
+      "name": "Sleepy Dust Bunny",
+      "icon": "\ud83d\ude34",
+      "mesh": "dust",
+      "hp": 5,
+      "ac": 9,
+      "atk": 1,
+      "die": 4,
+      "xp": 10,
+      "speed": 0.6,
+      "every": 3.2,
+      "training": true,
+      "hitText": [
+        "yawns at you aggressively",
+        "sleep-nibbles your sock"
+      ],
+      "dieText": "curls up into a nap-sized cloud.",
+      "level": 1
+    },
+    "drip": {
+      "name": "Polite Drip",
+      "icon": "\ud83d\udca7",
+      "mesh": "drip",
+      "hp": 6,
+      "ac": 10,
+      "atk": 2,
+      "die": 4,
+      "xp": 20,
+      "speed": 1.2,
+      "every": 2.4,
+      "hitText": [
+        "drips apologetically on your head",
+        "splashes your sleeve as if to say sorry",
+        "forms a very small puddle underfoot"
+      ],
+      "dieText": "goes splat, then apologises one last time.",
+      "level": 2
+    },
+    "cavebat": {
+      "name": "Opinionated Bat",
+      "icon": "\ud83e\udd87",
+      "mesh": "cavebat",
+      "hp": 7,
+      "ac": 11,
+      "atk": 2,
+      "die": 4,
+      "xp": 25,
+      "speed": 1.8,
+      "every": 2.3,
+      "hitText": [
+        "swoops by with a tiny lecture",
+        "flaps a wing at your ear",
+        "insists you are standing in its air"
+      ],
+      "dieText": "lands, folds up, and looks unimpressed.",
+      "level": 2
+    },
+    "pebble": {
+      "name": "Helpful Pebble",
+      "icon": "\ud83e\udea8",
+      "mesh": "pebble",
+      "hp": 8,
+      "ac": 12,
+      "atk": 2,
+      "die": 4,
+      "xp": 30,
+      "speed": 1.0,
+      "every": 2.6,
+      "hitText": [
+        "rolls helpfully into your shin",
+        "offers itself as a stepping stone at the worst moment",
+        "bonks you, then waits to be thanked"
+      ],
+      "dieText": "settles down, finally convinced it has helped enough.",
+      "level": 2
+    },
+    "echo": {
+      "name": "Echo With Teeth",
+      "icon": "\ud83d\ude2e",
+      "mesh": "echo",
+      "hp": 9,
+      "ac": 11,
+      "atk": 3,
+      "die": 4,
+      "xp": 35,
+      "speed": 1.4,
+      "every": 2.5,
+      "hitText": [
+        "repeats your last step, a bit sharper",
+        "nips the air next to you",
+        "gives your words a tiny bite"
+      ],
+      "dieText": "fades, leaving only a polite aftertaste of sound.",
+      "level": 3
+    },
+    "moss": {
+      "name": "Ambitious Moss",
+      "icon": "\ud83c\udf3f",
+      "mesh": "moss",
+      "hp": 8,
+      "ac": 10,
+      "atk": 2,
+      "die": 4,
+      "xp": 30,
+      "speed": 0.8,
+      "every": 2.7,
+      "hitText": [
+        "tries to grow on your boot",
+        "pats you with a damp tuft",
+        "spreads a little further than is strictly necessary"
+      ],
+      "dieText": "settles into a modest, decorative clump.",
+      "level": 3
+    }
+  },
+  "mobs": {
+    "_about": "One small group per seeded cell, only in rooms (never hallways, plazas, curiosity nooks, grabber/almost-person/stair/switch rooms). A cleared cell is remembered in localStorage and never spawns again, so mobs can't be camped. Stats scale with depth tier = floor(depth / tierEvery), capped at 4. Overworld groups are always solo (party size never applies outside party-portal instances).",
+    "minDepth": 1.5,
+    "chance": 0.22,
+    "chancePerDepth": 0.012,
+    "chanceMax": 0.4,
+    "tierEvery": 3,
+    "count": [
+      1,
+      3
+    ],
+    "scale": {
+      "hpPerTier": 0.3,
+      "acPerTwoTiers": 1,
+      "atkPerTier": 0.5,
+      "dmgPerTier": 0.5,
+      "xpPerTier": 0.3
+    },
+    "bySection": {
+      "print": [
+        "dust",
+        "dust",
+        "moth"
+      ],
+      "turn": [
+        "moth",
+        "dust",
+        "wisp"
+      ],
+      "stock": [
+        "sock",
+        "dust",
+        "cabinet"
+      ],
+      "waiting": [
+        "wisp",
+        "sock",
+        "moth"
+      ],
+      "shallows": [
+        "moth",
+        "sock",
+        "wisp"
+      ],
+      "night": [
+        "cabinet",
+        "wisp",
+        "sock"
+      ]
+    },
+    "reach": 2.6,
+    "playerCooldown": 0.85,
+    "mobReach": 1.25,
+    "regenEvery": 3,
+    "fumbles": [
+      "You swing so hard you spin all the way round. Dizzy!",
+      "Your weapon slips out of your hand and boops you on the nose.",
+      "You trip over absolutely nothing. The carpet looks smug.",
+      "You apologise mid-swing. It throws off your aim."
+    ],
+    "crits": [
+      "CRITICAL! A swing so good the lights flicker in applause.",
+      "CRITICAL! Somewhere, a Gremlin cheers.",
+      "CRITICAL! That one's going in the survey."
+    ],
+    "_about_v5d2": "v5d2: overworld critters only spawn in zones beyond a weird door (data/elsewhere-annex.json beyond.zones[].mobs: chance, tier, count, kinds). The minDepth/chance/bySection numbers above are kept for reference and as a pool fallback; the open Backrooms have no critters."
+  },
+  "doors": {
+    "_about": "A few room doorways are shut by a dice door. Roll d20 + stat modifier (+ proficiency if your path has it) vs the DC. Fail = a funny consequence and a short wait, never a permanent lockout. DCs barely climb with depth.",
+    "minDepth": 1.5,
+    "chance": 0.12,
+    "dc": [
+      10,
+      12,
+      12,
+      13,
+      14
+    ],
+    "retrySeconds": 4,
+    "stats": [
+      "wits",
+      "wits",
+      "nerve",
+      "stride",
+      "luck"
+    ],
+    "labels": {
+      "wits": "This door has a riddle carved in it. It's mostly about doors.",
+      "nerve": "The door is breathing. Gently. Put your hand on it anyway?",
+      "stride": "The handle keeps moving down the door. Catch it.",
+      "luck": "The door is a coin-operated door. You have no coins. Try anyway?"
+    },
+    "fails": [
+      "The door blows a raspberry at you. Rude.",
+      "The door opens\u2026 onto another closed door, which then closes the first one.",
+      "You're covered in a light dusting of glitter. The door seems pleased.",
+      "The door says 'Nope' in your own voice.",
+      "The handle comes off in your hand, then reattaches itself, offended.",
+      "A tiny slot opens and a gremlin hand gives you a sticker that says TRY AGAIN."
+    ],
+    "success": "The door sighs, clicks, and swings open. There's something in here."
+  },
+  "boxes": {
+    "chance": 0.1,
+    "minDepth": 1
+  },
+  "quests": [
+    {
+      "id": "sign-in",
+      "name": "Sign In, Please",
+      "type": "flag",
+      "flag": "transformed",
+      "count": 1,
+      "xp": 20,
+      "text": "Step into the stitched circle at the entrance and become your Annex self."
+    },
+    {
+      "id": "lost-found",
+      "name": "Lost & Found",
+      "type": "curio",
+      "count": 1,
+      "xp": 40,
+      "text": "Find a curiosity. They're usually in little nooks near a crystal."
+    },
+    {
+      "id": "return-sender",
+      "name": "Return to Sender",
+      "type": "fetch",
+      "item": "parcel",
+      "count": 1,
+      "xp": 60,
+      "loot": "badge",
+      "text": "Somewhere in a cardboard box there's a mislabelled parcel. Bring it back to the Gremlins' outbox by the entrance circle."
+    },
+    {
+      "id": "small-talk",
+      "name": "Small Talk",
+      "type": "riddle",
+      "count": 1,
+      "xp": 40,
+      "text": "Ask an almost-person a question.",
+      "_about": "The talk panel has the player asking the almost-person. Completes when they ask (a talk prompt), or still when they answer a riddle (older path)."
+    },
+    {
+      "id": "dust-mgmt",
+      "name": "Dust Management",
+      "type": "kill",
+      "count": 3,
+      "xp": 60,
+      "loot": "mint",
+      "text": "Defeat 3 Annex critters. They live in rooms, never in the hallways."
+    },
+    {
+      "id": "sesame",
+      "name": "Open Sesame-ish",
+      "type": "door",
+      "count": 1,
+      "xp": 40,
+      "text": "Get a dice door open."
+    },
+    {
+      "id": "big-filing",
+      "name": "The Big Filing",
+      "type": "boss",
+      "boss": "records",
+      "count": 1,
+      "xp": 150,
+      "hidden": true,
+      "text": "Step through a party portal and calm the Grand Feral Filing Cabinet."
+    }
+  ],
+  "riddles": [
+    {
+      "id": "r-stairs",
+      "q": "What goes up and down but never moves?",
+      "a": [
+        "Stairs",
+        "An elevator",
+        "Your mood"
+      ],
+      "ok": 0,
+      "yes": "\"Correct. Unless they're the Escher ones. Then: also correct.\"",
+      "no": "\"Close. Not really. But close.\""
+    },
+    {
+      "id": "r-towel",
+      "q": "What gets wetter the more it dries?",
+      "a": [
+        "A sponge",
+        "A towel",
+        "The carpet in here"
+      ],
+      "ok": 1,
+      "yes": "\"Yes. The carpet ALSO counts, but don't tell it.\"",
+      "no": "\"That's damp of you. Try again sometime.\""
+    },
+    {
+      "id": "r-name",
+      "q": "What belongs to you, but other people use it more than you do?",
+      "a": [
+        "Your name",
+        "Your stapler",
+        "Your chair"
+      ],
+      "ok": 0,
+      "yes": "\"Yes, {name}. Or is it {nameOff}? We use it a lot.\"",
+      "no": "\"No, but I will be borrowing that.\""
+    },
+    {
+      "id": "r-keys",
+      "q": "What has keys but can't open a single door?",
+      "a": [
+        "A janitor",
+        "A keyboard",
+        "This door"
+      ],
+      "ok": 1,
+      "yes": "\"Correct. I tried every key. Nothing.\"",
+      "no": "\"Oh, a janitor can open doors. That's their whole thing.\""
+    },
+    {
+      "id": "r-hole",
+      "q": "The more you take, the more you leave behind. What are they?",
+      "a": [
+        "Footsteps",
+        "Snacks",
+        "Meetings"
+      ],
+      "ok": 0,
+      "yes": "\"Footsteps! I've been following yours.\"",
+      "no": "\"Meetings DO leave a lot behind, but no.\""
+    }
+  ],
+  "knockout": {
+    "_about": "v6 (lore 89): 0 HP never kills. In the open halls you wake at the nearest stable place you've found; in a push-room trap Grenshol grabs your collar and you land at the Station; in an instance the Gremlins haul you to its door. You lose 10% of this level's XP progress (never a level) and may get one small consequence. Your Keepsake is never taken.",
+    "xpLossPct": 0.1,
+    "fade": "The light goes soft and grey, and the hum fades\u2026",
+    "carry": "Long, careful steps. Warm air that smells of rain on ferns. Then somewhere that stays put.",
+    "consequences": [
+      {
+        "id": "steal",
+        "weight": 3,
+        "note": [
+          "\"Kept your {item} safe for you. Come and find it. \u2014 G\"",
+          "\"{item}: borrowed. Will return. \u2014 G\"",
+          "\"Your {item} is with me. You'll see it again. \u2014 G\""
+        ]
+      },
+      {
+        "id": "boots",
+        "weight": 2,
+        "text": "Your boots are laced together. Stride \u22121 until you touch a crystal.",
+        "status": "Boots laced together (\u22121 Stride)",
+        "statMod": {
+          "stride": -1
+        }
+      },
+      {
+        "id": "fog",
+        "weight": 2,
+        "text": "There's a faint fog at the edge of your thoughts. It'll lift at a crystal.",
+        "status": "A little foggy (cosmetic)"
+      },
+      {
+        "id": "fern",
+        "weight": 1,
+        "text": "There's a damp fern leaf stuck to your sleeve. Nobody here grows ferns.",
+        "status": "Fern on your sleeve (cosmetic)"
+      }
+    ],
+    "noteTitle": "A note, tucked into your collar",
+    "carryInstance": "Two Gremlins haul you out by the collar, carefully, and prop you up by the door you came in.",
+    "openHalls": "You wake at {place}. It stays put.",
+    "trap": {
+      "noXPLoss": true,
+      "noConsequence": true,
+      "_about": "push-room snare traps: knockout with no XP loss and no consequence; you land at the Door Station."
+    }
+  },
+  "partyPortals": [
+    {
+      "id": "pp-print",
+      "section": "print",
+      "cell": [
+        0,
+        2
+      ],
+      "instance": "records",
+      "label": "A swirly door marked 'GROUP BOOKINGS ONLY (1\u20133)'"
+    },
+    {
+      "id": "pp-stock",
+      "section": "stock",
+      "cell": [
+        0,
+        -2
+      ],
+      "instance": "records",
+      "label": "A swirly door marked 'TEAM-BUILDING EXERCISE (1\u20133)'"
+    }
+  ],
+  "party": {
+    "_about": "Max party size is 3. Normal Annex exploration is always SOLO (no scaling). Parties only form at party portals, which lead to separate instanced rooms; mobs and the boss scale by partySize (1\u20133). Real multiplayer later = a Supabase realtime channel per instance filling party.members; the debug URL flag &party=N (clamped to 3) fakes extra members for testing.",
+    "max": 3
+  },
+  "instances": {
+    "records": {
+      "name": "The Records Room (party instance)",
+      "size": 14,
+      "palette": {
+        "wall": "#c9c2a2",
+        "floor": "#6f7458",
+        "ceil": "#e9e3c8",
+        "bg": "#3a3a2c",
+        "fog": [
+          6,
+          40
+        ],
+        "hemi": 1.1
+      },
+      "intro": "A huge, echoing records room. Every drawer is labelled 'MISC.' One of the cabinets is breathing.",
+      "boss": {
+        "name": "The Grand Feral Filing Cabinet",
+        "icon": "\ud83d\uddc4",
+        "hp": 40,
+        "ac": 13,
+        "atk": 4,
+        "die": 8,
+        "xp": 150,
+        "speed": 0.7,
+        "every": 2.6,
+        "hitText": [
+          "files you under 'P' for 'Pending'",
+          "chomps you with its bottom drawer",
+          "slams four drawers at once"
+        ],
+        "special": {
+          "every": 3,
+          "name": "Paperwork Avalanche",
+          "stat": "stride",
+          "dc": 12,
+          "dice": [
+            2,
+            6
+          ],
+          "text": "It flings a blizzard of forms!"
+        },
+        "dieText": "lets out a long, papery sigh and lies down. All its drawers slide shut. It's purring.",
+        "loot": "mop"
+      },
+      "minion": "sprite",
+      "scale": {
+        "hpPerExtra": 0.6,
+        "dmgPerExtra": 1,
+        "minionsPerMember": 1
+      },
+      "done": "The Grand Feral Filing Cabinet is asleep. (It'll wake for a new party once Desks multiplayer is on.)",
+      "short": "Records Room",
+      "level": 3,
+      "battleMode": "realtime",
+      "turnBased": false
+    },
+    "training": {
+      "name": "The Training Closet",
+      "short": "Training Closet",
+      "training": true,
+      "turnBased": true,
+      "battleRange": 2.4,
+      "battleGroup": 2.6,
+      "size": 14,
+      "palette": {
+        "wall": "#d9d2b8",
+        "floor": "#4f7a8a",
+        "ceil": "#eee8d0",
+        "bg": "#2e3a3e",
+        "fog": [
+          8,
+          44
+        ],
+        "hemi": 1.2
+      },
+      "intro": "A broom closet that is much bigger on the inside.",
+      "mobs": [
+        {
+          "kind": "dummy",
+          "x": 4.0,
+          "z": 6.0
+        },
+        {
+          "kind": "dummy",
+          "x": 7.0,
+          "z": 5.4
+        },
+        {
+          "kind": "dummy",
+          "x": 10.0,
+          "z": 6.0
+        },
+        {
+          "kind": "sleepy",
+          "x": 11.2,
+          "z": 9.4
+        }
+      ],
+      "boss": {
+        "name": "Coach Stuffing",
+        "icon": "\ud83d\udce3",
+        "mesh": "tboss",
+        "hp": 16,
+        "ac": 10,
+        "atk": 2,
+        "die": 6,
+        "xp": 40,
+        "speed": 0.8,
+        "every": 2.8,
+        "hitText": [
+          "blows a whistle right in your ear",
+          "slaps you with a clipboard",
+          "demands one more lap"
+        ],
+        "special": {
+          "every": 3,
+          "name": "Clipboard Slap",
+          "stat": "stride",
+          "dc": 10,
+          "dice": [
+            1,
+            6
+          ],
+          "text": "It swings a clipboard in a wide arc!"
+        },
+        "dieText": "flops onto the mat and gives you a thumbs-up. 'Good form!'",
+        "x": 7.0,
+        "z": 2.6
+      },
+      "scale": {
+        "hpPerExtra": 0.6,
+        "dmgPerExtra": 1,
+        "minionsPerMember": 0
+      },
+      "done": "Everything's re-stuffed for next time.",
+      "level": 1,
+      "battleMode": "atb-turns",
+      "_battleMode": "Bryan said yes (Nov 14 2026): practice fights here use the same atb-turns battle screen as the Mailroom (battleMode: 'atb-turns'). It's one open room, so critters wait at home and a fight starts only when you walk within battleRange (m) of one; critters within battleGroup of it join (the boss fights alone). Sandbox: party size 2-3 stays real-time (combat.partyTurns:false); 'Turn-based: ON/OFF' and 'Fight everything' are in the dev panel. Nothing in here counts."
+    },
+    "starter": {
+      "name": "The Mildly Perilous Mailroom",
+      "short": "Mailroom",
+      "layout": "run",
+      "solo": true,
+      "turnBased": true,
+      "level": 1,
+      "levelRange": [
+        1,
+        3
+      ],
+      "grantXP": true,
+      "grantLoot": true,
+      "_flags": "grantXP/grantLoot true = this is the real game. v5d: the Mailroom (and the Grotto) reset on re-entry after a clear or after leaving: mobs, boss, rests and consumable pickups come back. Unique finds (badge, visor, umbrella, and similar) stay found, so replays don't flood your bag. XP still tapers via xpBand.",
+      "palette": {
+        "wall": "#d9c9a3",
+        "floor": "#8a6a4a",
+        "ceil": "#efe6cc",
+        "bg": "#3a3024",
+        "fog": [
+          10,
+          48
+        ],
+        "hemi": 1.2
+      },
+      "width": 6,
+      "segment": 8,
+      "lobby": 6,
+      "intro": "A long mailroom corridor where the parcels have opinions. A few little scuffles, a squashy mail sack to rest on, a few more scuffles, another rest, and something at the end that has been collecting lost things for far too long. Solo. Everything in here counts. Tuned for levels 1\u20133.",
+      "door": {
+        "sign": "THE MAILROOM",
+        "signSub": "solo \u00b7 real XP \u00b7 levels 1\u20133",
+        "label": "A door with a brass mail slot and a slightly wobbly frame. Someone has written 'STARTERS WELCOME (probably)' under the postmark."
+      },
+      "steps": [
+        {
+          "type": "fight",
+          "name": "Fight 1 \u00b7 The Welcome Fluff",
+          "mobs": [
+            [
+              "dust",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "fight",
+          "name": "Fight 2 \u00b7 Double Fluff",
+          "mobs": [
+            [
+              "dust",
+              0
+            ],
+            [
+              "dust",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "fight",
+          "name": "Fight 3 \u00b7 Moths in the Pigeonholes",
+          "mobs": [
+            [
+              "moth",
+              0
+            ],
+            [
+              "moth",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "rest",
+          "name": "Rest \u00b7 The Squashy Mail Sack"
+        },
+        {
+          "type": "fight",
+          "name": "Fight 4 \u00b7 Paper Sprite Ambush",
+          "mobs": [
+            [
+              "sprite",
+              0
+            ],
+            [
+              "sprite",
+              0
+            ],
+            [
+              "dust",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "fight",
+          "name": "Fight 5 \u00b7 The Sock and the Moth",
+          "mobs": [
+            [
+              "sock",
+              0
+            ],
+            [
+              "moth",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "fight",
+          "name": "Fight 6 \u00b7 Hold Music in the Slots",
+          "mobs": [
+            [
+              "moth",
+              0
+            ],
+            [
+              "wisp",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "rest",
+          "name": "Rest \u00b7 The Tea Trolley"
+        },
+        {
+          "type": "boss",
+          "name": "Boss \u00b7 The Lost-and-Found Bin"
+        }
+      ],
+      "pickups": [
+        {
+          "step": 0,
+          "item": "potion"
+        },
+        {
+          "step": 3,
+          "item": "potion"
+        },
+        {
+          "step": 4,
+          "item": "badge"
+        },
+        {
+          "step": 7,
+          "item": "potion"
+        },
+        {
+          "step": 7,
+          "item": "visor"
+        }
+      ],
+      "rest": {
+        "label": "\ud83d\udecb Flop onto the squashy mail sack (rest: full HP)",
+        "text": "You flop onto the sack. It sighs like a contented cat. HP full."
+      },
+      "boss": {
+        "name": "Lost-and-Found Bin",
+        "icon": "\ud83d\uddd1",
+        "mesh": "cabinet",
+        "hp": 22,
+        "ac": 11,
+        "atk": 3,
+        "die": 6,
+        "xp": 250,
+        "speed": 0.8,
+        "every": 2.7,
+        "hitText": [
+          "bonks you with a single lost glove",
+          "throws an umbrella nobody claimed",
+          "rattles its lid menacingly"
+        ],
+        "special": {
+          "every": 3,
+          "name": "Odd Sock Barrage",
+          "stat": "stride",
+          "dc": 11,
+          "dice": [
+            1,
+            6
+          ],
+          "text": "It hurls a flurry of unmatched socks!"
+        },
+        "dieText": "tips over and spills out forty-one lost pens, a single earring and somebody's lunch. It looks relieved.",
+        "loot": "umbrella"
+      },
+      "scale": {
+        "hpPerExtra": 0,
+        "dmgPerExtra": 0,
+        "minionsPerMember": 0
+      },
+      "done": "You cleared The Mildly Perilous Mailroom. Come back any time \u2014 the parcels will have opinions again. Unique finds stay found.",
+      "cleared": "\ud83c\udf89 You cleared The Mildly Perilous Mailroom! The far door hums open. (It will all be back next visit.)",
+      "xpMult": 1,
+      "xpNote": "v5c (Nov 14 2026): retuned for the slower curve. Fights use full critter XP (xpMult 1) and the boss gives 250. A fresh clear is 15+30+40 + 35+50+45 + 250 = 465 XP, so a level-1 character dings 2 after five fights (150) and lands at level 3 (400) after the boss, well short of level 4 (1000). Dust Management (+60) still leaves you inside level 3. xpBand: full XP at levels 1\u20133, a 1-XP token at 4, nothing at 5+.",
+      "xpBand": {
+        "fullMax": 3,
+        "tokenLevel": 4,
+        "token": 1,
+        "zeroAt": 5,
+        "_about": "Levels 1\u20133 earn full XP here. At level 4 each award is a 1-XP token. At level 5 and up, none."
+      },
+      "battleMode": "atb-turns",
+      "_battleMode": "v5c: the Mailroom is the test bench for comparing battle systems. battleMode 'atb-turns' is the current side-view wait-style turns (annex-battle.js). 'realtime' is the existing alternative. New modes can be named later and selected here; none are built in this build. turnBased remains as a compatibility alias.",
+      "resetOnEnter": true
+    },
+    "control": {
+      "name": "The Control Room",
+      "short": "Control Room",
+      "training": true,
+      "control": true,
+      "level": 1,
+      "size": 14,
+      "palette": {
+        "wall": "#2c3a4a",
+        "floor": "#1f2a36",
+        "ceil": "#3a4a5c",
+        "bg": "#121a24",
+        "fog": [
+          10,
+          46
+        ],
+        "hemi": 1.25
+      },
+      "intro": "Behind the Overlook wall: a room full of switches the Gremlins were told not to touch.",
+      "mobs": [],
+      "scale": {
+        "hpPerExtra": 0.6,
+        "dmgPerExtra": 1,
+        "minionsPerMember": 0
+      },
+      "done": "",
+      "battleMode": "realtime",
+      "turnBased": false
+    },
+    "gate-turn": {
+      "name": "The Revolving Doorman\u2019s Lobby (placeholder gate)",
+      "short": "Gate Lobby",
+      "gate": true,
+      "solo": true,
+      "level": 4,
+      "size": 14,
+      "palette": {
+        "wall": "#8a7aa8",
+        "floor": "#3a3450",
+        "ceil": "#d8d0ea",
+        "bg": "#221e30",
+        "fog": [
+          8,
+          42
+        ],
+        "hemi": 1.1
+      },
+      "intro": "PLACEHOLDER GATE (lore to come from Bryan and Vesper). A lobby that keeps turning. Beat its keeper to wake the waystone out here.",
+      "boss": {
+        "name": "Revolving Doorman",
+        "icon": "\ud83d\udeaa",
+        "mesh": "cabinet",
+        "hp": 30,
+        "ac": 12,
+        "atk": 4,
+        "die": 8,
+        "xp": 120,
+        "speed": 0.75,
+        "every": 2.6,
+        "hitText": [
+          "spins you round and round",
+          "holds the door for you, aggressively",
+          "tips an invisible hat at your shins"
+        ],
+        "special": {
+          "every": 3,
+          "name": "Full Rotation",
+          "stat": "stride",
+          "dc": 12,
+          "dice": [
+            2,
+            4
+          ],
+          "text": "The whole lobby turns at once!"
+        },
+        "dieText": "stops spinning, bows, and holds the door open for real this time.",
+        "loot": "lamp"
+      },
+      "minion": "wisp",
+      "scale": {
+        "hpPerExtra": 0,
+        "dmgPerExtra": 0,
+        "minionsPerMember": 0
+      },
+      "minions": 2,
+      "done": "The Doorman is resting. Its waystone is awake out in the hallway.",
+      "battleMode": "realtime",
+      "turnBased": false
+    },
+    "grotto": {
+      "name": "The Gently Declining Grotto",
+      "short": "Grotto",
+      "layout": "cave",
+      "visualStyle": "textured-rock",
+      "solo": true,
+      "turnBased": true,
+      "battleMode": "atb-turns",
+      "level": 2,
+      "levelRange": [
+        2,
+        4
+      ],
+      "grantXP": true,
+      "grantLoot": true,
+      "resetOnEnter": true,
+      "intro": "A real cave, somehow attached to the office. The floor slopes down in a way that feels slightly personal. A few scuffles, a surprisingly soft rock to sit on, a couple more scuffles, and something at the bottom that has been collecting itself for far too long. Solo. Stage one only \u2014 we'll go deeper later. Tuned for levels 2\u20134.",
+      "door": {
+        "sign": "THE GROTTO",
+        "signSub": "solo \u00b7 real XP \u00b7 levels 2\u20134",
+        "label": "A rough stone arch and a little lantern. The air on the other side is cooler, and slightly damper than an office should be."
+      },
+      "palette": {
+        "wall": "#5c5044",
+        "floor": "#4c4034",
+        "ceil": "#564a3e",
+        "bg": "#3a2e22",
+        "fog": [
+          8,
+          26
+        ],
+        "hemi": 0.88,
+        "accent": "#ffb45a",
+        "rock": "#6c5e50"
+      },
+      "xpMult": 1,
+      "xpBand": {
+        "fullMax": 4,
+        "tokenLevel": 5,
+        "token": 1,
+        "zeroAt": 6,
+        "_about": "Levels 2\u20134 (and 1, if you wander in early) earn full XP here. At level 5 each award is a 1-XP token. At level 6 and up, none."
+      },
+      "xpNote": "v5d: stage 1 only. Fights 20+50+60+65+75 = 270, boss 300, total 570. A level-2 character (150) lands well into level 3. A fresh level-3 character ends just short of level 4 (400+570=970). A level-4 character stays short of level 5 (1000+570=1570). Unique loot is once per character; potions come back on reset.",
+      "rest": {
+        "label": "\ud83d\udecb Sit on the surprisingly soft rock (rest: full HP)",
+        "text": "You sit. The rock is, against every reasonable expectation, squashy. HP full."
+      },
+      "done": "You cleared the first stage of The Gently Declining Grotto. The deeper dark can wait. Come back any time \u2014 the drips will have opinions again. Unique finds stay found.",
+      "cleared": "\ud83c\udf89 Grumblepile has collected itself into a slightly more modest pile. The first stage is clear. (It will all be back next visit.)",
+      "scale": {
+        "hpPerExtra": 0,
+        "dmgPerExtra": 0,
+        "minionsPerMember": 0
+      },
+      "boss": {
+        "name": "Grumblepile, the Stalagmite Who Got Ideas",
+        "icon": "\ud83d\uddff",
+        "mesh": "stalag",
+        "hp": 28,
+        "ac": 12,
+        "atk": 4,
+        "die": 6,
+        "xp": 300,
+        "speed": 0.7,
+        "every": 2.8,
+        "hitText": [
+          "leans on you with several rocks at once",
+          "drops a pebble it was saving for later",
+          "rumbles in a self-important way"
+        ],
+        "special": {
+          "every": 3,
+          "name": "A Small Avalanche",
+          "stat": "stride",
+          "dc": 12,
+          "dice": [
+            1,
+            6
+          ],
+          "text": "Loose stones decide to visit your shins!"
+        },
+        "dieText": "settles, a little embarrassed, into a neater pile. A tiny lantern rolls free.",
+        "loot": "pocket-lantern"
+      },
+      "pickups": [
+        {
+          "room": "pocket-loot",
+          "item": "potion"
+        },
+        {
+          "room": "pocket-loot",
+          "item": "lucky-pebble"
+        },
+        {
+          "room": "rest",
+          "item": "potion"
+        }
+      ],
+      "steps": [
+        {
+          "type": "fight",
+          "name": "Fight 1 \u00b7 The Welcome Drip",
+          "room": "dripway",
+          "mobs": [
+            [
+              "drip",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "fight",
+          "name": "Fight 2 \u00b7 Bats Who Have Opinions",
+          "room": "bat-bend",
+          "mobs": [
+            [
+              "cavebat",
+              0
+            ],
+            [
+              "cavebat",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "rest",
+          "name": "Rest \u00b7 The Surprisingly Soft Rock",
+          "room": "rest"
+        },
+        {
+          "type": "fight",
+          "name": "Fight 3 \u00b7 A Pile of Helpful Stones",
+          "room": "gallery",
+          "mobs": [
+            [
+              "pebble",
+              0
+            ],
+            [
+              "pebble",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "fight",
+          "name": "Fight 4 \u00b7 Echoes With Teeth",
+          "room": "echo-hall",
+          "mobs": [
+            [
+              "echo",
+              0
+            ],
+            [
+              "moss",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "fight",
+          "name": "Fight 5 \u00b7 The Last Landing",
+          "room": "landing",
+          "mobs": [
+            [
+              "cavebat",
+              0
+            ],
+            [
+              "pebble",
+              0
+            ],
+            [
+              "drip",
+              0
+            ]
+          ]
+        },
+        {
+          "type": "boss",
+          "name": "Boss \u00b7 The Collection Chamber",
+          "room": "boss"
+        }
+      ],
+      "cave": {
+        "height": 2.85,
+        "rooms": [
+          {
+            "id": "foyer",
+            "type": "lobby",
+            "x": 8.0,
+            "z": 31.0,
+            "w": 10.0,
+            "d": 8.0,
+            "y": 0,
+            "label": "The Mine Mouth \u00b7 Survey Corps outpost"
+          },
+          {
+            "id": "slope1",
+            "type": "slope",
+            "x": 6.4,
+            "z": 23.6,
+            "w": 5.2,
+            "d": 8.0,
+            "y": 0,
+            "y1": -2.0,
+            "slope": "z",
+            "slopeDir": -1,
+            "label": "The First Decline"
+          },
+          {
+            "id": "dripway",
+            "type": "fight",
+            "step": 0,
+            "x": 4.6,
+            "z": 16.0,
+            "w": 8.0,
+            "d": 8.8,
+            "y": -2.0,
+            "label": "The Welcome Drip"
+          },
+          {
+            "id": "pocket-loot",
+            "type": "pocket",
+            "x": 11.6,
+            "z": 16.2,
+            "w": 7.2,
+            "d": 5.2,
+            "y": -2.0,
+            "label": "A Helpful Alcove",
+            "from": "dripway"
+          },
+          {
+            "id": "bat-bend",
+            "type": "fight",
+            "step": 1,
+            "x": 10.0,
+            "z": 8.2,
+            "w": 8.6,
+            "d": 8.6,
+            "y": -2.0,
+            "label": "Bats Who Have Opinions"
+          },
+          {
+            "id": "slope2",
+            "type": "slope",
+            "x": 12.4,
+            "z": 1.2,
+            "w": 5.2,
+            "d": 7.0,
+            "y": -2.0,
+            "y1": -4.0,
+            "slope": "z",
+            "slopeDir": -1,
+            "label": "Further Down"
+          },
+          {
+            "id": "rest",
+            "type": "rest",
+            "step": 2,
+            "x": 12.8,
+            "z": -4.8,
+            "w": 7.6,
+            "d": 7.2,
+            "y": -4.0,
+            "label": "The Surprisingly Soft Rock"
+          },
+          {
+            "id": "gallery",
+            "type": "fight",
+            "step": 3,
+            "x": 8.2,
+            "z": -12.2,
+            "w": 13.0,
+            "d": 9.2,
+            "y": -4.0,
+            "height": 3.5,
+            "label": "The Helpful Workshop"
+          },
+          {
+            "id": "pocket-dead",
+            "type": "pocket",
+            "x": 0.2,
+            "z": -12.0,
+            "w": 6.0,
+            "d": 5.2,
+            "y": -4.0,
+            "label": "A Dead End, Officially",
+            "from": "gallery"
+          },
+          {
+            "id": "slope3",
+            "type": "slope",
+            "x": 4.6,
+            "z": -19.8,
+            "w": 5.0,
+            "d": 7.2,
+            "y": -4.0,
+            "y1": -6.2,
+            "slope": "z",
+            "slopeDir": -1,
+            "label": "The Narrow Bit"
+          },
+          {
+            "id": "echo-hall",
+            "type": "fight",
+            "step": 4,
+            "x": 5.2,
+            "z": -26.6,
+            "w": 8.4,
+            "d": 7.8,
+            "y": -6.2,
+            "label": "Echoes With Teeth"
+          },
+          {
+            "id": "slope4",
+            "type": "slope",
+            "x": 7.6,
+            "z": -33.0,
+            "w": 5.0,
+            "d": 6.2,
+            "y": -6.2,
+            "y1": -7.6,
+            "slope": "z",
+            "slopeDir": -1,
+            "label": "The Last Slope"
+          },
+          {
+            "id": "landing",
+            "type": "fight",
+            "step": 5,
+            "x": 8.8,
+            "z": -38.4,
+            "w": 7.4,
+            "d": 6.4,
+            "y": -7.6,
+            "label": "The Last Landing"
+          },
+          {
+            "id": "boss",
+            "type": "boss",
+            "step": 6,
+            "x": 9.0,
+            "z": -48.5,
+            "w": 16.5,
+            "d": 15.2,
+            "y": -7.6,
+            "height": 5.6,
+            "label": "The Collection Chamber"
+          }
+        ]
+      },
+      "outpost": {
+        "sign": "SURVEY CORPS",
+        "signSub": "Mine Mouth outpost \u00b7 lightly staffed",
+        "keeper": {
+          "name": "Hettie Vane",
+          "who": "human, Survey Corps",
+          "role": "keeper"
+        },
+        "prompt": "\ud83d\udcd2 Read the outpost log",
+        "title": "\ud83d\udcd2 The Mine Mouth log",
+        "text": "Lightly staffed. The keeper is Hettie Vane (human, Survey Corps). A couple of surveyors are resting between runs, boots off, arguing quietly about a door that wouldn't stay still. The log is open to today's page, and a spare lantern is still warm."
+      },
+      "party": {
+        "title": "Play together (test)",
+        "blurb": "Each of you explores the halls alone. At this door you can share one Grotto run. Leaving returns you to your own path.",
+        "hostLabel": "Start a Grotto run together",
+        "joinLabel": "Join a run"
+      }
+    }
+  },
+  "nudge": {
+    "every": 30,
+    "text": "\ud83e\uddf5 The stitched circle at the entrance is still glowing. Step in to become your Annex character. (Until then the critters are asleep and the dice doors ignore you.)"
+  },
+  "circle": {
+    "label": "\u2728 Step into the stitched circle",
+    "sign": "STEP IN",
+    "signSub": "become your Annex self",
+    "become": "The thread pulls tight around your ankles, turns once, and lets go. You're {char} now.",
+    "unbecome": "The stitch lets you out and you're yourself again. Your Annex self waits by the circle."
+  },
+  "outbox": {
+    "label": "\ud83d\udcee Drop the parcel in the Gremlins' outbox",
+    "done": "The outbox burps politely. 'Thanks!' says a muffled gremlin voice."
   },
   "training": {
-   "name": "The Training Closet",
-   "short": "Training Closet",
-   "training": true,
-   "turnBased": true,
-   "battleRange": 2.4,
-   "battleGroup": 2.6,
-   "size": 14,
-   "palette": {
-    "wall": "#d9d2b8",
-    "floor": "#4f7a8a",
-    "ceil": "#eee8d0",
-    "bg": "#2e3a3e",
-    "fog": [
-     8,
-     44
+    "enabled": true,
+    "grantXP": false,
+    "grantLoot": false,
+    "questProgress": false,
+    "resetMobs": true,
+    "partyMax": 1,
+    "_flags": "grantXP:true lets training XP (and level-ups) count. grantLoot:true lets borrowed/dropped items come home. questProgress:true lets kills count for quests. Everything else in training is undone when you leave.",
+    "instance": "training",
+    "portals": [
+      {
+        "id": "tp-entrance",
+        "where": "start",
+        "label": "A narrow door with a hand-lettered sign: TRAINING CLOSET (practice only)"
+      },
+      {
+        "id": "tp-overlook",
+        "where": "overlook",
+        "label": "A tiny door in the Overlook wall: TRAINING CLOSET (mind your head)"
+      }
     ],
-    "hemi": 1.2
-   },
-   "intro": "A broom closet that is much bigger on the inside.",
-   "mobs": [
-    {
-     "kind": "dummy",
-     "x": 4.0,
-     "z": 6.0
+    "sign": "TRAINING CLOSET",
+    "signSub": "practice only \u00b7 nothing in here counts",
+    "intro": "A broom closet that is much bigger on the inside. Mats on the floor, a whiteboard, three practice dummies and a very sleepy dust bunny. Nothing in here counts: no XP, no loot comes home, quests don't notice. Practice as much as you like.",
+    "backText": "Back in the hallway. The Training Closet door clicks shut behind you.",
+    "ko": {
+      "fade": "You flop onto a gym mat\u2026",
+      "carry": "A Gremlin peeks in, giggles, and props you up by the closet door.",
+      "noteTitle": "Practice knockout",
+      "note": "That was a practice knockout. Nothing lost, nothing borrowed. Out in the real Annex a knockout costs a little XP, and past the weird doors Grenshol may 'borrow' something. The dummies have been re-stuffed whenever you want another go."
     },
-    {
-     "kind": "dummy",
-     "x": 7.0,
-     "z": 5.4
+    "soup": {
+      "label": "\ud83c\udf72 Practice soup (free \u00b7 heals 2d4+2)",
+      "heal": [
+        2,
+        4,
+        2
+      ]
     },
-    {
-     "kind": "dummy",
-     "x": 10.0,
-     "z": 6.0
+    "rack": {
+      "label": "\ud83e\udde5 Borrow practice gear",
+      "items": [
+        "newspaper",
+        "bubble",
+        "cone"
+      ],
+      "text": "You borrow a Rolled-Up Newspaper, a Bubble-Wrap Vest and a Traffic Cone Helm. Open \ud83c\udf92 Gear (I) to try them on. They stay in the closet when you leave."
     },
-    {
-     "kind": "sleepy",
-     "x": 11.2,
-     "z": 9.4
+    "tips": [
+      {
+        "id": "enter",
+        "on": "attack",
+        "text": "\u2694\ufe0f Walk up to a dummy and press E (or click it) to attack. You roll a d20 + your bonus; if it meets the dummy's AC, you hit."
+      },
+      {
+        "id": "dice",
+        "on": "kill",
+        "text": "\ud83c\udfb2 Every roll lands in the dice log (L). A natural 20 is a CRIT (double damage dice); a natural 1 is a silly fumble. Knock a dummy over!"
+      },
+      {
+        "id": "ability",
+        "on": "ability",
+        "text": "\u2728 Press X (or the \u2728 button) to use your path's ability. It recharges after each scuffle or at a crystal."
+      },
+      {
+        "id": "gear",
+        "on": "gear",
+        "text": "\ud83c\udf92 Grab loaner gear from the practice rack, then press I to try it on. Better armour raises your AC; a bigger weapon die hits harder."
+      },
+      {
+        "id": "heal",
+        "on": "heal",
+        "text": "\ud83c\udf72 Hurt? Sip the practice soup. Out in the Annex, soup heals 2d4+2, hallways slowly patch you up, and a crystal fills you right back up."
+      },
+      {
+        "id": "ko",
+        "on": "boss",
+        "text": "\ud83d\udcab Ready? Coach Stuffing, the practice boss, hits back a little harder. If you drop to 0 HP here, nothing is lost: you're just reset at the closet door."
+      },
+      {
+        "id": "done",
+        "on": null,
+        "text": "\ud83c\udf93 That's training! Leave by the swirl and head out. Real critters live in rooms deeper in, never in hallways."
+      }
+    ],
+    "sandbox": {
+      "allowLive": false,
+      "_note": "The dev sandbox panel opens with &sandbox=1 or __o3.annex.rpg.sandbox(), and only on localhost unless allowLive is true. Changes made with it never persist."
     }
-   ],
-   "boss": {
-    "name": "Coach Stuffing",
-    "icon": "📣",
-    "mesh": "tboss",
-    "hp": 16,
-    "ac": 10,
-    "atk": 2,
-    "die": 6,
-    "xp": 40,
-    "speed": 0.8,
-    "every": 2.8,
-    "hitText": [
-     "blows a whistle right in your ear",
-     "slaps you with a clipboard",
-     "demands one more lap"
-    ],
-    "special": {
-     "every": 3,
-     "name": "Clipboard Slap",
-     "stat": "stride",
-     "dc": 10,
-     "dice": [
-      1,
-      6
-     ],
-     "text": "It swings a clipboard in a wide arc!"
-    },
-    "dieText": "flops onto the mat and gives you a thumbs-up. 'Good form!'",
-    "x": 7.0,
-    "z": 2.6
-   },
-   "scale": {
-    "hpPerExtra": 0.6,
-    "dmgPerExtra": 1,
-    "minionsPerMember": 0
-   },
-   "done": "Everything's re-stuffed for next time.",
-   "level": 1,
-   "battleMode": "atb-turns",
-   "_battleMode": "Bryan said yes (Nov 14 2026): practice fights here use the same atb-turns battle screen as the Mailroom (battleMode: 'atb-turns'). It's one open room, so critters wait at home and a fight starts only when you walk within battleRange (m) of one; critters within battleGroup of it join (the boss fights alone). Sandbox: party size 2-3 stays real-time (combat.partyTurns:false); 'Turn-based: ON/OFF' and 'Fight everything' are in the dev panel. Nothing in here counts."
   },
-  "starter": {
-   "name": "The Mildly Perilous Mailroom",
-   "short": "Mailroom",
-   "layout": "run",
-   "solo": true,
-   "turnBased": true,
-   "level": 1,
-   "levelRange": [
-    1,
-    3
-   ],
-   "grantXP": true,
-   "grantLoot": true,
-   "_flags": "grantXP/grantLoot true = this is the real game. v5d: the Mailroom (and the Grotto) reset on re-entry after a clear or after leaving: mobs, boss, rests and consumable pickups come back. Unique finds (badge, visor, umbrella, and similar) stay found, so replays don't flood your bag. XP still tapers via xpBand.",
-   "palette": {
-    "wall": "#d9c9a3",
-    "floor": "#8a6a4a",
-    "ceil": "#efe6cc",
-    "bg": "#3a3024",
-    "fog": [
-     10,
-     48
-    ],
-    "hemi": 1.2
-   },
-   "width": 6,
-   "segment": 8,
-   "lobby": 6,
-   "intro": "A long mailroom corridor where the parcels have opinions. A few little scuffles, a squashy mail sack to rest on, a few more scuffles, another rest, and something at the end that has been collecting lost things for far too long. Solo. Everything in here counts. Tuned for levels 1–3.",
-   "door": {
-    "sign": "THE MAILROOM",
-    "signSub": "solo · real XP · levels 1–3",
-    "label": "A door with a brass mail slot and a slightly wobbly frame. Someone has written 'STARTERS WELCOME (probably)' under the postmark."
-   },
-   "steps": [
-    {
-     "type": "fight",
-     "name": "Fight 1 · The Welcome Fluff",
-     "mobs": [
-      [
-       "dust",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "fight",
-     "name": "Fight 2 · Double Fluff",
-     "mobs": [
-      [
-       "dust",
-       0
-      ],
-      [
-       "dust",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "fight",
-     "name": "Fight 3 · Moths in the Pigeonholes",
-     "mobs": [
-      [
-       "moth",
-       0
-      ],
-      [
-       "moth",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "rest",
-     "name": "Rest · The Squashy Mail Sack"
-    },
-    {
-     "type": "fight",
-     "name": "Fight 4 · Paper Sprite Ambush",
-     "mobs": [
-      [
-       "sprite",
-       0
-      ],
-      [
-       "sprite",
-       0
-      ],
-      [
-       "dust",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "fight",
-     "name": "Fight 5 · The Sock and the Moth",
-     "mobs": [
-      [
-       "sock",
-       0
-      ],
-      [
-       "moth",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "fight",
-     "name": "Fight 6 · Hold Music in the Slots",
-     "mobs": [
-      [
-       "moth",
-       0
-      ],
-      [
-       "wisp",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "rest",
-     "name": "Rest · The Tea Trolley"
-    },
-    {
-     "type": "boss",
-     "name": "Boss · The Lost-and-Found Bin"
-    }
-   ],
-   "pickups": [
-    {
-     "step": 0,
-     "item": "potion"
-    },
-    {
-     "step": 3,
-     "item": "potion"
-    },
-    {
-     "step": 4,
-     "item": "badge"
-    },
-    {
-     "step": 7,
-     "item": "potion"
-    },
-    {
-     "step": 7,
-     "item": "visor"
-    }
-   ],
-   "rest": {
-    "label": "🛋 Flop onto the squashy mail sack (rest: full HP)",
-    "text": "You flop onto the sack. It sighs like a contented cat. HP full."
-   },
-   "boss": {
-    "name": "Lost-and-Found Bin",
-    "icon": "🗑",
-    "mesh": "cabinet",
-    "hp": 22,
-    "ac": 11,
-    "atk": 3,
-    "die": 6,
-    "xp": 250,
-    "speed": 0.8,
-    "every": 2.7,
-    "hitText": [
-     "bonks you with a single lost glove",
-     "throws an umbrella nobody claimed",
-     "rattles its lid menacingly"
-    ],
-    "special": {
-     "every": 3,
-     "name": "Odd Sock Barrage",
-     "stat": "stride",
-     "dc": 11,
-     "dice": [
-      1,
-      6
-     ],
-     "text": "It hurls a flurry of unmatched socks!"
-    },
-    "dieText": "tips over and spills out forty-one lost pens, a single earring and somebody's lunch. It looks relieved.",
-    "loot": "umbrella"
-   },
-   "scale": {
-    "hpPerExtra": 0,
-    "dmgPerExtra": 0,
-    "minionsPerMember": 0
-   },
-   "done": "You cleared The Mildly Perilous Mailroom. Come back any time — the parcels will have opinions again. Unique finds stay found.",
-   "cleared": "🎉 You cleared The Mildly Perilous Mailroom! The far door hums open. (It will all be back next visit.)",
-   "xpMult": 1,
-   "xpNote": "v5c (Nov 14 2026): retuned for the slower curve. Fights use full critter XP (xpMult 1) and the boss gives 250. A fresh clear is 15+30+40 + 35+50+45 + 250 = 465 XP, so a level-1 character dings 2 after five fights (150) and lands at level 3 (400) after the boss, well short of level 4 (1000). Dust Management (+60) still leaves you inside level 3. xpBand: full XP at levels 1–3, a 1-XP token at 4, nothing at 5+.",
-   "xpBand": {
-    "fullMax": 3,
-    "tokenLevel": 4,
-    "token": 1,
+  "xpFalloff": {
+    "_about": "XP from a fight scales with how far the content is BELOW you: diff = your level - content level. diff <= fullWithin: full XP. Each level past that loses perLevel (as a fraction). diff >= zeroAt: no XP at all. Content above you always gives full XP. Overworld mob level = enemy level + depth tier. Instance/boss level = the instance's level.",
+    "fullWithin": 1,
+    "perLevel": 0.2,
     "zeroAt": 5,
-    "_about": "Levels 1–3 earn full XP here. At level 4 each award is a 1-XP token. At level 5 and up, none."
-   },
-   "battleMode": "atb-turns",
-   "_battleMode": "v5c: the Mailroom is the test bench for comparing battle systems. battleMode 'atb-turns' is the current side-view wait-style turns (annex-battle.js). 'realtime' is the existing alternative. New modes can be named later and selected here; none are built in this build. turnBased remains as a compatibility alias.",
-   "resetOnEnter": true
+    "minXP": 1
   },
   "control": {
-   "name": "The Control Room",
-   "short": "Control Room",
-   "training": true,
-   "control": true,
-   "level": 1,
-   "size": 14,
-   "palette": {
-    "wall": "#2c3a4a",
-    "floor": "#1f2a36",
-    "ceil": "#3a4a5c",
-    "bg": "#121a24",
-    "fog": [
-     10,
-     46
+    "_about": "v5 admin-only Control Room. The door is only built for a player the DATABASE says is an admin (public.annex_whoami(): profiles.is_admin + a two-step aal2 session). Everything you do in the room is sandboxed like the Training Closet. Spawn-in-front commands go over the admin-write-only Realtime channel 'annex-gm'.",
+    "door": {
+      "sign": "CONTROL ROOM",
+      "signSub": "staff only \u00b7 do not touch the big switch",
+      "label": "\ud83d\udef0 The Control Room (admin)"
+    },
+    "props": [
+      {
+        "id": "crate",
+        "name": "Mystery crate",
+        "kind": "box",
+        "color": "#a8743a",
+        "x": 10.6,
+        "z": 4.0
+      },
+      {
+        "id": "cone",
+        "name": "Traffic cone",
+        "kind": "cone",
+        "color": "#e8742a",
+        "x": 11.6,
+        "z": 5.6
+      },
+      {
+        "id": "beanbag",
+        "name": "Beanbag of Power",
+        "kind": "blob",
+        "color": "#5a8ad8",
+        "x": 10.4,
+        "z": 6.8
+      },
+      {
+        "id": "cutout",
+        "name": "Cardboard Grenshol",
+        "kind": "cutout",
+        "color": "#6f8a4a",
+        "x": 12.0,
+        "z": 8.4
+      }
     ],
-    "hemi": 1.25
-   },
-   "intro": "Behind the Overlook wall: a room full of switches the Gremlins were told not to touch.",
-   "mobs": [],
-   "scale": {
-    "hpPerExtra": 0.6,
-    "dmgPerExtra": 1,
-    "minionsPerMember": 0
-   },
-   "done": "",
-   "battleMode": "realtime",
-   "turnBased": false
+    "gmNotes": [
+      "A note flutters down from the ceiling: 'hi from the Control Room \ud83d\udc40'",
+      "The lights blink twice. Somebody upstairs is watching. Kindly.",
+      "A tiny paper aeroplane lands on your shoe. It says: 'nice swing.'"
+    ],
+    "gmGrantXP": true
   },
-  "gate-turn": {
-   "name": "The Revolving Doorman’s Lobby (placeholder gate)",
-   "short": "Gate Lobby",
-   "gate": true,
-   "solo": true,
-   "level": 4,
-   "size": 14,
-   "palette": {
-    "wall": "#8a7aa8",
-    "floor": "#3a3450",
-    "ceil": "#d8d0ea",
-    "bg": "#221e30",
-    "fog": [
-     8,
-     42
-    ],
-    "hemi": 1.1
-   },
-   "intro": "PLACEHOLDER GATE (lore to come from Bryan and Vesper). A lobby that keeps turning. Beat its keeper to wake the waystone out here.",
-   "boss": {
-    "name": "Revolving Doorman",
-    "icon": "🚪",
-    "mesh": "cabinet",
-    "hp": 30,
-    "ac": 12,
-    "atk": 4,
-    "die": 8,
-    "xp": 120,
-    "speed": 0.75,
-    "every": 2.6,
-    "hitText": [
-     "spins you round and round",
-     "holds the door for you, aggressively",
-     "tips an invisible hat at your shins"
-    ],
-    "special": {
-     "every": 3,
-     "name": "Full Rotation",
-     "stat": "stride",
-     "dc": 12,
-     "dice": [
-      2,
-      4
-     ],
-     "text": "The whole lobby turns at once!"
-    },
-    "dieText": "stops spinning, bows, and holds the door open for real this time.",
-    "loot": "lamp"
-   },
-   "minion": "wisp",
-   "scale": {
-    "hpPerExtra": 0,
-    "dmgPerExtra": 0,
-    "minionsPerMember": 0
-   },
-   "minions": 2,
-   "done": "The Doorman is resting. Its waystone is awake out in the hallway.",
-   "battleMode": "realtime",
-   "turnBased": false
+  "gates": [
+    {
+      "_about": "A gate is a solo instance deep in a section. Clearing its boss wakes its waystone FOR THIS CHARACTER; you can then travel there from the waystone board at the entrance plaza or from the Home crystal. Placeholder content; deep lore comes later.",
+      "id": "gate-turn",
+      "section": "turn",
+      "cell": [
+        0,
+        1
+      ],
+      "instance": "gate-turn",
+      "label": "A door that is very slowly revolving. A brass plate: GATE \u00b7 keep your elbows in.",
+      "waystone": {
+        "id": "gw-turn",
+        "name": "Revolving Waystone (The Annex That Turns)",
+        "depthNote": "placeholder depth gate"
+      }
+    }
+  ],
+  "waystoneBoard": {
+    "label": "\ud83d\uddfa Waystone board (fast travel)",
+    "empty": "No gate waystones awake yet. Clear a gate deep in a section to wake its waystone.",
+    "travel": "You touch the waystone on the board. The Annex folds, politely."
   },
-  "grotto": {
-   "name": "The Gently Declining Grotto",
-   "short": "Grotto",
-   "layout": "cave",
-   "visualStyle": "textured-rock",
-   "solo": true,
-   "turnBased": true,
-   "battleMode": "atb-turns",
-   "level": 2,
-   "levelRange": [
-    2,
-    4
-   ],
-   "grantXP": true,
-   "grantLoot": true,
-   "resetOnEnter": true,
-   "intro": "A real cave, somehow attached to the office. The floor slopes down in a way that feels slightly personal. A few scuffles, a surprisingly soft rock to sit on, a couple more scuffles, and something at the bottom that has been collecting itself for far too long. Solo. Stage one only — we'll go deeper later. Tuned for levels 2–4.",
-   "door": {
-    "sign": "THE GROTTO",
-    "signSub": "solo · real XP · levels 2–4",
-    "label": "A rough stone arch and a little lantern. The air on the other side is cooler, and slightly damper than an office should be."
-   },
-   "palette": {
-    "wall": "#5c5044",
-    "floor": "#4c4034",
-    "ceil": "#564a3e",
-    "bg": "#3a2e22",
-    "fog": [
-     8,
-     26
+  "chat": {
+    "nearM": 20,
+    "maxLen": 280,
+    "voiceMax": 7,
+    "voiceMin": 0.4,
+    "cooldown": 2.5,
+    "b64Max": 49152,
+    "signedSecs": 120,
+    "deleteAfter": 120,
+    "note": "Text + push-to-talk over private Realtime Broadcast topic annex-chat (migration 013). nearM = how far 'nearby' carries outside instances."
+  },
+  "combat": {
+    "_about": "v5c: how fights work. Each instance has battleMode: 'atb-turns' (side-view wait-style turns, annex-battle.js) or 'realtime' (the existing open-world style). The Mildly Perilous Mailroom is the test bench for comparing battle systems \u2014 swap its battleMode (or add a new mode name later) without changing the run itself. No new modes are implemented in this build. turnBased remains as a compatibility alias for battleMode==='atb-turns'. turnBasedEverywhere (off) would apply atb-turns to the open Annex. partyTurns:false = party instances stay real time until turns are synced between teammates.",
+    "turnBasedEverywhere": false,
+    "partyTurns": false,
+    "modes": [
+      "realtime",
+      "atb-turns"
     ],
-    "hemi": 0.88,
-    "accent": "#ffb45a",
-    "rock": "#6c5e50"
-   },
-   "xpMult": 1,
-   "xpBand": {
-    "fullMax": 4,
-    "tokenLevel": 5,
-    "token": 1,
-    "zeroAt": 6,
-    "_about": "Levels 2–4 (and 1, if you wander in early) earn full XP here. At level 5 each award is a 1-XP token. At level 6 and up, none."
-   },
-   "xpNote": "v5d: stage 1 only. Fights 20+50+60+65+75 = 270, boss 300, total 570. A level-2 character (150) lands well into level 3. A fresh level-3 character ends just short of level 4 (400+570=970). A level-4 character stays short of level 5 (1000+570=1570). Unique loot is once per character; potions come back on reset.",
-   "rest": {
-    "label": "🛋 Sit on the surprisingly soft rock (rest: full HP)",
-    "text": "You sit. The rock is, against every reasonable expectation, squashy. HP full."
-   },
-   "done": "You cleared the first stage of The Gently Declining Grotto. The deeper dark can wait. Come back any time — the drips will have opinions again. Unique finds stay found.",
-   "cleared": "🎉 Grumblepile has collected itself into a slightly more modest pile. The first stage is clear. (It will all be back next visit.)",
-   "scale": {
-    "hpPerExtra": 0,
-    "dmgPerExtra": 0,
-    "minionsPerMember": 0
-   },
-   "boss": {
-    "name": "Grumblepile, the Stalagmite Who Got Ideas",
-    "icon": "🗿",
-    "mesh": "stalag",
-    "hp": 28,
-    "ac": 12,
-    "atk": 4,
-    "die": 6,
-    "xp": 300,
-    "speed": 0.7,
-    "every": 2.8,
-    "hitText": [
-     "leans on you with several rocks at once",
-     "drops a pebble it was saving for later",
-     "rumbles in a self-important way"
-    ],
-    "special": {
-     "every": 3,
-     "name": "A Small Avalanche",
-     "stat": "stride",
-     "dc": 12,
-     "dice": [
-      1,
-      6
-     ],
-     "text": "Loose stones decide to visit your shins!"
-    },
-    "dieText": "settles, a little embarrassed, into a neater pile. A tiny lantern rolls free.",
-    "loot": "pocket-lantern"
-   },
-   "pickups": [
-    {
-     "room": "pocket-loot",
-     "item": "potion"
-    },
-    {
-     "room": "pocket-loot",
-     "item": "lucky-pebble"
-    },
-    {
-     "room": "rest",
-     "item": "potion"
+    "_modes": "Known battleMode values. Add a new name here when a new system is plugged in. rpg.js treats anything other than 'atb-turns' as realtime until a handler exists.",
+    "turnSpeed": {
+      "_about": "v6 (Pip \u00a72.2): ATB fill time is tied to your class's primary stat, not Stride. fill = base - perPrimary x primary mod, clamped.",
+      "base": 2.4,
+      "perPrimary": 0.2,
+      "min": 1.5,
+      "max": 3.2
     }
-   ],
-   "steps": [
-    {
-     "type": "fight",
-     "name": "Fight 1 · The Welcome Drip",
-     "room": "dripway",
-     "mobs": [
-      [
-       "drip",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "fight",
-     "name": "Fight 2 · Bats Who Have Opinions",
-     "room": "bat-bend",
-     "mobs": [
-      [
-       "cavebat",
-       0
-      ],
-      [
-       "cavebat",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "rest",
-     "name": "Rest · The Surprisingly Soft Rock",
-     "room": "rest"
-    },
-    {
-     "type": "fight",
-     "name": "Fight 3 · A Pile of Helpful Stones",
-     "room": "gallery",
-     "mobs": [
-      [
-       "pebble",
-       0
-      ],
-      [
-       "pebble",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "fight",
-     "name": "Fight 4 · Echoes With Teeth",
-     "room": "echo-hall",
-     "mobs": [
-      [
-       "echo",
-       0
-      ],
-      [
-       "moss",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "fight",
-     "name": "Fight 5 · The Last Landing",
-     "room": "landing",
-     "mobs": [
-      [
-       "cavebat",
-       0
-      ],
-      [
-       "pebble",
-       0
-      ],
-      [
-       "drip",
-       0
-      ]
-     ]
-    },
-    {
-     "type": "boss",
-     "name": "Boss · The Collection Chamber",
-     "room": "boss"
-    }
-   ],
-   "cave": {
-    "height": 2.85,
-    "rooms": [
-     {
-      "id": "foyer",
-      "type": "lobby",
-      "x": 8.0,
-      "z": 31.0,
-      "w": 10.0,
-      "d": 8.0,
-      "y": 0,
-      "label": "The Mine Mouth · Survey Corps outpost"
-     },
-     {
-      "id": "slope1",
-      "type": "slope",
-      "x": 6.4,
-      "z": 23.6,
-      "w": 5.2,
-      "d": 8.0,
-      "y": 0,
-      "y1": -2.0,
-      "slope": "z",
-      "slopeDir": -1,
-      "label": "The First Decline"
-     },
-     {
-      "id": "dripway",
-      "type": "fight",
-      "step": 0,
-      "x": 4.6,
-      "z": 16.0,
-      "w": 8.0,
-      "d": 8.8,
-      "y": -2.0,
-      "label": "The Welcome Drip"
-     },
-     {
-      "id": "pocket-loot",
-      "type": "pocket",
-      "x": 11.6,
-      "z": 16.2,
-      "w": 7.2,
-      "d": 5.2,
-      "y": -2.0,
-      "label": "A Helpful Alcove",
-      "from": "dripway"
-     },
-     {
-      "id": "bat-bend",
-      "type": "fight",
-      "step": 1,
-      "x": 10.0,
-      "z": 8.2,
-      "w": 8.6,
-      "d": 8.6,
-      "y": -2.0,
-      "label": "Bats Who Have Opinions"
-     },
-     {
-      "id": "slope2",
-      "type": "slope",
-      "x": 12.4,
-      "z": 1.2,
-      "w": 5.2,
-      "d": 7.0,
-      "y": -2.0,
-      "y1": -4.0,
-      "slope": "z",
-      "slopeDir": -1,
-      "label": "Further Down"
-     },
-     {
-      "id": "rest",
-      "type": "rest",
-      "step": 2,
-      "x": 12.8,
-      "z": -4.8,
-      "w": 7.6,
-      "d": 7.2,
-      "y": -4.0,
-      "label": "The Surprisingly Soft Rock"
-     },
-     {
-      "id": "gallery",
-      "type": "fight",
-      "step": 3,
-      "x": 8.2,
-      "z": -12.2,
-      "w": 13.0,
-      "d": 9.2,
-      "y": -4.0,
-      "height": 3.5,
-      "label": "The Helpful Workshop"
-     },
-     {
-      "id": "pocket-dead",
-      "type": "pocket",
-      "x": 0.2,
-      "z": -12.0,
-      "w": 6.0,
-      "d": 5.2,
-      "y": -4.0,
-      "label": "A Dead End, Officially",
-      "from": "gallery"
-     },
-     {
-      "id": "slope3",
-      "type": "slope",
-      "x": 4.6,
-      "z": -19.8,
-      "w": 5.0,
-      "d": 7.2,
-      "y": -4.0,
-      "y1": -6.2,
-      "slope": "z",
-      "slopeDir": -1,
-      "label": "The Narrow Bit"
-     },
-     {
-      "id": "echo-hall",
-      "type": "fight",
-      "step": 4,
-      "x": 5.2,
-      "z": -26.6,
-      "w": 8.4,
-      "d": 7.8,
-      "y": -6.2,
-      "label": "Echoes With Teeth"
-     },
-     {
-      "id": "slope4",
-      "type": "slope",
-      "x": 7.6,
-      "z": -33.0,
-      "w": 5.0,
-      "d": 6.2,
-      "y": -6.2,
-      "y1": -7.6,
-      "slope": "z",
-      "slopeDir": -1,
-      "label": "The Last Slope"
-     },
-     {
-      "id": "landing",
-      "type": "fight",
-      "step": 5,
-      "x": 8.8,
-      "z": -38.4,
-      "w": 7.4,
-      "d": 6.4,
-      "y": -7.6,
-      "label": "The Last Landing"
-     },
-     {
-      "id": "boss",
-      "type": "boss",
-      "step": 6,
-      "x": 9.0,
-      "z": -48.5,
-      "w": 16.5,
-      "d": 15.2,
-      "y": -7.6,
-      "height": 5.6,
-      "label": "The Collection Chamber"
-     }
+  },
+  "avatars": {
+    "_about": "v5b: static avatar sprites (transparent WebP in assets/avatars/). Used as your fighter in battles and as your cut-out figure that teammates see. match = part of the Desks display name (lower case); adminOnly = only for an admin session; demoAdmin = the ?demo=1 admin uses it locally. Moth's per-player drawings (annex.avatars) will plug into the same slot later.",
+    "static": [
+      {
+        "match": "bryan",
+        "adminOnly": true,
+        "demoAdmin": true,
+        "src": "assets/avatars/bryan.webp"
+      }
     ]
-   },
-   "outpost": {
-    "sign": "SURVEY CORPS",
-    "signSub": "Mine Mouth outpost · lightly staffed",
-    "keeper": {
-     "name": "Hettie Vane",
-     "who": "human, Survey Corps",
-     "role": "keeper"
+  },
+  "station": {
+    "_about": "v5c: the Door Station in the arrival plaza (the room where you put on your gear). An orderly, muted bank of themed doors stands on a free-standing facade east of the north hall, evenly spaced, with a tidy check-in desk. The Mailroom door is lit and usable immediately after you transform, no exploration required. Locked doors are dim, padlocked silhouettes with a ??? plaque; they light up when their matching Backrooms location is discovered (saved on the character as discovered[id]). A short train track runs into the west/north wall with a Coming Soon sign and a departures board driven by station.stations[]. Crossing the north-hall threshold leaves the calm Station for light Backrooms weirdness (a slightly tilted hall, an upside-down lamp, a nonsensical sign) \u2014 not danger. No new instances in this build. A door or a stations row may later point at an external world via dest.type='external' (world/path). That wiring is not live yet. v5d: the left door is now The Gently Declining Grotto (lit from the start). One reserved ??? door remains.",
+    "name": "The Door Station",
+    "short": "Station",
+    "sign": "DOOR STATION",
+    "signSub": "Survey Corps training base",
+    "lockedLabel": "A sealed door. The plaque just says ???. It'll light up once you've found it out in the halls.",
+    "lockedToast": "Sealed. A plaque just says ???.",
+    "discoverToast": "A door back at the Station just flickered on.",
+    "departures": {
+      "title": "DEPARTURES",
+      "subtitle": "today's almost-trains",
+      "label": "\ud83d\udccb Departures board",
+      "empty": "No departures posted.",
+      "rows": [
+        {
+          "id": "st-gremlin-world",
+          "name": "Gremlin World",
+          "code": "???",
+          "status": "Delayed",
+          "note": "Coming Soon",
+          "clickable": false,
+          "dest": {
+            "type": "external",
+            "world": "gremlin-world",
+            "path": "world.html"
+          }
+        }
+      ]
     },
-    "prompt": "📒 Read the outpost log",
-    "title": "📒 The Mine Mouth log",
-    "text": "Lightly staffed. The keeper is Hettie Vane (human, Survey Corps). A couple of surveyors are resting between runs, boots off, arguing quietly about a door that wouldn't stay still. The log is open to today's page, and a spare lantern is still warm."
-   }
-  }
- },
- "nudge": {
-  "every": 30,
-  "text": "🧵 The stitched circle at the entrance is still glowing. Step in to become your Annex character. (Until then the critters are asleep and the dice doors ignore you.)"
- },
- "circle": {
-  "label": "✨ Step into the stitched circle",
-  "sign": "STEP IN",
-  "signSub": "become your Annex self",
-  "become": "The thread pulls tight around your ankles, turns once, and lets go. You're {char} now.",
-  "unbecome": "The stitch lets you out and you're yourself again. Your Annex self waits by the circle."
- },
- "outbox": {
-  "label": "📮 Drop the parcel in the Gremlins' outbox",
-  "done": "The outbox burps politely. 'Thanks!' says a muffled gremlin voice."
- },
- "training": {
-  "enabled": true,
-  "grantXP": false,
-  "grantLoot": false,
-  "questProgress": false,
-  "resetMobs": true,
-  "partyMax": 1,
-  "_flags": "grantXP:true lets training XP (and level-ups) count. grantLoot:true lets borrowed/dropped items come home. questProgress:true lets kills count for quests. Everything else in training is undone when you leave.",
-  "instance": "training",
-  "portals": [
-   {
-    "id": "tp-entrance",
-    "where": "start",
-    "label": "A narrow door with a hand-lettered sign: TRAINING CLOSET (practice only)"
-   },
-   {
-    "id": "tp-overlook",
-    "where": "overlook",
-    "label": "A tiny door in the Overlook wall: TRAINING CLOSET (mind your head)"
-   }
-  ],
-  "sign": "TRAINING CLOSET",
-  "signSub": "practice only · nothing in here counts",
-  "intro": "A broom closet that is much bigger on the inside. Mats on the floor, a whiteboard, three practice dummies and a very sleepy dust bunny. Nothing in here counts: no XP, no loot comes home, quests don't notice. Practice as much as you like.",
-  "backText": "Back in the hallway. The Training Closet door clicks shut behind you.",
-  "ko": {
-   "fade": "You flop onto a gym mat…",
-   "carry": "A Gremlin peeks in, giggles, and props you up by the closet door.",
-   "noteTitle": "Practice knockout",
-   "note": "That was a practice knockout. Nothing lost, nothing borrowed. Out in the real Annex a knockout costs a little XP, and past the weird doors Grenshol may 'borrow' something. The dummies have been re-stuffed whenever you want another go."
-  },
-  "soup": {
-   "label": "🍲 Practice soup (free · heals 2d4+2)",
-   "heal": [
-    2,
-    4,
-    2
-   ]
-  },
-  "rack": {
-   "label": "🧥 Borrow practice gear",
-   "items": [
-    "newspaper",
-    "bubble",
-    "cone"
-   ],
-   "text": "You borrow a Rolled-Up Newspaper, a Bubble-Wrap Vest and a Traffic Cone Helm. Open 🎒 Gear (I) to try them on. They stay in the closet when you leave."
-  },
-  "tips": [
-   {
-    "id": "enter",
-    "on": "attack",
-    "text": "⚔️ Walk up to a dummy and press E (or click it) to attack. You roll a d20 + your bonus; if it meets the dummy's AC, you hit."
-   },
-   {
-    "id": "dice",
-    "on": "kill",
-    "text": "🎲 Every roll lands in the dice log (L). A natural 20 is a CRIT (double damage dice); a natural 1 is a silly fumble. Knock a dummy over!"
-   },
-   {
-    "id": "ability",
-    "on": "ability",
-    "text": "✨ Press X (or the ✨ button) to use your path's ability. It recharges after each scuffle or at a crystal."
-   },
-   {
-    "id": "gear",
-    "on": "gear",
-    "text": "🎒 Grab loaner gear from the practice rack, then press I to try it on. Better armour raises your AC; a bigger weapon die hits harder."
-   },
-   {
-    "id": "heal",
-    "on": "heal",
-    "text": "🍲 Hurt? Sip the practice soup. Out in the Annex, soup heals 2d4+2, hallways slowly patch you up, and a crystal fills you right back up."
-   },
-   {
-    "id": "ko",
-    "on": "boss",
-    "text": "💫 Ready? Coach Stuffing, the practice boss, hits back a little harder. If you drop to 0 HP here, nothing is lost: you're just reset at the closet door."
-   },
-   {
-    "id": "done",
-    "on": null,
-    "text": "🎓 That's training! Leave by the swirl and head out. Real critters live in rooms deeper in, never in hallways."
-   }
-  ],
-  "sandbox": {
-   "allowLive": false,
-   "_note": "The dev sandbox panel opens with &sandbox=1 or __o3.annex.rpg.sandbox(), and only on localhost unless allowLive is true. Changes made with it never persist."
-  }
- },
- "xpFalloff": {
-  "_about": "XP from a fight scales with how far the content is BELOW you: diff = your level - content level. diff <= fullWithin: full XP. Each level past that loses perLevel (as a fraction). diff >= zeroAt: no XP at all. Content above you always gives full XP. Overworld mob level = enemy level + depth tier. Instance/boss level = the instance's level.",
-  "fullWithin": 1,
-  "perLevel": 0.2,
-  "zeroAt": 5,
-  "minXP": 1
- },
- "control": {
-  "_about": "v5 admin-only Control Room. The door is only built for a player the DATABASE says is an admin (public.annex_whoami(): profiles.is_admin + a two-step aal2 session). Everything you do in the room is sandboxed like the Training Closet. Spawn-in-front commands go over the admin-write-only Realtime channel 'annex-gm'.",
-  "door": {
-   "sign": "CONTROL ROOM",
-   "signSub": "staff only · do not touch the big switch",
-   "label": "🛰 The Control Room (admin)"
-  },
-  "props": [
-   {
-    "id": "crate",
-    "name": "Mystery crate",
-    "kind": "box",
-    "color": "#a8743a",
-    "x": 10.6,
-    "z": 4.0
-   },
-   {
-    "id": "cone",
-    "name": "Traffic cone",
-    "kind": "cone",
-    "color": "#e8742a",
-    "x": 11.6,
-    "z": 5.6
-   },
-   {
-    "id": "beanbag",
-    "name": "Beanbag of Power",
-    "kind": "blob",
-    "color": "#5a8ad8",
-    "x": 10.4,
-    "z": 6.8
-   },
-   {
-    "id": "cutout",
-    "name": "Cardboard Grenshol",
-    "kind": "cutout",
-    "color": "#6f8a4a",
-    "x": 12.0,
-    "z": 8.4
-   }
-  ],
-  "gmNotes": [
-   "A note flutters down from the ceiling: 'hi from the Control Room 👀'",
-   "The lights blink twice. Somebody upstairs is watching. Kindly.",
-   "A tiny paper aeroplane lands on your shoe. It says: 'nice swing.'"
-  ],
-  "gmGrantXP": true
- },
- "gates": [
-  {
-   "_about": "A gate is a solo instance deep in a section. Clearing its boss wakes its waystone FOR THIS CHARACTER; you can then travel there from the waystone board at the entrance plaza or from the Home crystal. Placeholder content; deep lore comes later.",
-   "id": "gate-turn",
-   "section": "turn",
-   "cell": [
-    0,
-    1
-   ],
-   "instance": "gate-turn",
-   "label": "A door that is very slowly revolving. A brass plate: GATE · keep your elbows in.",
-   "waystone": {
-    "id": "gw-turn",
-    "name": "Revolving Waystone (The Annex That Turns)",
-    "depthNote": "placeholder depth gate"
-   }
-  }
- ],
- "waystoneBoard": {
-  "label": "🗺 Waystone board (fast travel)",
-  "empty": "No gate waystones awake yet. Clear a gate deep in a section to wake its waystone.",
-  "travel": "You touch the waystone on the board. The Annex folds, politely."
- },
- "chat": {
-  "nearM": 20,
-  "maxLen": 280,
-  "voiceMax": 7,
-  "voiceMin": 0.4,
-  "cooldown": 2.5,
-  "b64Max": 49152,
-  "signedSecs": 120,
-  "deleteAfter": 120,
-  "note": "Text + push-to-talk over private Realtime Broadcast topic annex-chat (migration 013). nearM = how far 'nearby' carries outside instances."
- },
- "combat": {
-  "_about": "v5c: how fights work. Each instance has battleMode: 'atb-turns' (side-view wait-style turns, annex-battle.js) or 'realtime' (the existing open-world style). The Mildly Perilous Mailroom is the test bench for comparing battle systems — swap its battleMode (or add a new mode name later) without changing the run itself. No new modes are implemented in this build. turnBased remains as a compatibility alias for battleMode==='atb-turns'. turnBasedEverywhere (off) would apply atb-turns to the open Annex. partyTurns:false = party instances stay real time until turns are synced between teammates.",
-  "turnBasedEverywhere": false,
-  "partyTurns": false,
-  "modes": [
-   "realtime",
-   "atb-turns"
-  ],
-  "_modes": "Known battleMode values. Add a new name here when a new system is plugged in. rpg.js treats anything other than 'atb-turns' as realtime until a handler exists.",
-  "turnSpeed": {
-   "_about": "v6 (Pip §2.2): ATB fill time is tied to your class's primary stat, not Stride. fill = base - perPrimary x primary mod, clamped.",
-   "base": 2.4,
-   "perPrimary": 0.2,
-   "min": 1.5,
-   "max": 3.2
-  }
- },
- "avatars": {
-  "_about": "v5b: static avatar sprites (transparent WebP in assets/avatars/). Used as your fighter in battles and as your cut-out figure that teammates see. match = part of the Desks display name (lower case); adminOnly = only for an admin session; demoAdmin = the ?demo=1 admin uses it locally. Moth's per-player drawings (annex.avatars) will plug into the same slot later.",
-  "static": [
-   {
-    "match": "bryan",
-    "adminOnly": true,
-    "demoAdmin": true,
-    "src": "assets/avatars/bryan.webp"
-   }
-  ]
- },
- "station": {
-  "_about": "v5c: the Door Station in the arrival plaza (the room where you put on your gear). An orderly, muted bank of themed doors stands on a free-standing facade east of the north hall, evenly spaced, with a tidy check-in desk. The Mailroom door is lit and usable immediately after you transform, no exploration required. Locked doors are dim, padlocked silhouettes with a ??? plaque; they light up when their matching Backrooms location is discovered (saved on the character as discovered[id]). A short train track runs into the west/north wall with a Coming Soon sign and a departures board driven by station.stations[]. Crossing the north-hall threshold leaves the calm Station for light Backrooms weirdness (a slightly tilted hall, an upside-down lamp, a nonsensical sign) — not danger. No new instances in this build. A door or a stations row may later point at an external world via dest.type='external' (world/path). That wiring is not live yet. v5d: the left door is now The Gently Declining Grotto (lit from the start). One reserved ??? door remains.",
-  "name": "The Door Station",
-  "short": "Station",
-  "sign": "DOOR STATION",
-  "signSub": "Survey Corps training base",
-  "lockedLabel": "A sealed door. The plaque just says ???. It'll light up once you've found it out in the halls.",
-  "lockedToast": "Sealed. A plaque just says ???.",
-  "discoverToast": "A door back at the Station just flickered on.",
-  "departures": {
-   "title": "DEPARTURES",
-   "subtitle": "today's almost-trains",
-   "label": "📋 Departures board",
-   "empty": "No departures posted.",
-   "rows": [
-    {
-     "id": "st-gremlin-world",
-     "name": "Gremlin World",
-     "code": "???",
-     "status": "Delayed",
-     "note": "Coming Soon",
-     "clickable": false,
-     "dest": {
-      "type": "external",
-      "world": "gremlin-world",
-      "path": "world.html"
-     }
+    "doors": [
+      {
+        "id": "sd-mailroom",
+        "unlocked": true,
+        "dest": {
+          "type": "instance",
+          "id": "starter"
+        },
+        "theme": {
+          "name": "The Mildly Perilous Mailroom",
+          "colors": {
+            "door": "#8a3a2a",
+            "frame": "#4a2a1a",
+            "slot": "#d8a64a",
+            "signBg": "#6a2a1e",
+            "signFg": "#fbf3d0",
+            "accent": "#f3d98b",
+            "emissive": "#c87a50"
+          },
+          "sign": "THE MAILROOM",
+          "signSub": "solo \u00b7 real XP \u00b7 levels 1\u20133",
+          "decor": "mail",
+          "wobble": true
+        }
+      },
+      {
+        "id": "sd-gate-turn",
+        "unlocked": false,
+        "unlock": {
+          "type": "discover",
+          "gate": "gate-turn"
+        },
+        "dest": {
+          "type": "instance",
+          "id": "gate-turn"
+        },
+        "theme": {
+          "name": "The Revolving Doorman\u2019s Lobby",
+          "colors": {
+            "door": "#5a4a78",
+            "frame": "#2a2438",
+            "slot": "#c0b0e0",
+            "signBg": "#3a3450",
+            "signFg": "#f3eeff",
+            "accent": "#b48cff",
+            "emissive": "#8a6ad0"
+          },
+          "sign": "THE ANNEX THAT TURNS",
+          "signSub": "gate \u00b7 keep your elbows in",
+          "decor": "revolve",
+          "wobble": false
+        }
+      },
+      {
+        "id": "sd-grotto",
+        "unlocked": true,
+        "dest": {
+          "type": "instance",
+          "id": "grotto"
+        },
+        "theme": {
+          "name": "The Gently Declining Grotto",
+          "colors": {
+            "door": "#5a4e42",
+            "frame": "#3a342c",
+            "slot": "#c9a45a",
+            "signBg": "#3a3228",
+            "signFg": "#f3e7c8",
+            "accent": "#e0b25a",
+            "emissive": "#c9a45a"
+          },
+          "sign": "THE GROTTO",
+          "signSub": "solo \u00b7 real XP \u00b7 levels 2\u20134",
+          "decor": "cave",
+          "wobble": false
+        }
+      },
+      {
+        "id": "sd-mystery-b",
+        "unlocked": false,
+        "unlock": {
+          "type": "discover"
+        },
+        "dest": {
+          "type": "none"
+        },
+        "destNote": "Reserved for a later instance. Theme and dest can be filled in after the lore session.",
+        "theme": {
+          "name": "???",
+          "colors": {
+            "door": "#3a3a38",
+            "frame": "#1e1e1c",
+            "slot": "#5a5a56",
+            "signBg": "#2a2a28",
+            "signFg": "#8a8a84",
+            "accent": "#5a5a54",
+            "emissive": "#2a2a28"
+          },
+          "sign": "???",
+          "signSub": "sealed",
+          "decor": "unknown",
+          "wobble": false
+        }
+      }
+    ],
+    "layout": {
+      "_about": "Free-standing south-facing facade just inside the north wall of the arrival plaza, east of the north hallway (x=8 \u00b1 1.2). Four doors are colinear and evenly spaced. The old hallway Mailroom door (opposite the Training Closet) still works as a shortcut. Center of the plaza is left open for later trapdoors and ladders. The train sits on the west side and runs north into the wall. The Backrooms threshold is the north-hall opening.",
+      "wall": "n",
+      "z": 4.85,
+      "rotY": 0,
+      "doorsX": {
+        "sd-mailroom": 11.0,
+        "sd-gate-turn": 12.15,
+        "sd-mystery-b": 13.3,
+        "sd-grotto": 9.85
+      },
+      "facade": {
+        "z": 4.72,
+        "x0": 9.15,
+        "x1": 13.95,
+        "h": 3.0
+      },
+      "stationSign": {
+        "y": 2.82
+      },
+      "board": {
+        "x": 4.55,
+        "z": 7.15,
+        "rotY": 0
+      },
+      "trainSign": {
+        "x": 5.7,
+        "z": 6.85,
+        "y": 2.05,
+        "rotY": -0.28
+      },
+      "desk": {
+        "x": 9.15,
+        "z": 7.55,
+        "rotY": 0.06
+      },
+      "train": {
+        "x": 3.35,
+        "z0": 2.25,
+        "z1": 7.4,
+        "platformX": 4.3,
+        "platformW": 1.35
+      },
+      "threshold": {
+        "x": 8.0,
+        "z": 2.02
+      }
+    },
+    "stations": [
+      {
+        "id": "st-gremlin-world",
+        "name": "Gremlin World",
+        "code": "???",
+        "status": "Delayed",
+        "note": "Coming Soon",
+        "platform": "1",
+        "clickable": false,
+        "dest": {
+          "type": "external",
+          "world": "gremlin-world",
+          "path": "world.html"
+        }
+      }
+    ],
+    "train": {
+      "sign": "TRAIN \u2014 COMING SOON",
+      "signSub": "please wait behind the yellow line",
+      "label": "\ud83d\ude82 Train \u2014 Coming Soon",
+      "text": "A short track runs into the wall. The train is coming soon, in some weird way.",
+      "sub": "Please wait behind the yellow line. No boarding, and no connection from here yet."
+    },
+    "desk": {
+      "sign": "CHECK-IN",
+      "signSub": "Survey Corps \u00b7 sign in here",
+      "label": "\ud83d\udd14 Check-in desk",
+      "text": "A tidy desk with a bell, a lamp and a sign-in ledger. The Gremlins keep a careful count of who goes out and who comes back.",
+      "sub": "The Station likes things orderly."
+    },
+    "threshold": {
+      "title": "A slightly odd threshold",
+      "sign": "THE HALLS",
+      "signSub": "rooms here re-roll \u00b7 stay sharp",
+      "label": "A slightly odd threshold",
+      "text": "Past this line the rooms don't stay where you leave them. The Survey Corps chalks STAYS PUT \u2713 on the few places that do.",
+      "sub": "Weird, mostly not dangerous. This is where the Station ends and the open halls begin."
+    },
+    "record": {
+      "title": "\ud83d\udccc The Common Record",
+      "sign": "COMMON RECORD",
+      "signSub": "what we've found so far",
+      "label": "\ud83d\udccc Read the Common Record",
+      "intro": "A broad cork board, edges thick with pins. Everyone's finds go up here: doors, torn logbook pages, odd notes.",
+      "doorsTitle": "Doors you've found",
+      "pagesTitle": "Survey Corps logbook (pages you've found)",
+      "noPages": "No pages yet. They were torn out in a shift and scattered through the halls.",
+      "shared": "Shared pins (everyone's finds) need the server. For now the board shows what you've found yourself."
+    },
+    "guide": {
+      "label": "\ud83d\udcd6 Read the Survey Corps starter guide",
+      "sign": "STARTER GUIDE",
+      "signSub": "read me first"
+    },
+    "pad": {
+      "label": "\ud83c\udfaf Practice pad: take a swing",
+      "sign": "PRACTICE PAD",
+      "signSub": "nothing here counts",
+      "ac": 12,
+      "text": "A stuffed sparring post on a chalk circle. Take a swing; nothing here counts."
     }
-   ]
   },
-  "doors": [
-   {
-    "id": "sd-mailroom",
-    "unlocked": true,
-    "dest": {
-     "type": "instance",
-     "id": "starter"
+  "companion": {
+    "_about": "v5d: a solo-only battle buddy. Default on, saved per character, hides in a group. Does not split XP.",
+    "id": "snorble",
+    "name": "Snorble",
+    "short": "a very small dragon",
+    "blurb": "A goofy, derpy little dragon with uneven eyes and tiny wings that mostly just flap for morale. When you're on your own, Snorble tags along in turn battles: a clumsy bonk, or a sneeze of warm sparkles if you're low. Default on. Sits out whenever you're in a group.",
+    "defaultOn": true,
+    "maxHp": 8,
+    "ac": 11,
+    "atk": 1,
+    "die": 4,
+    "healBelow": 0.5,
+    "heal": [
+      1,
+      4,
+      1
+    ],
+    "fill": 3.1,
+    "startGauge": 0.35,
+    "attackTexts": [
+      "trips into the {name}",
+      "bonks the {name} with a forehead",
+      "flops a tiny wing at the {name}"
+    ],
+    "healText": "sneezes a cloud of warm sparkles over you",
+    "koText": "Snorble flops over, already snoring. (Back after this scuffle.)",
+    "reviveText": "Snorble sneezes, blinks, and toddles back to your side.",
+    "joinText": "Snorble toddles up and tries to stand heroically, which mostly looks like sitting.",
+    "toggleOn": "Snorble: ON (tags along when you're solo)",
+    "toggleOff": "Snorble: OFF (waiting at the Station)",
+    "hiddenInParty": "Snorble is sitting this one out \u2014 groups make the little dragon bashful."
+  },
+  "_about_v6": "v6 (Nov 15-16 2026): eight classes (levels 1-5 built, later milestones listed as 'later'), paths became backgrounds, Breather/Full Rest split, armor tiers, class-primary turn speed, Keepsakes (picker live; lending/trading/recovery is a data model behind keepsakes.lending.enabled=false), forward-compatible professions/materials. Balance per pip-class-balance-v0.6.md. Mechanics cite SRD 5.2.1 only; names are original.",
+  "backgroundsAbout": "v6: Archivist, Wanderer and Tinkerer are backgrounds (small perks, not power). Internal key stays 'paths' and character.path for save compatibility.",
+  "armorTiers": {
+    "_about": "v6 (Pip \u00a70): Clothes count as unarmored. Light: full Stride. Medium: Stride counts up to +2. Heavy: Stride doesn't count. Classes list the heaviest tier they can wear; heavier armor won't equip.",
+    "order": [
+      "clothes",
+      "light",
+      "medium",
+      "heavy"
+    ],
+    "clothes": {
+      "name": "Clothes",
+      "strideMax": 99
     },
-    "theme": {
-     "name": "The Mildly Perilous Mailroom",
-     "colors": {
-      "door": "#8a3a2a",
-      "frame": "#4a2a1a",
-      "slot": "#d8a64a",
-      "signBg": "#6a2a1e",
-      "signFg": "#fbf3d0",
-      "accent": "#f3d98b",
-      "emissive": "#c87a50"
-     },
-     "sign": "THE MAILROOM",
-     "signSub": "solo · real XP · levels 1–3",
-     "decor": "mail",
-     "wobble": true
+    "light": {
+      "name": "Light",
+      "strideMax": 99
+    },
+    "medium": {
+      "name": "Medium",
+      "strideMax": 2
+    },
+    "heavy": {
+      "name": "Heavy",
+      "strideMax": 0
     }
-   },
-   {
-    "id": "sd-gate-turn",
-    "unlocked": false,
-    "unlock": {
-     "type": "discover",
-     "gate": "gate-turn"
+  },
+  "rests": {
+    "_about": "v6 (Pip \u00a72.5): Breathers = a run's rest stop or sitting in a stable place: full HP plus per-Breather resources. Full Rest = Home crystal, the Door Station, or the end of a run: everything back.",
+    "breather": {
+      "name": "Breather",
+      "hp": "full",
+      "text": "A breather. HP full; per-breather abilities back."
     },
-    "dest": {
-     "type": "instance",
-     "id": "gate-turn"
+    "full": {
+      "name": "Full Rest",
+      "text": "A full rest. Everything's back."
     },
-    "theme": {
-     "name": "The Revolving Doorman’s Lobby",
-     "colors": {
-      "door": "#5a4a78",
-      "frame": "#2a2438",
-      "slot": "#c0b0e0",
-      "signBg": "#3a3450",
-      "signFg": "#f3eeff",
-      "accent": "#b48cff",
-      "emissive": "#8a6ad0"
-     },
-     "sign": "THE ANNEX THAT TURNS",
-     "signSub": "gate · keep your elbows in",
-     "decor": "revolve",
-     "wobble": false
+    "stableSitCooldown": 60
+  },
+  "keepsakes": {
+    "_about": "v6. Every character carries one Keepsake from home (lore 17-20, 90): whatever you had on you when you pulled the thread. It's your anchor. Never lost in a fight or a knockout. Lending/trading/recovery (lore 92, 100, 101) is a data model only: lending.enabled=false, no UI.",
+    "pickerTitle": "What did you have on you?",
+    "pickerText": "Your Keepsake is whatever you had on you when you pulled the thread. It's your anchor in here. Keep it close.",
+    "list": [
+      {
+        "id": "compass",
+        "name": "a brass compass that points slightly wrong",
+        "icon": "\ud83e\udded"
+      },
+      {
+        "id": "pick",
+        "name": "a guitar pick with a lyric scratched into it",
+        "icon": "\ud83c\udfb8"
+      },
+      {
+        "id": "keys",
+        "name": "the keys to a house you grew up in",
+        "icon": "\ud83d\udddd"
+      },
+      {
+        "id": "photo",
+        "name": "a creased photograph",
+        "icon": "\ud83d\uddbc"
+      },
+      {
+        "id": "ring",
+        "name": "a plain ring on a cord",
+        "icon": "\ud83d\udc8d"
+      },
+      {
+        "id": "pebble",
+        "name": "a smooth pebble from a beach you loved",
+        "icon": "\ud83e\udea8"
+      },
+      {
+        "id": "watch",
+        "name": "a wristwatch that stopped at 3:14",
+        "icon": "\u231a"
+      },
+      {
+        "id": "letter",
+        "name": "a letter you never sent",
+        "icon": "\u2709\ufe0f"
+      },
+      {
+        "id": "musicbox",
+        "name": "a music box that plays four notes",
+        "icon": "\ud83c\udfb6"
+      },
+      {
+        "id": "ticket",
+        "name": "a ticket stub from a good night",
+        "icon": "\ud83c\udf9f"
+      }
+    ],
+    "custom": {
+      "enabled": true,
+      "maxLen": 40,
+      "hint": "Or write your own (it must be something you can carry)."
+    },
+    "neverLostInFights": true,
+    "lending": {
+      "enabled": false,
+      "_about": "Bryan (B-15e): giving, trading or lending traps that version of your adventurer exactly where it is. If the borrower doesn't honor the deal, the owner's friends can track them down, defeat them (a knockout, never death) and take it back; that frees the trapped adventurer. No recovery timer for now.",
+      "states": [
+        "held",
+        "lent",
+        "overdue",
+        "recoverable",
+        "returned"
+      ],
+      "transitions": {
+        "held": {
+          "lend": "lent",
+          "give": "lent",
+          "trade": "lent"
+        },
+        "lent": {
+          "return": "returned",
+          "due": "overdue",
+          "break": "recoverable"
+        },
+        "overdue": {
+          "return": "returned",
+          "break": "recoverable"
+        },
+        "recoverable": {
+          "return": "returned",
+          "recover": "returned"
+        },
+        "returned": {
+          "settle": "held"
+        }
+      },
+      "trapsOwner": true,
+      "trappedWhile": [
+        "lent",
+        "overdue",
+        "recoverable"
+      ],
+      "recoveryTimerSeconds": null,
+      "dueSeconds": null,
+      "recoverers": "friends",
+      "recoverersAbout": "friends = the owner's party/friends list (other players). Not built: there's no friends list server-side yet.",
+      "pvpRecovery": {
+        "enabled": false,
+        "stub": true,
+        "onDefeat": "knockout",
+        "dropsTo": "owner",
+        "_about": "Needs server/RLS work (player-vs-player state, a shared Keepsake ledger). Stubbed: rpg.keepsake.recover() only runs the local state change when enabled."
+      }
     }
-   },
-   {
-    "id": "sd-grotto",
-    "unlocked": true,
-    "dest": {
-     "type": "instance",
-     "id": "grotto"
+  },
+  "professions": {
+    "_about": "v6: placeholder only (Bryan wants crafting later: potion-making, blacksmithing...). character.professions = [] and character.materials = {} exist in the save schema and migration. Nothing player-visible.",
+    "list": [],
+    "enabled": false
+  },
+  "classes": {
+    "_about": "v6: the eight classes (lore 87; Pip pip-class-balance-v0.6.md). Levels 1-5 are built; 'later' lists the milestone features still to come (levels mapped 1-25). hidden:true + unlock hides a class until its conditions are met (data hook for Bryan's hidden classes). Resource max arrays are by level 1..5 (the last value carries on until later milestones are built).",
+    "order": [
+      "warrior",
+      "barbarian",
+      "ranger",
+      "rogue",
+      "cleric",
+      "paladin",
+      "sorcerer",
+      "warlock"
+    ],
+    "migration": {
+      "archivist": "warlock",
+      "wanderer": "ranger",
+      "tinkerer": "sorcerer",
+      "freeRepick": 1
     },
-    "theme": {
-     "name": "The Gently Declining Grotto",
-     "colors": {
-      "door": "#5a4e42",
-      "frame": "#3a342c",
-      "slot": "#c9a45a",
-      "signBg": "#3a3228",
-      "signFg": "#f3e7c8",
-      "accent": "#e0b25a",
-      "emissive": "#c9a45a"
-     },
-     "sign": "THE GROTTO",
-     "signSub": "solo · real XP · levels 2–4",
-     "decor": "cave",
-     "wobble": false
-    }
-   },
-   {
-    "id": "sd-mystery-b",
-    "unlocked": false,
-    "unlock": {
-     "type": "discover"
+    "list": {
+      "warrior": {
+        "name": "Warrior",
+        "icon": "\ud83d\udee1",
+        "primary": "stride",
+        "second": "nerve",
+        "saves": [
+          "stride",
+          "nerve"
+        ],
+        "die": 10,
+        "armor": "heavy",
+        "weapon": "ruler",
+        "blurb": "A steady front line. You hold the door so others can get through it.",
+        "lore": "Survey Corps guards learn to stand where the floor might move.",
+        "order": [
+          "stride",
+          "nerve",
+          "luck",
+          "wits"
+        ],
+        "startArmor": "cardboard",
+        "resources": {
+          "breath": {
+            "name": "Catch Your Breath",
+            "icon": "\ud83c\udf2c",
+            "max": [
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "recharge": "breather"
+          },
+          "surge": {
+            "name": "Double Shift",
+            "icon": "\u23e9",
+            "max": [
+              0,
+              1,
+              1,
+              1,
+              1
+            ],
+            "recharge": "breather"
+          }
+        },
+        "features": [
+          {
+            "lvl": 1,
+            "id": "drilled",
+            "name": "Drilled",
+            "text": "+2 damage with weapons."
+          },
+          {
+            "lvl": 1,
+            "id": "taunt",
+            "name": "Hold the Door",
+            "text": "Foes focus on you for the rest of the fight."
+          },
+          {
+            "lvl": 3,
+            "id": "guard",
+            "name": "Guard Stance",
+            "text": "+1 AC (style)."
+          },
+          {
+            "lvl": 5,
+            "id": "extra",
+            "name": "Extra Attack",
+            "text": "Attack twice on your turn."
+          }
+        ],
+        "actions": [
+          {
+            "id": "breath",
+            "lvl": 1,
+            "name": "Catch Your Breath",
+            "icon": "\ud83c\udf2c",
+            "kind": "self",
+            "cost": {
+              "breath": 1
+            },
+            "heal": [
+              1,
+              10,
+              "level"
+            ],
+            "hint": "heal 1d10 + level"
+          },
+          {
+            "id": "taunt",
+            "lvl": 1,
+            "name": "Hold the Door",
+            "icon": "\ud83d\udeaa",
+            "kind": "free",
+            "perFight": 1,
+            "hint": "foes target you; still your turn"
+          },
+          {
+            "id": "surge",
+            "lvl": 2,
+            "name": "Double Shift",
+            "icon": "\u23e9",
+            "kind": "free",
+            "cost": {
+              "surge": 1
+            },
+            "hint": "take another turn right after this one"
+          }
+        ],
+        "later": "10 Not Today \u00b7 13 three attacks \u00b7 21 Double Shift \u00d72 \u00b7 25 four attacks"
+      },
+      "barbarian": {
+        "name": "Barbarian",
+        "icon": "\ud83e\ude93",
+        "primary": "nerve",
+        "second": "stride",
+        "saves": [
+          "stride",
+          "nerve"
+        ],
+        "die": 12,
+        "armor": "medium",
+        "unarmored": "thickHide",
+        "weapon": "lamp",
+        "blurb": "You soak it up and swing back. While you run hot, the fog at the edge of your mind holds off.",
+        "lore": "Some settlers say the anger is the Keepsake holding on.",
+        "order": [
+          "nerve",
+          "stride",
+          "luck",
+          "wits"
+        ],
+        "resources": {
+          "rage": {
+            "name": "Run Hot",
+            "icon": "\ud83d\udd25",
+            "max": [
+              2,
+              2,
+              3,
+              3,
+              3
+            ],
+            "recharge": "full",
+            "breatherGain": 0
+          }
+        },
+        "features": [
+          {
+            "lvl": 1,
+            "id": "thickHide",
+            "name": "Thick Hide",
+            "text": "No body armor: AC = 10 + Stride + Nerve (max 17)."
+          },
+          {
+            "lvl": 1,
+            "id": "rage",
+            "name": "Run Hot",
+            "text": "For the fight: take half damage from hits, +2 weapon damage."
+          },
+          {
+            "lvl": 2,
+            "id": "allin",
+            "name": "All In",
+            "text": "Roll attacks with advantage; foes get advantage on you until your next turn."
+          },
+          {
+            "lvl": 5,
+            "id": "extra",
+            "name": "Extra Attack",
+            "text": "Attack twice on your turn."
+          }
+        ],
+        "actions": [
+          {
+            "id": "rage",
+            "lvl": 1,
+            "name": "Run Hot",
+            "icon": "\ud83d\udd25",
+            "kind": "free",
+            "cost": {
+              "rage": 1
+            },
+            "perFight": 1,
+            "hint": "half damage taken, +2 damage"
+          },
+          {
+            "id": "allin",
+            "lvl": 2,
+            "name": "All In",
+            "icon": "\ud83d\udca2",
+            "kind": "free",
+            "perTurn": 1,
+            "hint": "advantage now; foes get it too"
+          }
+        ],
+        "later": "10 rage +3 \u00b7 13 Brutal Swing \u00b7 17 Won't Go Down \u00b7 25 unlimited rage"
+      },
+      "ranger": {
+        "name": "Ranger",
+        "icon": "\ud83c\udff9",
+        "primary": "stride",
+        "second": "wits",
+        "saves": [
+          "stride",
+          "wits"
+        ],
+        "die": 10,
+        "armor": "medium",
+        "weapon": "umbrella",
+        "blurb": "Pathfinder. You read the hum, mark your quarry and find the way back.",
+        "lore": "Rangers walk the Waystone Paths and can hear a shift coming.",
+        "order": [
+          "stride",
+          "wits",
+          "nerve",
+          "luck"
+        ],
+        "resources": {
+          "path": {
+            "name": "Pathcraft",
+            "icon": "\ud83c\udf3f",
+            "max": [
+              0,
+              2,
+              3,
+              3,
+              4
+            ],
+            "recharge": "full",
+            "breatherGain": 0
+          }
+        },
+        "features": [
+          {
+            "lvl": 1,
+            "id": "mark",
+            "name": "Mark the Quarry",
+            "text": "+1d4 damage on your marked foe. Free once per fight, then 1 Pathcraft."
+          },
+          {
+            "lvl": 1,
+            "id": "humReader",
+            "name": "Hum-Reader",
+            "text": "You hear a shift coming 3 seconds early."
+          },
+          {
+            "lvl": 5,
+            "id": "extra",
+            "name": "Extra Attack",
+            "text": "Attack twice on your turn."
+          }
+        ],
+        "actions": [
+          {
+            "id": "mark",
+            "lvl": 1,
+            "name": "Mark the Quarry",
+            "icon": "\ud83c\udfaf",
+            "kind": "markTarget",
+            "freePerFight": 1,
+            "cost": {
+              "path": 1
+            },
+            "hint": "+1d4 on that foe"
+          },
+          {
+            "id": "snare",
+            "lvl": 2,
+            "name": "Snare",
+            "icon": "\ud83e\udea2",
+            "kind": "target",
+            "cost": {
+              "path": 1
+            },
+            "effect": "root",
+            "hint": "foe loses its next turn"
+          },
+          {
+            "id": "mend",
+            "lvl": 2,
+            "name": "Field Mend",
+            "icon": "\ud83c\udf3f",
+            "kind": "self",
+            "cost": {
+              "path": 1
+            },
+            "heal": [
+              1,
+              8,
+              "wits"
+            ],
+            "hint": "heal 1d8 + Wits"
+          }
+        ],
+        "later": "10 Waystone Sense \u00b7 13 Mark 1d6 \u00b7 17 free Home-crystal use \u00b7 21 Vanish \u00b7 25 Mark on every hit"
+      },
+      "rogue": {
+        "name": "Rogue",
+        "icon": "\ud83d\udde1",
+        "primary": "stride",
+        "second": "luck",
+        "saves": [
+          "stride",
+          "wits"
+        ],
+        "die": 8,
+        "armor": "light",
+        "weaponMaxDie": 8,
+        "weapon": "ruler",
+        "blurb": "One well-placed hit, quick fingers, and gone before the reply.",
+        "lore": "Locks in the Annex were made by someone. Rogues take that personally.",
+        "order": [
+          "stride",
+          "luck",
+          "wits",
+          "nerve"
+        ],
+        "resources": {},
+        "features": [
+          {
+            "lvl": 1,
+            "id": "cheap",
+            "name": "Cheap Shot",
+            "text": "Once per turn, +1d6 (2d6 at 3, 3d6 at 5) when you have advantage or an ally (or Snorble) is in the fight."
+          },
+          {
+            "lvl": 1,
+            "id": "fingers",
+            "name": "Fine Fingers",
+            "text": "Double proficiency on lock and door checks."
+          },
+          {
+            "lvl": 2,
+            "id": "slip",
+            "name": "Slip",
+            "text": "After you act, your turn gauge starts at 30%."
+          },
+          {
+            "lvl": 5,
+            "id": "dodge",
+            "name": "Roll With It",
+            "text": "Halve one hit per fight."
+          }
+        ],
+        "sneak": [
+          1,
+          1,
+          2,
+          2,
+          3
+        ],
+        "actions": [
+          {
+            "id": "aim",
+            "lvl": 1,
+            "name": "Steady Aim",
+            "icon": "\ud83c\udfaf",
+            "kind": "arm",
+            "perFight": 1,
+            "hint": "next attack rolls twice (and sets up Cheap Shot)"
+          }
+        ],
+        "later": "8+ more Cheap Shot dice \u00b7 10 Not There \u00b7 25 Lucky Break"
+      },
+      "cleric": {
+        "name": "Cleric",
+        "icon": "\ud83d\udd6f",
+        "primary": "nerve",
+        "second": "wits",
+        "saves": [
+          "nerve",
+          "luck"
+        ],
+        "die": 8,
+        "armor": "medium",
+        "weapon": "lamp",
+        "blurb": "You keep people whole, body and mind. Your light pushes back the fog.",
+        "lore": "Clerics tend the Flicker. Every town has its own name for it.",
+        "order": [
+          "nerve",
+          "wits",
+          "stride",
+          "luck"
+        ],
+        "resources": {
+          "oil": {
+            "name": "Lamp Oil",
+            "icon": "\ud83e\ude94",
+            "max": [
+              2,
+              2,
+              4,
+              4,
+              6
+            ],
+            "recharge": "full",
+            "breatherGain": 1
+          },
+          "lamplight": {
+            "name": "Lamplight",
+            "icon": "\u2728",
+            "max": [
+              0,
+              1,
+              1,
+              1,
+              1
+            ],
+            "recharge": "breather"
+          }
+        },
+        "features": [
+          {
+            "lvl": 1,
+            "id": "flicker",
+            "name": "Flicker",
+            "text": "Ranged bolt: foe makes a Nerve save or takes 1d8 (2d8 at 5)."
+          },
+          {
+            "lvl": 5,
+            "id": "revive",
+            "name": "Pick Me Up",
+            "text": "Revive a knocked-out ally."
+          }
+        ],
+        "actions": [
+          {
+            "id": "flicker",
+            "lvl": 1,
+            "name": "Flicker",
+            "icon": "\ud83d\udd6f",
+            "kind": "target",
+            "save": true,
+            "dmg": [
+              [
+                1,
+                8
+              ],
+              [
+                1,
+                8
+              ],
+              [
+                1,
+                8
+              ],
+              [
+                1,
+                8
+              ],
+              [
+                2,
+                8
+              ]
+            ],
+            "stat": "nerve",
+            "hint": "save or 1d8"
+          },
+          {
+            "id": "mend",
+            "lvl": 1,
+            "name": "Mend",
+            "icon": "\ud83d\udc97",
+            "kind": "self",
+            "cost": {
+              "oil": 1
+            },
+            "heal": [
+              [
+                1,
+                8
+              ],
+              [
+                1,
+                8
+              ],
+              [
+                1,
+                8
+              ],
+              [
+                1,
+                8
+              ],
+              [
+                2,
+                8
+              ]
+            ],
+            "healStat": "nerve",
+            "hint": "heal 1d8 + Nerve"
+          },
+          {
+            "id": "lamplight",
+            "lvl": 2,
+            "name": "Lamplight",
+            "icon": "\u2728",
+            "kind": "area",
+            "cost": {
+              "lamplight": 1
+            },
+            "effect": "stunSave",
+            "hint": "foes save or lose a turn; clears fog"
+          },
+          {
+            "id": "widemend",
+            "lvl": 3,
+            "name": "Wide Mend",
+            "icon": "\ud83d\udc9e",
+            "kind": "party",
+            "cost": {
+              "oil": 2
+            },
+            "heal": [
+              1,
+              8,
+              0
+            ],
+            "hint": "you and allies heal 1d8"
+          },
+          {
+            "id": "revive",
+            "lvl": 5,
+            "name": "Pick Me Up",
+            "icon": "\ud83d\ude4c",
+            "kind": "revive",
+            "cost": {
+              "oil": 2
+            },
+            "heal": [
+              1,
+              8,
+              0
+            ],
+            "hint": "revive a downed ally at 1d8"
+          }
+        ],
+        "later": "10 Calling \u00b7 13 Lamplight \u00d72 \u00b7 17 Answered \u00b7 25 Wide Mend 3d8"
+      },
+      "paladin": {
+        "name": "Paladin",
+        "icon": "\u269c\ufe0f",
+        "primary": "nerve",
+        "second": "luck",
+        "saves": [
+          "nerve",
+          "luck"
+        ],
+        "die": 10,
+        "armor": "heavy",
+        "weapon": "lamp",
+        "blurb": "Sworn on your Keepsake. A heavy hit when it matters, and a steady hand for whoever falls.",
+        "lore": "A paladin's oath is bound to the thing they carried in.",
+        "order": [
+          "nerve",
+          "luck",
+          "stride",
+          "wits"
+        ],
+        "startArmor": "cardboard",
+        "resources": {
+          "pool": {
+            "name": "Oath Pool",
+            "icon": "\ud83e\udd32",
+            "maxPerLevel": 4,
+            "recharge": "full",
+            "breatherGain": 0
+          },
+          "oath": {
+            "name": "Oath Charges",
+            "icon": "\u269c\ufe0f",
+            "max": [
+              0,
+              2,
+              3,
+              3,
+              4
+            ],
+            "recharge": "full",
+            "breatherGain": 0
+          }
+        },
+        "features": [
+          {
+            "lvl": 1,
+            "id": "pool",
+            "name": "Oath Pool",
+            "text": "Heal from a pool of 4 \u00d7 level HP per Full Rest, or spend 5 to clear a fog or status."
+          },
+          {
+            "lvl": 1,
+            "id": "vow",
+            "name": "Keepsake Vow",
+            "text": "Your oath is bound to your Keepsake."
+          },
+          {
+            "lvl": 2,
+            "id": "smite",
+            "name": "Oathstrike",
+            "text": "After you hit, spend a charge: +2d8 (once per turn)."
+          },
+          {
+            "lvl": 5,
+            "id": "extra",
+            "name": "Extra Attack",
+            "text": "Attack twice on your turn."
+          }
+        ],
+        "actions": [
+          {
+            "id": "layhands",
+            "lvl": 1,
+            "name": "Oath Pool",
+            "icon": "\ud83e\udd32",
+            "kind": "self",
+            "pool": "pool",
+            "chunk": [
+              5,
+              "level"
+            ],
+            "hint": "heal from your pool"
+          },
+          {
+            "id": "cleanse",
+            "lvl": 1,
+            "name": "Clear the Fog",
+            "icon": "\ud83c\udf2b",
+            "kind": "cleanse",
+            "cost": {
+              "pool": 5
+            },
+            "hint": "spend 5 pool: clear statuses"
+          },
+          {
+            "id": "smite",
+            "lvl": 2,
+            "name": "Oathstrike",
+            "icon": "\u26a1",
+            "kind": "arm",
+            "cost": {
+              "oath": 1
+            },
+            "dice": [
+              2,
+              8
+            ],
+            "hint": "next hit +2d8"
+          }
+        ],
+        "later": "7 Steady Aura \u00b7 13 Oath Kept \u00b7 21 aura +2 \u00b7 25 aura reach"
+      },
+      "sorcerer": {
+        "name": "Sorcerer",
+        "icon": "\ud83d\udd06",
+        "primary": "luck",
+        "second": "nerve",
+        "saves": [
+          "nerve",
+          "luck"
+        ],
+        "die": 6,
+        "armor": "clothes",
+        "unarmored": "lamplean",
+        "weapon": "chicken",
+        "blurb": "The place lives in you. Bright, fast and fragile.",
+        "lore": "Some people come out of a hard shift carrying a little of the Annex's light.",
+        "order": [
+          "luck",
+          "nerve",
+          "stride",
+          "wits"
+        ],
+        "resources": {
+          "spark": {
+            "name": "Spark",
+            "icon": "\u2734\ufe0f",
+            "max": [
+              2,
+              2,
+              4,
+              4,
+              6
+            ],
+            "recharge": "full",
+            "breatherGain": 1
+          },
+          "spill": {
+            "name": "Spill",
+            "icon": "\ud83d\udca7",
+            "maxByLevel": true,
+            "from": 2,
+            "recharge": "full",
+            "breatherGain": 0
+          }
+        },
+        "features": [
+          {
+            "lvl": 1,
+            "id": "lamplean",
+            "name": "Lamplean Skin",
+            "text": "Unarmored AC = 12 + Stride."
+          },
+          {
+            "lvl": 2,
+            "id": "spill",
+            "name": "Spill",
+            "text": "Points = level: Twin (2) hits a second foe, Hurry (2) refills your gauge to 50%."
+          },
+          {
+            "lvl": 3,
+            "id": "flare",
+            "name": "Flare",
+            "text": "Area blast: 3d6 to every foe (4d6 at level 5)."
+          },
+          {
+            "lvl": 5,
+            "id": "steady",
+            "name": "Steady Spark",
+            "text": "Once per fight, add Luck to a blast."
+          }
+        ],
+        "actions": [
+          {
+            "id": "bolt",
+            "lvl": 1,
+            "name": "Waylight Bolt",
+            "icon": "\ud83d\udd06",
+            "kind": "target",
+            "attack": true,
+            "stat": "luck",
+            "dmg": [
+              [
+                1,
+                10
+              ],
+              [
+                1,
+                10
+              ],
+              [
+                1,
+                10
+              ],
+              [
+                1,
+                10
+              ],
+              [
+                2,
+                10
+              ]
+            ],
+            "hint": "1d10 + Luck attack"
+          },
+          {
+            "id": "glare",
+            "lvl": 1,
+            "name": "Glare",
+            "icon": "\ud83d\udca5",
+            "kind": "target",
+            "cost": {
+              "spark": 1
+            },
+            "auto": true,
+            "dmg": [
+              [
+                2,
+                8
+              ]
+            ],
+            "hint": "2d8, never misses"
+          },
+          {
+            "id": "flare",
+            "lvl": 3,
+            "name": "Flare",
+            "icon": "\ud83c\udf1f",
+            "kind": "area",
+            "cost": {
+              "spark": 3
+            },
+            "dmg": [
+              [
+                3,
+                6
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                4,
+                6
+              ]
+            ],
+            "saveHalf": true,
+            "hint": "3d6 to all (4d6 at L5); save for half"
+          },
+          {
+            "id": "twin",
+            "lvl": 2,
+            "name": "Twin",
+            "icon": "\u264a",
+            "kind": "free",
+            "cost": {
+              "spill": 2
+            },
+            "perTurn": 1,
+            "hint": "your next blast also hits a second foe"
+          },
+          {
+            "id": "hurry",
+            "lvl": 2,
+            "name": "Hurry",
+            "icon": "\ud83d\udca8",
+            "kind": "free",
+            "cost": {
+              "spill": 2
+            },
+            "perTurn": 1,
+            "hint": "gauge starts at 50% after this turn"
+          }
+        ],
+        "later": "10 Origin feature \u00b7 13 free Twin \u00b7 21 Overbright \u00b7 25 Spill per Breather"
+      },
+      "warlock": {
+        "name": "Warlock",
+        "icon": "\ud83d\udcdc",
+        "primary": "luck",
+        "second": "wits",
+        "saves": [
+          "wits",
+          "luck"
+        ],
+        "die": 8,
+        "armor": "light",
+        "weapon": "stapler",
+        "blurb": "You signed something. You read it twice. Steady power at range, renewed at every breather.",
+        "lore": "The patron is never named here. Contracts in the Annex read the same both ways.",
+        "order": [
+          "luck",
+          "wits",
+          "nerve",
+          "stride"
+        ],
+        "patron": "neutral",
+        "resources": {
+          "terms": {
+            "name": "Terms",
+            "icon": "\u2712\ufe0f",
+            "max": [
+              1,
+              2,
+              2,
+              2,
+              2
+            ],
+            "recharge": "breather"
+          }
+        },
+        "features": [
+          {
+            "lvl": 1,
+            "id": "finebolt",
+            "name": "Fine-Print Bolt",
+            "text": "1d10 Luck beam (2 beams at level 5)."
+          },
+          {
+            "lvl": 2,
+            "id": "clauses",
+            "name": "Clauses",
+            "text": "Sharp Terms (+Luck to bolt damage) and Second Signature (temporary HP after a win)."
+          },
+          {
+            "lvl": 5,
+            "id": "power3",
+            "name": "Terms at power 3",
+            "text": "Called-In Debt deals 3d8."
+          }
+        ],
+        "clauses": [
+          "sharp",
+          "signature"
+        ],
+        "actions": [
+          {
+            "id": "finebolt",
+            "lvl": 1,
+            "name": "Fine-Print Bolt",
+            "icon": "\ud83d\udcdc",
+            "kind": "target",
+            "attack": true,
+            "stat": "luck",
+            "dmg": [
+              [
+                1,
+                10
+              ]
+            ],
+            "beams": [
+              1,
+              1,
+              1,
+              1,
+              2
+            ],
+            "hint": "1d10 beam (2 at L5)"
+          },
+          {
+            "id": "debt",
+            "lvl": 1,
+            "name": "Called-In Debt",
+            "icon": "\u2712\ufe0f",
+            "kind": "target",
+            "cost": {
+              "terms": 1
+            },
+            "save": true,
+            "saveHalf": true,
+            "stat": "luck",
+            "dmg": [
+              [
+                2,
+                8
+              ],
+              [
+                2,
+                8
+              ],
+              [
+                2,
+                8
+              ],
+              [
+                2,
+                8
+              ],
+              [
+                3,
+                8
+              ]
+            ],
+            "hint": "2d8, save for half (3d8 at L5)"
+          }
+        ],
+        "later": "10 Contract feature \u00b7 13 three beams \u00b7 21 four beams + Final Clause \u00b7 25 Terms at power 5"
+      }
     },
-    "dest": {
-     "type": "none"
-    },
-    "destNote": "Reserved for a later instance. Theme and dest can be filled in after the lore session.",
-    "theme": {
-     "name": "???",
-     "colors": {
-      "door": "#3a3a38",
-      "frame": "#1e1e1c",
-      "slot": "#5a5a56",
-      "signBg": "#2a2a28",
-      "signFg": "#8a8a84",
-      "accent": "#5a5a54",
-      "emissive": "#2a2a28"
-     },
-     "sign": "???",
-     "signSub": "sealed",
-     "decor": "unknown",
-     "wobble": false
+    "hidden": {
+      "_about": "Data hook for Bryan's hidden classes. Add entries to classes.list with hidden:true and an unlock block, e.g. {\"flag\":\"...\"} or {\"quest\":\"...\"} or {\"level\":N}. Hidden classes don't show in the picker until unlocked.",
+      "example": {
+        "hidden": true,
+        "unlock": {
+          "flag": "example-flag"
+        }
+      }
     }
-   }
-  ],
-  "layout": {
-   "_about": "Free-standing south-facing facade just inside the north wall of the arrival plaza, east of the north hallway (x=8 ± 1.2). Four doors are colinear and evenly spaced. The old hallway Mailroom door (opposite the Training Closet) still works as a shortcut. Center of the plaza is left open for later trapdoors and ladders. The train sits on the west side and runs north into the wall. The Backrooms threshold is the north-hall opening.",
-   "wall": "n",
-   "z": 4.85,
-   "rotY": 0,
-   "doorsX": {
-    "sd-mailroom": 11.0,
-    "sd-gate-turn": 12.15,
-    "sd-mystery-b": 13.3,
-    "sd-grotto": 9.85
-   },
-   "facade": {
-    "z": 4.72,
-    "x0": 9.15,
-    "x1": 13.95,
-    "h": 3.0
-   },
-   "stationSign": {
-    "y": 2.82
-   },
-   "board": {
-    "x": 4.55,
-    "z": 7.15,
-    "rotY": 0
-   },
-   "trainSign": {
-    "x": 5.7,
-    "z": 6.85,
-    "y": 2.05,
-    "rotY": -0.28
-   },
-   "desk": {
-    "x": 9.15,
-    "z": 7.55,
-    "rotY": 0.06
-   },
-   "train": {
-    "x": 3.35,
-    "z0": 2.25,
-    "z1": 7.4,
-    "platformX": 4.3,
-    "platformW": 1.35
-   },
-   "threshold": {
-    "x": 8.0,
-    "z": 2.02
-   }
-  },
-  "stations": [
-   {
-    "id": "st-gremlin-world",
-    "name": "Gremlin World",
-    "code": "???",
-    "status": "Delayed",
-    "note": "Coming Soon",
-    "platform": "1",
-    "clickable": false,
-    "dest": {
-     "type": "external",
-     "world": "gremlin-world",
-     "path": "world.html"
-    }
-   }
-  ],
-  "train": {
-   "sign": "TRAIN — COMING SOON",
-   "signSub": "please wait behind the yellow line",
-   "label": "🚂 Train — Coming Soon",
-   "text": "A short track runs into the wall. The train is coming soon, in some weird way.",
-   "sub": "Please wait behind the yellow line. No boarding, and no connection from here yet."
-  },
-  "desk": {
-   "sign": "CHECK-IN",
-   "signSub": "Survey Corps · sign in here",
-   "label": "🔔 Check-in desk",
-   "text": "A tidy desk with a bell, a lamp and a sign-in ledger. The Gremlins keep a careful count of who goes out and who comes back.",
-   "sub": "The Station likes things orderly."
-  },
-  "threshold": {
-   "title": "A slightly odd threshold",
-   "sign": "THE HALLS",
-   "signSub": "rooms here re-roll · stay sharp",
-   "label": "A slightly odd threshold",
-   "text": "Past this line the rooms don't stay where you leave them. The Survey Corps chalks STAYS PUT ✓ on the few places that do.",
-   "sub": "Weird, mostly not dangerous. This is where the Station ends and the open halls begin."
-  },
-  "record": {
-   "title": "📌 The Common Record",
-   "sign": "COMMON RECORD",
-   "signSub": "what we've found so far",
-   "label": "📌 Read the Common Record",
-   "intro": "A broad cork board, edges thick with pins. Everyone's finds go up here: doors, torn logbook pages, odd notes.",
-   "doorsTitle": "Doors you've found",
-   "pagesTitle": "Survey Corps logbook (pages you've found)",
-   "noPages": "No pages yet. They were torn out in a shift and scattered through the halls.",
-   "shared": "Shared pins (everyone's finds) need the server. For now the board shows what you've found yourself."
-  },
-  "guide": {
-   "label": "📖 Read the Survey Corps starter guide",
-   "sign": "STARTER GUIDE",
-   "signSub": "read me first"
-  },
-  "pad": {
-   "label": "🎯 Practice pad: take a swing",
-   "sign": "PRACTICE PAD",
-   "signSub": "nothing here counts",
-   "ac": 12,
-   "text": "A stuffed sparring post on a chalk circle. Take a swing; nothing here counts."
   }
- },
- "companion": {
-  "_about": "v5d: a solo-only battle buddy. Default on, saved per character, hides in a group. Does not split XP.",
-  "id": "snorble",
-  "name": "Snorble",
-  "short": "a very small dragon",
-  "blurb": "A goofy, derpy little dragon with uneven eyes and tiny wings that mostly just flap for morale. When you're on your own, Snorble tags along in turn battles: a clumsy bonk, or a sneeze of warm sparkles if you're low. Default on. Sits out whenever you're in a group.",
-  "defaultOn": true,
-  "maxHp": 8,
-  "ac": 11,
-  "atk": 1,
-  "die": 4,
-  "healBelow": 0.5,
-  "heal": [
-   1,
-   4,
-   1
-  ],
-  "fill": 3.1,
-  "startGauge": 0.35,
-  "attackTexts": [
-   "trips into the {name}",
-   "bonks the {name} with a forehead",
-   "flops a tiny wing at the {name}"
-  ],
-  "healText": "sneezes a cloud of warm sparkles over you",
-  "koText": "Snorble flops over, already snoring. (Back after this scuffle.)",
-  "reviveText": "Snorble sneezes, blinks, and toddles back to your side.",
-  "joinText": "Snorble toddles up and tries to stand heroically, which mostly looks like sitting.",
-  "toggleOn": "Snorble: ON (tags along when you're solo)",
-  "toggleOff": "Snorble: OFF (waiting at the Station)",
-  "hiddenInParty": "Snorble is sitting this one out — groups make the little dragon bashful."
- },
- "_about_v6": "v6 (Nov 15-16 2026): eight classes (levels 1-5 built, later milestones listed as 'later'), paths became backgrounds, Breather/Full Rest split, armor tiers, class-primary turn speed, Keepsakes (picker live; lending/trading/recovery is a data model behind keepsakes.lending.enabled=false), forward-compatible professions/materials. Balance per pip-class-balance-v0.6.md. Mechanics cite SRD 5.2.1 only; names are original.",
- "backgroundsAbout": "v6: Archivist, Wanderer and Tinkerer are backgrounds (small perks, not power). Internal key stays 'paths' and character.path for save compatibility.",
- "armorTiers": {
-  "_about": "v6 (Pip §0): Clothes count as unarmored. Light: full Stride. Medium: Stride counts up to +2. Heavy: Stride doesn't count. Classes list the heaviest tier they can wear; heavier armor won't equip.",
-  "order": [
-   "clothes",
-   "light",
-   "medium",
-   "heavy"
-  ],
-  "clothes": {
-   "name": "Clothes",
-   "strideMax": 99
-  },
-  "light": {
-   "name": "Light",
-   "strideMax": 99
-  },
-  "medium": {
-   "name": "Medium",
-   "strideMax": 2
-  },
-  "heavy": {
-   "name": "Heavy",
-   "strideMax": 0
-  }
- },
- "rests": {
-  "_about": "v6 (Pip §2.5): Breathers = a run's rest stop or sitting in a stable place: full HP plus per-Breather resources. Full Rest = Home crystal, the Door Station, or the end of a run: everything back.",
-  "breather": {
-   "name": "Breather",
-   "hp": "full",
-   "text": "A breather. HP full; per-breather abilities back."
-  },
-  "full": {
-   "name": "Full Rest",
-   "text": "A full rest. Everything's back."
-  },
-  "stableSitCooldown": 60
- },
- "keepsakes": {
-  "_about": "v6. Every character carries one Keepsake from home (lore 17-20, 90): whatever you had on you when you pulled the thread. It's your anchor. Never lost in a fight or a knockout. Lending/trading/recovery (lore 92, 100, 101) is a data model only: lending.enabled=false, no UI.",
-  "pickerTitle": "What did you have on you?",
-  "pickerText": "Your Keepsake is whatever you had on you when you pulled the thread. It's your anchor in here. Keep it close.",
-  "list": [
-   {
-    "id": "compass",
-    "name": "a brass compass that points slightly wrong",
-    "icon": "🧭"
-   },
-   {
-    "id": "pick",
-    "name": "a guitar pick with a lyric scratched into it",
-    "icon": "🎸"
-   },
-   {
-    "id": "keys",
-    "name": "the keys to a house you grew up in",
-    "icon": "🗝"
-   },
-   {
-    "id": "photo",
-    "name": "a creased photograph",
-    "icon": "🖼"
-   },
-   {
-    "id": "ring",
-    "name": "a plain ring on a cord",
-    "icon": "💍"
-   },
-   {
-    "id": "pebble",
-    "name": "a smooth pebble from a beach you loved",
-    "icon": "🪨"
-   },
-   {
-    "id": "watch",
-    "name": "a wristwatch that stopped at 3:14",
-    "icon": "⌚"
-   },
-   {
-    "id": "letter",
-    "name": "a letter you never sent",
-    "icon": "✉️"
-   },
-   {
-    "id": "musicbox",
-    "name": "a music box that plays four notes",
-    "icon": "🎶"
-   },
-   {
-    "id": "ticket",
-    "name": "a ticket stub from a good night",
-    "icon": "🎟"
-   }
-  ],
-  "custom": {
-   "enabled": true,
-   "maxLen": 40,
-   "hint": "Or write your own (it must be something you can carry)."
-  },
-  "neverLostInFights": true,
-  "lending": {
-   "enabled": false,
-   "_about": "Bryan (B-15e): giving, trading or lending traps that version of your adventurer exactly where it is. If the borrower doesn't honor the deal, the owner's friends can track them down, defeat them (a knockout, never death) and take it back; that frees the trapped adventurer. No recovery timer for now.",
-   "states": [
-    "held",
-    "lent",
-    "overdue",
-    "recoverable",
-    "returned"
-   ],
-   "transitions": {
-    "held": {
-     "lend": "lent",
-     "give": "lent",
-     "trade": "lent"
-    },
-    "lent": {
-     "return": "returned",
-     "due": "overdue",
-     "break": "recoverable"
-    },
-    "overdue": {
-     "return": "returned",
-     "break": "recoverable"
-    },
-    "recoverable": {
-     "return": "returned",
-     "recover": "returned"
-    },
-    "returned": {
-     "settle": "held"
-    }
-   },
-   "trapsOwner": true,
-   "trappedWhile": [
-    "lent",
-    "overdue",
-    "recoverable"
-   ],
-   "recoveryTimerSeconds": null,
-   "dueSeconds": null,
-   "recoverers": "friends",
-   "recoverersAbout": "friends = the owner's party/friends list (other players). Not built: there's no friends list server-side yet.",
-   "pvpRecovery": {
-    "enabled": false,
-    "stub": true,
-    "onDefeat": "knockout",
-    "dropsTo": "owner",
-    "_about": "Needs server/RLS work (player-vs-player state, a shared Keepsake ledger). Stubbed: rpg.keepsake.recover() only runs the local state change when enabled."
-   }
-  }
- },
- "professions": {
-  "_about": "v6: placeholder only (Bryan wants crafting later: potion-making, blacksmithing...). character.professions = [] and character.materials = {} exist in the save schema and migration. Nothing player-visible.",
-  "list": [],
-  "enabled": false
- },
- "classes": {
-  "_about": "v6: the eight classes (lore 87; Pip pip-class-balance-v0.6.md). Levels 1-5 are built; 'later' lists the milestone features still to come (levels mapped 1-25). hidden:true + unlock hides a class until its conditions are met (data hook for Bryan's hidden classes). Resource max arrays are by level 1..5 (the last value carries on until later milestones are built).",
-  "order": [
-   "warrior",
-   "barbarian",
-   "ranger",
-   "rogue",
-   "cleric",
-   "paladin",
-   "sorcerer",
-   "warlock"
-  ],
-  "migration": {
-   "archivist": "warlock",
-   "wanderer": "ranger",
-   "tinkerer": "sorcerer",
-   "freeRepick": 1
-  },
-  "list": {
-   "warrior": {
-    "name": "Warrior",
-    "icon": "🛡",
-    "primary": "stride",
-    "second": "nerve",
-    "saves": [
-     "stride",
-     "nerve"
-    ],
-    "die": 10,
-    "armor": "heavy",
-    "weapon": "ruler",
-    "blurb": "A steady front line. You hold the door so others can get through it.",
-    "lore": "Survey Corps guards learn to stand where the floor might move.",
-    "order": [
-     "stride",
-     "nerve",
-     "luck",
-     "wits"
-    ],
-    "startArmor": "cardboard",
-    "resources": {
-     "breath": {
-      "name": "Catch Your Breath",
-      "icon": "🌬",
-      "max": [
-       1,
-       1,
-       1,
-       1,
-       1
-      ],
-      "recharge": "breather"
-     },
-     "surge": {
-      "name": "Double Shift",
-      "icon": "⏩",
-      "max": [
-       0,
-       1,
-       1,
-       1,
-       1
-      ],
-      "recharge": "breather"
-     }
-    },
-    "features": [
-     {
-      "lvl": 1,
-      "id": "drilled",
-      "name": "Drilled",
-      "text": "+2 damage with weapons."
-     },
-     {
-      "lvl": 1,
-      "id": "taunt",
-      "name": "Hold the Door",
-      "text": "Foes focus on you for the rest of the fight."
-     },
-     {
-      "lvl": 3,
-      "id": "guard",
-      "name": "Guard Stance",
-      "text": "+1 AC (style)."
-     },
-     {
-      "lvl": 5,
-      "id": "extra",
-      "name": "Extra Attack",
-      "text": "Attack twice on your turn."
-     }
-    ],
-    "actions": [
-     {
-      "id": "breath",
-      "lvl": 1,
-      "name": "Catch Your Breath",
-      "icon": "🌬",
-      "kind": "self",
-      "cost": {
-       "breath": 1
-      },
-      "heal": [
-       1,
-       10,
-       "level"
-      ],
-      "hint": "heal 1d10 + level"
-     },
-     {
-      "id": "taunt",
-      "lvl": 1,
-      "name": "Hold the Door",
-      "icon": "🚪",
-      "kind": "free",
-      "perFight": 1,
-      "hint": "foes target you; still your turn"
-     },
-     {
-      "id": "surge",
-      "lvl": 2,
-      "name": "Double Shift",
-      "icon": "⏩",
-      "kind": "free",
-      "cost": {
-       "surge": 1
-      },
-      "hint": "take another turn right after this one"
-     }
-    ],
-    "later": "10 Not Today · 13 three attacks · 21 Double Shift ×2 · 25 four attacks"
-   },
-   "barbarian": {
-    "name": "Barbarian",
-    "icon": "🪓",
-    "primary": "nerve",
-    "second": "stride",
-    "saves": [
-     "stride",
-     "nerve"
-    ],
-    "die": 12,
-    "armor": "medium",
-    "unarmored": "thickHide",
-    "weapon": "lamp",
-    "blurb": "You soak it up and swing back. While you run hot, the fog at the edge of your mind holds off.",
-    "lore": "Some settlers say the anger is the Keepsake holding on.",
-    "order": [
-     "nerve",
-     "stride",
-     "luck",
-     "wits"
-    ],
-    "resources": {
-     "rage": {
-      "name": "Run Hot",
-      "icon": "🔥",
-      "max": [
-       2,
-       2,
-       3,
-       3,
-       3
-      ],
-      "recharge": "full",
-      "breatherGain": 0
-     }
-    },
-    "features": [
-     {
-      "lvl": 1,
-      "id": "thickHide",
-      "name": "Thick Hide",
-      "text": "No body armor: AC = 10 + Stride + Nerve (max 17)."
-     },
-     {
-      "lvl": 1,
-      "id": "rage",
-      "name": "Run Hot",
-      "text": "For the fight: take half damage from hits, +2 weapon damage."
-     },
-     {
-      "lvl": 2,
-      "id": "allin",
-      "name": "All In",
-      "text": "Roll attacks with advantage; foes get advantage on you until your next turn."
-     },
-     {
-      "lvl": 5,
-      "id": "extra",
-      "name": "Extra Attack",
-      "text": "Attack twice on your turn."
-     }
-    ],
-    "actions": [
-     {
-      "id": "rage",
-      "lvl": 1,
-      "name": "Run Hot",
-      "icon": "🔥",
-      "kind": "free",
-      "cost": {
-       "rage": 1
-      },
-      "perFight": 1,
-      "hint": "half damage taken, +2 damage"
-     },
-     {
-      "id": "allin",
-      "lvl": 2,
-      "name": "All In",
-      "icon": "💢",
-      "kind": "free",
-      "perTurn": 1,
-      "hint": "advantage now; foes get it too"
-     }
-    ],
-    "later": "10 rage +3 · 13 Brutal Swing · 17 Won't Go Down · 25 unlimited rage"
-   },
-   "ranger": {
-    "name": "Ranger",
-    "icon": "🏹",
-    "primary": "stride",
-    "second": "wits",
-    "saves": [
-     "stride",
-     "wits"
-    ],
-    "die": 10,
-    "armor": "medium",
-    "weapon": "umbrella",
-    "blurb": "Pathfinder. You read the hum, mark your quarry and find the way back.",
-    "lore": "Rangers walk the Waystone Paths and can hear a shift coming.",
-    "order": [
-     "stride",
-     "wits",
-     "nerve",
-     "luck"
-    ],
-    "resources": {
-     "path": {
-      "name": "Pathcraft",
-      "icon": "🌿",
-      "max": [
-       0,
-       2,
-       3,
-       3,
-       4
-      ],
-      "recharge": "full",
-      "breatherGain": 0
-     }
-    },
-    "features": [
-     {
-      "lvl": 1,
-      "id": "mark",
-      "name": "Mark the Quarry",
-      "text": "+1d4 damage on your marked foe. Free once per fight, then 1 Pathcraft."
-     },
-     {
-      "lvl": 1,
-      "id": "humReader",
-      "name": "Hum-Reader",
-      "text": "You hear a shift coming 3 seconds early."
-     },
-     {
-      "lvl": 5,
-      "id": "extra",
-      "name": "Extra Attack",
-      "text": "Attack twice on your turn."
-     }
-    ],
-    "actions": [
-     {
-      "id": "mark",
-      "lvl": 1,
-      "name": "Mark the Quarry",
-      "icon": "🎯",
-      "kind": "markTarget",
-      "freePerFight": 1,
-      "cost": {
-       "path": 1
-      },
-      "hint": "+1d4 on that foe"
-     },
-     {
-      "id": "snare",
-      "lvl": 2,
-      "name": "Snare",
-      "icon": "🪢",
-      "kind": "target",
-      "cost": {
-       "path": 1
-      },
-      "effect": "root",
-      "hint": "foe loses its next turn"
-     },
-     {
-      "id": "mend",
-      "lvl": 2,
-      "name": "Field Mend",
-      "icon": "🌿",
-      "kind": "self",
-      "cost": {
-       "path": 1
-      },
-      "heal": [
-       1,
-       8,
-       "wits"
-      ],
-      "hint": "heal 1d8 + Wits"
-     }
-    ],
-    "later": "10 Waystone Sense · 13 Mark 1d6 · 17 free Home-crystal use · 21 Vanish · 25 Mark on every hit"
-   },
-   "rogue": {
-    "name": "Rogue",
-    "icon": "🗡",
-    "primary": "stride",
-    "second": "luck",
-    "saves": [
-     "stride",
-     "wits"
-    ],
-    "die": 8,
-    "armor": "light",
-    "weaponMaxDie": 8,
-    "weapon": "ruler",
-    "blurb": "One well-placed hit, quick fingers, and gone before the reply.",
-    "lore": "Locks in the Annex were made by someone. Rogues take that personally.",
-    "order": [
-     "stride",
-     "luck",
-     "wits",
-     "nerve"
-    ],
-    "resources": {},
-    "features": [
-     {
-      "lvl": 1,
-      "id": "cheap",
-      "name": "Cheap Shot",
-      "text": "Once per turn, +1d6 (2d6 at 3, 3d6 at 5) when you have advantage or an ally (or Snorble) is in the fight."
-     },
-     {
-      "lvl": 1,
-      "id": "fingers",
-      "name": "Fine Fingers",
-      "text": "Double proficiency on lock and door checks."
-     },
-     {
-      "lvl": 2,
-      "id": "slip",
-      "name": "Slip",
-      "text": "After you act, your turn gauge starts at 30%."
-     },
-     {
-      "lvl": 5,
-      "id": "dodge",
-      "name": "Roll With It",
-      "text": "Halve one hit per fight."
-     }
-    ],
-    "sneak": [
-     1,
-     1,
-     2,
-     2,
-     3
-    ],
-    "actions": [
-     {
-      "id": "aim",
-      "lvl": 1,
-      "name": "Steady Aim",
-      "icon": "🎯",
-      "kind": "arm",
-      "perFight": 1,
-      "hint": "next attack rolls twice (and sets up Cheap Shot)"
-     }
-    ],
-    "later": "8+ more Cheap Shot dice · 10 Not There · 25 Lucky Break"
-   },
-   "cleric": {
-    "name": "Cleric",
-    "icon": "🕯",
-    "primary": "nerve",
-    "second": "wits",
-    "saves": [
-     "nerve",
-     "luck"
-    ],
-    "die": 8,
-    "armor": "medium",
-    "weapon": "lamp",
-    "blurb": "You keep people whole, body and mind. Your light pushes back the fog.",
-    "lore": "Clerics tend the Flicker. Every town has its own name for it.",
-    "order": [
-     "nerve",
-     "wits",
-     "stride",
-     "luck"
-    ],
-    "resources": {
-     "oil": {
-      "name": "Lamp Oil",
-      "icon": "🪔",
-      "max": [
-       2,
-       2,
-       4,
-       4,
-       6
-      ],
-      "recharge": "full",
-      "breatherGain": 1
-     },
-     "lamplight": {
-      "name": "Lamplight",
-      "icon": "✨",
-      "max": [
-       0,
-       1,
-       1,
-       1,
-       1
-      ],
-      "recharge": "breather"
-     }
-    },
-    "features": [
-     {
-      "lvl": 1,
-      "id": "flicker",
-      "name": "Flicker",
-      "text": "Ranged bolt: foe makes a Nerve save or takes 1d8 (2d8 at 5)."
-     },
-     {
-      "lvl": 5,
-      "id": "revive",
-      "name": "Pick Me Up",
-      "text": "Revive a knocked-out ally."
-     }
-    ],
-    "actions": [
-     {
-      "id": "flicker",
-      "lvl": 1,
-      "name": "Flicker",
-      "icon": "🕯",
-      "kind": "target",
-      "save": true,
-      "dmg": [
-       [
-        1,
-        8
-       ],
-       [
-        1,
-        8
-       ],
-       [
-        1,
-        8
-       ],
-       [
-        1,
-        8
-       ],
-       [
-        2,
-        8
-       ]
-      ],
-      "stat": "nerve",
-      "hint": "save or 1d8"
-     },
-     {
-      "id": "mend",
-      "lvl": 1,
-      "name": "Mend",
-      "icon": "💗",
-      "kind": "self",
-      "cost": {
-       "oil": 1
-      },
-      "heal": [
-       [
-        1,
-        8
-       ],
-       [
-        1,
-        8
-       ],
-       [
-        1,
-        8
-       ],
-       [
-        1,
-        8
-       ],
-       [
-        2,
-        8
-       ]
-      ],
-      "healStat": "nerve",
-      "hint": "heal 1d8 + Nerve"
-     },
-     {
-      "id": "lamplight",
-      "lvl": 2,
-      "name": "Lamplight",
-      "icon": "✨",
-      "kind": "area",
-      "cost": {
-       "lamplight": 1
-      },
-      "effect": "stunSave",
-      "hint": "foes save or lose a turn; clears fog"
-     },
-     {
-      "id": "widemend",
-      "lvl": 3,
-      "name": "Wide Mend",
-      "icon": "💞",
-      "kind": "party",
-      "cost": {
-       "oil": 2
-      },
-      "heal": [
-       1,
-       8,
-       0
-      ],
-      "hint": "you and allies heal 1d8"
-     },
-     {
-      "id": "revive",
-      "lvl": 5,
-      "name": "Pick Me Up",
-      "icon": "🙌",
-      "kind": "revive",
-      "cost": {
-       "oil": 2
-      },
-      "heal": [
-       1,
-       8,
-       0
-      ],
-      "hint": "revive a downed ally at 1d8"
-     }
-    ],
-    "later": "10 Calling · 13 Lamplight ×2 · 17 Answered · 25 Wide Mend 3d8"
-   },
-   "paladin": {
-    "name": "Paladin",
-    "icon": "⚜️",
-    "primary": "nerve",
-    "second": "luck",
-    "saves": [
-     "nerve",
-     "luck"
-    ],
-    "die": 10,
-    "armor": "heavy",
-    "weapon": "lamp",
-    "blurb": "Sworn on your Keepsake. A heavy hit when it matters, and a steady hand for whoever falls.",
-    "lore": "A paladin's oath is bound to the thing they carried in.",
-    "order": [
-     "nerve",
-     "luck",
-     "stride",
-     "wits"
-    ],
-    "startArmor": "cardboard",
-    "resources": {
-     "pool": {
-      "name": "Oath Pool",
-      "icon": "🤲",
-      "maxPerLevel": 4,
-      "recharge": "full",
-      "breatherGain": 0
-     },
-     "oath": {
-      "name": "Oath Charges",
-      "icon": "⚜️",
-      "max": [
-       0,
-       2,
-       3,
-       3,
-       4
-      ],
-      "recharge": "full",
-      "breatherGain": 0
-     }
-    },
-    "features": [
-     {
-      "lvl": 1,
-      "id": "pool",
-      "name": "Oath Pool",
-      "text": "Heal from a pool of 4 × level HP per Full Rest, or spend 5 to clear a fog or status."
-     },
-     {
-      "lvl": 1,
-      "id": "vow",
-      "name": "Keepsake Vow",
-      "text": "Your oath is bound to your Keepsake."
-     },
-     {
-      "lvl": 2,
-      "id": "smite",
-      "name": "Oathstrike",
-      "text": "After you hit, spend a charge: +2d8 (once per turn)."
-     },
-     {
-      "lvl": 5,
-      "id": "extra",
-      "name": "Extra Attack",
-      "text": "Attack twice on your turn."
-     }
-    ],
-    "actions": [
-     {
-      "id": "layhands",
-      "lvl": 1,
-      "name": "Oath Pool",
-      "icon": "🤲",
-      "kind": "self",
-      "pool": "pool",
-      "chunk": [
-       5,
-       "level"
-      ],
-      "hint": "heal from your pool"
-     },
-     {
-      "id": "cleanse",
-      "lvl": 1,
-      "name": "Clear the Fog",
-      "icon": "🌫",
-      "kind": "cleanse",
-      "cost": {
-       "pool": 5
-      },
-      "hint": "spend 5 pool: clear statuses"
-     },
-     {
-      "id": "smite",
-      "lvl": 2,
-      "name": "Oathstrike",
-      "icon": "⚡",
-      "kind": "arm",
-      "cost": {
-       "oath": 1
-      },
-      "dice": [
-       2,
-       8
-      ],
-      "hint": "next hit +2d8"
-     }
-    ],
-    "later": "7 Steady Aura · 13 Oath Kept · 21 aura +2 · 25 aura reach"
-   },
-   "sorcerer": {
-    "name": "Sorcerer",
-    "icon": "🔆",
-    "primary": "luck",
-    "second": "nerve",
-    "saves": [
-     "nerve",
-     "luck"
-    ],
-    "die": 6,
-    "armor": "clothes",
-    "unarmored": "lamplean",
-    "weapon": "chicken",
-    "blurb": "The place lives in you. Bright, fast and fragile.",
-    "lore": "Some people come out of a hard shift carrying a little of the Annex's light.",
-    "order": [
-     "luck",
-     "nerve",
-     "stride",
-     "wits"
-    ],
-    "resources": {
-     "spark": {
-      "name": "Spark",
-      "icon": "✴️",
-      "max": [
-       2,
-       2,
-       4,
-       4,
-       6
-      ],
-      "recharge": "full",
-      "breatherGain": 1
-     },
-     "spill": {
-      "name": "Spill",
-      "icon": "💧",
-      "maxByLevel": true,
-      "from": 2,
-      "recharge": "full",
-      "breatherGain": 0
-     }
-    },
-    "features": [
-     {
-      "lvl": 1,
-      "id": "lamplean",
-      "name": "Lamplean Skin",
-      "text": "Unarmored AC = 12 + Stride."
-     },
-     {
-      "lvl": 2,
-      "id": "spill",
-      "name": "Spill",
-      "text": "Points = level: Twin (2) hits a second foe, Hurry (2) refills your gauge to 50%."
-     },
-     {
-      "lvl": 3,
-      "id": "flare",
-      "name": "Flare",
-      "text": "Area blast: 3d6 to every foe (4d6 at level 5)."
-     },
-     {
-      "lvl": 5,
-      "id": "steady",
-      "name": "Steady Spark",
-      "text": "Once per fight, add Luck to a blast."
-     }
-    ],
-    "actions": [
-     {
-      "id": "bolt",
-      "lvl": 1,
-      "name": "Waylight Bolt",
-      "icon": "🔆",
-      "kind": "target",
-      "attack": true,
-      "stat": "luck",
-      "dmg": [
-       [
-        1,
-        10
-       ],
-       [
-        1,
-        10
-       ],
-       [
-        1,
-        10
-       ],
-       [
-        1,
-        10
-       ],
-       [
-        2,
-        10
-       ]
-      ],
-      "hint": "1d10 + Luck attack"
-     },
-     {
-      "id": "glare",
-      "lvl": 1,
-      "name": "Glare",
-      "icon": "💥",
-      "kind": "target",
-      "cost": {
-       "spark": 1
-      },
-      "auto": true,
-      "dmg": [
-       [
-        2,
-        8
-       ]
-      ],
-      "hint": "2d8, never misses"
-     },
-     {
-      "id": "flare",
-      "lvl": 3,
-      "name": "Flare",
-      "icon": "🌟",
-      "kind": "area",
-      "cost": {
-       "spark": 3
-      },
-      "dmg": [
-       [
-        3,
-        6
-       ],
-       [
-        3,
-        6
-       ],
-       [
-        3,
-        6
-       ],
-       [
-        3,
-        6
-       ],
-       [
-        4,
-        6
-       ]
-      ],
-      "saveHalf": true,
-      "hint": "3d6 to all (4d6 at L5); save for half"
-     },
-     {
-      "id": "twin",
-      "lvl": 2,
-      "name": "Twin",
-      "icon": "♊",
-      "kind": "free",
-      "cost": {
-       "spill": 2
-      },
-      "perTurn": 1,
-      "hint": "your next blast also hits a second foe"
-     },
-     {
-      "id": "hurry",
-      "lvl": 2,
-      "name": "Hurry",
-      "icon": "💨",
-      "kind": "free",
-      "cost": {
-       "spill": 2
-      },
-      "perTurn": 1,
-      "hint": "gauge starts at 50% after this turn"
-     }
-    ],
-    "later": "10 Origin feature · 13 free Twin · 21 Overbright · 25 Spill per Breather"
-   },
-   "warlock": {
-    "name": "Warlock",
-    "icon": "📜",
-    "primary": "luck",
-    "second": "wits",
-    "saves": [
-     "wits",
-     "luck"
-    ],
-    "die": 8,
-    "armor": "light",
-    "weapon": "stapler",
-    "blurb": "You signed something. You read it twice. Steady power at range, renewed at every breather.",
-    "lore": "The patron is never named here. Contracts in the Annex read the same both ways.",
-    "order": [
-     "luck",
-     "wits",
-     "nerve",
-     "stride"
-    ],
-    "patron": "neutral",
-    "resources": {
-     "terms": {
-      "name": "Terms",
-      "icon": "✒️",
-      "max": [
-       1,
-       2,
-       2,
-       2,
-       2
-      ],
-      "recharge": "breather"
-     }
-    },
-    "features": [
-     {
-      "lvl": 1,
-      "id": "finebolt",
-      "name": "Fine-Print Bolt",
-      "text": "1d10 Luck beam (2 beams at level 5)."
-     },
-     {
-      "lvl": 2,
-      "id": "clauses",
-      "name": "Clauses",
-      "text": "Sharp Terms (+Luck to bolt damage) and Second Signature (temporary HP after a win)."
-     },
-     {
-      "lvl": 5,
-      "id": "power3",
-      "name": "Terms at power 3",
-      "text": "Called-In Debt deals 3d8."
-     }
-    ],
-    "clauses": [
-     "sharp",
-     "signature"
-    ],
-    "actions": [
-     {
-      "id": "finebolt",
-      "lvl": 1,
-      "name": "Fine-Print Bolt",
-      "icon": "📜",
-      "kind": "target",
-      "attack": true,
-      "stat": "luck",
-      "dmg": [
-       [
-        1,
-        10
-       ]
-      ],
-      "beams": [
-       1,
-       1,
-       1,
-       1,
-       2
-      ],
-      "hint": "1d10 beam (2 at L5)"
-     },
-     {
-      "id": "debt",
-      "lvl": 1,
-      "name": "Called-In Debt",
-      "icon": "✒️",
-      "kind": "target",
-      "cost": {
-       "terms": 1
-      },
-      "save": true,
-      "saveHalf": true,
-      "stat": "luck",
-      "dmg": [
-       [
-        2,
-        8
-       ],
-       [
-        2,
-        8
-       ],
-       [
-        2,
-        8
-       ],
-       [
-        2,
-        8
-       ],
-       [
-        3,
-        8
-       ]
-      ],
-      "hint": "2d8, save for half (3d8 at L5)"
-     }
-    ],
-    "later": "10 Contract feature · 13 three beams · 21 four beams + Final Clause · 25 Terms at power 5"
-   }
-  },
-  "hidden": {
-   "_about": "Data hook for Bryan's hidden classes. Add entries to classes.list with hidden:true and an unlock block, e.g. {\"flag\":\"...\"} or {\"quest\":\"...\"} or {\"level\":N}. Hidden classes don't show in the picker until unlocked.",
-   "example": {
-    "hidden": true,
-    "unlock": {
-     "flag": "example-flag"
-    }
-   }
-  }
- }
 }

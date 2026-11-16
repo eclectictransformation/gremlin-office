@@ -24,6 +24,7 @@ export const SCENE = {
   "grotto-battle": "grotto-battle",
   "grotto-boss": "grotto-boss",
   "deep-boss": "deep-boss",
+  "stare-fanfare": "stare-fanfare",
   // other rooms fall back to the station bed / a generic scuffle
   "training-explore": "annex-station",
   "training-battle": "mailroom-battle",
