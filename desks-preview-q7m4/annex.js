@@ -35,7 +35,7 @@ export function createAnnex(kit, data, host) {
   // ---------- progress (localStorage, same JSON shape as a future seam_progress row) ----------
   const KEY = "et-desks-annex-v1:" + (host.me?.id || "anon");
   let prog = { waystones: {}, curiosities: [], flags: {} };
-  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && typeof s === "object") prog = { waystones: s.waystones || {}, curiosities: s.curiosities || [], flags: s.flags || {}, glimpse: s.glimpse || {} }; } catch {}
+  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && typeof s === "object") prog = { ...s, waystones: s.waystones || {}, curiosities: s.curiosities || [], flags: s.flags || {}, glimpse: s.glimpse || {} }; } catch {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ ...prog, updated_at: new Date().toISOString() })); } catch {} };
   const goal = data.goal?.curiosities || 3;
 
@@ -75,6 +75,11 @@ export function createAnnex(kit, data, host) {
   if (CLU.enabled) (CLU.notes || []).forEach((n) => { const S = secById[n.section]; if (!S || !n.cell) return; const i = S.center[0] + n.cell[0], j = S.center[1] + n.cell[1], qi = n.quad ?? 0, sz = QUADS[qi][1];
     if ((curioByCell.get(ck(i, j)) || []).some((c) => c.qi === qi) || deadCells.has(ck(i, j))) return; forced.add(edgeOf(i, j, sz > 0 ? "zp" : "zn")); const row = { ...n, type: "page", page: true, i, j, qi, via: "z" }; pageDefs.push(row);
     if (!curioByCell.has(ck(i, j))) curioByCell.set(ck(i, j), []); curioByCell.get(ck(i, j)).push(row); });
+  // v6b: campaign beat rooms: hand-placed rooms dropped into the shifting map (their cell never re-rolls)
+  const CMP = data.campaign?.enabled ? data.campaign : null; const beatDefs = [], beatByCell = new Map();
+  (CMP?.beatRooms || []).forEach((b) => { const S = secById[b.section]; if (!S || !b.cell) return; const i = S.center[0] + b.cell[0], j = S.center[1] + b.cell[1], qi = b.quad ?? 0, sz = QUADS[qi][1], k = ck(i, j);
+    if ((curioByCell.get(k) || []).some((c) => c.qi === qi) || deadCells.has(k) || stableByCell.has(k)) return; forced.add(edgeOf(i, j, sz > 0 ? "zp" : "zn"));
+    const row = { ...b, type: "beat", beat: true, i, j, qi, via: "z" }; beatDefs.push(row); beatByCell.set(k, row); if (!curioByCell.has(k)) curioByCell.set(k, []); curioByCell.get(k).push(row); });
   function edgeOpen(i, j, d) { const k = edgeOf(i, j, d); if (sealed.has(k)) return false; if (forced.has(k)) return true; const [a, b, ax] = k.split(","); const S = sectionOf(+a, +b); return hsh(+a, +b, ax, "edge") < (S.openness ?? 0.68); }
 
   // ---------- v5d2: weird doors and the sealed passages beyond them ----------
@@ -97,11 +102,11 @@ export function createAnnex(kit, data, host) {
   // A cell's plan is pure data (deterministic for a given epoch); tests read it via debug.plan().
   function planCell(i, j, ep) {
     const S = sectionOf(i, j), key = ck(i, j), dz = deadCells.get(key) || null, center = centerOf.get(key) === S, stable = stableByCell.has(key);
-    if (stable) ep = 0; // v6: a stable place never re-rolls
+    const beatLock = beatByCell.has(key); if (stable || beatLock) ep = 0; // v6: a stable place never re-rolls (v6b: nor does a campaign beat room's cell)
     const arms = {}; DIRS.forEach((d) => (arms[d] = edgeOpen(i, j, d)));
     const hs = center ? C2 - PM : HW;
     const blk = []; // shifting hallway walls on the cell's own +x / +z edges
-    if (!center && !stable && S.shift?.blockChance) [["xp", "x"], ["zp", "z"]].forEach(([d, a]) => { if (arms[d] && !forced.has(EK(i, j, a)) && hsh(i, j, a, "blk", ep) < S.shift.blockChance) blk.push(d); });
+    if (!center && !stable && !beatLock && S.shift?.blockChance) [["xp", "x"], ["zp", "z"]].forEach(([d, a]) => { if (arms[d] && !forced.has(EK(i, j, a)) && hsh(i, j, a, "blk", ep) < S.shift.blockChance) blk.push(d); });
     const rooms = [];
     if (!center) {
       const Q = C2 - HW - GAP, cur = curioByCell.get(key) || [];
@@ -461,7 +466,8 @@ export function createAnnex(kit, data, host) {
       if (rm.sw) ch.switches.push(makeSwitch(g, rm, ch));
       if (rm.grab) ch.grabbers.push(makeGrabberRt(rm, zR, ch, g));
       if (rm.npc) ch.npcs.push(makeNpcRt(rm, zR, ch, g));
-      if (rm.curio) { const cd = curioDefs.find((c) => c.id === rm.curio) || pageDefs.find((c) => c.id === rm.curio); if (cd) ch.curios.push(makeCurio(cd, g, rm.sx > 0 ? rm.x1 - 0.7 : rm.x0 + 0.7, rm.sz > 0 ? rm.z1 - 0.7 : rm.z0 + 0.7, ch)); }
+      const bd = rm.curio && beatDefs.find((c) => c.id === rm.curio); if (bd) makeBeatRoom(bd, g, rm, ch);
+      if (rm.curio && !bd) { const cd = curioDefs.find((c) => c.id === rm.curio) || pageDefs.find((c) => c.id === rm.curio); if (cd) ch.curios.push(makeCurio(cd, g, rm.sx > 0 ? rm.x1 - 0.7 : rm.x0 + 0.7, rm.sz > 0 ? rm.z1 - 0.7 : rm.z0 + 0.7, ch)); }
       stats.roomsBuilt++; stats.roomsSeen.add(pl.key + ":" + pl.ep + ":" + rm.qi);
     });
     // the crystal plaza: section sign, crystal on its pedestal, maybe a return stitch
@@ -762,6 +768,8 @@ export function createAnnex(kit, data, host) {
     const nStones = stoneDefs.filter((s) => attuned(s.id)).length;
     if (nStones) out.push(Object.assign(el("button", "o3-btn ghost", `💎 Waystones (${nStones})`), { onclick: () => openTravel(null) }));
     out.push(Object.assign(el("button", "o3-btn ghost", `🎒 Pockets ${prog.curiosities.length}/${goal}`), { onclick: openPockets }));
+    if (CMP) { const b = curBeat(), lab = b ? `${CMP.hud?.icon || "🧭"} ${b.hint.length > 46 ? b.hint.slice(0, 44).trimEnd() + "…" : b.hint}` : `${CMP.hud?.icon || "🧭"} ${CMP.hud?.label || "Campaign"} ✓`;
+      const cb = Object.assign(el("button", "o3-btn ghost o3-campbtn", lab), { onclick: openCampaign, title: (CMP.hud?.label || "Campaign") + (b ? ": " + b.hint : "") }); cb.dataset.annex = "campaign"; out.push(cb); }
     if (STB) { const mb = Object.assign(el("button", "o3-btn ghost o3-mapbtn", `🗺 Map ${stableList().filter((q) => q.found).length}`), { onclick: openStableMap, title: "Places that stay put (the rest is fog)" }); mb.dataset.annex = "map"; out.push(mb); }
     return out;
   }
@@ -788,6 +796,7 @@ export function createAnnex(kit, data, host) {
       ch.stones.forEach(stoneCand);
       if (feet > 1) return;
       ch.curios.forEach((c) => { if (c.g.visible) cand("cu:" + c.c.id, Math.hypot(c.lx - p.x, c.lz - p.z), 1.6, `✋ Pick up ${c.ty.name}`, () => pickUp(c)); });
+      (ch.beatRooms || []).forEach((b) => cand("br:" + b.d.id, Math.hypot(b.lx - p.x, b.lz - p.z), 2.0, b.d.prompt || "📜 Look closer", () => useBeatRoom(b.d.id)));
       if (ch.stableSpot) cand("st:sit:" + ch.key, Math.hypot(ch.stableSpot.x - p.x, ch.stableSpot.z - p.z), 2.6, STB?.restLabel || "🪑 Sit for a breather", () => sitBreather());
       ch.wdoors.forEach((w) => cand("wd:" + w.d.id, Math.hypot(w.lx - p.x, w.lz - p.z), 2.2, w.d.prompt || "🚪 Open the door", () => useWeirdDoor(w)));
       ch.exits.forEach((ex) => { const locked = ex.x.requires && !reqMet(ex.x); cand("ex:" + ex.x.id + (locked ? ":l" : ""), Math.hypot(ex.lx - p.x, ex.lz - p.z), 2.2, locked ? ex.x.lockedPrompt : ex.x.prompt, () => useExit(ex)); });
@@ -821,9 +830,9 @@ export function createAnnex(kit, data, host) {
   // ---------- v6: survey pages, the Common Record, the starter guide, the stable-place map, the practice pad ----------
   function pagesState() { const got = prog.pages || {}; return { total: pageDefs.length, found: pageDefs.filter((n) => got[n.id]).map((n) => n.id), defs: pageDefs.map((n) => ({ id: n.id, i: n.i, j: n.j, qi: n.qi, section: n.section })) }; }
   function pickPage(id, cu) { const n = pageDefs.find((q) => q.id === id); if (!n || (prog.pages || {})[id]) return false; (prog.pages ||= {})[id] = new Date().toISOString(); save(); if (cu) cu.g.visible = false; else chunks.forEach((ch) => ch.curios.forEach((c) => { if (c.c.id === id) c.g.visible = false; })); audio.sfx("pick");
-    const k = Object.keys(prog.pages).length; host.openPanel(`📄 ${n.title || "Survey page, torn"}`, (pn) => { pn.dataset.annexPanel = "page"; if (n.day) pn.appendChild(el("p", "o3-small", n.day)); pn.appendChild(el("p", "o3-note", fill(n.text))); pn.appendChild(el("p", "o3-small", `Page ${k} of ${pageDefs.length}. It belongs on the Common Record at the Door Station.`)); }); host.updateActions(); return true; }
+    const k = Object.keys(prog.pages).length; setTimeout(() => campaignEvent("page", id), 60); host.openPanel(`📄 ${n.title || "Survey page, torn"}`, (pn) => { pn.dataset.annexPanel = "page"; if (n.day) pn.appendChild(el("p", "o3-small", n.day)); pn.appendChild(el("p", "o3-note", fill(n.text))); pn.appendChild(el("p", "o3-small", `Page ${k} of ${pageDefs.length}. It belongs on the Common Record at the Door Station.`)); }); host.updateActions(); return true; }
   function stableList() { return stablePlaces.map((q) => ({ id: q.id, name: q.name, kind: q.kind, i: q.i ?? null, j: q.j ?? null, found: stableFound(q.id), secret: !!q.secret, blurb: q.blurb || "" })); }
-  function sitBreather() { const now = Date.now(), cdS = (rpg?.data?.()?.rests?.stableSitCooldown ?? 60) * 1000; if (lastSit && now - lastSit < cdS) { host.toast("You've only just sat down. Give it a minute."); return; } lastSit = now; lostT = 0; INS.v = Math.min(INS.v, 0.1);
+  function sitBreather() { if (INS.inStable) campaignEvent("sit", INS.inStable); const now = Date.now(), cdS = (rpg?.data?.()?.rests?.stableSitCooldown ?? 60) * 1000; if (lastSit && now - lastSit < cdS) { host.toast("You've only just sat down. Give it a minute."); return; } lastSit = now; lostT = 0; INS.v = Math.min(INS.v, 0.1);
     if (!(rpg?.breather?.(STB?.restText))) host.toast(STB?.restText || "You sit a while."); }
   let lastSit = 0;
   function mdInline(t) { const f = document.createDocumentFragment(); String(t).split(/(\*\*[^*]+\*\*|\*[^*]+\*)/).forEach((part) => { if (!part) return; if (/^\*\*.*\*\*$/.test(part)) f.appendChild(el("b", null, part.slice(2, -2))); else if (/^\*.*\*$/.test(part)) f.appendChild(el("i", null, part.slice(1, -1))); else f.appendChild(document.createTextNode(part)); }); return f; }
@@ -833,10 +842,13 @@ export function createAnnex(kit, data, host) {
       Gd.sections.forEach((sc) => { box2.appendChild(el("h3", null, sc.title)); let ul = null; sc.blocks.forEach((b) => { if (b.li) { if (!ul) { ul = el("ul"); box2.appendChild(ul); } const li = el("li"); li.appendChild(mdInline(fill(b.li))); ul.appendChild(li); return; } ul = null; if (b.h) box2.appendChild(el("h4", null, b.h)); else { const pp = el("p"); pp.appendChild(mdInline(fill(b.p))); box2.appendChild(pp); } }); });
       box2.appendChild(el("h3", null, Gd.rumorsTitle || "Rumors")); if (Gd.rumorsNote) { const pp = el("p", "o3-small"); pp.appendChild(mdInline(Gd.rumorsNote)); box2.appendChild(pp); }
       const ul = el("ul", "o3-rumors"); ul.dataset.annex = "rumors"; (Gd.rumors || []).forEach((r) => { const li = el("li"); li.appendChild(mdInline(fill(r.text))); ul.appendChild(li); }); box2.appendChild(ul); }, { wide: true }); }
-  function openRecord() { const R0 = rpg?.data?.()?.station?.record || {}; host.openPanel(R0.title || "📌 The Common Record", (pn) => { pn.dataset.annexPanel = "record"; pn.appendChild(el("p", null, R0.intro || ""));
+  function openRecord() { const R0 = rpg?.data?.()?.station?.record || {}; setTimeout(() => campaignEvent("record"), 60); host.openPanel(R0.title || "📌 The Common Record", (pn) => { pn.dataset.annexPanel = "record"; pn.appendChild(el("p", null, R0.intro || ""));
       pn.appendChild(el("h4", null, R0.doorsTitle || "Doors")); const ds = rpg?.doorsSummary?.() || []; ds.forEach((d) => pn.appendChild(el("div", "o3-note" + (d.open ? "" : " o3-locked"), `${d.open ? "🚪" : "🔒"} ${d.open ? d.name : "??? (not found yet)"}${d.open && d.where ? " · " + d.where : ""}`)));
       pn.appendChild(el("h4", null, R0.pagesTitle || "Survey Corps logbook")); const got = prog.pages || {}, fp = pageDefs.filter((n) => got[n.id]); if (!fp.length) pn.appendChild(el("p", "o3-small", R0.noPages || "No pages yet."));
       fp.sort((a, b) => String(a.id).localeCompare(String(b.id))).forEach((n) => { const d = el("div", "o3-note"); d.dataset.page = n.id; d.append(el("b", null, `${n.day ? n.day + " · " : ""}${n.title || "Survey page"}`), document.createTextNode(" " + fill(n.text))); pn.appendChild(d); });
+      if (CMP) { const cs = CS(), C0 = CMP.chapters?.[Math.min(cs.ch, CMP.chapters.length - 1)]; if (C0) { pn.appendChild(el("h4", null, `🧭 ${CMP.title || "Campaign"} · ${C0.title}`)); const nd = C0.beats.filter((b) => cs.done[b.id]).length;
+        const cp = el("div", "o3-note"); cp.dataset.annex = "record-campaign"; cp.textContent = `${nd} of ${C0.beats.length} beats. ` + (curBeat() ? `Next: ${curBeat().hint}` : (CMP.hud?.done || "Chapter complete.")); pn.appendChild(cp);
+        const pinned = Object.keys(cs.pinned || {}); if (pinned.length) pn.appendChild(el("p", "o3-small", `📌 Breadcrumbs pinned by the survey: ${pinned.map((id) => pageDefs.find((q) => q.id === id)?.day || id).join(" · ")}`)); } }
       pn.appendChild(el("p", "o3-small", `${fp.length} of ${pageDefs.length} pages pinned. ${R0.shared || ""}`)); }, { wide: true }); }
   function openStableMap() { host.openPanel(STB?.mapTitle || "🗺 Your map", (pn) => { pn.dataset.annexPanel = "map"; pn.appendChild(el("p", "o3-small", STB?.mapNote || ""));
       const L = stableList().filter((q) => q.found), cv = el("canvas", "o3-stablemap"); cv.width = 520; cv.height = 400; cv.dataset.annex = "stablemap"; pn.appendChild(cv); const c = cv.getContext("2d");
@@ -867,6 +879,87 @@ export function createAnnex(kit, data, host) {
     cplane(once("t:padsign", () => plate(St.pad?.sign || "PRACTICE PAD", St.pad?.signSub || "nothing here counts", { w: 640, h: 200, bg: "#2a5a4a", fg: "#f3fff4", accent: "#9ff0c8" })), 0.8, 0.25, 0, 2.0, 0, 0, pad, { side: THREE.DoubleSide }); padPost = post;
     stationProps.push({ key: "pad", x: bx + 3.4, z: bz + 9.9, r: 1.9, label: () => St.pad?.label || "🎯 Practice pad", run: () => { const t = rpg?.practiceSwing?.(St.pad?.ac ?? 12); padHitT = 0.4; audio.sfx("click"); host.toast(t || St.pad?.text || "Thwack."); } }); }
   let padPost = null, padHitT = 0;
+  // ---------- v6b: campaign mode (data.campaign): a calm, guided track through the shifting halls ----------
+  function makeBeatRoom(d, g, rm, ch) { const cx = (rm.x0 + rm.x1) / 2, cz = (rm.z0 + rm.z1) / 2, wd = mat("#6a4a2a", { roughness: 0.9 });
+    box(cx, 0.78, cz, 1.5, 0.06, 0.9, wd, g); [[-0.68, -0.38], [0.68, -0.38], [-0.68, 0.38], [0.68, 0.38]].forEach(([a, b]) => box(cx + a, 0.39, cz + b, 0.06, 0.78, 0.06, mat("#4a3420"), g));
+    const chart = cplane(once("t:bchart", () => canvasTex(512, 320, (c, w, h) => { c.fillStyle = "#efe6cf"; c.fillRect(0, 0, w, h); c.strokeStyle = "#5a4a32"; c.lineWidth = 6; for (let k = 0; k < 6; k++) { c.beginPath(); c.moveTo(40 + k * 70, 40); c.lineTo(40 + k * 70, 280); c.stroke(); }
+      c.strokeStyle = "rgba(160,40,30,.8)"; c.lineWidth = 5; [[60, 90, 300, 210], [300, 90, 60, 210]].forEach(([a, b, x, y]) => { c.beginPath(); c.moveTo(a, b); c.lineTo(x, y); c.stroke(); }); c.strokeStyle = "#2a5a8a"; c.lineWidth = 10; c.beginPath(); c.moveTo(120, 160); c.lineTo(440, 160); c.lineTo(410, 130); c.moveTo(440, 160); c.lineTo(410, 190); c.stroke(); })), 1.2, 0.75, cx, 0.815, cz, 0, g);
+    chart.rotation.x = -Math.PI / 2;
+    const lan = new THREE.Mesh(once("geo:blan", () => new THREE.CylinderGeometry(0.08, 0.1, 0.2, 8)), once("m:blan", () => new THREE.MeshStandardMaterial({ color: "#ffe3a8", emissive: "#ffb45a", emissiveIntensity: 1.4 }))); lan.position.set(cx + 0.55, 0.92, cz - 0.25); g.add(lan);
+    const sg = cplane(once("t:bsign:" + d.id, () => plate(d.sign || "SURVEY CORPS", d.signSub || "waypoint", { w: 720, h: 220, bg: "#2e3a2a", fg: "#f3efd8", accent: "#c9b46a" })), 1.0, 0.3, cx, 1.55, cz, 0, g, { side: THREE.DoubleSide });
+    sg.rotation.y = rm.sz > 0 ? Math.PI : 0;
+    (ch.beatRooms ||= []).push({ d, lx: ch.lx + cx, lz: ch.lz + cz }); }
+  const CS = () => { const c = (prog.campaign ||= { ch: 0, beat: 0, done: {}, pinned: {}, started: null, guide: true, complete: {} }); c.done ||= {}; c.pinned ||= {}; c.complete ||= {}; if (c.guide == null) c.guide = true; return c; };
+  const curChapter = () => CMP?.chapters?.[CS().ch] || null, curBeat = () => curChapter()?.beats?.[CS().beat] || null;
+  function campCenterOf(i, j, id) { const rm = planCell(i, j, epOf(i, j)).rooms.find((r) => r.curio === id); return rm ? { x: i * C + (rm.x0 + rm.x1) / 2, z: j * C + (rm.z0 + rm.z1) / 2 } : { x: i * C + C2, z: j * C + C2 }; }
+  function campTarget(t) { if (!t) return null; const hub = (i, j, label) => ({ i, j, at: { x: i * C + C2, z: j * C + C2 }, label });
+    if (t.type === "station") { const [i, j] = startSec.center, sp = stationProps.find((q) => q.key === t.at); return { i, j, at: sp ? { x: sp.x, z: sp.z } : { x: i * C + C2, z: j * C + C2 }, label: "the Door Station" }; }
+    if (t.type === "page") { const n = pageDefs.find((q) => q.id === t.id); return n ? { i: n.i, j: n.j, at: campCenterOf(n.i, n.j, n.id), label: "a torn page", page: n.id } : null; }
+    if (t.type === "beatRoom") { const b = beatDefs.find((q) => q.id === t.id); return b ? { i: b.i, j: b.j, at: campCenterOf(b.i, b.j, b.id), label: b.label } : null; }
+    if (t.type === "stable") { const q = stablePlaces.find((x) => x.id === t.id); if (!q) return null; if (q.i == null || q.kind === "base") return hub(startSec.center[0], startSec.center[1], q.name); return hub(q.i, q.j, q.name); }
+    if (t.type === "cell") { const S = secById[t.section]; return S ? hub(S.center[0] + t.cell[0], S.center[1] + t.cell[1], t.label || S.name) : null; }
+    return null; }
+  function guideTarget(b) { const bc = (b.breadcrumbs || []).find((id) => !(prog.pages || {})[id] && pageDefs.some((q) => q.id === id)); return bc ? campTarget({ type: "page", id: bc }) : campTarget(b.target); }
+  function pathNext(from, to) { const K = (i, j) => i + "," + j; if (from[0] === to[0] && from[1] === to[1]) return { len: 0, next: null };
+    const pad = CMP.guide?.searchPad ?? 5, max = CMP.guide?.maxCells ?? 1200, x0 = Math.min(from[0], to[0]) - pad, x1 = Math.max(from[0], to[0]) + pad, y0 = Math.min(from[1], to[1]) - pad, y1 = Math.max(from[1], to[1]) + pad;
+    const bm = new Map(), blk = (i, j) => { const k = K(i, j); if (!bm.has(k)) bm.set(k, planCell(i, j, epOf(i, j)).blk); return bm.get(k); };
+    const pass = (i, j, d) => { if (!edgeOpen(i, j, d)) return false; if (d === "xp" || d === "zp") return !blk(i, j).includes(d); const [ni, nj] = d === "xn" ? [i - 1, j] : [i, j - 1]; return !blk(ni, nj).includes(d === "xn" ? "xp" : "zp"); };
+    const prev = new Map([[K(from[0], from[1]), null]]), q = [from]; let n = 0, found = false;
+    while (q.length && n++ < max) { const [i, j] = q.shift(); if (i === to[0] && j === to[1]) { found = true; break; }
+      for (const d of DIRS) { const ni = i + DV[d][0], nj = j + DV[d][1], k = K(ni, nj); if (ni < x0 || ni > x1 || nj < y0 || nj > y1 || prev.has(k)) continue; if (deadCells.has(k) && !(ni === to[0] && nj === to[1])) continue; if (!pass(i, j, d)) continue; prev.set(k, [i, j]); q.push([ni, nj]); } }
+    if (!found && !prev.has(K(to[0], to[1]))) { let best = null, bd = 1e9; DIRS.forEach((d) => { const ni = from[0] + DV[d][0], nj = from[1] + DV[d][1]; if (!pass(from[0], from[1], d)) return; const dd = Math.abs(ni - to[0]) + Math.abs(nj - to[1]); if (dd < bd) { bd = dd; best = [ni, nj]; } });
+      return { len: Math.abs(from[0] - to[0]) + Math.abs(from[1] - to[1]), next: best, blocked: true }; }
+    const path = [to]; let cur = to; while (true) { const pv = prev.get(K(cur[0], cur[1])); if (!pv) break; path.unshift(pv); cur = pv; } return { len: path.length - 1, next: path[1] || null }; }
+  // the lamp one room ahead
+  const campLamp = (() => { const g = new THREE.Group(); g.visible = false; root.add(g); const Lc = CMP?.guide?.lamp || {};
+    const bulbM = new THREE.MeshStandardMaterial({ color: "#fff1cf", emissive: Lc.color || "#ffcf7a", emissiveIntensity: 1.6 }), frameM = mat("#3a2a18");
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 10), bulbM); g.add(bulb); box(0, 0.2, 0, 0.36, 0.03, 0.36, frameM, g); box(0, -0.18, 0, 0.3, 0.03, 0.3, frameM, g);
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => box(a * 0.15, 0.01, b * 0.15, 0.025, 0.38, 0.025, frameM, g)); box(0, 0.6, 0, 0.02, 0.8, 0.02, frameM, g);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTex(64, 64, (c, w) => { const gr = c.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, "rgba(255,214,140,0.95)"); gr.addColorStop(1, "rgba(255,214,140,0)"); c.fillStyle = gr; c.fillRect(0, 0, w, 64); }), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.scale.setScalar(1.6); g.add(glow); return { g, bulbM, glow, t: 0 }; })();
+  let campInfo = { target: null, next: null, len: null, warm: 0, cell: null, lamp: null }, campRecalcT = 0, campCellKey = null, campEpKey = "";
+  function campaignGuideRecalc(p) { const b = curBeat(); if (!b) { campInfo = { target: null, next: null, len: null, warm: 0, cell: null, lamp: null }; return; }
+    const cell = cellOf(p.x, p.z), tg = guideTarget(b); if (!tg) return; const r = pathNext(cell, [tg.i, tg.j]); let lp;
+    if (r.len === 0) lp = tg.at; else if (r.next) lp = (r.len === 1 && tg.at) ? tg.at : { x: r.next[0] * C + C2, z: r.next[1] * C + C2 }; else lp = tg.at;
+    if (r.len === 1 && r.next && tg.at) { const nh = { x: r.next[0] * C + C2, z: r.next[1] * C + C2 }; if (Math.hypot(tg.at.x - nh.x, tg.at.z - nh.z) > 5) lp = nh; } // a room in the next cell: light its hub first
+    const range = CMP.guide?.hum?.range ?? 9, warm = r.len === 0 ? 1 : Math.max(0.05, Math.min(1, 1 - r.len / range));
+    campInfo = { target: { i: tg.i, j: tg.j, label: tg.label, page: tg.page || null }, next: r.next, len: r.len, blocked: !!r.blocked, warm: +warm.toFixed(3), cell, lamp: lp ? { ...lp } : null }; }
+  function tickCampaign(dt, ts, p, busy) { if (!CMP) return; const cs = CS(), b = curBeat();
+    if (!b) { campLamp.g.visible = false; audio.humWarm?.(0); return; }
+    if (!cs.started && CMP.autoStart !== false && !busy && timeIn > 1.5) { cs.started = new Date().toISOString(); save(); const ch0 = curChapter(); banner(ch0.title, fill(ch0.intro || "")); setTimeout(() => host.toast(`${CMP.hud?.icon || "🧭"} ${b.hint}`), 5600); host.updateActions(); }
+    const cell = cellOf(p.x, p.z), ck2 = ck(cell[0], cell[1]), ek = JSON.stringify(epochs); campRecalcT -= dt;
+    if (ck2 !== campCellKey || ek !== campEpKey || campRecalcT <= 0) { campCellKey = ck2; campEpKey = ek; campRecalcT = 2; campaignGuideRecalc(p); }
+    const g = b.goal || {};
+    if (g.type === "reach") { const S = secById[g.section]; if (S && cell[0] === S.center[0] + g.cell[0] && cell[1] === S.center[1] + g.cell[1] && !busy) completeBeat(b); }
+    if (g.type === "page" && (prog.pages || {})[g.id] && !busy) completeBeat(b);
+    const on = cs.guide !== false && !!campInfo.lamp && !!curBeat(); campLamp.g.visible = on;
+    if (on) { campLamp.t += dt; const y = (CMP.guide?.lamp?.height ?? 2.35) + Math.sin(campLamp.t * 1.3) * 0.06; campLamp.g.position.set(campInfo.lamp.x, y, campInfo.lamp.z); campLamp.bulbM.emissiveIntensity = 1.35 + Math.sin(campLamp.t * 2.1) * 0.25; campLamp.glow.material.opacity = 0.7 + Math.sin(campLamp.t * 2.1) * 0.2; }
+    audio.humWarm?.(cs.guide !== false ? campInfo.warm : 0); }
+  let campBusyBeat = null;
+  function completeBeat(b) { const cs = CS(); if (!b || cs.done[b.id] || curBeat() !== b || campBusyBeat === b.id) return false; campBusyBeat = b.id; cs.done[b.id] = new Date().toISOString();
+    (b.pin || []).forEach((id) => { if (!pageDefs.some((q) => q.id === id)) return; (prog.pages ||= {})[id] ||= new Date().toISOString(); cs.pinned[id] = b.id; chunks.forEach((ch) => ch.curios.forEach((c) => { if (c.c.id === id) c.g.visible = false; })); });
+    const ch0 = curChapter(), P = CMP.pacing || {}; cs.beat++; let chDone = false; if (cs.beat >= ch0.beats.length) { cs.complete[ch0.id] = new Date().toISOString(); chDone = true; if (CMP.chapters[cs.ch + 1]) { cs.ch++; cs.beat = 0; } }
+    save(); audio.sfx("chime"); campRecalcT = 0; campCellKey = null; host.updateActions();
+    if (b.reveal?.door) { rpg?.discoverDoor?.(b.reveal.door); prog.flags["revealed:" + b.reveal.door] = new Date().toISOString(); save(); }
+    const d1 = (P.reflectDelay ?? 0.9) * 1000; setTimeout(() => { if (b.reveal) banner(b.reveal.title || b.title, fill(b.reveal.text || "")); else banner(`${b.title} ✓`, fill(b.reflect || "")); }, d1);
+    if (b.reveal) setTimeout(() => banner(`${b.title} ✓`, fill(b.reflect || "")), d1 + 5600);
+    const nx = curBeat(), d2 = d1 + (b.reveal ? 11200 : (P.nextHintDelay ?? 4.5) * 1000);
+    setTimeout(() => { if (chDone) banner(ch0.title + " ✓", fill(ch0.outro || "")); if (nx) setTimeout(() => host.toast(`${CMP.hud?.icon || "🧭"} ${nx.hint}`), chDone ? 5600 : 0); }, chDone ? d2 : d2 - 600);
+    setTimeout(() => (campBusyBeat = null), 50); lastBeatDone = { id: b.id, at: Date.now() }; return true; }
+  let lastBeatDone = null;
+  function campaignEvent(type, id) { if (!CMP) return false; const b = curBeat(); if (!b) return false; const g = b.goal || {};
+    if (type === "page" && (b.breadcrumbs || []).includes(id)) { CS().pinned[id] = b.id; save(); setTimeout(() => host.toast("📌 Pinned to the Common Record: a breadcrumb for the survey."), 2400); campRecalcT = 0; campCellKey = null; }
+    const hit = (g.type === "record" && type === "record") || (g.type === type && g.id === id && ["page", "sit", "beatRoom"].includes(type));
+    return hit ? completeBeat(b) : false; }
+  function useBeatRoom(id) { const d = beatDefs.find((q) => q.id === id); if (!d) return false; const b = curBeat(), now = b?.goal?.type === "beatRoom" && b.goal.id === id, done = Object.values(CMP?.chapters || []).some((c) => c.beats.some((q) => q.goal?.type === "beatRoom" && q.goal.id === id && CS().done[q.id]));
+    audio.sfx("pick"); host.openPanel(d.title || "📜 " + d.label, (pn) => { pn.dataset.annexPanel = "beatroom"; pn.appendChild(el("p", null, fill(now || done ? d.text : (d.early || d.text)))); }); if (now) setTimeout(() => campaignEvent("beatRoom", id), 60); return true; }
+  function openCampaign() { if (!CMP) return; const cs = CS(); host.openPanel(`${CMP.hud?.icon || "🧭"} ${CMP.title || "Campaign"}`, (pn) => { pn.dataset.annexPanel = "campaign";
+      (CMP.chapters || []).forEach((c, ci) => { if (ci > cs.ch && !cs.complete[c.id]) return; pn.appendChild(el("h4", null, c.title + (cs.complete[c.id] ? " ✓" : ""))); if (ci === cs.ch && !cs.complete[c.id]) pn.appendChild(el("p", "o3-small", fill(c.intro || "")));
+        c.beats.forEach((b, bi) => { const dn = cs.done[b.id], cur = ci === cs.ch && bi === cs.beat && !cs.complete[c.id]; const row = el("div", "o3-note" + (dn ? "" : cur ? " o3-campcur" : " o3-locked")); row.dataset.beat = b.id;
+          if (dn) row.append(el("b", null, `✓ ${b.title}`), document.createTextNode(" " + fill(b.reflect || ""))); else if (cur) row.append(el("b", null, `➤ ${b.title}`), document.createTextNode(" " + b.hint)); else row.textContent = "· · ·"; pn.appendChild(row); });
+        if (cs.complete[c.id] && c.outro) pn.appendChild(el("p", "o3-small", fill(c.outro))); });
+      if (!curBeat()) pn.appendChild(el("p", "o3-small", CMP.hud?.done || "Chapter complete."));
+      else { const t = el("button", "o3-btn ghost small", cs.guide !== false ? "🕯 Hide the guide lamp" : "🕯 Show the guide lamp"); t.dataset.annex = "camp-guide"; t.onclick = () => { cs.guide = cs.guide === false; save(); host.closePanel(); host.toast(cs.guide ? "The lamp is lit again." : "The lamp goes dark. The hum still knows the way."); }; pn.appendChild(t); } }); }
   // ---------- v6: intensity (data.intensity): some areas and moments ramp up ----------
   const INS = { v: 0, target: 0, level: "calm", flick: 0, override: null, watchT: 0, lastGlimpse: -1e9, inStable: null, lastHelp: null, lastNudge: null, lastWatch: null };
   const T0 = () => INT?.targets || {};
@@ -908,7 +1001,7 @@ export function createAnnex(kit, data, host) {
     if (rpg?.inInstance()) { if (cr.st !== "away" || cr.g.visible) crHide(); timeIn += dt; rpg.update(dt, ts, p, st); return; } // party instance: no streaming, shifting, Grenshol or flitters
     timeIn += dt; lostT += dt; flipT = Math.max(0, flipT - dt);
     if (!busy) stream(p, false);
-    tickShift(dt, p, busy); tickStairs(dt, p, st.feet || 0, busy); tickIntensity(dt, p, zone); tickStable(dt, p, ts, busy); tickTraps(dt, p, zone, busy);
+    tickShift(dt, p, busy); tickStairs(dt, p, st.feet || 0, busy); tickIntensity(dt, p, zone); tickStable(dt, p, ts, busy); tickTraps(dt, p, zone, busy); tickCampaign(dt, ts, p, busy);
     cache.forEach((v, k) => { if (v && v.flick && k.startsWith("sm:")) { v.ft += dt; v.flick.emissiveIntensity = (Math.sin(v.ft * 0.7) > -0.9 || Math.random() < 0.3) ? v.lightBase : 0.12; } });
     if (padPost) { if (padHitT > 0) { padHitT -= dt; padPost.rotation.z = Math.sin(padHitT * 30) * padHitT * 0.5; } else padPost.rotation.z = 0; }
     const animStone = (s) => { s.cr.rotation.y = ts * 0.8 + s.t; s.cr.position.y = s.baseY + Math.sin(ts * 1.6 + s.t) * 0.05; s.ring.scale.setScalar(1 + Math.sin(ts * 2 + s.t) * 0.08); };
@@ -1019,7 +1112,8 @@ export function createAnnex(kit, data, host) {
     if (centerOf.get(ck(zc.i, zc.j)) === S) return S === startSec ? `${rpg?.data?.()?.station?.name || "The Door Station"} · Survey Corps training base` : `${S.name} · waystone plaza`;
     if (zc.room == null && stableByCell.has(ck(zc.i, zc.j))) return `${S.name} · ${stableByCell.get(ck(zc.i, zc.j)).name} (stays put ✓)`;
     if (zc.room == null) return S.name + (alive.on && S.id === alive.section ? " · 💡 the lights have changed" : "");
-    const rm = chunks.get(ck(zc.i, zc.j))?.pl.rooms.find((r) => r.qi === zc.room);
+    const rm = chunks.get(ck(zc.i, zc.j))?.pl.rooms.find((r) => r.qi === zc.room); const brd = rm?.curio && beatDefs.find((b) => b.id === rm.curio);
+    if (brd) return `${S.name} · ${brd.label} (stays put ✓)`;
     return `${S.name} · ${data.roomTypes?.[rm?.type]?.label || "a room"}`;
   }
 
@@ -1478,6 +1572,10 @@ export function createAnnex(kit, data, host) {
     carry: (kind = "tagged") => crCarry(kind), lastCarry: () => lastCarry, glimpse: (kind = "brief") => enterGlimpse(kind), traps: () => ({ lastTrap, fired: [...trapsFired] }), fireTrap: () => { const z = (data.beyond?.zones || []).flatMap((q) => q.rooms || []).find((r) => (r.traps || []).length); if (z) fireTrap(z.traps[0]); return !!z; },
     stationProps: () => stationProps.map((q) => ({ key: q.key, ...W3(q.x, 0, q.z), label: q.label() })), useProp: (k) => { const q = stationProps.find((x) => x.key === k); if (q) q.run(); return !!q; }, nearHere: () => { const st = host.state(); const b = near({ mode: "annex", pos: st.pos, feet: st.feet || 0, fwd: null }); return b ? b.label : null; },
     teaser: () => { greenT = 4; const tz = CRD?.teaser?.lines; if (tz?.length) host.toast(fill(pick(tz))); return true; },
+    campaign: () => { const cs = CS(), b = curBeat(); return { enabled: !!CMP, ch: cs.ch, beat: cs.beat, beatId: b?.id || null, hint: b?.hint || null, done: { ...cs.done }, pinned: { ...cs.pinned }, complete: { ...cs.complete }, started: cs.started, guide: cs.guide, lastBeatDone,
+      info: JSON.parse(JSON.stringify(campInfo)), lamp: campLamp.g.visible ? W3(campLamp.g.position.x, campLamp.g.position.y, campLamp.g.position.z) : null, warmth: audio.humWarmth ?? null, beatRooms: beatDefs.map((q) => ({ id: q.id, i: q.i, j: q.j, qi: q.qi })) }; },
+    campaignEvent: (t, id) => campaignEvent(t, id), useBeatRoom: (id) => useBeatRoom(id), openCampaign: () => openCampaign(), campaignRecalc: () => { campaignGuideRecalc(lastP); return JSON.parse(JSON.stringify(campInfo)); },
+    campaignPath: (a, b) => pathNext(a, b), shiftSection: (id) => { const S = secById[id]; if (!S) return false; applyShift(S, lastP); return epochs[id]; },
     pages: () => pagesState(), pickPage: (id) => pickPage(id), openRecord: () => openRecord(), openGuide: () => openGuide(), openMap: () => openStableMap(), sit: () => sitBreather(), humShifted: () => !!audio.humShifted, grenWatchOK: (i, j) => watchCellOK(i, j),
     blockedLocal, misfireNext: (v = true) => { forceMisfire = v; }, lastMisfire: () => lastMisfire, lastGrab: () => lastGrab, cell: C,
     calm: (v = true) => { calm = !!v; if (calm) crHide(); }, creatureOK: (i, j) => creatureOK(i, j),

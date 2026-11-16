@@ -76,7 +76,13 @@ export function createAnnexAudio() {
       const o = ctx.createOscillator(), g = ctx.createGain(); o.type = ty; o.frequency.value = f; g.gain.value = v; o.connect(g); g.connect(lp); o.start(); humNodes.push(o); });
     const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.23; lg.gain.value = 0.006; lfo.connect(lg); lg.connect(humBus.gain); lfo.start(); humNodes.push(lfo);
     humBus.gain.setTargetAtTime(humFor(), ctx.currentTime, 0.6);
+    // v6b: the campaign pull guide warms the hum as you get closer (a soft octave + fifth swell in, the lowpass opens a little)
+    const wg = ctx.createGain(); wg.gain.value = 0; wg.connect(lp); humWarmG = wg;
+    [[240, 0.5], [360, 0.28]].forEach(([f, v]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = "sine"; o.frequency.value = f; g.gain.value = v; o.connect(g); g.connect(wg); o.start(); humNodes.push(o); });
+    if (warmK) applyWarm();
   }
+  let humWarmG = null, warmK = 0;
+  function applyWarm() { if (!ctx || !humWarmG) return; const t = ctx.currentTime; humWarmG.gain.setTargetAtTime(warmK * 0.55, t, 0.8); if (humLp && !humShiftOn) humLp.frequency.setTargetAtTime(700 + warmK * 500, t, 0.8); }
   return {
     prime() { if (navigator.userActivation && !navigator.userActivation.isActive && !navigator.userActivation.hasBeenActive) return; if (ensure()) ctx.resume?.(); }, // call inside a click / key handler so the browser allows sound
     start() {
@@ -101,6 +107,8 @@ export function createAnnexAudio() {
       humNodes.forEach((o) => { if (o.frequency && o.frequency.value > 1) o.detune.setTargetAtTime(on ? -140 : 0, t, on ? 0.35 : 0.6); });
       if (humLp) humLp.frequency.setTargetAtTime(on ? 1400 : 700, t, 0.4); humBus.gain.setTargetAtTime(on ? humFor() * 2.6 : humFor(), t, 0.4); },
     get humShifted() { return humShiftOn; },
+    humWarm(k) { k = Math.max(0, Math.min(1, +k || 0)); if (Math.abs(k - warmK) < 0.01) return; warmK = k; if (running) applyWarm(); },
+    get humWarmth() { return warmK; },
     setScore(on) { scoreOn = !!on; },
     get scoreOn() { return scoreOn; },
     // little cues (all quiet, nothing harsh)

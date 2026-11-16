@@ -1,6 +1,6 @@
 {
  "_about": "Elsewhere Annex v2 (ET · Gremlin Desks only). The world is procedural: a seeded grid of cells. Each section has a crystal plaza at its 'center' cell; every other cell belongs to the nearest section and gets hallways (always safe) plus rooms off them (where grabbers and the rare almost-people live). To add a section: copy a row in 'sections', give it a new id, center [cellX, cellZ] a few cells from the others, palette, crystal and room mix. Cells are grid.cell metres square.",
- "version": 6,
+ "version": "6b",
  "name": "The Elsewhere Annex",
  "tagline": "The Survey Corps found it. They're still mapping it.",
  "lore": {
@@ -1683,5 +1683,151 @@
   "riseRate": 0.05,
   "fallRate": 0.04,
   "stableFallRate": 0.12
+ },
+ "campaign": {
+  "_about": "v6b campaign track (Milestone 4). Data-driven: chapters → beats. Each beat has a hint (shown on the HUD Campaign entry), a guide target (the pull guide: warming hum + a lamp one room ahead), a goal (what completes it), optional breadcrumb logbook pages (pinned to the Common Record) and a short reflective line. Beat rooms are hand-placed rooms dropped into the shifting map; their cells never re-roll. Progress is per player (prog.campaign).",
+  "enabled": true,
+  "autoStart": true,
+  "title": "The Survey",
+  "hud": {
+   "icon": "🧭",
+   "label": "Campaign",
+   "done": "Chapter complete. More of the survey soon."
+  },
+  "guide": {
+   "lamp": {
+    "color": "#ffcf7a",
+    "height": 2.35
+   },
+   "hum": {
+    "range": 9
+   },
+   "searchPad": 5,
+   "maxCells": 1200
+  },
+  "pacing": {
+   "reflectDelay": 0.9,
+   "nextHintDelay": 4.5
+  },
+  "chapters": [
+   {
+    "id": "ch1",
+    "title": "Chapter 1 · The First Survey",
+    "intro": "The Survey Corps keeps a lamp lit for new arrivals. Follow it, and the hum, and see what they saw.",
+    "outro": "Chapter 1 complete. The first survey ends where it began: with a door nobody had noticed.",
+    "beats": [
+     {
+      "id": "c1-sign",
+      "title": "Sign the log",
+      "hint": "Read the Common Record on the Station's east wall.",
+      "target": {
+       "type": "station",
+       "at": "record"
+      },
+      "goal": {
+       "type": "record"
+      },
+      "reflect": "Every name on the board was new here once."
+     },
+     {
+      "id": "c1-page",
+      "title": "A torn page",
+      "hint": "A logbook page is lying in a room east of the Station. Follow the lamp.",
+      "target": {
+       "type": "page",
+       "id": "log-1"
+      },
+      "goal": {
+       "type": "page",
+       "id": "log-1"
+      },
+      "pin": [
+       "log-1"
+      ],
+      "reflect": "Pip's handwriting, from the first day. The ink hasn't faded at all."
+     },
+     {
+      "id": "c1-bench",
+      "title": "Somewhere that stays put",
+      "hint": "West of the Station, a bench never moves. Find it and sit a while.",
+      "target": {
+       "type": "stable",
+       "id": "st-bench"
+      },
+      "goal": {
+       "type": "sit",
+       "id": "st-bench"
+      },
+      "reflect": "The halls shift around you. The bench doesn't. You breathe out."
+     },
+     {
+      "id": "c1-waypoint",
+      "title": "The survey waypoint",
+      "hint": "The Corps left a waypoint room south of the bench. Read their chart.",
+      "target": {
+       "type": "beatRoom",
+       "id": "br-waypoint"
+      },
+      "goal": {
+       "type": "beatRoom",
+       "id": "br-waypoint"
+      },
+      "reflect": "Someone drew the same hallway three times, crossed it out, and wrote: follow the hum."
+     },
+     {
+      "id": "c1-door",
+      "title": "The door that turns",
+      "hint": "The chart points east, into the halls that turn. A page marks the way to a door at their edge.",
+      "breadcrumbs": [
+       "log-3"
+      ],
+      "target": {
+       "type": "cell",
+       "section": "turn",
+       "cell": [
+        0,
+        1
+       ],
+       "label": "the door that turns"
+      },
+      "goal": {
+       "type": "reach",
+       "section": "turn",
+       "cell": [
+        0,
+        1
+       ]
+      },
+      "pin": [
+       "log-3"
+      ],
+      "reveal": {
+       "door": "gate-turn",
+       "title": "A door where there wasn't one",
+       "text": "Back at the Station, a lamp comes on above its twin."
+      },
+      "reflect": "You found it the way they did: by listening."
+     }
+    ]
+   }
+  ],
+  "beatRooms": [
+   {
+    "id": "br-waypoint",
+    "section": "print",
+    "cell": [
+     -2,
+     -2
+    ],
+    "quad": 3,
+    "label": "Survey waypoint",
+    "sign": "SURVEY CORPS",
+    "signSub": "waypoint · stays put",
+    "prompt": "📜 Read the survey chart",
+    "title": "📜 The survey chart",
+    "text": "A hand-drawn chart pinned to a field table. Halls drawn, rubbed out, drawn again. One arrow, inked over many times, points east toward the halls that turn. In the margin: “The hum gets warmer when you're close. Trust it. — P.”",
+    "early": "A chart of hallways, most of them crossed out. You'll understand it better later."
+   }
+  ]
  }
 }
