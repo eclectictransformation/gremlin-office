@@ -1076,7 +1076,8 @@
    "type": "riddle",
    "count": 1,
    "xp": 40,
-   "text": "Answer one of an almost-person's weird questions correctly."
+   "text": "Ask an almost-person a question.",
+   "_about": "The talk panel has the player asking the almost-person. Completes when they ask (a talk prompt), or still when they answer a riddle (older path)."
   },
   {
    "id": "dust-mgmt",
@@ -2033,7 +2034,15 @@
    },
    "outpost": {
     "sign": "SURVEY CORPS",
-    "signSub": "Mine Mouth outpost · sign the log"
+    "signSub": "Mine Mouth outpost · lightly staffed",
+    "keeper": {
+     "name": "Hettie Vane",
+     "who": "human, Survey Corps",
+     "role": "keeper"
+    },
+    "prompt": "📒 Read the outpost log",
+    "title": "📒 The Mine Mouth log",
+    "text": "Lightly staffed. The keeper is Hettie Vane (human, Survey Corps). A couple of surveyors are resting between runs, boots off, arguing quietly about a door that wouldn't stay still. The log is open to today's page, and a spare lantern is still warm."
    }
   }
  },

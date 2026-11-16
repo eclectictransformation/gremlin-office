@@ -72,7 +72,8 @@ export function createAnnex(kit, data, host) {
   if (STB?.plazas) sections.forEach((S) => { if (S === startSec) return; stablePlaces.push({ id: "st-plaza-" + S.id, name: `${S.name} · waystone plaza`, kind: "plaza", i: S.center[0], j: S.center[1], plaza: true }); });
   const stableByCell = new Map(); stablePlaces.forEach((q) => { if (q.i != null && q.kind !== "base") stableByCell.set(ck(q.i, q.j), q); });
   const pageDefs = []; const CLU = data.lore?.clues || {};
-  if (CLU.enabled) (CLU.notes || []).forEach((n) => { const S = secById[n.section]; if (!S || !n.cell) return; const i = S.center[0] + n.cell[0], j = S.center[1] + n.cell[1], qi = n.quad ?? 0, sz = QUADS[qi][1];
+  function pageAvailable(n) { const need = n.availableFrom || "ch1"; if (need === "ch1") return true; const chs = data.campaign?.chapters || [], idx = chs.findIndex((c) => c.id === need); if (idx < 0) return false; const ch = chs[idx]; if (ch.playable === false) return false; const cs = prog.campaign || {}; return !!(cs.complete?.[need] || (cs.ch ?? 0) >= idx); }
+  if (CLU.enabled) (CLU.notes || []).forEach((n) => { if (!pageAvailable(n)) return; const S = secById[n.section]; if (!S || !n.cell) return; const i = S.center[0] + n.cell[0], j = S.center[1] + n.cell[1], qi = n.quad ?? 0, sz = QUADS[qi][1];
     if ((curioByCell.get(ck(i, j)) || []).some((c) => c.qi === qi) || deadCells.has(ck(i, j))) return; forced.add(edgeOf(i, j, sz > 0 ? "zp" : "zn")); const row = { ...n, type: "page", page: true, i, j, qi, via: "z" }; pageDefs.push(row);
     if (!curioByCell.has(ck(i, j))) curioByCell.set(ck(i, j), []); curioByCell.get(ck(i, j)).push(row); });
   // v6b: campaign beat rooms: hand-placed rooms dropped into the shifting map (their cell never re-rolls)
@@ -699,13 +700,13 @@ export function createAnnex(kit, data, host) {
     n.talking = true; const possd = !!n.poss; const lines = possd ? (data.npcPrompts || []).map(() => data.minions?.lines || ["We are curious."]) : data.npcLines[n.d.type] || [];
     host.openPanel(`💬 ${n.d.name[0].toUpperCase() + n.d.name.slice(1)}`, (pn) => {
       if (possd) pn.appendChild(el("p", "o3-small", fill(data.minions?.talkIntro || "Its eyes are glowing. Something small and fluttery is doing the talking.")));
-      else pn.appendChild(el("p", "o3-small", n.d.quirk === "late" ? "It looks almost like someone, a few seconds behind. Say something:" : "It looks almost like someone. Say something:"));
+      else pn.appendChild(el("p", "o3-small", n.d.quirk === "late" ? "They look almost like someone, a few seconds behind. Say something:" : "They look almost like someone. Say something:"));
       const log = el("div", "o3-chatlog"); const row = el("div", "o3-prompts");
       (data.npcPrompts || []).forEach((q, qi) => { const b = el("button", "o3-btn ghost small", q); b.onclick = () => {
         const useQ = n.d.quirk === "late" && !possd ? n.lastQ : qi; n.lastQ = qi; // the Late Arrival answers the question you asked before
         const reply = fill(useQ == null ? (lines[0]?.[0] || "…") : pick(lines[useQ] || ["…"]));
         const a = el("div", "o3-note"); a.appendChild(el("b", null, "You: ")); a.appendChild(document.createTextNode(q)); const r = el("div", "o3-note o3-reply"); r.appendChild(el("b", null, n.d.name.replace(/^(a|an|the) /, "") + ": ")); r.appendChild(document.createTextNode(reply));
-        log.append(a, r); log.scrollTop = 1e6; audio.sfx("blip"); }; row.appendChild(b); });
+        log.append(a, r); log.scrollTop = 1e6; audio.sfx("blip"); rpg?.progress?.("riddle"); }; row.appendChild(b); });
       pn.append(row, log); rpg?.talkExtras(pn, n);
     }, { onClose: () => { n.talking = false; n.wait = rnd(1, 3); } });
   }
@@ -828,7 +829,7 @@ export function createAnnex(kit, data, host) {
   }
 
   // ---------- v6: survey pages, the Common Record, the starter guide, the stable-place map, the practice pad ----------
-  function pagesState() { const got = prog.pages || {}; return { total: pageDefs.length, found: pageDefs.filter((n) => got[n.id]).map((n) => n.id), defs: pageDefs.map((n) => ({ id: n.id, i: n.i, j: n.j, qi: n.qi, section: n.section })) }; }
+  function pagesState() { const got = prog.pages || {}, all = (CLU.notes || []); return { total: pageDefs.length, found: pageDefs.filter((n) => got[n.id]).map((n) => n.id), held: all.filter((n) => !pageAvailable(n)).map((n) => n.id), defs: pageDefs.map((n) => ({ id: n.id, i: n.i, j: n.j, qi: n.qi, section: n.section, day: n.day })) }; }
   function pickPage(id, cu) { const n = pageDefs.find((q) => q.id === id); if (!n || (prog.pages || {})[id]) return false; (prog.pages ||= {})[id] = new Date().toISOString(); save(); if (cu) cu.g.visible = false; else chunks.forEach((ch) => ch.curios.forEach((c) => { if (c.c.id === id) c.g.visible = false; })); audio.sfx("pick");
     const k = Object.keys(prog.pages).length; setTimeout(() => campaignEvent("page", id), 60); host.openPanel(`📄 ${n.title || "Survey page, torn"}`, (pn) => { pn.dataset.annexPanel = "page"; if (n.day) pn.appendChild(el("p", "o3-small", n.day)); pn.appendChild(el("p", "o3-note", fill(n.text))); pn.appendChild(el("p", "o3-small", `Page ${k} of ${pageDefs.length}. It belongs on the Common Record at the Door Station.`)); }); host.updateActions(); return true; }
   function stableList() { return stablePlaces.map((q) => ({ id: q.id, name: q.name, kind: q.kind, i: q.i ?? null, j: q.j ?? null, found: stableFound(q.id), secret: !!q.secret, blurb: q.blurb || "" })); }
@@ -842,6 +843,19 @@ export function createAnnex(kit, data, host) {
       Gd.sections.forEach((sc) => { box2.appendChild(el("h3", null, sc.title)); let ul = null; sc.blocks.forEach((b) => { if (b.li) { if (!ul) { ul = el("ul"); box2.appendChild(ul); } const li = el("li"); li.appendChild(mdInline(fill(b.li))); ul.appendChild(li); return; } ul = null; if (b.h) box2.appendChild(el("h4", null, b.h)); else { const pp = el("p"); pp.appendChild(mdInline(fill(b.p))); box2.appendChild(pp); } }); });
       box2.appendChild(el("h3", null, Gd.rumorsTitle || "Rumors")); if (Gd.rumorsNote) { const pp = el("p", "o3-small"); pp.appendChild(mdInline(Gd.rumorsNote)); box2.appendChild(pp); }
       const ul = el("ul", "o3-rumors"); ul.dataset.annex = "rumors"; (Gd.rumors || []).forEach((r) => { const li = el("li"); li.appendChild(mdInline(fill(r.text))); ul.appendChild(li); }); box2.appendChild(ul); }, { wide: true }); }
+  const FIN_KEY = "et-desks-annex-finishers";
+  function finishersState() { try { const s = JSON.parse(localStorage.getItem(FIN_KEY) || "{}"); return s && typeof s === "object" ? s : {}; } catch { return {}; } }
+  function finisherName() { return rpg?.state?.()?.char?.name || first || "a surveyor"; }
+  function recordChapterFinish(ch, nameOpt) { if (!ch) return; const all = finishersState(), list = all[ch.id] ? all[ch.id].slice() : [], name = nameOpt || finisherName();
+    if (list.some((q) => String(q.name).toLowerCase() === String(name).toLowerCase())) return list;
+    const entry = { name, at: new Date().toISOString(), sash: true, first: !list.length }; all[ch.id] = list.concat([entry]);
+    try { localStorage.setItem(FIN_KEY, JSON.stringify(all)); } catch {} return all[ch.id]; }
+  function renderFinishers(pn) { const all = finishersState(), sash = CMP?.sash || "🎗️", chs = CMP?.chapters || [];
+    chs.forEach((c, i) => { const list = all[c.id] || []; if (!list.length) return; const n = (c.title || c.id).replace(/^Chapter\s+/i, "").split("·")[0].trim() || String(i + 1);
+      pn.appendChild(el("h4", null, (CMP?.finisherTitle || "Surveyors who finished Chapter {n}").replace("{n}", n)));
+      const wrap = el("div", "o3-finishers"); wrap.dataset.annex = "finishers"; wrap.dataset.chapter = c.id;
+      list.forEach((q) => { const row = el("div", "o3-note o3-sash"); if (q.first) row.dataset.first = "1"; row.textContent = `${sash} ${q.name}${q.first ? " · first" : ""}`; wrap.appendChild(row); }); pn.appendChild(wrap); });
+    if (Object.values(all).some((q) => q && q.length) && CMP?.finisherNote) pn.appendChild(el("p", "o3-small", CMP.finisherNote)); }
   function openRecord() { const R0 = rpg?.data?.()?.station?.record || {}; setTimeout(() => campaignEvent("record"), 60); host.openPanel(R0.title || "📌 The Common Record", (pn) => { pn.dataset.annexPanel = "record"; pn.appendChild(el("p", null, R0.intro || ""));
       pn.appendChild(el("h4", null, R0.doorsTitle || "Doors")); const ds = rpg?.doorsSummary?.() || []; ds.forEach((d) => pn.appendChild(el("div", "o3-note" + (d.open ? "" : " o3-locked"), `${d.open ? "🚪" : "🔒"} ${d.open ? d.name : "??? (not found yet)"}${d.open && d.where ? " · " + d.where : ""}`)));
       pn.appendChild(el("h4", null, R0.pagesTitle || "Survey Corps logbook")); const got = prog.pages || {}, fp = pageDefs.filter((n) => got[n.id]); if (!fp.length) pn.appendChild(el("p", "o3-small", R0.noPages || "No pages yet."));
@@ -849,6 +863,7 @@ export function createAnnex(kit, data, host) {
       if (CMP) { const cs = CS(), C0 = CMP.chapters?.[Math.min(cs.ch, CMP.chapters.length - 1)]; if (C0) { pn.appendChild(el("h4", null, `🧭 ${CMP.title || "Campaign"} · ${C0.title}`)); const nd = C0.beats.filter((b) => cs.done[b.id]).length;
         const cp = el("div", "o3-note"); cp.dataset.annex = "record-campaign"; cp.textContent = `${nd} of ${C0.beats.length} beats. ` + (curBeat() ? `Next: ${curBeat().hint}` : (CMP.hud?.done || "Chapter complete.")); pn.appendChild(cp);
         const pinned = Object.keys(cs.pinned || {}); if (pinned.length) pn.appendChild(el("p", "o3-small", `📌 Breadcrumbs pinned by the survey: ${pinned.map((id) => pageDefs.find((q) => q.id === id)?.day || id).join(" · ")}`)); } }
+      renderFinishers(pn);
       pn.appendChild(el("p", "o3-small", `${fp.length} of ${pageDefs.length} pages pinned. ${R0.shared || ""}`)); }, { wide: true }); }
   function openStableMap() { host.openPanel(STB?.mapTitle || "🗺 Your map", (pn) => { pn.dataset.annexPanel = "map"; pn.appendChild(el("p", "o3-small", STB?.mapNote || ""));
       const L = stableList().filter((q) => q.found), cv = el("canvas", "o3-stablemap"); cv.width = 520; cv.height = 400; cv.dataset.annex = "stablemap"; pn.appendChild(cv); const c = cv.getContext("2d");
@@ -859,7 +874,7 @@ export function createAnnex(kit, data, host) {
       pts.forEach((q) => { const g2 = c.createRadialGradient(X(q.x), Y(q.y), 2, X(q.x), Y(q.y), 34); g2.addColorStop(0, "rgba(255,207,122,0.55)"); g2.addColorStop(1, "rgba(255,207,122,0)"); c.fillStyle = g2; c.beginPath(); c.arc(X(q.x), Y(q.y), 34, 0, 7); c.fill();
         c.fillStyle = q.kind === "base" ? "#ffcf7a" : "#f3efd8"; c.beginPath(); c.arc(X(q.x), Y(q.y), q.kind === "base" ? 7 : 5, 0, 7); c.fill(); c.fillStyle = "#f3efd8"; c.font = "13px system-ui"; c.fillText(q.name, X(q.x) + 9, Y(q.y) + 4); });
       const mx = lastP.x / C - 0.5, mz = lastP.z / C - 0.5; c.fillStyle = "#7fe0ff"; c.beginPath(); c.arc(X(mx), Y(mz), 5, 0, 7); c.fill(); c.font = "bold 12px system-ui"; c.fillText("you", X(mx) - 10, Y(mz) - 9);
-      const ul = el("div", "o3-small"); ul.textContent = `Found ${L.length} of ${stablePlaces.filter((q) => !q.secret || stableFound(q.id)).length}: ` + L.map((q) => q.name).join(" · "); pn.appendChild(ul); }, { wide: true }); }
+      const ul = el("div", "o3-small"); ul.dataset.annex = "stablecount"; ul.textContent = (STB?.mapCount || "{n} found").replace("{n}", String(L.length)) + (L.length ? ": " + L.map((q) => q.name).join(" · ") : ""); pn.appendChild(ul); }, { wide: true }); }
   // Station props: the Common Record pinboard (east wall), the starter-guide lectern, a practice pad (training base, lore 13)
   const stationProps = [];
   function buildStationProps() { const D2 = rpg?.data?.(); if (!D2?.station) return; const St = D2.station, bx = startSec.center[0] * C, bz = startSec.center[1] * C;
@@ -886,11 +901,13 @@ export function createAnnex(kit, data, host) {
       c.strokeStyle = "rgba(160,40,30,.8)"; c.lineWidth = 5; [[60, 90, 300, 210], [300, 90, 60, 210]].forEach(([a, b, x, y]) => { c.beginPath(); c.moveTo(a, b); c.lineTo(x, y); c.stroke(); }); c.strokeStyle = "#2a5a8a"; c.lineWidth = 10; c.beginPath(); c.moveTo(120, 160); c.lineTo(440, 160); c.lineTo(410, 130); c.moveTo(440, 160); c.lineTo(410, 190); c.stroke(); })), 1.2, 0.75, cx, 0.815, cz, 0, g);
     chart.rotation.x = -Math.PI / 2;
     const lan = new THREE.Mesh(once("geo:blan", () => new THREE.CylinderGeometry(0.08, 0.1, 0.2, 8)), once("m:blan", () => new THREE.MeshStandardMaterial({ color: "#ffe3a8", emissive: "#ffb45a", emissiveIntensity: 1.4 }))); lan.position.set(cx + 0.55, 0.92, cz - 0.25); g.add(lan);
-    const sg = cplane(once("t:bsign:" + d.id, () => plate(d.sign || "SURVEY CORPS", d.signSub || "waypoint", { w: 720, h: 220, bg: "#2e3a2a", fg: "#f3efd8", accent: "#c9b46a" })), 1.0, 0.3, cx, 1.55, cz, 0, g, { side: THREE.DoubleSide });
+    const stubM = once("m:cstub", () => new THREE.MeshStandardMaterial({ color: "#efe6cf", roughness: 0.9 })), flameM = once("m:cflame", () => new THREE.MeshStandardMaterial({ color: "#ffe3a8", emissive: "#ffb45a", emissiveIntensity: 1.7 }));
+    [[-0.55, 0.28], [-0.18, 0.35], [0.16, 0.3], [0.48, 0.18], [0.32, -0.3], [-0.42, -0.28], [0.05, -0.36]].forEach(([dx, dz], i) => { const h = 0.07 + (i % 3) * 0.03; const wax = new THREE.Mesh(once("geo:cstub", () => new THREE.CylinderGeometry(0.032, 0.04, 0.12, 8)), stubM); wax.position.set(cx + dx, 0.81 + h / 2, cz + dz); wax.scale.set(1, h / 0.12, 1); g.add(wax); const fl = new THREE.Mesh(once("geo:cflame", () => new THREE.SphereGeometry(0.022, 8, 6)), flameM); fl.position.set(cx + dx, 0.81 + h + 0.025, cz + dz); g.add(fl); });
+    const sg = cplane(once("t:bsign:" + d.id, () => plate(d.sign || "TALLOW CAMP", d.signSub || "leave a stub", { w: 720, h: 220, bg: "#2e3a2a", fg: "#f3efd8", accent: "#c9b46a" })), 1.0, 0.3, cx, 1.55, cz, 0, g, { side: THREE.DoubleSide });
     sg.rotation.y = rm.sz > 0 ? Math.PI : 0;
     (ch.beatRooms ||= []).push({ d, lx: ch.lx + cx, lz: ch.lz + cz }); }
   const CS = () => { const c = (prog.campaign ||= { ch: 0, beat: 0, done: {}, pinned: {}, started: null, guide: true, complete: {} }); c.done ||= {}; c.pinned ||= {}; c.complete ||= {}; if (c.guide == null) c.guide = true; return c; };
-  const curChapter = () => CMP?.chapters?.[CS().ch] || null, curBeat = () => curChapter()?.beats?.[CS().beat] || null;
+  const curChapter = () => { const c = CMP?.chapters?.[CS().ch]; return c && c.playable === false ? null : (c || null); }, curBeat = () => curChapter()?.beats?.[CS().beat] || null;
   function campCenterOf(i, j, id) { const rm = planCell(i, j, epOf(i, j)).rooms.find((r) => r.curio === id); return rm ? { x: i * C + (rm.x0 + rm.x1) / 2, z: j * C + (rm.z0 + rm.z1) / 2 } : { x: i * C + C2, z: j * C + C2 }; }
   function campTarget(t) { if (!t) return null; const hub = (i, j, label) => ({ i, j, at: { x: i * C + C2, z: j * C + C2 }, label });
     if (t.type === "station") { const [i, j] = startSec.center, sp = stationProps.find((q) => q.key === t.at); return { i, j, at: sp ? { x: sp.x, z: sp.z } : { x: i * C + C2, z: j * C + C2 }, label: "the Door Station" }; }
@@ -938,7 +955,7 @@ export function createAnnex(kit, data, host) {
   let campBusyBeat = null;
   function completeBeat(b) { const cs = CS(); if (!b || cs.done[b.id] || curBeat() !== b || campBusyBeat === b.id) return false; campBusyBeat = b.id; cs.done[b.id] = new Date().toISOString();
     (b.pin || []).forEach((id) => { if (!pageDefs.some((q) => q.id === id)) return; (prog.pages ||= {})[id] ||= new Date().toISOString(); cs.pinned[id] = b.id; chunks.forEach((ch) => ch.curios.forEach((c) => { if (c.c.id === id) c.g.visible = false; })); });
-    const ch0 = curChapter(), P = CMP.pacing || {}; cs.beat++; let chDone = false; if (cs.beat >= ch0.beats.length) { cs.complete[ch0.id] = new Date().toISOString(); chDone = true; if (CMP.chapters[cs.ch + 1]) { cs.ch++; cs.beat = 0; } }
+    const ch0 = curChapter(), P = CMP.pacing || {}; cs.beat++; let chDone = false; if (cs.beat >= ch0.beats.length) { cs.complete[ch0.id] = new Date().toISOString(); chDone = true; recordChapterFinish(ch0); const nx = CMP.chapters[cs.ch + 1]; if (nx && nx.playable !== false) { cs.ch++; cs.beat = 0; } }
     save(); audio.sfx("chime"); campRecalcT = 0; campCellKey = null; host.updateActions();
     if (b.reveal?.door) { rpg?.discoverDoor?.(b.reveal.door); prog.flags["revealed:" + b.reveal.door] = new Date().toISOString(); save(); }
     const d1 = (P.reflectDelay ?? 0.9) * 1000; setTimeout(() => { if (b.reveal) banner(b.reveal.title || b.title, fill(b.reveal.text || "")); else banner(`${b.title} ✓`, fill(b.reflect || "")); }, d1);
@@ -954,14 +971,14 @@ export function createAnnex(kit, data, host) {
   function useBeatRoom(id) { const d = beatDefs.find((q) => q.id === id); if (!d) return false; const b = curBeat(), now = b?.goal?.type === "beatRoom" && b.goal.id === id, done = Object.values(CMP?.chapters || []).some((c) => c.beats.some((q) => q.goal?.type === "beatRoom" && q.goal.id === id && CS().done[q.id]));
     audio.sfx("pick"); host.openPanel(d.title || "📜 " + d.label, (pn) => { pn.dataset.annexPanel = "beatroom"; pn.appendChild(el("p", null, fill(now || done ? d.text : (d.early || d.text)))); }); if (now) setTimeout(() => campaignEvent("beatRoom", id), 60); return true; }
   function openCampaign() { if (!CMP) return; const cs = CS(); host.openPanel(`${CMP.hud?.icon || "🧭"} ${CMP.title || "Campaign"}`, (pn) => { pn.dataset.annexPanel = "campaign";
-      (CMP.chapters || []).forEach((c, ci) => { if (ci > cs.ch && !cs.complete[c.id]) return; pn.appendChild(el("h4", null, c.title + (cs.complete[c.id] ? " ✓" : ""))); if (ci === cs.ch && !cs.complete[c.id]) pn.appendChild(el("p", "o3-small", fill(c.intro || "")));
+      (CMP.chapters || []).forEach((c, ci) => { if (c.playable === false && !cs.complete[c.id]) return; if (ci > cs.ch && !cs.complete[c.id]) return; pn.appendChild(el("h4", null, c.title + (cs.complete[c.id] ? " ✓" : ""))); if (ci === cs.ch && !cs.complete[c.id]) pn.appendChild(el("p", "o3-small", fill(c.intro || "")));
         c.beats.forEach((b, bi) => { const dn = cs.done[b.id], cur = ci === cs.ch && bi === cs.beat && !cs.complete[c.id]; const row = el("div", "o3-note" + (dn ? "" : cur ? " o3-campcur" : " o3-locked")); row.dataset.beat = b.id;
           if (dn) row.append(el("b", null, `✓ ${b.title}`), document.createTextNode(" " + fill(b.reflect || ""))); else if (cur) row.append(el("b", null, `➤ ${b.title}`), document.createTextNode(" " + b.hint)); else row.textContent = "· · ·"; pn.appendChild(row); });
         if (cs.complete[c.id] && c.outro) pn.appendChild(el("p", "o3-small", fill(c.outro))); });
       if (!curBeat()) pn.appendChild(el("p", "o3-small", CMP.hud?.done || "Chapter complete."));
       else { const t = el("button", "o3-btn ghost small", cs.guide !== false ? "🕯 Hide the guide lamp" : "🕯 Show the guide lamp"); t.dataset.annex = "camp-guide"; t.onclick = () => { cs.guide = cs.guide === false; save(); host.closePanel(); host.toast(cs.guide ? "The lamp is lit again." : "The lamp goes dark. The hum still knows the way."); }; pn.appendChild(t); } }); }
   // ---------- v6: intensity (data.intensity): some areas and moments ramp up ----------
-  const INS = { v: 0, target: 0, level: "calm", flick: 0, override: null, watchT: 0, lastGlimpse: -1e9, inStable: null, lastHelp: null, lastNudge: null, lastWatch: null };
+  const INS = { v: 0, target: 0, level: "calm", flick: 0, flickAmt: 1, flickJump: 0, override: null, watchT: 0, lastGlimpse: -1e9, inStable: null, lastHelp: null, lastNudge: null, lastWatch: null };
   const T0 = () => INT?.targets || {};
   function intensityLevel(v) { let id = "calm"; (INT?.levels || []).forEach((L) => { if (v >= L.min) id = L.id; }); return id; }
   function tickIntensity(dt, p, zone) { if (!INT?.enabled) { INS.v = 0; return; } const T = T0(), [i, j] = cellOf(p.x, p.z), z = zoneByCell.get(ck(i, j));
@@ -975,7 +992,11 @@ export function createAnnex(kit, data, host) {
     if (INS.override != null) tg = INS.override; INS.target = Math.max(0, Math.min(1, tg));
     const rate = INS.target > INS.v ? INT.riseRate ?? 0.05 : (tg === 0 ? INT.stableFallRate ?? 0.12 : INT.fallRate ?? 0.04); INS.v += Math.sign(INS.target - INS.v) * Math.min(Math.abs(INS.target - INS.v), rate * dt); if (INS.override != null) INS.v = INS.override;
     INS.level = intensityLevel(INS.v);
-    const Fz = INT.flicker || {}; if (INS.flick > 0) INS.flick -= dt; else if (!inPushRoom && INS.v >= (Fz.from ?? 0.35) && Math.random() < (Fz.chancePerSecond ?? 3) * INS.v * dt) INS.flick = rnd(0.05, 0.18);
+    const Fz = INT.flicker || {}, safeLit = inPushRoom || !!INS.inStable;
+    if (safeLit) { INS.flick = 0; INS.flickAmt = 1; INS.flickJump = 0; }
+    else if (INS.flick > 0) { INS.flick -= dt; INS.flickJump = (INS.flickJump || 0) - dt; if (INS.flickJump <= 0) { INS.flickAmt = 1 - rnd(Fz.depthMin ?? 0.45, Fz.depth ?? 0.85); INS.flickJump = rnd(0.015, Fz.jumpEvery ?? 0.04); } }
+    else if (INS.v >= (Fz.from ?? 0.35) && Math.random() < (Fz.chancePerSecond ?? 5) * INS.v * dt) { INS.flick = rnd(...(Fz.burst || [0.04, 0.12])); INS.flickAmt = 1 - rnd(Fz.depthMin ?? 0.45, Fz.depth ?? 0.85); INS.flickJump = rnd(0.015, 0.04); }
+    else INS.flickAmt = 1;
     if (greenT > 0) greenT -= dt; }
   const grInt = () => INT?.grenshol || {};
   function appearEveryNow() { const L = grInt().appearEvery; if (!L) return null; let r = null; L.forEach(([min, rg]) => { if (INS.v >= min) r = rg; }); return r; }
@@ -1001,7 +1022,7 @@ export function createAnnex(kit, data, host) {
     if (rpg?.inInstance()) { if (cr.st !== "away" || cr.g.visible) crHide(); timeIn += dt; rpg.update(dt, ts, p, st); return; } // party instance: no streaming, shifting, Grenshol or flitters
     timeIn += dt; lostT += dt; flipT = Math.max(0, flipT - dt);
     if (!busy) stream(p, false);
-    tickShift(dt, p, busy); tickStairs(dt, p, st.feet || 0, busy); tickIntensity(dt, p, zone); tickStable(dt, p, ts, busy); tickTraps(dt, p, zone, busy); tickCampaign(dt, ts, p, busy);
+    tickShift(dt, p, busy); tickStairs(dt, p, st.feet || 0, busy); tickStable(dt, p, ts, busy); tickIntensity(dt, p, zone); tickTraps(dt, p, zone, busy); tickCampaign(dt, ts, p, busy);
     cache.forEach((v, k) => { if (v && v.flick && k.startsWith("sm:")) { v.ft += dt; v.flick.emissiveIntensity = (Math.sin(v.ft * 0.7) > -0.9 || Math.random() < 0.3) ? v.lightBase : 0.12; } });
     if (padPost) { if (padHitT > 0) { padHitT -= dt; padPost.rotation.z = Math.sin(padHitT * 30) * padHitT * 0.5; } else padPost.rotation.z = 0; }
     const animStone = (s) => { s.cr.rotation.y = ts * 0.8 + s.t; s.cr.position.y = s.baseY + Math.sin(ts * 1.6 + s.t) * 0.05; s.ring.scale.setScalar(1 + Math.sin(ts * 2 + s.t) * 0.08); };
@@ -1023,9 +1044,9 @@ export function createAnnex(kit, data, host) {
     rpg?.update(dt, ts, p, st);
   }
 
-  function tickStable(dt, p, ts, busy) { if (!STB) return; const [i, j] = cellOf(p.x, p.z), q = stableByCell.get(ck(i, j));
+  function tickStable(dt, p, ts, busy) { if (!STB) return; const [i, j] = cellOf(p.x, p.z), q = stableByCell.get(ck(i, j)), atBase = i === startSec.center[0] && j === startSec.center[1], inOv = !!(OV && p.x >= OV.x0 && p.x <= OV.x1 && p.z >= OV.z0 && p.z <= OV.z1);
     chunks.forEach((ch) => (ch.stableLamps || []).forEach((L) => { L.t += dt; L.m.emissiveIntensity = L.base + L.amp * (0.6 * Math.sin(L.t * L.sp) + 0.4 * Math.sin(L.t * L.sp * 2.3 + 1.1)); }));
-    if (busy) return; INS.inStable = q ? q.id : null;
+    if (busy) return; INS.inStable = q ? q.id : (atBase ? "st-station" : (inOv ? "st-overlook" : null));
     if (q && (q.plaza || Math.hypot(p.x - (i * C + C2), p.z - (j * C + C2)) < 3.2)) { if (findStable(q.id)) lostT = 0; }
     if (OV && p.x >= OV.x0 && p.x <= OV.x1 && p.z >= OV.z0 && p.z <= OV.z1) findStable("st-overlook"); }
   const trapsFired = new Set(); let trapT = 0, lastTrap = null;
@@ -1193,7 +1214,7 @@ export function createAnnex(kit, data, host) {
     const d = cr.g.visible ? Math.hypot(cr.x - lastP.x, cr.z - lastP.z) : 99, k = cr.g.visible ? Math.max(0.22, Math.min(1, (d - 2) / (CRD?.dimRadius || 10))) : 1;
     // v6: Grenshol near = a soft green flicker on the lights (not steady); intensity = harsh irregular flicker; push rooms stay steady
     const gk = cr.g.visible ? Math.max(0, 1 - d / ((CRD?.dimRadius || 10) * 1.2)) : 0, gAmt = Math.min(1, Math.max(gk * (0.55 + 0.45 * Math.sin(performance.now() / 140)), greenT > 0 ? 0.75 : 0));
-    const harsh = INS.flick > 0 ? (1 - (INT?.flicker?.depth ?? 0.6)) : 1, steady = inPushRoom;
+    const harsh = (!inPushRoom && !INS.inStable && INS.flick > 0) ? (INS.flickAmt ?? (1 - (INT?.flicker?.depth ?? 0.6))) : 1, steady = inPushRoom || !!INS.inStable;
     allLightMats((M) => { if (M.light.userData.em0 == null) { M.light.userData.em0 = M.light.emissive.getHex(); M.flick.userData.em0 = M.flick.emissive.getHex(); }
       M.light.emissiveIntensity = M.lightBase * (steady ? 1.25 : k * harsh) * (alive.on ? 0.8 : 1);
       if (!alive.on) { if (gAmt > 0.01 && !steady) { tmpC.setHex(M.light.userData.em0).lerp(greenC, gAmt * 0.8); M.light.emissive.copy(tmpC); } else if (M.light.emissive.getHex() !== M.light.userData.em0) M.light.emissive.setHex(M.light.userData.em0); } });
@@ -1413,7 +1434,7 @@ export function createAnnex(kit, data, host) {
   const gwReady = Promise.all([import("./glimpse.js"), fetch(GLD.data || "data/glimpse-world.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null))])
     .then(([m, d]) => { gwMod = m; gwData = d; }).catch(() => { gwMod = null; });
   function glimpseWorld() { if (!GW && gwMod && gwData) { GW = gwMod.createGlimpse(THREE, gwData, { origin: GLD.origin }); lens = gwMod.createLens(THREE); } return GW; }
-  function gmem() { const g = (prog.glimpse ||= {}); g.catches ||= 0; g.caughtBy ||= 0; g.seen ||= []; g.discovered ||= []; g.visits ||= 0; return g; }
+  function gmem() { const g = (prog.glimpse ||= {}); g.catches ||= 0; g.caughtBy ||= 0; g.seen ||= []; g.discovered ||= []; g.visits ||= 0; g.briefs = g.briefs || 0; return g; }
   const gbar = el("div", "o3-glimpsebar"); gbar.hidden = true; host.hud.appendChild(gbar);
   function openGlimpseChoice() { const gm = gmem(), W = glimpseWorld();
     host.openPanel("🦕 " + (GLD.chooseTitle || "Grenshol holds still. Where to?"), (pn) => {
@@ -1427,6 +1448,12 @@ export function createAnnex(kit, data, host) {
   function briefPlan(W) { const B = GLD.brief || {}, n = Math.max(1, Math.round(rnd(...(B.views || [1, 2])))), views = [...W.views].sort(() => Math.random() - 0.5).slice(0, n);
     let at = 0; return { segs: views.map((v) => { const d = rnd(...(B.seconds || [2.5, 4])); const s = { v, t0: at, d }; at += d; return s; }), total: at, t: 0, idx: -1 }; }
   let glimpseBack = null;
+  function glimpseCountPeek() { const gm = prog.glimpse || {}, n = gm.briefs || 0, mid = GLD.escalation?.midAfter ?? 3, late = GLD.escalation?.lateAfter ?? 6; return { n, stage: n >= late ? "late" : n >= mid ? "mid" : "early" }; }
+  function glimpseEscalate(gm) { const E = GLD.escalation || {}, mid = E.midAfter ?? 3, late = E.lateAfter ?? 6;
+    if (gm) gm.briefs = (gm.briefs || 0) + 1;
+    const n = gm?.briefs || 1, stage = n >= late ? "late" : n >= mid ? "mid" : "early";
+    const text = E[stage] || GLD.briefText || "A green haze…", sfx = (E.sfx || {})[stage] || "whoosh";
+    return { n, stage, text, sfx }; }
   function enterGlimpse(kind, spotId) {
     if (kind !== "brief" && !GLD.fullReveal && GLD.enabled === false) return;
     if (kind === "brief") { const ps = host.state(); glimpseBack = { x: ps.pos.x, z: ps.pos.z, yaw: ps.yaw, y: ps.feet || 0 }; }
@@ -1437,10 +1464,10 @@ export function createAnnex(kit, data, host) {
       endAlive(true); crHide(); G.active = kind; G.spot = spot.id; G.t = 0; G.warnDone = false; G.lastSec = -1; gm.visits++;
       walkable.push(...W.walk); audio.setMood("glimpse");
       host.placeAnnex({ x: spot.wx, z: spot.wz, y: 0, yaw: spot.yaw || 0, pitch: 0 });
-      if (kind === "brief") { G.tour = briefPlan(W); host.setFreeze(true); host.toast(fill(GLD.briefText || "A green haze…")); }
+      if (kind === "brief") { G.tour = briefPlan(W); host.setFreeze(true); const esc = glimpseEscalate(gm); host.toast(fill(esc.text)); if (esc.sfx && esc.sfx !== "whoosh") audio.sfx(esc.sfx); }
       else if (kind === "tour") { G.tour = tourPlan(W); host.setFreeze(true); banner(W.name, fill(GLD.tourText || "You see through Grenshol's eyes…")); }
       else { G.tour = null; G.dur = W.data.explore?.seconds || 75; discover(spot); banner(W.name, fill(GLD.exploreText || "You caught Grenshol! He lets you look around his home for a bit.")); }
-      if (kind !== "brief") save(); host.updateActions(); } });
+      save(); host.updateActions(); } });
   }
   function discover(s) { const gm = gmem(); if (gm.discovered.includes(s.id)) return; gm.discovered.push(s.id); if (!gm.seen.includes(s.id)) gm.seen.push(s.id); save(); host.toast(`📍 ${s.name}. ${s.blurb || ""} (Grenshol will remember you liked it.)`); }
   function cleanupGlimpse() { if (!G.active) return; G.active = null; G.tour = null; for (let n = walkable.length - 1; n >= 0; n--) if (walkable[n].chunk === "glimpse") walkable.splice(n, 1); host.setFreeze(false); gbar.hidden = true; }
@@ -1568,7 +1595,8 @@ export function createAnnex(kit, data, host) {
       const tt = (u - a0) / Math.max(1e-4, a1 - a0); return y0 + Math.max(0, Math.min(1, tt)) * (r.y1 - y0); },
     home: useHome, shift: (id) => { const S = secById[id]; if (S) startShift(S); }, epoch: (id) => epochs[id],
     stable: () => ({ places: stableList(), here: INS.inStable, lastHome, nearest: nearestStable(lastP) }), findStable: (id) => findStable(id, true), stableCell: (id) => { const q = stablePlaces.find((x) => x.id === id); return q && q.i != null ? { i: q.i, j: q.j } : null; },
-    intensity: (v, snap = true) => { if (v !== undefined) { INS.override = v; if (v != null && snap) INS.v = v; } return { v: +INS.v.toFixed(3), target: +INS.target.toFixed(3), level: INS.level, flick: INS.flick > 0, override: INS.override, inPushRoom, lastHelp: INS.lastHelp, lastNudge: INS.lastNudge, lastWatch: INS.lastWatch, green: greenT > 0 }; },
+    intensity: (v, snap = true) => { if (v !== undefined) { INS.override = v; if (v != null && snap) INS.v = v; } return { v: +INS.v.toFixed(3), target: +INS.target.toFixed(3), level: INS.level, flick: INS.flick > 0, flickAmt: INS.flickAmt ?? 1, flickStyle: INT?.flicker?.style || "harsh-irregular", stableStyle: STB?.lamp?.style || "warm-even", inStable: INS.inStable, override: INS.override, inPushRoom, lastHelp: INS.lastHelp, lastNudge: INS.lastNudge, lastWatch: INS.lastWatch, green: greenT > 0 }; },
+    forceFlick: (secs = 0.2) => { INS.flick = secs; INS.flickAmt = 1 - rnd(INT?.flicker?.depthMin ?? 0.45, INT?.flicker?.depth ?? 0.85); return { flick: INS.flick, flickAmt: INS.flickAmt }; },
     carry: (kind = "tagged") => crCarry(kind), lastCarry: () => lastCarry, glimpse: (kind = "brief") => enterGlimpse(kind), traps: () => ({ lastTrap, fired: [...trapsFired] }), fireTrap: () => { const z = (data.beyond?.zones || []).flatMap((q) => q.rooms || []).find((r) => (r.traps || []).length); if (z) fireTrap(z.traps[0]); return !!z; },
     stationProps: () => stationProps.map((q) => ({ key: q.key, ...W3(q.x, 0, q.z), label: q.label() })), useProp: (k) => { const q = stationProps.find((x) => x.key === k); if (q) q.run(); return !!q; }, nearHere: () => { const st = host.state(); const b = near({ mode: "annex", pos: st.pos, feet: st.feet || 0, fwd: null }); return b ? b.label : null; },
     teaser: () => { greenT = 4; const tz = CRD?.teaser?.lines; if (tz?.length) host.toast(fill(pick(tz))); return true; },
@@ -1576,7 +1604,10 @@ export function createAnnex(kit, data, host) {
       info: JSON.parse(JSON.stringify(campInfo)), lamp: campLamp.g.visible ? W3(campLamp.g.position.x, campLamp.g.position.y, campLamp.g.position.z) : null, warmth: audio.humWarmth ?? null, beatRooms: beatDefs.map((q) => ({ id: q.id, i: q.i, j: q.j, qi: q.qi })) }; },
     campaignEvent: (t, id) => campaignEvent(t, id), useBeatRoom: (id) => useBeatRoom(id), openCampaign: () => openCampaign(), campaignRecalc: () => { campaignGuideRecalc(lastP); return JSON.parse(JSON.stringify(campInfo)); },
     campaignPath: (a, b) => pathNext(a, b), shiftSection: (id) => { const S = secById[id]; if (!S) return false; applyShift(S, lastP); return epochs[id]; },
-    pages: () => pagesState(), pickPage: (id) => pickPage(id), openRecord: () => openRecord(), openGuide: () => openGuide(), openMap: () => openStableMap(), sit: () => sitBreather(), humShifted: () => !!audio.humShifted, grenWatchOK: (i, j) => watchCellOK(i, j),
+    pages: () => pagesState(), pickPage: (id) => pickPage(id), openRecord: () => openRecord(), openGuide: () => openGuide(), openMap: () => openStableMap(), sit: () => sitBreather(), humShifted: () => !!audio.humShifted, humContrast: () => audio.humContrast?.() || null, grenWatchOK: (i, j) => watchCellOK(i, j),
+    finishers: () => finishersState(), recordFinisher: (id, name) => recordChapterFinish((CMP?.chapters || []).find((c) => c.id === id) || curChapter(), name),
+    glimpseCount: (n) => { const gm = gmem(); if (n != null) { gm.briefs = Math.max(0, n | 0); save(); } return { briefs: gm.briefs || 0, stage: (gm.briefs || 0) >= ((GLD.escalation?.lateAfter) ?? 6) ? "late" : (gm.briefs || 0) >= ((GLD.escalation?.midAfter) ?? 3) ? "mid" : "early", fullReveal: !!GLD.fullReveal }; },
+    glimpseStage: () => glimpseCountPeek(),
     blockedLocal, misfireNext: (v = true) => { forceMisfire = v; }, lastMisfire: () => lastMisfire, lastGrab: () => lastGrab, cell: C,
     calm: (v = true) => { calm = !!v; if (calm) crHide(); }, creatureOK: (i, j) => creatureOK(i, j),
     creatureScan: (r = 14) => { const out = { ok: 0, bySection: {}, minDepth: 99, start: 0 }; for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) if (creatureOK(i, j)) { const S = sectionOf(i, j).id; out.ok++; out.bySection[S] = (out.bySection[S] || 0) + 1; out.minDepth = Math.min(out.minDepth, +depthOf(i, j).toFixed(2)); if (S === startSec.id) out.start++; } return out; },

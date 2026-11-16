@@ -393,3 +393,8 @@ body.in-office{touch-action:none;overscroll-behavior:none;-webkit-text-size-adju
 /* v6b: campaign */
 .o3-campbtn{max-width:min(62vw,340px);white-space:normal;text-align:left;line-height:1.25;border-color:#c9b46a !important}
 .o3-campcur{border-left-color:#c9b46a !important;background:rgba(255,207,122,.14)}
+
+/* v6c: Common Record finishers, sash mark */
+.o3-finishers{margin:.4rem 0 .6rem}
+.o3-sash{padding-left:.2rem}
+.o3-sash[data-first="1"]{font-weight:600}

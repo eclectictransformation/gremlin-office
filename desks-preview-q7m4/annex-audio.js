@@ -79,9 +79,12 @@ export function createAnnexAudio() {
     // v6b: the campaign pull guide warms the hum as you get closer (a soft octave + fifth swell in, the lowpass opens a little)
     const wg = ctx.createGain(); wg.gain.value = 0; wg.connect(lp); humWarmG = wg;
     [[240, 0.5], [360, 0.28]].forEach(([f, v]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = "sine"; o.frequency.value = f; g.gain.value = v; o.connect(g); g.connect(wg); o.start(); humNodes.push(o); });
+    // v6c: shift warning is a wobble or pitch drop, clearly different from the warming hum (a rising octave + fifth swell, never a drop).
+    const wobL = ctx.createOscillator(), wobG = ctx.createGain(); wobL.type = "sine"; wobL.frequency.value = 4.2; wobG.gain.value = 0;
+    wobL.connect(wobG); humNodes.forEach((o) => { if (o.detune) wobG.connect(o.detune); }); wobL.start(); humNodes.push(wobL); humWobG = wobG;
     if (warmK) applyWarm();
   }
-  let humWarmG = null, warmK = 0;
+  let humWarmG = null, warmK = 0, humWobG = null;
   function applyWarm() { if (!ctx || !humWarmG) return; const t = ctx.currentTime; humWarmG.gain.setTargetAtTime(warmK * 0.55, t, 0.8); if (humLp && !humShiftOn) humLp.frequency.setTargetAtTime(700 + warmK * 500, t, 0.8); }
   return {
     prime() { if (navigator.userActivation && !navigator.userActivation.isActive && !navigator.userActivation.hasBeenActive) return; if (ensure()) ctx.resume?.(); }, // call inside a click / key handler so the browser allows sound
@@ -102,11 +105,13 @@ export function createAnnexAudio() {
     get muted() { return muted; },
     setMood(m) { m = m || "annex"; if (m === mood) return; mood = m; step = 0; moodSteps = 0; if (ctx && running) humBus.gain.setTargetAtTime(humFor(), ctx.currentTime, 0.4); },
     get mood() { return mood; },
-    // v6: the shift warning is a change in the hum (pitch sags, it gets louder and brighter), not flickering lights.
+    // v6c: the shift warning is a wobble or pitch drop (detune sags, a 4.2 Hz wobble, louder/brighter). The warming hum is a rising fifth swell and never drops or wobbles.
     humShift(on) { on = !!on; if (on === humShiftOn) return; humShiftOn = on; if (!ctx || !running) return; const t = ctx.currentTime;
       humNodes.forEach((o) => { if (o.frequency && o.frequency.value > 1) o.detune.setTargetAtTime(on ? -140 : 0, t, on ? 0.35 : 0.6); });
-      if (humLp) humLp.frequency.setTargetAtTime(on ? 1400 : 700, t, 0.4); humBus.gain.setTargetAtTime(on ? humFor() * 2.6 : humFor(), t, 0.4); },
+      if (humLp) humLp.frequency.setTargetAtTime(on ? 1400 : (700 + warmK * 500), t, 0.4); humBus.gain.setTargetAtTime(on ? humFor() * 2.6 : humFor(), t, 0.4);
+      if (humWobG) humWobG.gain.setTargetAtTime(on ? 48 : 0, t, 0.25); },
     get humShifted() { return humShiftOn; },
+    humContrast: () => ({ shift: { type: "wobble-drop", on: humShiftOn, detune: humShiftOn ? -140 : 0, wobbleHz: humShiftOn ? 4.2 : 0 }, warm: { type: "rise-fifth", k: warmK, freqs: [240, 360] } }),
     humWarm(k) { k = Math.max(0, Math.min(1, +k || 0)); if (Math.abs(k - warmK) < 0.01) return; warmK = k; if (running) applyWarm(); },
     get humWarmth() { return warmK; },
     setScore(on) { scoreOn = !!on; },
@@ -120,6 +125,8 @@ export function createAnnexAudio() {
       else if (name === "blip") { [0, 1, 2].forEach((i) => tone("square", 300 + Math.random() * 500, t + i * 0.06, 0.05, 0.05, master)); }
       else if (name === "nope") { tone("square", 196, t, 0.12, 0.08, master); tone("square", 185, t + 0.13, 0.22, 0.08, master); }
       else if (name === "creak") { const n = noise(t, 1.6, 0.18, 220, 6, master); n.f.frequency.exponentialRampToValueAtTime(90, t + 1.5); const o = tone("sine", 70, t, 1.8, 0.25, master); o.frequency.exponentialRampToValueAtTime(48, t + 1.7); } // far-off, big, curious
+      else if (name === "breathe") { const o = tone("sine", 62, t, 1.8, 0.22, master); o.frequency.setValueAtTime(62, t); o.frequency.linearRampToValueAtTime(48, t + 0.9); o.frequency.linearRampToValueAtTime(62, t + 1.7); tone("sine", 90, t + 0.2, 1.5, 0.08, master); } // something huge, out of sight
+      else if (name === "farcall") { const o = tone("sine", 98, t, 2.4, 0.18, master); o.frequency.exponentialRampToValueAtTime(46, t + 2.2); const o2 = tone("triangle", 130, t + 0.4, 1.8, 0.07, master); o2.frequency.exponentialRampToValueAtTime(58, t + 2.0); } // a deep call from very far off
       else if (name === "peek") { const o = tone("sine", 520, t, 0.5, 0.06, master); o.frequency.exponentialRampToValueAtTime(860, t + 0.45); }
       else if (name === "flutter") { for (let i = 0; i < 6; i++) noise(t + i * 0.035, 0.02, 0.06, 2500, 2, master); }
       else if (name === "click") { tone("square", 1800, t, 0.02, 0.05, master); tone("sine", 90, t, 0.12, 0.2, master); }

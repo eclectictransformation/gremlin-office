@@ -1,6 +1,6 @@
 {
  "_about": "Elsewhere Annex v2 (ET · Gremlin Desks only). The world is procedural: a seeded grid of cells. Each section has a crystal plaza at its 'center' cell; every other cell belongs to the nearest section and gets hallways (always safe) plus rooms off them (where grabbers and the rare almost-people live). To add a section: copy a row in 'sections', give it a new id, center [cellX, cellZ] a few cells from the others, palette, crystal and room mix. Cells are grid.cell metres square.",
- "version": "6b",
+ "version": "6c",
  "name": "The Elsewhere Annex",
  "tagline": "The Survey Corps found it. They're still mapping it.",
  "lore": {
@@ -14,64 +14,70 @@
      "id": "log-1",
      "title": "Survey page, torn",
      "day": "Day 1",
-     "text": "Pulled the thread from the gallery side. The wall said 'Oh. Finally.' Very polite. Set up the desk. Nobody has checked in yet. — Pip",
+     "text": "Pulled the stitch from the gallery side. The wall said 'Oh. Finally.' We followed it through and found a clean room already waiting: desks, a board, lamps that work. We're calling it the Door Station. Nobody has checked in yet, but it feels like they will. — Pip",
      "section": "print",
      "cell": [
       2,
       0
      ],
-     "quad": 1
+     "quad": 1,
+     "availableFrom": "ch1"
     },
     {
      "id": "log-2",
      "title": "Survey page, torn",
-     "day": "Day 3",
-     "text": "Found a round thing in a wall, deep in. Warm. Smells of rain on ferns. Pip says portal. Grimble says puddle. Nobody tapped it. Yet.",
-     "section": "night",
-     "cell": [
-      2,
-      1
-     ],
-     "quad": 1
-    },
-    {
-     "id": "log-3",
-     "title": "Survey page, torn",
      "day": "Day 4",
-     "text": "Someone tapped it. Something tapped back. Twice. We have decided this was our fault. (Pip, later, in pencil: it wasn't.)",
-     "section": "turn",
-     "cell": [
-      0,
-      -2
-     ],
-     "quad": 2
-    },
-    {
-     "id": "log-4",
-     "title": "Survey page, torn",
-     "day": "Day 19",
-     "text": "Some places don't move. Chalked the first one. STAYS PUT ✓. The settlers laughed: they've known for years. They call them anchors.",
+     "text": "The rooms have started moving. We went back for a bench and the bench was two halls over. Or the halls had moved and the bench hadn't. Hard to say. Chalked the first mark tonight: STAYS PUT ✓. If it holds till morning I'll chalk another. — Pip",
      "section": "stock",
      "cell": [
       2,
       0
      ],
-     "quad": 0
+     "quad": 0,
+     "availableFrom": "ch2"
+    },
+    {
+     "id": "log-3",
+     "title": "Survey page, torn",
+     "day": "Day 9",
+     "text": "A door nobody had noticed turned on its own this morning. Just turned, as if it had been waiting. We stood there a while and decided not to guess. If you find this page, you're already closer than we were. — Pip",
+     "section": "turn",
+     "cell": [
+      0,
+      -2
+     ],
+     "quad": 2,
+     "availableFrom": "ch1"
+    },
+    {
+     "id": "log-4",
+     "title": "Survey page, torn",
+     "day": "Day 17",
+     "text": "We've got it, I think. The hum goes warmer near the places we've marked. They barely change. We're calling them stable places, which the people who live here thought was very funny, because they've had a word for that for years. Also: a green flicker in the corner waved, maybe? Hard to say. We waved back, just in case. — Pip",
+     "section": "night",
+     "cell": [
+      2,
+      1
+     ],
+     "quad": 1,
+     "availableFrom": "ch2"
     },
     {
      "id": "log-5",
      "title": "Survey page, torn",
-     "day": "Day ??",
-     "text": "Lights perfectly still in that room. Smelled like new pennies. Door was lovely. We didn't. Good.",
+     "day": "Day 31",
+     "text": "A surveyor lent her Keepsake to a stranger who asked nicely. She stayed where she stood. Her name's still on the board. We haven't found anything to write after it. The log will be shorter after this.",
      "section": "shallows",
      "cell": [
       2,
       0
      ],
-     "quad": 3
+     "quad": 3,
+     "availableFrom": "ch2",
+     "_todo": "TODO: Day 31 relies on Keepsake recovery (continuity row 100). Lending is still OFF. Before this page is findable (Chapter 2+), turn lending on, or frame the page as a warning. Do not ship this page while lending is off. Do not build that here."
     }
    ],
-   "_about": "v6: the Survey Corps logbook. Torn pages are found out in the halls (same placement shape as curiosities) and pinned on the Common Record at the Door Station. They carry clues, never House history."
+   "_about": "v6c: the Survey Corps logbook (continuity 107). Five pages, Days 1, 4, 9, 17 and 31. Chapter 1 uses only Days 1 and 9 (availableFrom: ch1). Days 4, 17 and 31 are held for later chapters and are not findable in Chapter 1. They carry the Corps' own story, never House history."
   }
  },
  "characters": {
@@ -857,7 +863,7 @@
   "reprint": [
    [
     "Good mor-mor-morning, {nameOff}. Did you bring the, the, the.",
-    "Hello? Hello? Hel. Lo. (it smiles one second late)",
+    "Hello? Hello? Hel. Lo. (they smile one second late)",
     "Hi! You look exactly like you, mostly."
    ],
    [
@@ -873,24 +879,24 @@
    [
     "Nice to meet you too too too.",
     "We've met. You were taller. Or I was.",
-    "Likewise-wise."
+    "Likewise. Likewise."
    ]
   ],
   "onhold": [
    [
     "Please continue to remain. Your call is impor— hello?",
-    "Mmm-hmm. Mmm-hmm. (it is not talking to you)",
+    "Mmm-hmm. Mmm-hmm. (they are not talking to you)",
     "Hold, please. Hold. Please. Hold."
    ],
    [
     "Transferring you to the way out. (the hold music gets slightly louder)",
-    "Your plant called. It will be late.",
+    "Your plant is still on the line. It's been holding a long time.",
     "Press 3 for the exit. There is no 3."
    ],
    [
     "You've reached the Annex. All of our hallways are currently turning.",
     "This is the department of the same right turn.",
-    "It's a call center, but the calls are hallways."
+    "A call center. The calls are hallways."
    ],
    [
     "Thank you for your patience. Your patience is very nice.",
@@ -905,8 +911,8 @@
     "Oh! You're a page. No. You're a person. Close."
    ],
    [
-    "Out was misfiled in 2009.",
-    "Try the stitch by the vending machine. It hums when it's ready.",
+    "Out was misfiled. I have been looking.",
+    "Try the gap by the vending machine. It only opens sometimes.",
     "Please initial the air, then leave."
    ],
    [
@@ -916,39 +922,39 @@
    ],
    [
     "Nice is filed under N. Meet is under M. I can't find 'to.'",
-    "We should do lunch. Lunch is in the box marked 'boxes.'",
-    "Sorting you… sorted. (it puts you nowhere)"
+    "We should do lunch. I wrote it down and put it somewhere safe.",
+    "Sorting you… sorted. (they put you nowhere)"
    ]
   ],
   "echohire": [
    [
-    "Hi! I'm {nameOff}! I'm new! Have we met? I'm new.",
+    "Hi. I'm {nameOff}. I'm new. Have we met? I'm new.",
     "Welcome to the team! I'm also new. We're both new forever.",
     "Hello! You must be me. I mean you."
    ],
    [
-    "Great question! Let me show you the exit. (points at a blank wall) Isn't it lovely?",
+    "Let me show you the exit. (points at a blank wall) Isn't it lovely?",
     "The way out is on the tour! Stop 14. There are 3 stops.",
-    "Out? Oh, we don't do out. We do onboarding."
+    "Out? Oh, we don't do out. We only just got here."
    ],
    [
     "This is the gallery! Here is a painting. (the frame is empty) And here is another one.",
-    "This is the Annex! The Gremlins found it. They didn't hire me. I just showed up.",
+    "This is the Annex. The Gremlins map it. They didn't hire me. I just showed up.",
     "It's the office, but for later."
    ],
    [
     "Nice to meet you, {nameOff}! That's my name too. Probably.",
     "So nice! Let's get coffee in the room that isn't there.",
-    "I'll add you to the group chat. The group chat is a hallway."
+    "I'll add you to the others. The others are a hallway."
    ]
   ],
   "late": [
    [
-    "…(it's still answering something nobody asked yet)",
+    "…(they're still answering something nobody asked yet)",
     "Oh! Hi. Sorry. Hi. Hello. Was that already?"
    ],
    [
-    "Yes, hello. Hi. (it's answering your last question)",
+    "Yes, hello. Hi. (they're answering your last question)",
     "Hello to you too, eventually."
    ],
    [
@@ -969,7 +975,7 @@
    "notice": 5.5,
    "reach": 3.2,
    "telegraph": "Something long and pale is reaching out of a gap in the far wall…",
-   "caught": "A Reacher closes its fingers round your sleeve and tugs you through a gap in the wall. You stumble out somewhere else in the halls: {section}. (Reachers never take anyone to an instance.)"
+   "caught": "A Reacher closes their fingers round your sleeve and tugs you through a gap in the wall. You stumble out somewhere else in the halls: {section}."
   },
   "courtesy": {
    "name": "a courteous Reacher",
@@ -1115,7 +1121,7 @@
  "minions": {
   "name": "lampwings",
   "single": "a lampwing",
-  "about": "Small moth-like lampwings that drift after Grenshol. Sometimes one settles on an almost-person and steers them for a little while.",
+  "about": "Small moth-like lampwings that drift after Grenshol. Sometimes one settles on an almost-person and talks through them for a little while.",
   "count": 2,
   "aliveCount": 7,
   "possessEvery": [
@@ -1131,23 +1137,23 @@
   "eye": "#9cf7ff",
   "tint": "#7d6aa8",
   "possessed": [
-   "A lampwing settles on an almost-person's head. Its eyes go a soft, bright green.",
-   "Something small and fluttering lands on an almost-person's shoulder. It straightens up and turns towards you."
+   "A lampwing settles on an almost-person's head. Their eyes go a soft, bright green.",
+   "Something small and fluttering lands on an almost-person's shoulder. They straighten up and turn towards you."
   ],
   "lines": [
    "We followed the green. Did you see the green?",
    "Hello, {nameOff}. He says hello. He can't say it himself.",
    "Warm rain. Ferns. Do you know ferns?",
-   "He keeps it from falling down. We keep him company.",
+   "He holds what he can. We keep him company.",
    "You walk like someone looking for a door.",
-   "Tag. No. Not tag. Hello."
+   "Not tag. Only hello."
   ],
   "release": [
-   "It blinks. \"Sorry. What was I saying? Was I saying?\"",
-   "Its eyes go back to normal. A flitter bumbles off towards the ceiling.",
-   "It shakes its head like a wet dog and wanders back to its room."
+   "They blink. \"Sorry. What was I saying? Was I saying?\"",
+   "Their eyes go back to normal. A lampwing drifts off towards the ceiling.",
+   "They shake their head, as if to clear it, and wander back to their room."
   ],
-  "talkIntro": "Its eyes are glowing green. Something small and fluttering is doing the talking."
+  "talkIntro": "Their eyes are glowing green. Something small and fluttering is doing the talking."
  },
  "aliveMode": {
   "prompt": "See what happens when the lights change?",
@@ -1334,7 +1340,20 @@
    "lens": 1.6
   },
   "briefText": "For a moment you see through a green haze: somewhere warm, wet and very old…",
-  "briefReturn": "…and the halls come back, exactly where you were. Your sleeves are damp."
+  "briefReturn": "…and the halls come back, exactly where you were. Your sleeves are damp.",
+  "escalation": {
+   "_about": "v6c (continuity 105): brief glimpses escalate by how many the player has already seen (saved as prog.glimpse.briefs). Early: ferns, warm rain, a green flicker. After several (3+): add something huge breathing. Late (6+): a deep call from far off. Nothing is ever seen clearly. The full reveal stays behind fullReveal (off).",
+   "midAfter": 3,
+   "lateAfter": 6,
+   "early": "For a moment you see through a green haze: ferns, warm rain, and a green flicker, somewhere very old…",
+   "mid": "Ferns, warm rain, a green flicker. Somewhere out of sight, something huge is breathing. Nothing is clear.",
+   "late": "Ferns and warm rain in a green flicker. From very far off, a deep call. Nothing is clear.",
+   "sfx": {
+    "early": "whoosh",
+    "mid": "breathe",
+    "late": "farcall"
+   }
+  }
  },
  "beyond": {
   "_about": "v5d2: the open open halls are calm exploring (no wandering critters, no Grenshol, no flitters, no light-switch rooms). Weird doors out in the open halls open onto short passages that are sealed off from the normal halls. Only inside those passages do small random critters and Grenshol show up. Grenshol is from another world: never in the instances (Mailroom, Grotto, Training Closet, gates). Zones are cell rectangles (origin [i,j], size [w,d]); every edge leaving a zone is sealed, every edge inside is open. A door sits flush on a closed wall of its cell (wall is picked automatically; 'wall' is the fallback that gets sealed if every arm is open). Change names/lines freely.",
@@ -1490,7 +1509,7 @@
  },
  "_grabbersAbout": "v6: grabbers are Reachers (lore). Type ids stay hem/courtesy/bounceback so saved data and section rows don't change; only the names, lines and the 3D model changed. They tug you to another section of the open halls, never to an instance.",
  "stable": {
-  "_about": "v6 stable places (lore 72-75): places that barely change. The shifter never re-rolls them (rooms use epoch 0 and no sliding walls). Marked by warm, gently flickering lamps, a STAYS PUT ✓ chalk mark, the settled 'stable' music scene and the waystone's ring. Each one you find is saved per player and drawn on your map (the rest stays fog). Knockouts in the open halls and the Home crystal go to the nearest one you've found. Plazas (every section's waystone center) count automatically.",
+  "_about": "v6 stable places (lore 72-75): places that barely change. The shifter never re-rolls them (rooms use epoch 0 and no sliding walls). Marked by warm, gently flickering lamps, a STAYS PUT ✓ chalk mark, the settled 'stable' music scene and the waystone's ring. Each one you find is saved per player and drawn on your map (the rest stays fog). Knockouts in the open halls and the Home crystal go to the nearest one you've found. Plazas (every section's waystone center) count automatically. v6c: map count is '{n} found', never 'of N', because the world keeps growing. Stable lamps flicker warm, slow and even (style warm-even); this is a different motion from intensity's harsh, fast, irregular flicker.",
   "plazas": true,
   "chalk": "STAYS PUT ✓",
   "chalkSub": "— Survey Corps",
@@ -1504,9 +1523,10 @@
    "base": 1.15,
    "flicker": 0.22,
    "speed": [
-    3,
-    7
-   ]
+    1.2,
+    2.2
+   ],
+   "style": "warm-even"
   },
   "places": [
    {
@@ -1594,10 +1614,11 @@
     ],
     "blurb": "A desk lamp that's never once been switched off."
    }
-  ]
+  ],
+  "mapCount": "{n} found"
  },
  "intensity": {
-  "_about": "v6 intensity (Bryan, Nov 15): some areas and moments ramp up. 0 = calm, 1 = as tense as it gets. Rises in zones past weird doors, push rooms, sections with a base value, and the longer you wander lost; falls in stable places and at the Station. As it climbs: harsh irregular light flicker (not the warm gentle flicker of stable places), the music drops to a dreary variant, and Grenshol appears and watches more often. All tunable here.",
+  "_about": "v6 intensity (Bryan, Nov 15): some areas and moments ramp up. 0 = calm, 1 = as tense as it gets. Rises in zones past weird doors, push rooms, sections with a base value, and the longer you wander lost; falls in stable places and at the Station. As it climbs: harsh irregular light flicker (not the warm gentle flicker of stable places), the music drops to a dreary variant, and Grenshol appears and watches more often. All tunable here. v6c: intensity flicker is harsh, fast and irregular, and never applies to stable-place lamps or while you are in a stable place. Contrast with stable.lamp.style = warm-even.",
   "enabled": true,
   "levels": [
    {
@@ -1616,7 +1637,14 @@
   "flicker": {
    "from": 0.35,
    "depth": 0.6,
-   "chancePerSecond": 3
+   "chancePerSecond": 5,
+   "style": "harsh-irregular",
+   "burst": [
+    0.04,
+    0.12
+   ],
+   "depthMin": 0.45,
+   "jumpEvery": 0.04
   },
   "music": {
    "from": 0.65,
@@ -1685,7 +1713,7 @@
   "stableFallRate": 0.12
  },
  "campaign": {
-  "_about": "v6b campaign track (Milestone 4). Data-driven: chapters → beats. Each beat has a hint (shown on the HUD Campaign entry), a guide target (the pull guide: warming hum + a lamp one room ahead), a goal (what completes it), optional breadcrumb logbook pages (pinned to the Common Record) and a short reflective line. Beat rooms are hand-placed rooms dropped into the shifting map; their cells never re-roll. Progress is per player (prog.campaign).",
+  "_about": "v6c campaign track. Data-driven: chapters → beats. Each beat has a hint, a guide target (warming hum + a lamp one room ahead), a goal, optional breadcrumb logbook pages and a short reflective line. Beat rooms are hand-placed and never re-roll. Progress is per player (prog.campaign). The Survey waypoint is Tallow Camp (continuity 106). Chapter 2 is a data-only stub (playable: false) until Bryan writes the Overlook riddle. Finishers are stored per device; a shared record needs a server.",
   "enabled": true,
   "autoStart": true,
   "title": "The Survey",
@@ -1762,8 +1790,8 @@
      },
      {
       "id": "c1-waypoint",
-      "title": "The survey waypoint",
-      "hint": "The Corps left a waypoint room south of the bench. Read their chart.",
+      "title": "Tallow Camp",
+      "hint": "The Corps keep Tallow Camp south of the bench. Read their chart.",
       "target": {
        "type": "beatRoom",
        "id": "br-waypoint"
@@ -1772,7 +1800,7 @@
        "type": "beatRoom",
        "id": "br-waypoint"
       },
-      "reflect": "Someone drew the same hallway three times, crossed it out, and wrote: follow the hum."
+      "reflect": "Someone left a candle stub burning. The same hallway, drawn three times, crossed out. Follow the hum."
      },
      {
       "id": "c1-door",
@@ -1809,6 +1837,27 @@
       "reflect": "You found it the way they did: by listening."
      }
     ]
+   },
+   {
+    "id": "ch2",
+    "playable": false,
+    "title": "Chapter 2 · The Overlook Stitch",
+    "intro": "TODO-BRYAN: the riddle text for the gallery's second hidden opening (the Overlook's riddle stitch). Chapter 2 ends at the Overlook note: This is where we found it.",
+    "outro": "This is where we found it.",
+    "beats": [
+     {
+      "id": "c2-riddle",
+      "title": "The riddle stitch",
+      "hint": "TODO-BRYAN: the Overlook's riddle stitch.",
+      "target": {
+       "type": "overlook"
+      },
+      "goal": {
+       "type": "overlook"
+      },
+      "reflect": "This is where we found it."
+     }
+    ]
    }
   ],
   "beatRooms": [
@@ -1820,14 +1869,19 @@
      -2
     ],
     "quad": 3,
-    "label": "Survey waypoint",
-    "sign": "SURVEY CORPS",
-    "signSub": "waypoint · stays put",
+    "label": "Tallow Camp",
+    "sign": "TALLOW CAMP",
+    "signSub": "leave a stub · kept lit by everyone and no one",
     "prompt": "📜 Read the survey chart",
     "title": "📜 The survey chart",
-    "text": "A hand-drawn chart pinned to a field table. Halls drawn, rubbed out, drawn again. One arrow, inked over many times, points east toward the halls that turn. In the margin: “The hum gets warmer when you're close. Trust it. — P.”",
-    "early": "A chart of hallways, most of them crossed out. You'll understand it better later."
+    "text": "A hand-drawn chart pinned to a field table, ringed with lit candle stubs. Halls drawn, rubbed out, drawn again. One arrow, inked over many times, points east toward the halls that turn. In the margin: “The hum gets warmer when you're close. Trust it. — P.” By Corps custom every surveyor who passes leaves a stub, so the camp is kept lit by everyone and no one.",
+    "early": "A chart of hallways, most of them crossed out, and a few candle stubs still burning. You'll understand it better later.",
+    "_about": "Tallow Camp (continuity 106). The old 'Survey waypoint' name is retired in player-facing text."
    }
-  ]
+  ],
+  "_finishers": "Device-local for now (localStorage key et-desks-annex-finishers). Shown on the Common Record as 'Surveyors who finished Chapter N', first finisher on top, each with a sash mark. A shared record for everyone needs a server.",
+  "finisherTitle": "Surveyors who finished Chapter {n}",
+  "finisherNote": "This record is kept on this device. A shared record for everyone needs a server.",
+  "sash": "🎗️"
  }
 }

@@ -638,15 +638,15 @@ export function createRPG(ctx) {
     dr.waitUntil = Date.now() + D.doors.retrySeconds * 1000; const f = rpick(D.doors.fails); audio.sfx("nope"); addLog(`🚪 ${sn} check ${rs}${sg(b)} = ${tot} vs DC ${dr.P.dc} · nope. ${f}`, "miss"); popup(`🎲 ${tot} vs DC ${dr.P.dc} · nope`, "miss"); renderBar();
     return { ok, text: `${rs}${sg(b)} = ${tot} vs DC ${dr.P.dc}. ${f} (Try again in a few seconds.)` }; }
 
-  // ---------- weird questions from almost-people ----------
+  // ---------- a question from an almost-person (the talk panel also lets the player ask them; either path can complete Small Talk) ----------
   function talkExtras(pn, npc) { if (!D || !transformed || !CH() || npc.poss) return; const done = S.counters.riddles || []; const rd = D.riddles.find((r) => !done.includes(r.id)); if (!rd) return;
-    const holder = el("div"); pn.appendChild(holder); const b = el("button", "o3-btn ghost small", "🧩 It looks like it has a weird question for you…"); b.dataset.rpg = "riddle"; holder.appendChild(b);
+    const holder = el("div"); pn.appendChild(holder); const b = el("button", "o3-btn ghost small", "🧩 They seem to have a question for you…"); b.dataset.rpg = "riddle"; holder.appendChild(b);
     b.onclick = () => { holder.textContent = ""; const bx = el("div", "o3-note"); bx.appendChild(el("p", "o3-riddle", `"${rd.q}"`)); const row = el("div", "o3-prompts"); const out = el("p", "o3-riddleout");
       rd.a.forEach((a, ai) => { const ab = el("button", "o3-btn ghost small", a); ab.dataset.rpg = "ans-" + ai; ab.onclick = () => { const r = answerRiddle(rd.id, ai); out.textContent = fill(r.ok ? rd.yes : rd.no); out.className = "o3-riddleout " + (r.ok ? "ok" : "no"); if (r.ok) row.querySelectorAll("button").forEach((q) => (q.disabled = true)); }; row.appendChild(ab); });
       bx.append(row, out); holder.appendChild(bx); }; }
   function answerRiddle(id, ai) { const rd = D.riddles.find((r) => r.id === id), done = (S.counters.riddles ||= []); if (!rd || done.includes(id)) return { ok: false };
     if (ai !== rd.ok) { audio.sfx("nope"); addLog("🧩 Wrong answer. The almost-person looks politely disappointed. (Ask again any time.)", "miss"); return { ok: false }; }
-    done.push(id); audio.sfx("chime"); gainXP(D.xp.riddle, "answered a weird question"); progress("riddle"); save(); return { ok: true }; }
+    done.push(id); audio.sfx("chime"); gainXP(D.xp.riddle, "answered a question"); progress("riddle"); save(); return { ok: true }; }
 
   // ---------- party portals -> instanced rooms (the ONLY place party size matters) ----------
   const IX = -3000, IZ = -3000; const inst = { active: false, rooms: {}, walk: false, g: null, mobs: [], drops: [], from: null, zone: "annex:inst:room", id: null, exit: null, extras: [], blockers: [] };
@@ -1075,6 +1075,7 @@ export function createRPG(ctx) {
       box(x - 0.9, y + 1.12, z - 0.6, 0.06, 2.25, 0.06, woodD, g); box(x + 0.9, y + 1.12, z - 0.6, 0.06, 2.25, 0.06, woodD, g);
       cplane(M("t:opsign", () => plate(OP.sign || "SURVEY CORPS", OP.signSub || "Mine Mouth outpost · sign the log", { w: 720, h: 220, bg: "#2e3a2a", fg: "#f3efd8", accent: "#c9b46a" })), 1.1, 0.34, x, y + 1.75, z - 0.58, 0, g, { side: THREE.DoubleSide });
       addBlk(x, z, 1.35, 0.75);
+      inst.extras.push({ key: "outpost-log", lx: IX + x, lz: IZ + z, ly: y, label: () => OP.prompt || "📒 Read the outpost log", run: () => host.openPanel(OP.title || "📒 The Mine Mouth log", (pn) => { pn.dataset.annexPanel = "outpost"; const k = OP.keeper || {}; if (k.name) pn.appendChild(el("p", "o3-small", `${k.name}${k.who ? " · " + k.who : ""}${k.role ? " · " + k.role : ""}`)); pn.appendChild(el("p", null, OP.text || "Lightly staffed.")); }) });
     })();
     // mid-way foundry / workshop in the gallery
     const gal = caveRoom(I, "gallery");
