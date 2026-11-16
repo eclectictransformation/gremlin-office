@@ -1,7 +1,7 @@
 {
  "name": "Elsewhere Annex Music Library",
  "about": "Original, looping video-game cues written as General MIDI files. Players can describe a change in plain words; the team (and describe_change.py) turns that into a new version. Nothing here quotes an existing game theme. Game copy: default cues only (no remixes, no OGG previews).",
- "updated": "2026-11-15T04:03:34Z",
+ "updated": "2026-11-15T16:54:33Z",
  "version": 1,
  "tracks": [
   {
@@ -1092,6 +1092,204 @@
    "orchestral": false,
    "preview_bytes": 153827,
    "preview_seconds": 30.0,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "office-theme",
+   "title": "A Perfectly Normal Morning",
+   "role": "theme",
+   "area": [
+    "office",
+    "desks"
+   ],
+   "encounter": [],
+   "tags": [
+    "office",
+    "theme",
+    "piano",
+    "major",
+    "hopeful",
+    "sitcom"
+   ],
+   "mood": "upbeat, slightly awkward, hopeful sitcom-piano theme, then a tiptoe B section, then the hook returns",
+   "tempo": 116,
+   "key": "F",
+   "mode": "ionian",
+   "meter": "4/4",
+   "bars": 24,
+   "intro_bars": 2,
+   "length_bars": 26,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 3,
+    "end_bar": 26,
+    "start_tick": 3840,
+    "end_tick": 49920,
+    "crossfade_bars": 2
+   },
+   "texture": "bouncy acoustic-piano hook, light shuffle (kick, side stick, shaker), 2-note off-beat piano stabs 8 dB under the melody, acoustic bass, a few music-box peeks",
+   "instruments": {
+    "lead": 1,
+    "bass": 33,
+    "pad": 1,
+    "perc": 10
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 1,
+     "name": "Acoustic Grand Piano"
+    },
+    {
+     "slot": "bass",
+     "gm": 33,
+     "name": "Acoustic Bass"
+    },
+    {
+     "slot": "pad",
+     "gm": 1,
+     "name": "Acoustic Grand Piano"
+    },
+    {
+     "slot": "perc",
+     "gm": 10,
+     "name": "Music Box"
+    }
+   ],
+   "layers": {
+    "drums": true,
+    "drone": false,
+    "bass": true,
+    "pad": true,
+    "bells": true,
+    "echo": 0.1
+   },
+   "intensity": 4,
+   "drums": true,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Frequency Weaver",
+   "created_by": "Frequency Weaver, imported by Pip",
+   "version": 1,
+   "file": "midi/office-theme.mid",
+   "preview": "previews/office-theme.ogg",
+   "seed": 6116,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.18,
+   "filter_hz": 3500,
+   "echo": 0.1,
+   "pattern": "office-theme",
+   "length_sec": 53.793,
+   "loop_sec": 49.655,
+   "midi_bytes": 5989,
+   "voices_peak": 5,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_bytes": 240987,
+   "preview_seconds": 28.97,
+   "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
+  },
+  {
+   "id": "cathouse-play",
+   "title": "Yarn in the Rafters",
+   "role": "explore",
+   "area": [
+    "cathouse"
+   ],
+   "encounter": [],
+   "tags": [
+    "cathouse",
+    "explore",
+    "playful",
+    "pizzicato",
+    "mischief"
+   ],
+   "mood": "playful, pouncy, mischievous, light",
+   "tempo": 94,
+   "key": "D",
+   "mode": "ionian",
+   "meter": "4/4",
+   "bars": 32,
+   "intro_bars": 0,
+   "length_bars": 32,
+   "loop": true,
+   "loop_points": {
+    "start_bar": 1,
+    "end_bar": 32,
+    "start_tick": 0,
+    "end_tick": 61440,
+    "crossfade_bars": 2
+   },
+   "texture": "pizzicato scurries with holes, a short bounced bass, a few xylophone pounces, plenty of air",
+   "instruments": {
+    "lead": 46,
+    "bass": 33,
+    "pad": 89,
+    "perc": 14
+   },
+   "instrument_slots": [
+    {
+     "slot": "lead",
+     "gm": 46,
+     "name": "Pizzicato Strings"
+    },
+    {
+     "slot": "bass",
+     "gm": 33,
+     "name": "Acoustic Bass"
+    },
+    {
+     "slot": "pad",
+     "gm": 89,
+     "name": "Pad 2 (warm)"
+    },
+    {
+     "slot": "perc",
+     "gm": 14,
+     "name": "Xylophone"
+    }
+   ],
+   "layers": {
+    "drums": false,
+    "drone": false,
+    "bass": true,
+    "pad": false,
+    "bells": true,
+    "echo": 0.12
+   },
+   "intensity": 3,
+   "drums": false,
+   "parent_id": null,
+   "change_description": "",
+   "change_history": [],
+   "author": "Pip",
+   "created_by": "Pip",
+   "version": 1,
+   "file": "midi/cathouse-play.mid",
+   "preview": "previews/cathouse-play.ogg",
+   "seed": 7744,
+   "velocity_scale": 1.0,
+   "bass_boost": 1.0,
+   "octave_shift": 0,
+   "density": 1.0,
+   "brightness": 0,
+   "reverb": 0.2,
+   "filter_hz": 3600,
+   "echo": 0.12,
+   "pattern": "cathouse-play",
+   "length_sec": 81.702,
+   "loop_sec": 81.702,
+   "midi_bytes": 2545,
+   "voices_peak": 3,
+   "chiptune": false,
+   "orchestral": false,
+   "preview_bytes": 141816,
+   "preview_seconds": 28.09,
    "preview_renderer": "Python GM-ish oscillator synth (synth_render.py), then ffmpeg libvorbis q4. Not FluidSynth — that package could not be installed on this box."
   }
  ]

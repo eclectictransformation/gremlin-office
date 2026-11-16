@@ -705,13 +705,15 @@ export function createAnnex(kit, data, host) {
   }
   function exitHome(target, kit, quick) {
     audio.sfx("zip"); host.setZoom(false);
-    host.threadWarp({ target: target || null, onK: (k) => kit?.yawn?.(k), swap: () => { kit?.yawn?.(0); cleanupGlimpse(); endAlive(true); crHide(); flipT = 0; audio.stopScene?.(); musicNow = null; audio.setMood("annex"); audio.stop(); muteBtn.hidden = true; inAnnexNow = false; rpg?.onLeave(); ctl?.onLeave(); host.leaveAnnexMode(); unloadAll(); if (!quick) host.toast("You're back in the office. The stitch is still there, if you want it."); } });
+    host.threadWarp({ target: target || null, onK: (k) => kit?.yawn?.(k), swap: () => { kit?.yawn?.(0); cleanupGlimpse(); endAlive(true); crHide(); flipT = 0; musicNow = null; audio.setMood("annex"); audio.stop(); // stop the Annex hum only
+      audio.setScene?.("office");
+      muteBtn.hidden = false; renderMute(); inAnnexNow = false; rpg?.onLeave(); ctl?.onLeave(); host.leaveAnnexMode(); unloadAll(); if (!quick) host.toast("You're back in the office. The stitch is still there, if you want it."); } });
   }
 
   // ---------- HUD bits ----------
-  const muteBtn = el("button", "o3-btn ghost o3-q o3-mute"); muteBtn.hidden = true; muteBtn.setAttribute("aria-label", "Mute Annex sound");
+  const muteBtn = el("button", "o3-btn ghost o3-q o3-mute"); muteBtn.hidden = false; muteBtn.setAttribute("aria-label", "Mute sound");
   const renderMute = () => { muteBtn.textContent = audio.muted ? "🔇" : "🔊"; muteBtn.title = audio.muted ? "Sound off (click to unmute)" : "Sound on (click to mute)"; muteBtn.setAttribute("aria-pressed", String(audio.muted)); };
-  muteBtn.onclick = () => { audio.setMuted(!audio.muted); renderMute(); host.toast(audio.muted ? "Annex sound muted." : "Annex sound on."); }; renderMute();
+  muteBtn.onclick = () => { audio.setMuted(!audio.muted); renderMute(); host.toast(audio.muted ? "Sound muted." : "Sound on."); }; renderMute();
   const bannerEl = el("div", "o3-annexbanner"); const bT = el("b"), bS = el("span"); bannerEl.append(bT, bS); host.hud.appendChild(bannerEl);
   function banner(t, s) { bT.textContent = t; bS.textContent = s; bannerEl.classList.add("show"); clearTimeout(bannerEl._h); bannerEl._h = setTimeout(() => bannerEl.classList.remove("show"), 5200); }
   function hudButtons() {
@@ -820,9 +822,12 @@ export function createAnnex(kit, data, host) {
     if (z) return z.music || "beyond-explore";
     if (i === startSec.center[0] && j === startSec.center[1]) { const lx = p.x - i * C, lz = p.z - j * C, m = PM - 0.05; if (lx >= m && lx <= C - m && lz >= m && lz <= C - m) return "station"; }
     return sectionOf(i, j) === startSec ? "backrooms-arrival" : "backrooms-explore"; }
-  function tickMusic(dt, st) { musicT -= dt; if (musicT > 0) return; musicT = 0.3; if (!audio.setScene) return;
+  function tickMusic(dt, st) {
+    musicT -= dt; if (musicT > 0) return; musicT = 0.3; if (!audio.setScene) return;
+    if (!inAnnexNow) return; // office / Cat House beds are set from office3d.js
     const sc = musicScene(local(st.pos)); if (sc === musicNow) return; musicNow = sc;
-    if (sc) audio.setScene(sc); else audio.stopScene(); }
+    if (sc) audio.setScene(sc); else audio.stopScene();
+  }
   function tickNpc(n, dt, ts, px, pz, feet, fx, fz) {
     if (n.poss) { if (!n.talking) tickPossessed(n, dt, px, pz); return; }
     if (n.homing) return tickHoming(n, dt);

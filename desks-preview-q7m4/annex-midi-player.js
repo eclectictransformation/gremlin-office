@@ -19,6 +19,7 @@
   function family(prog, ch) {
     if (ch === 9) return "drum";
     if (prog == null) return "tri";
+    if (prog >= 0 && prog <= 7) return "piano";
     if (prog >= 8 && prog <= 15) return (prog === 12 || prog === 13) ? "pluck" : "bell";
     if (prog >= 32 && prog <= 39) return "bass";
     if (prog === 45) return "pizz";
@@ -220,6 +221,7 @@
       if (fam === "bass") { type = "sine"; atk = 0.016; sus = 0.85; amp = 0.28 * ev.vel / 100; pri = 5; }
       else if (fam === "bell") { type = "sine"; atk = 0.008; dec = 0.25; sus = 0.25; rel = 0.45; amp = 0.16 * ev.vel / 100; pri = 3; }
       else if (fam === "pluck") { type = "sine"; atk = 0.008; dec = 0.16; sus = 0.2; rel = 0.16; amp = 0.18 * ev.vel / 100; pri = 2; }
+      else if (fam === "piano") { type = "triangle"; atk = 0.012; dec = 0.22; sus = 0.4; rel = 0.14; amp = 0.18 * ev.vel / 100; pri = 4; }
       else if (fam === "pizz") { type = "triangle"; atk = 0.006; dec = 0.07; sus = 0.15; rel = 0.08; amp = 0.16 * ev.vel / 100; pri = 2; }
       else if (fam === "pad") { type = "triangle"; atk = 0.14; dec = 0.18; sus = 0.7; rel = 0.2; amp = 0.14 * ev.vel / 100; pri = 1; }
       else if (fam === "strings") { type = "sawtooth"; atk = 0.09; sus = 0.65; rel = 0.16; amp = 0.1 * ev.vel / 100; pri = 1; }

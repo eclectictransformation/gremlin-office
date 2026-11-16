@@ -8,6 +8,8 @@ export const SCENE = {
   // overworld
   station: "annex-station",
   annex: "annex-station",
+  office: "office-theme",
+  cathouse: "cathouse-play",
   "backrooms-arrival": "backrooms-arrival", // first steps past the Station threshold (the start section)
   "backrooms-explore": "backrooms-explore", // the rest of the calm Backrooms
   "beyond-explore": "backrooms-explore",    // past a weird door (a zone may name its own track)

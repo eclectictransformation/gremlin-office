@@ -698,10 +698,12 @@ export function startOffice(root, opts) {
     returnSpot = { x: pos.x, z: pos.z, yaw, pitch: 0 };
     mode = "cathouse"; pos.x = CAT_SPAWN.x; pos.z = CAT_SPAWN.z; yaw = CAT_SPAWN.yaw; pitch = 0.05; feet = 0; vy = 0; onGround = true; wasTop = false; climb = null; fallApex = 0; bounces = 0;
     updateActions(true); toast3("Welcome to The Cat House! Jump with " + (touch ? "the ⤒ button" : "Space") + ". The cushions are bouncy.");
+    setAreaMusic();
   }
   function goOffice() {
     mode = "office"; climb = null; bounceEl.classList.remove("show"); const r = returnSpot || { x: -gx + 2.4, z: nbPortal.wp.z, yaw: Math.PI / 2, pitch: 0 };
     pos.x = r.x; pos.z = r.z; yaw = r.yaw; pitch = r.pitch; feet = 0; vy = 0; onGround = true; updateActions(true);
+    setAreaMusic();
   }
   const keys = {}; const kd = (e) => { if (e.key === "Escape" && !panel.hidden) { closePanel(); e.preventDefault(); return; } if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
     const k = e.key.toLowerCase();
@@ -739,6 +741,7 @@ export function startOffice(root, opts) {
   const jend = (e) => { if (e.pointerId !== jid) return; jid = null; jv = { x: 0, y: 0 }; knob.style.transform = ""; };
   joy.addEventListener("pointerup", jend); joy.addEventListener("pointercancel", jend);
 
+  let setAreaMusic = () => {};
   // ---------- The Loose Stitch -> Elsewhere Annex (data-driven; see annex.js + data/elsewhere-annex.json) ----------
   const annexBtn = el("button", "o3-btn o3-annexbtn"); annexBtn.hidden = true; let nearAnnex = null;
   annexBtn.onclick = () => nearAnnex && !warp && nearAnnex.run();
@@ -773,11 +776,18 @@ export function startOffice(root, opts) {
         placeAnnex: (p) => { pos.x = p.x; pos.z = p.z; feet = p.y || 0; yaw = p.yaw; pitch = clampPitch(p.pitch ?? 0); vy = 0; onGround = true; climb = null; updateActions(true); },
         enterAnnexMode: () => { if (mode !== "annex" && warp) returnSpot = { x: warp.start.x, z: warp.start.z, yaw: warp.fromYaw, pitch: 0 }; mode = "annex"; cam.far = 130; cam.updateProjectionMatrix(); },
         leaveAnnexMode: () => { mode = "office"; zoomed = false; cam.far = 50; cam.updateProjectionMatrix(); applyAtmos(OFFICE_ATMOS);
-          const r = returnSpot || { x: 2.85, z: gz1 + 1.8, yaw: 0, pitch: 0 }; pos.x = r.x; pos.z = r.z; yaw = r.yaw; pitch = r.pitch; feet = 0; vy = 0; onGround = true; updateActions(true); },
+          const r = returnSpot || { x: 2.85, z: gz1 + 1.8, yaw: 0, pitch: 0 }; pos.x = r.x; pos.z = r.z; yaw = r.yaw; pitch = r.pitch; feet = 0; vy = 0; onGround = true; updateActions(true); setAreaMusic(); },
         setZoom: (v) => { zoomed = !!v; }, zoomed: () => zoomed,
         setFreeze: (v) => { frozen = !!v; Object.keys(keys).forEach((k) => (keys[k] = false)); }, warping: () => !!warp,
       });
       tr.prepend(annex.muteBtn);
+      setAreaMusic = () => {
+        if (!annex?.audio?.setScene) return;
+        if (mode === "cathouse") annex.audio.setScene("cathouse");
+        else if (mode === "office") annex.audio.setScene("office");
+        // mode === "annex" is owned by annex.js tickMusic
+      };
+      setAreaMusic(); // remembered; starts on the first tap
     } catch (err) { console.warn("Elsewhere Annex failed to load", err); annex = null; }
   }
 
