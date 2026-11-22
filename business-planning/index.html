@@ -103,6 +103,18 @@ fieldset { border: 0; margin: 0; padding: 0; }
 .cap p { margin: 0 0 .4rem; }
 #ap-ts:empty { display: none; }
 #ap-ts { margin-top: .8rem; }
+/* Service tabs (Bryan t753u). To add a service later: one more .svc-tab in the tablist + one matching tabpanel.
+   A tab that isn't open yet: <span class="svc-tab soon" role="tab" aria-disabled="true"> with no href and no panel. */
+.svc-tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin: .1rem 0 1.2rem; padding: 0 0 .9rem; border-bottom: 2px solid var(--ink); }
+.svc-tab { flex: 0 1 auto; display: inline-flex; flex-direction: column; justify-content: center; min-height: 44px; padding: .45rem 1rem; font: 700 1rem/1.2 var(--sans); color: var(--moss); background: #fffdf8; border: 2px solid var(--ink); border-radius: 999px; text-decoration: none; }
+.svc-tab:hover { background: #fff; }
+.svc-tab[aria-selected="true"] { color: #fff; background: var(--forest); box-shadow: 2px 2px 0 var(--ink); }
+.svc-tab:focus-visible { outline: 3px solid var(--clay); outline-offset: 2px; }
+.svc-tab.soon { color: #6f6f66; background: transparent; border-style: dashed; border-color: #8f8f86; cursor: not-allowed; opacity: .75; }
+.svc-tab .soon-note { font-size: .74rem; font-weight: 600; letter-spacing: .02em; }
+.studio-intro { margin: 0 0 1rem; font-size: 1.05rem; color: #33332e; }
+.studio-note { margin: .9rem 0 0; }
+@media (max-width: 430px) { .svc-tab { padding: .45rem .85rem; font-size: .97rem; } }
 </style>
 <script src="../access/config.js"></script>
 <script src="../access/dictate.js" defer></script>
@@ -111,6 +123,15 @@ fieldset { border: 0; margin: 0; padding: 0; }
 <body>
 <main class="wrap da-bar-slot">
   <p class="crumb"><a href="../">&larr; Back to the Gremlin Desks</a></p>
+
+  <!-- Service tabs. #saji is the default; #moth deep-links to the Design Studio (the cards maker's "Back" link uses ../#moth). -->
+  <nav class="svc-tabs" role="tablist" aria-label="Business Planning services">
+    <a class="svc-tab" role="tab" id="tab-saji" href="#saji" data-tab="saji" aria-controls="panel-saji" aria-selected="true">Meet with Saji Tori</a>
+    <a class="svc-tab" role="tab" id="tab-moth" href="#moth" data-tab="moth" aria-controls="panel-moth" aria-selected="false" tabindex="-1">Moth's Design Studio</a>
+    <span class="svc-tab soon" role="tab" id="tab-wren" aria-disabled="true" aria-selected="false">Wren's Corner <span class="soon-note">Coming soon</span></span>
+  </nav>
+
+  <div role="tabpanel" id="panel-saji" aria-labelledby="tab-saji">
 
   <!-- No greeting room and no first-screen fork: everyone starts at Step A (Bryan t731 + BRYAN-FLOW-FOR-PIP.md). -->
   <header class="hello">
@@ -199,9 +220,6 @@ fieldset { border: 0; margin: 0; padding: 0; }
       <a class="btn-main" id="upsell-btn" href="../signin/?next=business-planning" style="text-decoration:none;display:inline-flex">Sign in</a>
     </section>
 
-    <!-- Gift certificates and business cards (Moth's templates). Works for everyone, all on this device. -->
-    <a class="card tool-door" id="cards-door" href="cards/"><span class="td-title">Make a gift certificate or business card</span><span class="td-sub">Pick a style, add your details, download a print-ready file. Free, and it all stays on your device.</span></a>
-
     <details class="more" id="more">
       <summary>More</summary>
       <div class="more-body" id="more-body">
@@ -213,7 +231,52 @@ fieldset { border: 0; margin: 0; padding: 0; }
       </div>
     </details>
   </section>
+  </div>
+
+  <!-- Moth's Design Studio: gift certificates and business cards (Moth's templates). Works for everyone, all on this device. -->
+  <div role="tabpanel" id="panel-moth" aria-labelledby="tab-moth" hidden>
+    <header class="hello">
+      <p class="kicker">Moth's Design Studio</p>
+      <h2 class="big-q" style="font-size:clamp(1.4rem,4.5vw,1.9rem);margin:.1rem 0 .35rem">Gift certificates and business cards</h2>
+      <p class="studio-intro">Moth's templates, one choice at a time. We'll start with a sketch.</p>
+    </header>
+    <a class="card tool-door" id="cards-door" href="cards/"><span class="td-title">Make a gift certificate or business card</span><span class="td-sub">Pick a style, add your details, download a print-ready file. Free, and it all stays on your device.</span></a>
+    <p class="small studio-note">Want a different look? After you pick a style, tap “Ask Moth for a new design.” It's free for now, with a sign-in. Moth's reply shows up in your conversation under Meet with Saji Tori.</p>
+  </div>
 </main>
+
+<script>
+/* Service tabs: hash-driven (#saji, #moth) so reloads and deep links keep the tab. Arrow keys move between open tabs. */
+(function () {
+  var list = document.querySelector(".svc-tabs"); if (!list) return;
+  var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]:not([aria-disabled="true"])'));
+  function show(name, focus) {
+    var hit = tabs.filter(function (t) { return t.getAttribute("data-tab") === name; })[0] || tabs[0];
+    tabs.forEach(function (t) {
+      var on = t === hit, p = document.getElementById(t.getAttribute("aria-controls"));
+      t.setAttribute("aria-selected", on ? "true" : "false"); t.tabIndex = on ? 0 : -1; if (p) p.hidden = !on;
+    });
+    if (focus) hit.focus();
+    return hit;
+  }
+  function pick(t, focus) {
+    show(t.getAttribute("data-tab"), focus);
+    try { history.replaceState(history.state, "", location.pathname + location.search + "#" + t.getAttribute("data-tab")); } catch (e) {}
+  }
+  list.addEventListener("click", function (e) {
+    var t = e.target.closest('[role="tab"]'); if (!t) return;
+    e.preventDefault(); if (t.getAttribute("aria-disabled") === "true") return;
+    pick(t, false);
+  });
+  list.addEventListener("keydown", function (e) {
+    var i = tabs.indexOf(document.activeElement); if (i < 0) return;
+    var n = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : null;
+    if (n === null) return; e.preventDefault(); pick(tabs[(n + tabs.length) % tabs.length], true);
+  });
+  window.addEventListener("hashchange", function () { show(location.hash.slice(1)); });
+  show(location.hash.slice(1));
+})();
+</script>
 
 <script>
 (function () {

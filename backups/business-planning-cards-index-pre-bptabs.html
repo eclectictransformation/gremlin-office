@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Make a gift certificate or business card · The Gremlin Desks</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Make a print-ready gift certificate or business card from a simple template. Everything stays on your device.">
+<meta name="theme-color" content="#3A4A33">
+<link rel="icon" type="image/png" sizes="32x32" href="../../desks-preview-q7m4/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../desks-preview-q7m4/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="../../access/page.css">
+<link rel="stylesheet" href="../../access/access.css">
+<link rel="stylesheet" href="cards.css">
+<link rel="stylesheet" href="../../desks-bar.css">
+</head>
+<body>
+<nav class="desks-bar bleed" aria-label="Gremlin Desks" style="--db-t:max(1rem,env(safe-area-inset-top));--db-r:max(1rem,env(safe-area-inset-right));--db-l:max(1rem,env(safe-area-inset-left));--db-safe-t:env(safe-area-inset-top)"><a href="../../">&larr; Gremlin Desks</a></nav>
+<main class="wrap cards da-bar-slot">
+  <p class="crumb"><a href="../">&larr; Back to Business Planning</a></p>
+  <header class="hello">
+    <p class="kicker">Business Planning</p>
+    <h1>Make a gift certificate or business card</h1>
+    <p class="guide-by">With Saji Tori. One choice at a time, and everything stays on your device.</p>
+  </header>
+
+  <div class="steprow" id="steprow" hidden>
+    <button type="button" class="linkbtn" id="back">&larr; Back</button>
+    <span id="stepnum" class="small"></span>
+  </div>
+
+  <p class="loading" id="loading">Getting the templates ready&hellip;</p>
+  <p class="msg-err" id="load-err" role="alert" hidden>The templates didn't load. Please refresh the page.</p>
+
+  <!-- Step 1: product -->
+  <section class="step card" data-step="product" hidden aria-labelledby="q-product">
+    <h2 class="big-q" id="q-product">What would you like to make?</h2>
+    <div class="choices">
+      <button type="button" class="choice" data-product="cert"><span class="c-title">A gift certificate</span><span class="c-sub">For a gift card, a service or a set amount</span></button>
+      <button type="button" class="choice" data-product="card"><span class="c-title">A business card</span><span class="c-sub">3.5 &times; 2 in, with an optional logo on the back</span></button>
+    </div>
+  </section>
+
+  <!-- Step 1b: certificate size -->
+  <section class="step card" data-step="size" hidden aria-labelledby="q-size">
+    <h2 class="big-q" id="q-size">Which size?</h2>
+    <div class="choices">
+      <button type="button" class="choice" data-size="8.5x5.5"><span class="c-title">Standard, 8.5 &times; 5.5 in</span><span class="c-sub">Half a letter page. Room for everything.</span></button>
+      <button type="button" class="choice" data-size="8.5x3.5"><span class="c-title">Slim, 8.5 &times; 3.5 in</span><span class="c-sub">Fits an envelope or a gift box.</span></button>
+    </div>
+  </section>
+
+  <div class="work" id="work">
+  <!-- The preview (steps 2 to 5) -->
+  <div class="stage-wrap" id="stage-wrap" hidden>
+    <div class="stage" id="stage">
+      <canvas id="cv" aria-label="Preview" role="img"></canvas>
+    </div>
+    <p class="stage-cap small" id="stage-cap"></p>
+    <div class="stage" id="stage-back" hidden>
+      <p class="small back-label">Back of the card</p>
+      <canvas id="cv-back" aria-label="Preview of the back" role="img"></canvas>
+    </div>
+  </div>
+
+  <div class="panel-wrap">
+  <!-- Step 2: style -->
+  <section class="step card" data-step="style" hidden aria-labelledby="q-style">
+    <h2 class="big-q" id="q-style">Here's a style to start with.</h2>
+    <p class="help">You'll add your own words next. Nothing is fixed yet.</p>
+    <div class="go">
+      <button type="button" class="btn-main" id="use-style">Use this style</button>
+      <button type="button" class="btn-soft" id="see-styles" aria-expanded="false" aria-controls="styles">See other styles</button>
+    </div>
+    <div class="styles" id="styles" hidden></div>
+    <p class="small moth-link"><button type="button" class="linkbtn" data-moth>Ask Moth for a new design</button></p>
+  </section>
+
+  <!-- Step 3: details -->
+  <section class="step card" data-step="details" hidden aria-labelledby="q-details">
+    <h2 class="big-q" id="q-details">Now your details.</h2>
+    <p class="help">The preview changes as you type. Leave a box empty to leave it off.</p>
+    <form id="details" autocomplete="on" onsubmit="return false"></form>
+    <div class="go"><button type="button" class="btn-main" id="details-next">Next</button></div>
+  </section>
+
+  <!-- Step 4: pictures -->
+  <section class="step card" data-step="pictures" hidden aria-labelledby="q-pics">
+    <h2 class="big-q" id="q-pics">Add your logo and a picture, if you like.</h2>
+    <p class="help">Your own logo and photos make it feel like yours. If you don't have one handy, a simple picture from our set works well, or find a free photo on <a href="https://www.pexels.com/" target="_blank" rel="noopener noreferrer">Pexels</a>.</p>
+    <div class="pic">
+      <p class="pic-h">Logo</p>
+      <div class="pic-row"><label class="btn-soft file"><input type="file" id="up-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif">Choose a logo</label>
+        <span class="small" id="logo-name"></span><button type="button" class="linkbtn" id="rm-logo" hidden>Remove</button></div>
+    </div>
+    <div class="pic">
+      <p class="pic-h">Main picture</p>
+      <div class="pic-row"><label class="btn-soft file"><input type="file" id="up-main" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif">Choose a picture</label>
+        <span class="small" id="main-name"></span><button type="button" class="linkbtn" id="rm-main" hidden>Remove</button></div>
+      <fieldset class="fitpick" id="fitpick" hidden><legend class="small">How it sits in its shape</legend>
+        <label class="tg"><input type="radio" name="fit" value="contain" checked> Show the whole picture</label>
+        <label class="tg"><input type="radio" name="fit" value="cover"> Fill the shape</label>
+      </fieldset>
+      <details class="stockbox" id="stockbox"><summary>Or pick one of our simple pictures</summary><div class="stock" id="stock"></div></details>
+    </div>
+    <p class="small">Pictures stay on this device. Nothing is uploaded. They're kept while this page is open.</p>
+    <p class="msg-err" id="pic-err" role="alert" hidden></p>
+    <div class="go"><button type="button" class="btn-main" id="pics-next">Next</button><button type="button" class="btn-soft" id="pics-skip">Skip for now</button></div>
+  </section>
+
+  <!-- Step 5: look-over -->
+  <section class="step card" data-step="look" hidden aria-labelledby="q-look">
+    <h2 class="big-q" id="q-look">Here's how it looks.</h2>
+    <p class="help" id="look-help">Take a look. If you'd like, you can move things around before you download.</p>
+    <div class="go">
+      <button type="button" class="btn-soft" id="move" aria-pressed="false">Move things around</button>
+      <button type="button" class="btn-soft" id="reset">Reset</button>
+      <button type="button" class="btn-soft" id="to-template">Back to the template</button>
+    </div>
+    <p class="small move-hint" id="move-hint" hidden>Drag any piece. Tap a piece, then use the arrow keys for small steps. The dashed line shows the safe area; keep words inside it.</p>
+    <ul class="notes" id="look-notes"></ul>
+    <div class="dl">
+      <button type="button" class="btn-main" id="dl-png">Download for printing (PNG)</button>
+      <button type="button" class="btn-soft" id="dl-back" hidden>Download the back (PNG)</button>
+      <button type="button" class="btn-soft" id="dl-pdf">Download PDF</button>
+    </div>
+    <p class="small" id="dl-spec"></p>
+    <p class="small" id="dl-msg" aria-live="polite"></p>
+    <p class="small moth-link"><button type="button" class="linkbtn" data-moth>Ask Moth for a new design</button></p>
+  </section>
+
+  <!-- Ask Moth for a new design -->
+  <section class="step card" data-step="moth" hidden aria-labelledby="q-moth">
+    <h2 class="big-q" id="q-moth">Ask Moth for a new design</h2>
+    <p class="help">Moth is our designer. Start from the closest style, keep your details, and say what you'd change. It's free for now.</p>
+    <p class="small" id="moth-base"></p>
+    <div id="moth-guest" hidden>
+      <p class="kind" id="moth-guest-text">Sign in to ask Moth for a new design. It's free for now, and your work here stays as it is.</p>
+      <a class="btn-main" id="moth-signin" href="../../signin/?next=cards">Sign in</a>
+    </div>
+    <form id="moth-form" hidden>
+      <label class="f" for="moth-ask">What would you change?</label>
+      <textarea id="moth-ask" maxlength="2000" placeholder="For example: a warmer green, the logo a little bigger, and room for a second phone number."></textarea>
+      <p class="small">Saji passes this to Moth with the style you picked and your words. Your pictures stay on this device. New designs are made for you, and they don't join the shared styles unless Bryan says so.</p>
+      <p class="msg-err" id="moth-err" role="alert" hidden></p>
+      <div class="go"><button type="submit" class="btn-main" id="moth-send">Send to Saji</button><button type="button" class="btn-soft" id="moth-cancel">Not now</button></div>
+    </form>
+    <div id="moth-done" hidden>
+      <p class="kind">Sent. Saji will pass it to Moth. The reply will show up in your <a href="../">Business Planning conversation</a>.</p>
+      <button type="button" class="btn-soft" id="moth-back">Back to my design</button>
+    </div>
+  </section>
+  </div>
+  </div>
+</main>
+<script src="../../access/config.js"></script>
+<script src="../../access/dictate.js" defer></script>
+<script src="../../access/access.js" data-root="../../"></script>
+<script src="render.js"></script>
+<script src="cards.js"></script>
+</body>
+</html>

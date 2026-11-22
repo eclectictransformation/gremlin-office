@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your business action plan · The Gremlin Desks</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="A free, simple business action plan from Saji Tori. A few short questions, one at a time.">
+<meta name="theme-color" content="#3A4A33">
+<link rel="icon" type="image/png" sizes="32x32" href="../desks-preview-q7m4/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../desks-preview-q7m4/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="../access/page.css">
+<link rel="stylesheet" href="../access/access.css">
+<style>
+/* Calm first: one big box, one button, everything else tucked under "More". */
+body { line-height: 1.6; }
+.wrap { max-width: 42rem; }
+.hello { margin: .4rem 0 1.1rem; }
+.hello h1 { font-size: clamp(1.6rem, 5vw, 2.2rem); margin: .1rem 0 .35rem; }
+.hello p { margin: 0; font-size: 1.08rem; color: #33332e; }
+.card { padding: 1.2rem 1.15rem; }
+.talk textarea { min-height: 13rem; font-size: 1.1rem; line-height: 1.55; border-radius: 14px; padding: .9rem 1rem; background: #fffdf8; }
+.talk label.big { display: block; font-family: var(--serif); color: var(--moss); font-size: 1.2rem; font-weight: 700; margin: 0 0 .45rem; }
+.go { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin-top: .8rem; }
+.btn-main { text-align: center; justify-content: center; min-height: 52px; padding: .75rem 1.5rem; font: 700 1.08rem/1.2 var(--sans); color: #fff; background: var(--forest); border: 2px solid var(--ink); border-radius: 999px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; }
+.btn-main:hover { background: var(--moss); }
+.btn-main:disabled { opacity: .6; cursor: default; }
+.count { font-size: .85rem; color: var(--muted); margin-left: auto; }
+.reassure { margin: .7rem 0 0; color: var(--muted); font-size: .95rem; }
+.msg-err { color: #8a2f1d; font-weight: 600; margin: .5rem 0 0; }
+/* conversation */
+.thread { display: flex; flex-direction: column; gap: .8rem; }
+.b { max-width: 92%; padding: .75rem .95rem; border: 2px solid var(--ink); border-radius: 16px; background: #fff; white-space: pre-wrap; overflow-wrap: anywhere; }
+.b .who { display: block; font-size: .8rem; font-weight: 700; letter-spacing: .02em; color: var(--clay); margin-bottom: .2rem; white-space: normal; }
+.b.me { align-self: flex-end; background: #E3EBDD; border-radius: 16px 16px 4px 16px; }
+.b.saji { align-self: flex-start; border-radius: 16px 16px 16px 4px; }
+.b.wren { align-self: flex-start; border-radius: 16px 16px 16px 4px; background: #FBF3EC; }
+.line { align-self: center; text-align: center; font-size: .95rem; color: var(--moss); background: rgba(166,184,154,.35); padding: .35rem .9rem; border-radius: 999px; }
+.script { align-self: stretch; border: 2px solid var(--ink); border-radius: 16px; background: #fff; padding: .9rem 1rem; box-shadow: 3px 3px 0 var(--forest); }
+.script .intro { margin: 0 0 .5rem; font-weight: 700; color: var(--moss); }
+.script pre { white-space: pre-wrap; overflow-wrap: anywhere; font: .95rem/1.55 ui-monospace, Menlo, Consolas, monospace; background: #fffdf8; border: 1.5px dashed var(--ink); border-radius: 10px; padding: .8rem; margin: 0 0 .6rem; max-height: 26rem; overflow: auto; }
+.tag { display: inline-block; font-size: .78rem; font-weight: 700; padding: .05rem .5rem; border-radius: 999px; background: var(--sage); border: 1.5px solid var(--ink); margin-left: .35rem; }
+.waiting { align-self: flex-start; display: flex; align-items: center; gap: .55rem; color: var(--moss); font-weight: 600; }
+.dots span { display: inline-block; width: .45rem; height: .45rem; margin-right: .2rem; border-radius: 50%; background: var(--forest); animation: bp 1.2s infinite ease-in-out; }
+.dots span:nth-child(2) { animation-delay: .2s; } .dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes bp { 50% { opacity: .2; } }
+@media (prefers-reduced-motion: reduce) { .dots span { animation: none; } }
+.fold { max-height: 9.5em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); }
+.fold.open { max-height: none; -webkit-mask-image: none; mask-image: none; }
+.b .linkbtn { min-height: 36px; white-space: normal; }
+.closed-note { text-align: center; color: var(--muted); }
+/* quiet "More" */
+details.more { margin: .4rem 0 1.4rem; }
+details.more > summary { cursor: pointer; color: var(--moss); font-weight: 700; list-style: none; min-height: 44px; display: inline-flex; align-items: center; gap: .35rem; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::before { content: "+"; font-size: 1.2rem; width: 1.2rem; }
+details.more[open] > summary::before { content: "–"; }
+.more-body { padding: .2rem 0 0 .2rem; }
+.more-body ul { margin: .3rem 0; padding-left: 1.1rem; }
+.linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--moss); text-decoration: underline; cursor: pointer; min-height: 44px; }
+.checkin summary { cursor: pointer; font-weight: 700; color: var(--moss); min-height: 44px; display: flex; align-items: center; gap: .35rem; list-style: none; }
+.checkin summary::-webkit-details-marker { display: none; }
+.checkin summary::before { content: "+"; font-size: 1.2rem; width: 1.2rem; }
+.checkin details[open] summary::before { content: "–"; }
+.checkin label { font-weight: 600; display: block; margin: .6rem 0 .2rem; }
+.checkin textarea { min-height: 3.2rem; font-size: 1rem; }
+.big-q { font-family: var(--serif); color: var(--moss); font-size: 1.2rem; font-weight: 700; margin: 0 0 .6rem; padding: 0; }
+fieldset { border: 0; margin: 0; padding: 0; }
+.choices { display: grid; gap: .6rem; }
+.choices.pick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.choices.pick.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.choice-card { display: flex; flex-direction: column; gap: .15rem; text-align: left; width: 100%; min-height: 56px; padding: .85rem 1rem; font: inherit; color: var(--ink); background: #fffdf8; border: 2px solid var(--ink); border-radius: 14px; cursor: pointer; }
+.choice-card b { font-size: 1.08rem; color: var(--moss); }
+.choice-card span { color: var(--muted); }
+.choice-card:hover { background: #fff; }
+.choice-card input { position: absolute; opacity: 0; pointer-events: none; }
+.choice-card:has(input:checked) { background: #E3EBDD; box-shadow: 3px 3px 0 var(--forest); }
+.choice-card:has(input:focus-visible) { outline: 3px solid var(--clay); outline-offset: 2px; }
+.ap-step textarea { min-height: 10rem; }
+#ap-stateq textarea { min-height: 4.5rem; }
+#ap-stateq label { display: block; font-weight: 700; margin: .9rem 0 .25rem; }
+.intake-head { display: block; font-size: .85rem; color: var(--muted); margin-bottom: .35rem; white-space: normal; }
+@media (max-width: 520px) { .choices.pick, .choices.pick.three { grid-template-columns: 1fr; } }
+[hidden] { display: none !important; }
+@media (max-width: 520px) { .b { max-width: 100%; } .btn-main { width: 100%; } .count { margin-left: 0; } }
+/* guest free plan */
+.hp { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden; }
+.tool-door { display: flex; flex-direction: column; gap: .2rem; text-decoration: none; color: var(--ink); }
+.tool-door:hover { background: #F7F5EE; }
+.tool-door .td-title { font-family: var(--serif); font-weight: 700; font-size: 1.12rem; color: var(--moss); text-decoration: underline; }
+.tool-door .td-sub { font-size: .95rem; color: var(--muted); }
+.free-line { margin: .9rem 0 0; color: var(--muted); font-size: .95rem; }
+.saved { border-color: var(--forest); box-shadow: 3px 3px 0 var(--forest); }
+.saved .linkrow { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.saved .linkrow input { flex: 1 1 16rem; min-width: 0; font: .95rem/1.4 ui-monospace, Menlo, Consolas, monospace; background: #fffdf8; }
+.saved .em { margin-top: 1rem; padding-top: .8rem; border-top: 1.5px dashed var(--ink); }
+.saved .em label { display: block; font-weight: 700; margin: 0 0 .3rem; }
+.saved .em .row { display: flex; flex-wrap: wrap; gap: .5rem; }
+.saved .em input { flex: 1 1 14rem; min-width: 0; }
+.upsell { text-align: center; }
+.upsell p { margin: 0 0 .7rem; font-size: 1.05rem; color: var(--moss); font-weight: 600; }
+.cap { background: #FBF3EC; border: 2px solid var(--ink); border-radius: 14px; padding: .8rem 1rem; margin: .8rem 0 0; }
+.cap p { margin: 0 0 .4rem; }
+#ap-ts:empty { display: none; }
+#ap-ts { margin-top: .8rem; }
+</style>
+<script src="../access/config.js"></script>
+<script src="../access/dictate.js" defer></script>
+<script src="../access/access.js" data-root="../"></script>
+</head>
+<body>
+<main class="wrap da-bar-slot">
+  <p class="crumb"><a href="../">&larr; Back to the Gremlin Desks</a></p>
+
+  <!-- No greeting room and no first-screen fork: everyone starts at Step A (Bryan t731 + BRYAN-FLOW-FOR-PIP.md). -->
+  <header class="hello">
+    <p class="kicker">Business Planning</p>
+    <h1 id="hello-title">Your business action plan</h1>
+    <p id="hello-line">A few short questions, one at a time. Then Saji Tori writes back with a simple plan.</p>
+  </header>
+
+  <section id="live" hidden>
+    <div id="convo" class="card" hidden aria-live="polite">
+      <div class="thread" id="thread"></div>
+    </div>
+
+    <!-- The 5-step action plan intake (Saji). Wording must match INTAKE-FOR-SAJI.md. Step B questions come from config.js BP_STATE_QUESTIONS (empty until Bryan approves Saji's draft). -->
+    <form id="ap" class="card talk" hidden novalidate aria-live="polite">
+      <p class="small" style="margin:0 0 .4rem;min-height:44px;display:flex;align-items:center"><button type="button" class="linkbtn" data-back id="ap-back">&larr; Back</button> <span id="ap-step" style="margin-left:auto"></span></p>
+      <div class="ap-step" data-step="state">
+        <fieldset><legend class="big-q">Where's your business right now?</legend>
+          <div class="choices pick">
+            <label class="choice-card"><input type="radio" name="ap-state" value="beginning"><b>Just beginning</b></label>
+            <label class="choice-card"><input type="radio" name="ap-state" value="chaos"><b>In chaos</b></label>
+            <label class="choice-card"><input type="radio" name="ap-state" value="grounded"><b>Grounded</b></label>
+            <label class="choice-card"><input type="radio" name="ap-state" value="doing_well"><b>Doing well</b></label>
+            <label class="choice-card"><input type="radio" name="ap-state" value="something_new"><b>Looking for something new</b></label>
+            <label class="choice-card"><input type="radio" name="ap-state" value="other"><b>Other</b></label>
+          </div>
+          <div id="ap-other-wrap" hidden><label class="f" for="ap-other">In a few words</label><input type="text" id="ap-other" maxlength="120"></div>
+        </fieldset>
+      </div>
+      <div class="ap-step" data-step="stateq" hidden><div id="ap-stateq"></div></div>
+      <div class="ap-step" data-step="ask" hidden>
+        <label class="big" for="ap-ask">If you could ask a business consultant one question, what would it be?</label>
+        <p class="help" id="ap-ask-help">Be as detailed or as simple as you like. The more detail you share, the more we can help.</p>
+        <textarea id="ap-ask" aria-describedby="ap-ask-help" maxlength="12000" spellcheck="true"></textarea>
+      </div>
+      <div class="ap-step" data-step="tried" hidden>
+        <label class="big" for="ap-tried">What have you already tried?</label>
+        <p class="help" id="ap-tried-help">Tell us what you've done so far. It helps us sort things out and suggest what to try next.</p>
+        <textarea id="ap-tried" aria-describedby="ap-tried-help" maxlength="6000" spellcheck="true"></textarea>
+      </div>
+      <div class="ap-step" data-step="horizon" hidden>
+        <fieldset><legend class="big-q">How far ahead should your plan look?</legend>
+          <div class="choices pick three">
+            <label class="choice-card"><input type="radio" name="ap-horizon" value="3 months"><b>3 months</b></label>
+            <label class="choice-card"><input type="radio" name="ap-horizon" value="6 months"><b>6 months</b></label>
+            <label class="choice-card"><input type="radio" name="ap-horizon" value="1 year"><b>1 year</b></label>
+          </div>
+        </fieldset>
+        <div id="ap-ts"></div><!-- Turnstile check appears here only once config.js TURNSTILE_SITE_KEY is set (guests only). Off until Bryan adds keys. -->
+      </div>
+      <!-- Honeypot: hidden from people and screen readers. Bots fill every field; anything here means "don't send". -->
+      <div class="hp" aria-hidden="true"><label for="ap-hp">Leave this empty</label><input type="text" id="ap-hp" name="company_website" tabindex="-1" autocomplete="off" data-no-dictate></div>
+      <div class="go"><button class="btn-main" type="submit" id="ap-next">Next</button></div>
+      <p class="msg-err" id="ap-err" role="alert" hidden></p>
+      <div class="cap" id="ap-cap" role="alert" hidden><p id="ap-cap-text"></p><a class="small" id="ap-cap-signin" href="../signin/?next=business-planning">Sign in</a></div>
+      <p class="free-line" id="free-line" hidden>Free, no sign-in needed. <a href="../signin/?next=business-planning" id="free-signin">Sign in for website help and in-depth plans.</a></p>
+    </form>
+
+    <!-- Guests: the return link, shown right after sending (and kept under More after that). -->
+    <section id="saved" class="card saved" hidden aria-labelledby="saved-title">
+      <h2 id="saved-title" class="big-q">Save this link to come back to your plan.</h2>
+      <div class="linkrow"><input type="text" id="ret-link" readonly aria-labelledby="saved-title" data-no-dictate><button type="button" class="btn-main" id="copy-link">Copy link</button></div>
+      <p class="small" id="link-copied" aria-live="polite" style="margin:.35rem 0 0"></p>
+      <p class="small" style="margin:.5rem 0 0">This browser remembers it too, so your plan opens here automatically. Anyone with the link can read your plan, so keep it to yourself.</p>
+      <form class="em" id="em-form" novalidate>
+        <label for="em">Want a note when Saji replies? (optional)</label>
+        <div class="row"><input type="email" id="em" autocomplete="email" maxlength="254" placeholder="you@example.com"><button type="submit" class="da-btn ghost" id="em-save">Save</button></div>
+        <p class="small" id="em-msg" aria-live="polite" style="margin:.35rem 0 0">Notes aren't switched on yet. We'll keep your address for when they are. Your saved link always works.</p>
+      </form>
+    </section>
+
+    <form id="talk" class="card talk" novalidate hidden>
+      <label class="big" for="say" id="say-label">Your reply</label>
+      <textarea id="say" spellcheck="true" maxlength="20000" placeholder="Write (or talk) your reply here."></textarea>
+      <div class="go">
+        <button class="btn-main" type="submit" id="send">Send</button>
+        <span class="count" id="count" aria-live="polite"></span>
+      </div>
+      <p class="msg-err" id="err" role="alert" hidden></p>
+      <p class="reassure" id="reassure">You can write more if you think of something, or close this page. Your conversation will be waiting.</p>
+    </form>
+
+    <!-- Guests, once Saji has written back: the calm way to go deeper. -->
+    <section id="upsell" class="card upsell" hidden>
+      <p id="upsell-text">Want to go deeper, or plan a website? Sign in and Saji can build an in-depth plan with you.</p>
+      <a class="btn-main" id="upsell-btn" href="../signin/?next=business-planning" style="text-decoration:none;display:inline-flex">Sign in</a>
+    </section>
+
+    <!-- Gift certificates and business cards (Moth's templates). Works for everyone, all on this device. -->
+    <a class="card tool-door" id="cards-door" href="cards/"><span class="td-title">Make a gift certificate or business card</span><span class="td-sub">Pick a style, add your details, download a print-ready file. Free, and it all stays on your device.</span></a>
+
+    <details class="more" id="more">
+      <summary>More</summary>
+      <div class="more-body" id="more-body">
+        <p class="small" id="limits-line"></p>
+        <div id="plans"></div>
+        <p><button type="button" class="linkbtn" id="new-plan" hidden>Start a fresh plan</button></p>
+        <div id="more-saved"></div>
+        <p class="small">Your answers go to Saji Tori, our business planner. If you're signed in and ready for a website, Saji can bring in Wren, our website designer, to write a starter script for your website. You paste that script into Remixer, the tool that turns it into a first draft of your site. Bryan can see conversations to keep things running well. Please leave out passwords and anyone's private details. If you use the 🎤 button, your browser turns speech into text, and some browsers send the audio to their own speech service to do that.</p>
+      </div>
+    </details>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var A = window.DesksAccess, C = A.config, esc = A.esc, bp = A.api.bp, G = A.api.bpGuest, MAX = A.BP_MAX || 20000;
+  var $ = function (id) { return document.getElementById(id); };
+  // mode: "member" (Basic/Full: the signed-in conversation, unchanged) or "guest" (free plan, no login; also people waiting for approval)
+  var state = { mode: null, me: null, limits: null, threads: [], cur: null, msgs: [], unsub: null, token: null, justSent: false, poll: null };
+  var INTAKE_NAME = { action_plan: "Business action plan", website_consult: "Website consult", moth_design: "Design request for Moth" };
+  var STATES = { beginning: "Just beginning", chaos: "In chaos", grounded: "Grounded", doing_well: "Doing well", something_new: "Looking for something new", other: "Other" };
+  var STATE_Q = C.BP_STATE_QUESTIONS || {};
+  var SCRIPT_INTRO = "That's the starter website script from Wren. Copy it, then paste it into Remixer, the tool that turns this into a first draft of your site. After that, swap in your real details. I'm still here if you have questions.";
+  var HELP_AFTER = "You can write more if you think of something, or close this page. Your conversation will be waiting.";
+  var HELLO_START = "A few short questions, one at a time. Then Saji Tori writes back with a simple plan.";
+  var HELLO_THREAD = "Here's your conversation with Saji. Take your time.";
+  var LS_TOKEN = "desksBp.guestToken", LS_DEVICE = "desksBp.device", TOKEN_RE = /^[A-Za-z0-9_-]{40,100}$/;
+  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k) || ""; if (v === "") localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return ""; } }
+  function randKey(n) { var a = new Uint8Array(n); crypto.getRandomValues(a); return btoa(String.fromCharCode.apply(null, a)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+  function deviceKey() { var d = ls(LS_DEVICE); if (!/^[A-Za-z0-9_-]{20,200}$/.test(d)) { d = randKey(24); ls(LS_DEVICE, d); } return d; }
+
+  // Long posts fold to a few lines so the conversation stays calm; "Show all" opens them.
+  function para(s) { s = String(s || ""); return s.length > 900 ? '<div class="fold">' + esc(s) + '</div><button type="button" class="linkbtn" data-unfold>Show all</button>' : esc(s); }
+  function bubble(m) {
+    if (m.author === "status") return '<p class="line">' + esc(m.body) + "</p>";
+    if (m.author === "person") {
+      var body = m.body, head = "";
+      var cut = body.indexOf("\n---\n");
+      if (body.indexOf("Intake: ") === 0 && cut > -1) {
+        var kv = {}; body.slice(0, cut).split("\n").forEach(function (l) { var i = l.indexOf(": "); if (i > 0) kv[l.slice(0, i)] = l.slice(i + 2); });
+        head = [INTAKE_NAME[kv.Intake] || "", kv.State, kv.Horizon ? "plan for " + kv.Horizon : ""].filter(Boolean).join(" · ");
+        body = body.slice(cut + 5);
+      }
+      return '<div class="b me"><span class="who">You</span>' + (head ? '<span class="intake-head">' + esc(head) + "</span>" : "") + para(body) + "</div>";
+    }
+    var label = m.author_label || m.label || "Saji Tori";
+    if ((m.kind || "text") === "script") {
+      var rx = C.REMIXER_URL ? ' <a class="small" href="' + esc(C.REMIXER_URL) + '" target="_blank" rel="noopener">Open Remixer</a>' : ""; /* PLACEHOLDER: link appears once config.js REMIXER_URL is set */
+      return '<div class="script"><p class="intro">' + esc(SCRIPT_INTRO) + (m.reviewed_by ? ' <span class="tag">Looked over by ' + esc(m.reviewed_by) + "</span>" : "") + "</p>" +
+        "<pre>" + esc(m.body) + '</pre><div class="go" style="margin-top:0"><button type="button" class="btn-main" data-copy>Copy the script</button>' + rx + '<span class="small" data-copied aria-live="polite"></span></div></div>';
+    }
+    if (label === "Wren") return '<div class="b wren"><span class="who">Wren &middot; our website designer</span>' + para(m.body) + "</div>";
+    return '<div class="b saji"><span class="who">Saji Tori</span>' + para(m.body) + "</div>";
+  }
+  function waitingLine(t, msgs) {
+    if (!t || t.status !== "open") return "";
+    var txt = "", last = msgs.filter(function (m) { return m.author !== "status"; }).pop();
+    // Never show a "writing" line under a message that has already arrived.
+    var wrenJustPosted = last && last.author === "bot" && (last.author_label || last.label) === "Wren";
+    if (t.phase === "script_review") txt = wrenJustPosted ? "" : "Your script is getting a quick look-over.";
+    else if (t.phase === "waiting_on_wren") txt = wrenJustPosted ? (last.kind === "script" ? "" : "Wren has a couple of questions for you.") : "Wren is writing your script.";
+    else if (last && last.author === "person") txt = "Saji is reading.";
+    var lastAny = msgs[msgs.length - 1]; if (lastAny && lastAny.author === "status" && lastAny.body === txt) txt = "";
+    if (!txt) return "";
+    if (txt === "Wren has a couple of questions for you.") return '<p class="waiting" data-waiting>' + txt + "</p>";
+    return '<p class="waiting" data-waiting><span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>' + txt + "</p>";
+  }
+  function wireCopy(root) {
+    root.querySelectorAll("[data-unfold]").forEach(function (b) { b.onclick = function () { var f = b.previousElementSibling, open = f.classList.toggle("open"); b.textContent = open ? "Show less" : "Show all"; }; });
+    root.querySelectorAll("[data-copy]").forEach(function (b) {
+      b.onclick = function () {
+        var pre = b.closest(".script").querySelector("pre"), out = b.parentNode.querySelector("[data-copied]");
+        var done = function () { out.textContent = "Copied. Paste this into Remixer, the tool that builds your site from the script."; };
+        if (navigator.clipboard) navigator.clipboard.writeText(pre.textContent).then(done, function () { out.textContent = "Select the text above and copy it."; });
+        else out.textContent = "Select the text above and copy it.";
+      };
+    });
+  }
+
+  /* ---------- shared drawing ---------- */
+  function setErr(msg) { $("err").textContent = msg || ""; $("err").hidden = !msg; }
+  function count() { var n = $("say").value.length; $("count").textContent = n > MAX * 0.8 ? n.toLocaleString() + " / " + MAX.toLocaleString() : ""; }
+  function turnsLeft() { var L = state.limits, t = state.cur; if (!L || L.turn_limit == null || !t) return null; return Math.max(L.turn_limit - t.visitor_turns, 0); }
+  function sajiHasReplied() { return state.msgs.some(function (m) { return m.author === "bot"; }); }
+  function signedIn() { return state.me && state.me.role !== "guest"; }
+
+  function drawLimits() {
+    var L = state.limits || {}, bits = [];
+    if (state.mode === "guest") {
+      bits.push("A free plan includes up to " + (L.turn_limit || 6) + " messages from you.");
+    } else {
+      if (L.turn_limit == null) bits.push("No message limit."); else bits.push("Up to " + L.turn_limit + " messages per conversation.");
+      if (L.wren_scripts != null) bits.push(L.wren_scripts === 1 ? "One script from Wren per conversation." : "Up to " + L.wren_scripts + " scripts from Wren per conversation.");
+    }
+    var left = turnsLeft(); if (left != null && state.cur && state.cur.status === "open") bits.push(left === 0 ? "No messages left in this conversation." : "You have " + left + " message" + (left === 1 ? "" : "s") + " left in this conversation.");
+    $("limits-line").textContent = bits.join(" ");
+    if (state.mode !== "member") { $("plans").innerHTML = ""; $("new-plan").hidden = true; return; }
+    var past = state.threads.filter(function (t) { return !state.cur || t.id !== state.cur.id; });
+    $("plans").innerHTML = past.length ? "<p class=\"small\" style=\"margin:.2rem 0\">Earlier conversations:</p><ul>" + past.map(function (t) {
+      return '<li><a href="?t=' + t.id + '" data-open="' + t.id + '">' + esc(t.title) + "</a> <span class=\"small\">(" + (t.status === "open" ? "open" : "finished") + ")</span></li>"; }).join("") + "</ul>" : "";
+    $("plans").querySelectorAll("[data-open]").forEach(function (a) { a.onclick = function (e) { e.preventDefault(); openThread(+a.dataset.open); }; });
+    $("new-plan").hidden = !state.cur;
+    $("new-plan").onclick = async function () {
+      if (state.cur && state.cur.status === "open") {
+        if (!confirm("Finish this conversation and start a fresh plan? You can still read it later under More.")) return;
+        await bp.close(state.cur.id);
+      }
+      history.replaceState(null, "", "./"); state.cur = null; await reload();
+    };
+  }
+
+  function drawThread() {
+    var t = state.cur, guest = state.mode === "guest";
+    if (!t) {
+      // No conversation yet: Step A of the intake. No greeting room, no fork.
+      $("convo").hidden = true; $("talk").hidden = true; $("saved").hidden = true; $("upsell").hidden = true;
+      $("hello-line").textContent = HELLO_START;
+      $("ap").hidden = false; $("free-line").hidden = !guest;
+      if (guest && signedIn()) $("free-line").textContent = "Free while Bryan sets up your account.";
+      drawAp();
+      return;
+    }
+    $("ap").hidden = true;
+    $("convo").hidden = false;
+    $("hello-line").textContent = HELLO_THREAD;
+    var left = turnsLeft(), wl = waitingLine(t, state.msgs), limitNote = "";
+    var more = guest ? (signedIn() ? "Once Bryan approves your account, Saji can build an in-depth plan with you." : "Sign in and Saji can build an in-depth plan with you.") : "Bryan can open up more.";
+    if (t.status === "open" && left === 0) {
+      if (wl.indexOf("Saji is reading.") > -1) { wl = ""; limitNote = "Saji is still reading what you sent. That's all the messages for this " + (guest ? "free plan" : "conversation") + " for now." + (guest ? " " + more : " If you'd like to keep going after he writes back, Bryan can open up more."); }
+      else limitNote = "That's all the messages for this " + (guest ? "free plan" : "conversation") + " for now." + (guest ? " " + more : " If you'd like to keep going, Bryan can open up more.");
+    }
+    $("thread").innerHTML = state.msgs.map(bubble).join("") + wl +
+      (limitNote ? '<p class="closed-note" data-limit>' + esc(limitNote) + "</p>" : "") +
+      (t.status !== "open" ? '<p class="closed-note">This conversation is finished.' + (guest ? "" : " Open <b>More</b> to start a fresh one.") + "</p>" : "");
+    wireCopy($("thread"));
+    $("talk").hidden = t.status !== "open" || left === 0;
+    $("reassure").textContent = HELP_AFTER;
+    if (guest) {
+      // Return link: right under the conversation on the visit they sent it; under More after that.
+      $("saved").hidden = false; $("ret-link").value = location.origin + location.pathname + "?t=" + state.token;
+      if (state.justSent) $("talk").parentNode.insertBefore($("saved"), $("talk")); else $("more-saved").appendChild($("saved"));
+      $("upsell").hidden = !sajiHasReplied();
+      if (signedIn()) { $("upsell-text").textContent = "Once Bryan approves your account, Saji can build an in-depth plan with you, or help plan a website."; $("upsell-btn").hidden = true; }
+    } else { $("saved").hidden = true; $("upsell").hidden = true; }
+  }
+
+  /* ---------- signed-in members (Basic / Full): unchanged behaviour ---------- */
+  async function openThread(id) {
+    if (state.unsub) { state.unsub(); state.unsub = null; }
+    state.cur = state.threads.find(function (t) { return t.id === id; }) || null;
+    if (state.cur) { history.replaceState(null, "", "?t=" + id); state.msgs = await bp.messages(id); state.unsub = bp.subscribe(id, refresh); }
+    drawThread(); drawLimits();
+  }
+  async function refresh() {
+    if (state.mode === "guest") return guestRefresh();
+    state.threads = await bp.threads(); state.limits = await bp.limits();
+    if (state.cur) { state.cur = state.threads.find(function (t) { return t.id === state.cur.id; }) || state.cur; state.msgs = await bp.messages(state.cur.id); }
+    drawThread(); drawLimits();
+  }
+  async function reload() {
+    state.limits = await bp.limits(); state.threads = await bp.threads();
+    var want = +(new URLSearchParams(location.search).get("t") || 0);
+    var pick = state.threads.find(function (t) { return t.id === want; }) || state.threads.find(function (t) { return t.status === "open"; });
+    if (pick) await openThread(pick.id); else { state.cur = null; ap.t0 = Date.now(); drawThread(); drawLimits(); }
+  }
+
+  /* ---------- guests: the free action plan (no login) ---------- */
+  function applyView(v) { state.cur = v.thread; state.msgs = v.messages || []; state.limits = v.limits || { turn_limit: 6 }; drawThread(); drawLimits(); }
+  async function guestOpen(token, quiet) {
+    try {
+      var v = await G.open(token);
+      state.token = token; ls(LS_TOKEN, token);
+      if (new URLSearchParams(location.search).get("t") !== token) history.replaceState(null, "", "?t=" + token);
+      applyView(v);
+      if (!state.unsub) state.unsub = G.subscribe(v.thread.id, guestRefresh);
+      startPoll();
+      return true;
+    } catch (e) {
+      if (ls(LS_TOKEN) === token) ls(LS_TOKEN, "");
+      history.replaceState(null, "", "./"); state.cur = null; state.token = null; drawThread(); drawLimits();
+      if (!quiet) apErr(e.code === "not_found" ? e.message : "Your plan couldn't load just now. Please refresh in a moment.");
+      return false;
+    }
+  }
+  async function guestRefresh() { if (!state.token) return; try { applyView(await G.open(state.token)); } catch (e) {} }
+  function waitingForSaji() { var last = state.msgs.filter(function (m) { return m.author !== "status"; }).pop(); return !!(state.cur && state.cur.status === "open" && last && last.author === "person"); }
+  function startPoll() {
+    if (state.poll) return;
+    // Guests have no live channel. While Saji is writing, check back every 20 seconds (only while the page is in view).
+    state.poll = setInterval(function () { if (document.visibilityState === "visible" && waitingForSaji()) guestRefresh(); }, 20000);
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") guestRefresh(); });
+  }
+  function tsToken() { return window.__bpTurnstileToken || null; }
+  function maybeTurnstile() {
+    // Wired but OFF: nothing loads until config.js TURNSTILE_SITE_KEY is set.
+    if (state.mode !== "guest" || !C.TURNSTILE_SITE_KEY || $("ap-ts").dataset.on) return;
+    $("ap-ts").dataset.on = "1";
+    window.__bpTurnstileReady = function () { window.turnstile.render("#ap-ts", { sitekey: C.TURNSTILE_SITE_KEY, callback: function (t) { window.__bpTurnstileToken = t; } }); };
+    var s = document.createElement("script"); s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=__bpTurnstileReady&render=explicit"; s.async = true; document.head.appendChild(s);
+  }
+  $("copy-link").onclick = function () {
+    var v = $("ret-link").value, done = function () { $("link-copied").textContent = "Copied. Keep it somewhere safe, like your notes or an email to yourself."; };
+    if (navigator.clipboard) navigator.clipboard.writeText(v).then(done, function () { $("ret-link").select(); $("link-copied").textContent = "Select the link above and copy it."; });
+    else { $("ret-link").select(); $("link-copied").textContent = "Select the link above and copy it."; }
+  };
+  $("ret-link").addEventListener("focus", function () { this.select(); });
+  $("em-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var v = $("em").value.trim();
+    if (v && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { $("em-msg").textContent = "That doesn't look like an email address. You can also leave it empty."; return; }
+    $("em-save").disabled = true;
+    try { await G.email(state.token, v); $("em-msg").textContent = v ? "Saved. Notes aren't switched on yet; we'll use it once they are. Your saved link always works." : "Removed."; }
+    catch (err) { $("em-msg").textContent = err.message; }
+    finally { $("em-save").disabled = false; }
+  });
+
+  /* ---------- reply box ---------- */
+  $("say").addEventListener("input", function () { count(); setErr(""); });
+  $("say").addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); $("talk").requestSubmit(); } });
+  $("talk").addEventListener("submit", async function (e) {
+    e.preventDefault(); setErr("");
+    var text = $("say").value.trim(); if (!text) { setErr("Write a little something first. A sentence is plenty."); $("say").focus(); return; }
+    if (!state.cur) return;
+    $("send").disabled = true;
+    try {
+      if (window.DesksDictate) window.DesksDictate.stop();
+      if (state.mode === "guest") { applyView(await G.post(state.token, text)); }
+      else { await bp.post(state.cur.id, text); await refresh(); }
+      $("say").value = ""; count();
+    } catch (err) { setErr(err.message || "That didn't send. Please try again."); }
+    finally { $("send").disabled = false; }
+  });
+
+  /* ---------- the action plan intake: one step at a time ---------- */
+  var ap = { i: 0, t0: Date.now() };
+  function apSteps() { var st = apVal("ap-state"), qs = (st && STATE_Q[st]) || []; return ["state"].concat(qs.length ? ["stateq"] : [], ["ask", "tried", "horizon"]); }
+  function apVal(name) { var r = document.querySelector('[name="' + name + '"]:checked'); return r ? r.value : ""; }
+  function apErr(m) { $("ap-err").textContent = m || ""; $("ap-err").hidden = !m; }
+  function apCap(m) { $("ap-cap-text").textContent = m || ""; $("ap-cap").hidden = !m; $("ap-cap-signin").hidden = signedIn(); }
+  function drawAp() {
+    var steps = apSteps(), cur = steps[ap.i];
+    document.querySelectorAll(".ap-step").forEach(function (d) { d.hidden = d.dataset.step !== cur; });
+    $("ap-step").textContent = "Step " + (ap.i + 1) + " of " + steps.length;
+    $("ap-back").hidden = ap.i === 0;   // nothing before Step A
+    $("ap-next").textContent = cur === "horizon" ? "Send to Saji" : "Next";
+    $("ap-other-wrap").hidden = apVal("ap-state") !== "other";
+    if (cur === "stateq") {
+      var st = apVal("ap-state"), box = $("ap-stateq");
+      if (box.dataset.for !== st) {
+        box.dataset.for = st;
+        box.innerHTML = (STATE_Q[st] || []).map(function (q, i) { return '<label for="apq-' + i + '">' + esc(q.q) + '</label><textarea id="apq-' + i + '" data-q="' + esc(q.q) + '" maxlength="600"></textarea>'; }).join("");
+      }
+    }
+    if (cur === "horizon") maybeTurnstile();
+    apErr("");
+  }
+  document.querySelectorAll('[name="ap-state"]').forEach(function (r) { r.addEventListener("change", function () { $("ap-other-wrap").hidden = r.value !== "other" || !r.checked; if (r.value === "other") $("ap-other").focus(); apErr(""); }); });
+  document.querySelectorAll('[name="ap-horizon"]').forEach(function (r) { r.addEventListener("change", function () { apErr(""); }); });
+  // Every nudge clears as soon as the person types or picks something.
+  $("ap").addEventListener("input", function () { apErr(""); });
+  $("ap").addEventListener("change", function () { apErr(""); });
+  $("ap-back").onclick = function () { if (ap.i > 0) { ap.i--; drawAp(); } };
+  function apBody() {
+    var st = apVal("ap-state"), stLabel = st === "other" ? ("Other" + ($("ap-other").value.trim() ? ": " + $("ap-other").value.trim() : "")) : STATES[st];
+    var hz = apVal("ap-horizon");
+    var head = ["Intake: action_plan", "State: " + stLabel, "Horizon: " + hz].concat(state.mode === "guest" ? ["Level: guest_free"] : []).join("\n");
+    var parts = ["Where's your business right now?\n" + stLabel];
+    document.querySelectorAll("#ap-stateq textarea[data-q]").forEach(function (ta) { parts.push(ta.dataset.q + "\n" + (ta.value.trim() || "(skipped)")); });
+    parts.push("If you could ask a business consultant one question, what would it be?\n" + $("ap-ask").value.trim());
+    parts.push("What have you already tried?\n" + ($("ap-tried").value.trim() || "(left blank)"));
+    return head + "\n---\n" + parts.join("\n\n");
+  }
+  $("ap").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var steps = apSteps(), cur = steps[ap.i];
+    if (cur === "state" && !apVal("ap-state")) return apErr("Pick the one that feels closest. There's no wrong answer.");
+    if (cur === "ask" && !$("ap-ask").value.trim()) { $("ap-ask").focus(); return apErr("Write your question in any words. A sentence is plenty."); }
+    if (cur !== "horizon") { ap.i++; drawAp(); var nx = document.querySelector('.ap-step:not([hidden]) textarea, .ap-step:not([hidden]) input:not([type=radio])'); if (nx) nx.focus(); return; }
+    if (!apVal("ap-horizon")) return apErr("Pick whichever feels right. You can change it later with Saji.");
+    $("ap-next").disabled = true; apCap("");
+    try {
+      if (window.DesksDictate) window.DesksDictate.stop();
+      if (state.mode === "guest") {
+        var r = await G.start({ body: apBody(), title: "Free action plan", device: deviceKey(), hp: $("ap-hp").value, form_ms: Date.now() - ap.t0, turnstile: tsToken() });
+        state.justSent = true; await guestOpen(r.token);
+        $("saved").scrollIntoView({ block: "nearest" });
+      } else {
+        var id = await bp.start("Business action plan", apBody(), "action_plan");
+        state.threads = await bp.threads(); await openThread(id); await refresh();
+      }
+    } catch (err) {
+      if (err.code === "cap" || err.code === "off") apCap(err.message);
+      else if (err.code === "open" && ls(LS_TOKEN)) { await guestOpen(ls(LS_TOKEN)); }
+      else apErr(err.message || "That didn't send. Please try again.");
+    }
+    finally { $("ap-next").disabled = false; }
+  });
+
+  /* ---------- start ---------- */
+  A.ready.then(async function (me) {
+    state.me = me;
+    var L = await bp.limits().catch(function () { return { level: "example" }; });
+    $("live").hidden = false; count();
+    if (L.level === "basic" || L.level === "full") {
+      state.mode = "member";
+      try { await reload(); } catch (e) { setErr("Something went wrong loading your conversation. Please refresh."); }
+      return;
+    }
+    // Guests (and anyone not yet at Basic/Full): the free action plan. A saved link (?t=...) or this browser's memory reopens it.
+    state.mode = "guest"; state.limits = { turn_limit: 6 };
+    var q = new URLSearchParams(location.search).get("t") || "", tok = TOKEN_RE.test(q) ? q : ls(LS_TOKEN);
+    ap.t0 = Date.now();
+    if (tok && TOKEN_RE.test(tok)) { await guestOpen(tok, !TOKEN_RE.test(q)); return; }   // on failure it shows Step A (and a note for a bad link)
+    drawThread(); drawLimits();
+  });
+})();
+</script>
+</body>
+</html>
