@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#120c18">
+<title>Gremlin Overtime · Pip's Workshop · The Gremlin Desks</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="../../desks-preview-q7m4/icons/favicon-32.png">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="view"></canvas>
+  <canvas id="weapon"></canvas>
+  <div id="flash"></div>
+  <div id="hurt"></div>
+
+  <div id="hud" class="hidden">
+    <div id="crosshair"></div>
+    <div id="hurt-dir" class="hidden"><i></i></div>
+    <div id="toast"></div>
+    <div id="bossbar" class="hidden"><div class="label">THE MEGA-COPIER</div><div class="track"><div id="bossfill"></div></div></div>
+    <div id="hud-bottom">
+      <div class="panel" id="hp-panel"><span class="ico heart"></span><span id="hp">100</span></div>
+      <div class="panel" id="key-panel"><span class="ico kc off" id="keyico"></span></div>
+      <div class="panel" id="ammo-panel"><span id="wname">STICKY NOTES</span><span id="ammo">60</span></div>
+    </div>
+    <div id="fps" class="hidden"></div>
+    <button id="btn-pause" class="tbtn" aria-label="Pause">II</button>
+  </div>
+
+  <div id="touch" class="hidden">
+    <div id="touch-layer"></div>
+    <div id="stick-base" class="hidden"><div id="stick-knob"></div></div>
+    <div id="walk-dot" class="hidden"></div>
+    <div id="tap-ring" class="hidden"></div>
+    <button id="btn-fire" class="tbtn">FIRE</button>
+    <button id="btn-weapon" class="tbtn">SWAP</button>
+  </div>
+
+  <div id="rotate-hint" class="hidden">Turn your phone sideways for the best view <button id="rotate-ok">OK</button></div>
+
+  <div id="screen-title" class="screen">
+    <div class="card">
+      <div class="logo">GREMLIN<br><span>OVERTIME</span></div>
+      <div class="sub">a Gremlin Office blaster &middot; test level</div>
+      <p class="blurb">The paperwork came alive after hours. Grab the red access card, get through the server room, and unplug the Mega-Copier.</p>
+      <button class="big" id="btn-play">PLAY</button>
+      <div class="row">
+        <button id="btn-settings-t">CONTROLS &amp; SETTINGS</button>
+        <button id="btn-help-t">HOW TO PLAY</button>
+      </div>
+      <div class="tiny">Cartoon zaps only. Paper monsters pop into confetti.</div>
+      <div class="row"><a class="ws-back" href="../">&larr; PIP'S WORKSHOP</a></div>
+    </div>
+  </div>
+
+  <div id="screen-pick" class="screen hidden">
+    <div class="card wide">
+      <h2>PICK YOUR SURVEYOR</h2>
+      <p class="blurb">Who's clocking in tonight? It changes your gloves and your HUD. That's it. They're all equally brave.</p>
+      <div class="picks">
+        <button class="pick" data-look-pick="nib"><i class="sw" style="background:#5aa848"></i><b>NIB</b><small>Moss gloves. Hums while filing.</small></button>
+        <button class="pick" data-look-pick="tansy"><i class="sw" style="background:#e0a030"></i><b>TANSY</b><small>Marigold gloves. Has opinions about staplers.</small></button>
+        <button class="pick" data-look-pick="quill"><i class="sw" style="background:#9a7ad0"></i><b>QUILL</b><small>Lilac gloves. Labels everything, twice.</small></button>
+      </div>
+      <div class="row"><button id="btn-pick-back">BACK</button></div>
+    </div>
+  </div>
+
+  <div id="screen-pause" class="screen hidden">
+    <div class="card">
+      <h2>PAUSED</h2>
+      <button class="big" id="btn-resume">RESUME</button>
+      <div class="row">
+        <button id="btn-settings-p">CONTROLS &amp; SETTINGS</button>
+        <button id="btn-help-p">HOW TO PLAY</button>
+      </div>
+      <div class="row">
+        <button id="btn-restart-p">RESTART LEVEL</button>
+        <button id="btn-quit">TITLE SCREEN</button>
+      </div>
+      <div class="row"><a class="ws-back" href="../">&larr; PIP'S WORKSHOP</a></div>
+    </div>
+  </div>
+
+  <div id="screen-end" class="screen hidden">
+    <div class="card">
+      <h2 id="end-title">CLOCKED OUT!</h2>
+      <p id="end-text"></p>
+      <div id="end-stats"></div>
+      <button class="big" id="btn-restart-e">PLAY AGAIN</button>
+      <div class="row"><button id="btn-quit-e">TITLE SCREEN</button><a class="ws-back" href="../">&larr; PIP'S WORKSHOP</a></div>
+    </div>
+  </div>
+
+  <div id="screen-help" class="screen hidden">
+    <div class="card wide scroll">
+      <h2>HOW TO PLAY</h2>
+      <h3>Goal</h3>
+      <p>Find the <b>red access card</b>, open the red door, cross the server room, and beat the <b>Mega-Copier</b> in the Copy Center. Then hop on the green exit pad.</p>
+      <h3>Touch (phone &amp; iPad)</h3>
+      <p><b>Tap &amp; Drag</b> (default): drag anywhere to look around. Tap the floor to walk there, and you'll find your own way around walls. Tap a monster or hold FIRE to shoot. Aim help and auto-fire do the fiddly parts.</p>
+      <p><b>Hold to Walk</b>: hold the left half of the screen to walk forward. Slide your thumb sideways to sidestep, or down to back up. Drag on the right half to look.</p>
+      <p><b>Classic Sticks</b>: a floating stick on the left, drag to look on the right.</p>
+      <h3>Keyboard &amp; mouse</h3>
+      <p>WASD or arrow keys to move, mouse to look (click the game first), click to fire, 1/2/3 or the mouse wheel to swap gadgets, E to use, Esc to pause.</p>
+      <h3>Gadgets</h3>
+      <p><b>1 Sticky-Note Blaster</b>: rapid fire, and the notes slowly refill. <b>2 Snap Spreader</b>: a burst of rubber bands. <b>3 Confetti Cannon</b>: a big party pop that hits everything nearby.</p>
+      <h3>Psst</h3>
+      <p>One wall in the cubicle farm has a note on it. Walk into it, or ping it.</p>
+      <button class="big close">GOT IT</button>
+    </div>
+  </div>
+
+  <div id="screen-settings" class="screen hidden">
+    <div class="card wide scroll">
+      <h2>CONTROLS &amp; SETTINGS</h2>
+      <h3>Touch controls</h3>
+      <div class="schemes">
+        <label class="scheme"><input type="radio" name="scheme" value="tap"><span><b>Tap &amp; Drag</b> (recommended)<br><small>Drag to look, tap the floor to walk there, tap monsters to shoot. No stick.</small></span></label>
+        <label class="scheme"><input type="radio" name="scheme" value="hold"><span><b>Hold to Walk</b><br><small>Hold the left side to walk, slide to sidestep or back up. Right side looks. No stick.</small></span></label>
+        <label class="scheme"><input type="radio" name="scheme" value="stick"><span><b>Classic Sticks</b><br><small>Floating stick on the left, look on the right.</small></span></label>
+      </div>
+      <div class="setting"><span>Look speed</span><input type="range" id="set-sens" min="0.3" max="3" step="0.1"><output id="out-sens"></output></div>
+      <div class="setting"><span>Aim help</span><select id="set-aim"><option value="touch">Touch only</option><option value="always">Always</option><option value="off">Off</option></select></div>
+      <div class="setting"><span>Auto-fire on target</span><select id="set-autofire"><option value="touch">Touch only</option><option value="always">Always</option><option value="off">Off</option></select></div>
+      <div class="setting"><span>Tilt to look (gyro)</span><label class="sw"><input type="checkbox" id="set-gyro"><i></i></label></div>
+      <div class="setting"><span>Invert look up/down</span><label class="sw"><input type="checkbox" id="set-invert"><i></i></label></div>
+      <h3>Game</h3>
+      <div class="setting"><span>Difficulty</span><select id="set-diff"><option value="chill">Chill</option><option value="normal">Normal</option><option value="spicy">Spicy</option></select></div>
+      <div class="setting"><span>Sound</span><input type="range" id="set-vol" min="0" max="1" step="0.05"><output id="out-vol"></output></div>
+      <div class="setting"><span>Pixel size</span><select id="set-res"><option value="auto">Auto (smoothest)</option><option value="chunky">Extra chunky</option><option value="sharp">Sharper</option></select></div>
+      <div class="setting"><span>Show FPS</span><label class="sw"><input type="checkbox" id="set-fps"><i></i></label></div>
+      <button class="big close">DONE</button>
+    </div>
+  </div>
+</div>
+<script src="vendor/three-lite.min.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/art.js"></script>
+<script src="js/level.js"></script>
+<script src="js/game.js"></script>
+<script src="js/input.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

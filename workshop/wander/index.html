@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>The Wander · Pip's Workshop · The Gremlin Desks</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Walk an endless, humming yellow office maze as a visiting gremlin. Nothing to fight. Just wander.">
+<meta name="theme-color" content="#3a3418">
+<link rel="icon" type="image/png" sizes="32x32" href="../../desks-preview-q7m4/icons/favicon-32.png">
+<link rel="stylesheet" href="wander.css">
+</head>
+<body>
+<canvas id="view" aria-label="The Wander: a first-person walk through yellow office halls"></canvas>
+<div id="hud" hidden>
+  <a class="pill home desks-home" href="../" aria-label="Back to Pip's Workshop">&larr; Workshop</a>
+  <div class="badge" aria-label="You are Pebble, a visitor"><b>PEBBLE</b><span>VISITOR</span></div>
+  <div class="tr">
+    <button type="button" class="pill" id="btn-new" aria-label="Drop me somewhere new">New spot</button>
+    <button type="button" class="pill" id="btn-sound" aria-pressed="true" aria-label="Sound on">Sound: on</button>
+    <button type="button" class="pill" id="btn-help" aria-label="How to walk around">?</button>
+  </div>
+  <p class="finds" id="finds" aria-live="polite">Odd finds: 0</p>
+  <p class="toast" id="toast" role="status" aria-live="polite"></p>
+  <button type="button" class="hold" id="btn-walk" aria-label="Hold to walk forward">Hold to walk</button>
+  <div class="ring" id="ring" hidden></div>
+  <p class="spot" id="spot"></p>
+</div>
+<div class="card-wrap" id="intro">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="w-title">
+    <p class="k">Pip's Workshop · sandbox</p>
+    <h1 id="w-title">The Wander</h1>
+    <p>You're <b>Pebble</b>, a visiting gremlin with a lanyard and nowhere to be. You've wandered into the long yellow halls behind the office. They hum. They go on for a while.</p>
+    <p>There's nothing to fight and nothing to win. Walk around, notice the odd things, and press <b>New spot</b> whenever you want to be somewhere else.</p>
+    <p class="how" id="how"></p>
+    <div class="row"><button type="button" class="go" id="btn-start">Start wandering</button><a class="ghost" href="../">Back to the Workshop</a></div>
+  </div>
+</div>
+<noscript><p style="padding:1rem;color:#fff">The Wander needs JavaScript.</p></noscript>
+<script src="../overtime/vendor/three-lite.min.js"></script>
+<script src="wander.js"></script>
+</body>
+</html>

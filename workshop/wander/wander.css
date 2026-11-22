@@ -1,0 +1,31 @@
+:root { --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #2a2614; color: #fff; font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; touch-action: none; -webkit-user-select: none; user-select: none; overscroll-behavior: none; }
+#view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+#hud[hidden], [hidden] { display: none !important; }
+.pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding: 0 14px; border: 2px solid #1A1A18; border-radius: 999px; background: rgba(241, 237, 226, .92); color: #3A4A33; font: 700 15px/1 system-ui, sans-serif; text-decoration: none; cursor: pointer; box-shadow: 2px 2px 0 #1A1A18; }
+.pill:focus-visible, .hold:focus-visible, .card button:focus-visible, .card a:focus-visible { outline: 3px solid #ffd84a; outline-offset: 2px; }
+.home { position: fixed; z-index: 5; top: calc(var(--sat) + 10px); left: calc(var(--sal) + 10px); background: #3A4A33; color: #F1EDE2; }
+.badge { position: fixed; z-index: 4; top: calc(var(--sat) + 62px); left: calc(var(--sal) + 10px); display: flex; flex-direction: column; padding: 6px 10px; border: 2px solid #1A1A18; border-radius: 8px; background: #f3ead0; color: #3a3418; box-shadow: 2px 2px 0 #1A1A18; font: 700 12px/1.15 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .08em; }
+.badge span { color: #a0522d; }
+.tr { position: fixed; z-index: 5; top: calc(var(--sat) + 10px); right: calc(var(--sar) + 10px); display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 70vw; }
+.finds { position: fixed; z-index: 4; top: calc(var(--sat) + 62px); right: calc(var(--sar) + 10px); margin: 0; padding: 4px 10px; border-radius: 999px; background: rgba(26, 26, 24, .55); font-size: 13px; }
+.toast { position: fixed; z-index: 6; left: 50%; bottom: calc(var(--sab) + 92px); transform: translateX(-50%); margin: 0; max-width: min(92vw, 460px); padding: 8px 14px; border-radius: 12px; background: rgba(26, 26, 24, .72); text-align: center; font-size: 15px; opacity: 0; transition: opacity .35s; pointer-events: none; }
+.toast.on { opacity: 1; }
+.spot { position: fixed; z-index: 3; left: calc(var(--sal) + 10px); bottom: calc(var(--sab) + 8px); margin: 0; font: 11px/1 ui-monospace, Menlo, monospace; opacity: .6; pointer-events: none; }
+.hold { position: fixed; z-index: 5; right: calc(var(--sar) + 14px); bottom: calc(var(--sab) + 18px); min-width: 88px; min-height: 64px; padding: 0 14px; border: 3px solid #1A1A18; border-radius: 18px; background: rgba(241, 237, 226, .85); color: #3A4A33; font: 800 14px/1.1 system-ui, sans-serif; touch-action: none; }
+.hold.on { background: #ffd84a; }
+body:not(.touch) .hold { display: none; }
+.ring { position: fixed; z-index: 3; width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 3px solid #ffd84a; border-radius: 50%; pointer-events: none; }
+.card-wrap { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(30, 26, 12, .72); }
+.card { max-width: 30rem; max-height: 100%; overflow: auto; background: #F1EDE2; color: #1A1A18; border: 2px solid #1A1A18; border-radius: 16px; box-shadow: 4px 4px 0 #54664A; padding: 20px 20px 16px; -webkit-user-select: text; user-select: text; }
+.card h1 { margin: 0 0 6px; font: 700 28px/1.15 Georgia, "Times New Roman", serif; color: #3A4A33; }
+.card .k { margin: 0; color: #B8775A; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.card p { margin: 8px 0; }
+.card .how { font-size: 14px; color: #5d5d55; }
+.card .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.card .go, .card .ghost { display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border: 2px solid #1A1A18; border-radius: 999px; font: 700 16px/1 system-ui, sans-serif; text-decoration: none; cursor: pointer; }
+.card .go { background: #54664A; color: #fff; box-shadow: 2px 2px 0 #1A1A18; }
+.card .ghost { background: #fff; color: #3A4A33; }
+@media (max-width: 480px) { .pill { padding: 0 11px; font-size: 14px; } .finds { top: calc(var(--sat) + 112px); } }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }

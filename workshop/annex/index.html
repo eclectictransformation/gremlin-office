@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Annex sandbox · Pip's Workshop · The Gremlin Desks</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#3A4A33">
+<!-- Everything below resolves inside the Office folder, so the Annex finds its own data files. Nothing in that folder is changed. -->
+<base href="../../desks-preview-q7m4/">
+<script>
+/* Pip's Workshop guest sandbox. Runs before any Annex code:
+   1) Storage is fenced off: every key is saved as "et-workshop-sandbox:<key>", so real Office / Annex saves on this device are never read or written.
+   2) No accounts, no realtime, no network writes: only same-site GET requests are allowed. */
+(function () {
+  var P = "et-workshop-sandbox:";
+  function fence(real) {
+    var mine = function () { var out = []; try { for (var i = 0; i < real.length; i++) { var k = real.key(i); if (k && k.indexOf(P) === 0) out.push(k); } } catch (e) {} return out; };
+    var mem = {};
+    return {
+      getItem: function (k) { try { return real.getItem(P + k); } catch (e) { return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null; } },
+      setItem: function (k, v) { try { real.setItem(P + k, String(v)); } catch (e) { mem[k] = String(v); } },
+      removeItem: function (k) { try { real.removeItem(P + k); } catch (e) {} delete mem[k]; },
+      clear: function () { mine().forEach(function (k) { try { real.removeItem(k); } catch (e) {} }); mem = {}; },
+      key: function (i) { var k = mine()[i]; return k ? k.slice(P.length) : null; },
+      get length() { return mine().length; }
+    };
+  }
+  ["localStorage", "sessionStorage"].forEach(function (name) {
+    var real = null; try { real = window[name]; } catch (e) {}
+    if (!real) return;
+    try { Object.defineProperty(window, name, { value: fence(real), configurable: true }); } catch (e) {}
+  });
+  window.WORKSHOP_SANDBOX = { prefix: P, blocked: [] };
+  var of = window.fetch;
+  window.fetch = function (input, init) {
+    var url, method = ((init && init.method) || (input && input.method) || "GET").toUpperCase();
+    try { url = new URL(typeof input === "string" ? input : input.url, document.baseURI); } catch (e) { return Promise.reject(e); }
+    if (url.origin !== location.origin || (method !== "GET" && method !== "HEAD")) { window.WORKSHOP_SANDBOX.blocked.push(method + " " + url.href); return Promise.reject(new TypeError("Sandbox: no network writes")); }
+    return of.apply(this, arguments);
+  };
+  var NoNet = function () { throw new Error("Sandbox: no realtime"); };
+  window.WebSocket = NoNet; window.EventSource = NoNet;
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return false; };
+  var XO = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function (m, u) { var url = new URL(u, document.baseURI); if (url.origin !== location.origin || !/^(GET|HEAD)$/i.test(m)) { window.WORKSHOP_SANDBOX.blocked.push(m + " " + url.href); throw new Error("Sandbox: no network writes"); } return XO.apply(this, arguments); };
+  // The Office's "how to walk around" card is for staff; the sandbox has its own short intro.
+  try { localStorage.setItem("desks.o3.howto.v3", "1"); } catch (e) {}
+})();
+</script>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../desks-bar.css">
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1f1a; }
+#o3root { position: fixed; inset: 0; }
+.ws-hide, #o3root .o3-netchip, #o3root .o3-online { display: none !important; }
+.ws-pill { position: fixed; z-index: 60; left: max(8px, env(safe-area-inset-left)); bottom: max(8px, env(safe-area-inset-bottom)); display: inline-flex; align-items: center; min-height: 44px; padding: 0 .9rem; border-radius: 999px;
+  background: #3A4A33; color: #F1EDE2; border: 2px solid #1A1A18; font: 700 .92rem/1.1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; text-decoration: none; box-shadow: 2px 2px 0 #1A1A18; }
+.ws-pill:focus-visible { outline: 3px solid #E8E4D8; outline-offset: 2px; }
+/* touch: the joystick lives bottom-left and jump bottom-right, so the way out sits bottom-centre */
+@media (pointer: coarse) { .ws-pill { left: 50%; transform: translateX(-50%); } }
+.ws-card { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(20, 22, 18, .78); }
+.ws-card[hidden] { display: none; }
+.ws-card > div { max-width: 30rem; background: #F1EDE2; color: #1A1A18; border: 2px solid #1A1A18; border-radius: 16px; box-shadow: 4px 4px 0 #54664A; padding: 1.3rem 1.3rem 1.1rem; font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.ws-card h1 { margin: 0 0 .3rem; font: 700 1.5rem/1.2 Georgia, "Times New Roman", serif; color: #3A4A33; }
+.ws-card .k { margin: 0 0 .2rem; color: #B8775A; font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.ws-card p { margin: .4rem 0; }
+.ws-card .row { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .9rem; }
+.ws-card button, .ws-card a.b { min-height: 48px; padding: .6rem 1.2rem; border: 2px solid #1A1A18; border-radius: 999px; font: 700 1rem/1.1 system-ui, sans-serif; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+.ws-card .go { background: #54664A; color: #fff; box-shadow: 2px 2px 0 #1A1A18; }
+.ws-card .ghost { background: #fff; color: #3A4A33; }
+.ws-card small { color: #5d5d55; }
+.ws-card [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div id="o3root"></div>
+<a class="ws-pill desks-home" href="../workshop/" aria-label="Back to Pip's Workshop">&larr; Workshop</a>
+<div class="ws-card" id="intro" role="dialog" aria-modal="true" aria-labelledby="ws-title">
+  <div>
+    <p class="k">Pip's Workshop · guest sandbox</p>
+    <h1 id="ws-title">Loading…</h1>
+    <p id="ws-pitch"></p>
+    <p><small>Make a character, then you start at the first stop. Your sandbox character stays on this device only. Nothing here touches anyone's real Annex save, and there's no sign-in.</small></p>
+    <div class="row"><button type="button" class="go" id="ws-go" disabled>Make my character</button><button type="button" class="ghost" id="ws-fresh" hidden>Start over with a new one</button><a class="b ghost" href="../workshop/">Back to the Workshop</a></div>
+    <p id="ws-err" role="alert" hidden></p>
+  </div>
+</div>
+<noscript><p style="color:#fff;padding:1rem">This sandbox needs JavaScript.</p></noscript>
+<script src="annex-midi-player.js"></script>
+<script type="module" src="../workshop/annex/sandbox.js"></script>
+</body>
+</html>
