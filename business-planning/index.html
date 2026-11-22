@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Business Planning with Saji Tori · The Gremlin Desks</title>
+<title>Your business action plan · The Gremlin Desks</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="Start your business planning: tell Saji Tori what's going on, in your own words.">
+<meta name="description" content="A free, simple business action plan from Saji Tori. A few short questions, one at a time.">
 <meta name="theme-color" content="#3A4A33">
 <link rel="icon" type="image/png" sizes="32x32" href="../desks-preview-q7m4/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../desks-preview-q7m4/icons/apple-touch-icon.png">
@@ -49,9 +49,6 @@ body { line-height: 1.6; }
 .fold.open { max-height: none; -webkit-mask-image: none; mask-image: none; }
 .b .linkbtn { min-height: 36px; white-space: normal; }
 .closed-note { text-align: center; color: var(--muted); }
-/* example */
-.example-flag { display: inline-block; font-weight: 800; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: var(--clay); border: 2px solid var(--ink); border-radius: 999px; padding: .15rem .7rem; }
-.example .thread { opacity: .97; }
 /* quiet "More" */
 details.more { margin: .4rem 0 1.4rem; }
 details.more > summary { cursor: pointer; color: var(--moss); font-weight: 700; list-style: none; min-height: 44px; display: inline-flex; align-items: center; gap: .35rem; }
@@ -86,6 +83,22 @@ fieldset { border: 0; margin: 0; padding: 0; }
 @media (max-width: 520px) { .choices.pick, .choices.pick.three { grid-template-columns: 1fr; } }
 [hidden] { display: none !important; }
 @media (max-width: 520px) { .b { max-width: 100%; } .btn-main { width: 100%; } .count { margin-left: 0; } }
+/* guest free plan */
+.hp { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden; }
+.free-line { margin: .9rem 0 0; color: var(--muted); font-size: .95rem; }
+.saved { border-color: var(--forest); box-shadow: 3px 3px 0 var(--forest); }
+.saved .linkrow { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.saved .linkrow input { flex: 1 1 16rem; min-width: 0; font: .95rem/1.4 ui-monospace, Menlo, Consolas, monospace; background: #fffdf8; }
+.saved .em { margin-top: 1rem; padding-top: .8rem; border-top: 1.5px dashed var(--ink); }
+.saved .em label { display: block; font-weight: 700; margin: 0 0 .3rem; }
+.saved .em .row { display: flex; flex-wrap: wrap; gap: .5rem; }
+.saved .em input { flex: 1 1 14rem; min-width: 0; }
+.upsell { text-align: center; }
+.upsell p { margin: 0 0 .7rem; font-size: 1.05rem; color: var(--moss); font-weight: 600; }
+.cap { background: #FBF3EC; border: 2px solid var(--ink); border-radius: 14px; padding: .8rem 1rem; margin: .8rem 0 0; }
+.cap p { margin: 0 0 .4rem; }
+#ap-ts:empty { display: none; }
+#ap-ts { margin-top: .8rem; }
 </style>
 <script src="../access/config.js"></script>
 <script src="../access/dictate.js" defer></script>
@@ -95,31 +108,21 @@ fieldset { border: 0; margin: 0; padding: 0; }
 <main class="wrap da-bar-slot">
   <p class="crumb"><a href="../">&larr; Back to the Gremlin Desks</a></p>
 
+  <!-- No greeting room and no first-screen fork: everyone starts at Step A (Bryan t731 + BRYAN-FLOW-FOR-PIP.md). -->
   <header class="hello">
     <p class="kicker">Business Planning</p>
-    <h1>Hi, I'm Saji Tori.</h1>
-    <p id="hello-line">Tell me what's going on with your idea. Messy is fine. We'll sort it out together.</p>
+    <h1 id="hello-title">Your business action plan</h1>
+    <p id="hello-line">A few short questions, one at a time. Then Saji Tori writes back with a simple plan.</p>
   </header>
 
-  <!-- Signed-in, approved: the real conversation -->
   <section id="live" hidden>
     <div id="convo" class="card" hidden aria-live="polite">
       <div class="thread" id="thread"></div>
     </div>
 
-    <!-- First view: one calm choice. Then one form. Never more than one decision at a time. -->
-    <section id="start" class="card" hidden aria-labelledby="start-title">
-      <h2 id="start-title" class="big-q">How would you like to start?</h2>
-      <div class="choices">
-        <button type="button" class="choice-card" data-start="action_plan"><b>Business action plan</b><span>Saji helps you see your next steps.</span></button>
-        <button type="button" class="choice-card" data-start="website_consult"><b>Website consult</b><span>Saji and Wren help you plan a simple website.</span></button>
-      </div>
-      <p style="margin:.9rem 0 0"><button type="button" class="linkbtn" data-start="free">Or just write to Saji in your own words</button></p>
-    </section>
-
-    <!-- Business action plan intake (Saji). Wording must match INTAKE-FOR-SAJI.md. Step 2 questions come from config.js BP_STATE_QUESTIONS. -->
+    <!-- The 5-step action plan intake (Saji). Wording must match INTAKE-FOR-SAJI.md. Step B questions come from config.js BP_STATE_QUESTIONS (empty until Bryan approves Saji's draft). -->
     <form id="ap" class="card talk" hidden novalidate aria-live="polite">
-      <p class="small" style="margin:0 0 .4rem"><button type="button" class="linkbtn" data-back>&larr; Back</button> <span id="ap-step" style="float:right"></span></p>
+      <p class="small" style="margin:0 0 .4rem;min-height:44px;display:flex;align-items:center"><button type="button" class="linkbtn" data-back id="ap-back">&larr; Back</button> <span id="ap-step" style="margin-left:auto"></span></p>
       <div class="ap-step" data-step="state">
         <fieldset><legend class="big-q">Where's your business right now?</legend>
           <div class="choices pick">
@@ -152,55 +155,54 @@ fieldset { border: 0; margin: 0; padding: 0; }
             <label class="choice-card"><input type="radio" name="ap-horizon" value="1 year"><b>1 year</b></label>
           </div>
         </fieldset>
+        <div id="ap-ts"></div><!-- Turnstile check appears here only once config.js TURNSTILE_SITE_KEY is set (guests only). Off until Bryan adds keys. -->
       </div>
+      <!-- Honeypot: hidden from people and screen readers. Bots fill every field; anything here means "don't send". -->
+      <div class="hp" aria-hidden="true"><label for="ap-hp">Leave this empty</label><input type="text" id="ap-hp" name="company_website" tabindex="-1" autocomplete="off" data-no-dictate></div>
       <div class="go"><button class="btn-main" type="submit" id="ap-next">Next</button></div>
       <p class="msg-err" id="ap-err" role="alert" hidden></p>
+      <div class="cap" id="ap-cap" role="alert" hidden><p id="ap-cap-text"></p><a class="small" id="ap-cap-signin" href="../signin/?next=business-planning">Sign in</a></div>
+      <p class="free-line" id="free-line" hidden>Free, no sign-in needed. <a href="../signin/?next=business-planning" id="free-signin">Sign in for website help and in-depth plans.</a></p>
     </form>
 
-    <form id="talk" class="card talk" novalidate>
-      <p class="small" id="talk-back" style="margin:0 0 .4rem" hidden><button type="button" class="linkbtn" data-back>&larr; Back</button></p>
-      <label class="big" for="say" id="say-label">What's on your mind?</label>
-      <textarea id="say" spellcheck="true" maxlength="20000" placeholder="Paste anything you have, or just start talking. Your idea, who it's for, what you're stuck on..."></textarea>
+    <!-- Guests: the return link, shown right after sending (and kept under More after that). -->
+    <section id="saved" class="card saved" hidden aria-labelledby="saved-title">
+      <h2 id="saved-title" class="big-q">Save this link to come back to your plan.</h2>
+      <div class="linkrow"><input type="text" id="ret-link" readonly aria-labelledby="saved-title" data-no-dictate><button type="button" class="btn-main" id="copy-link">Copy link</button></div>
+      <p class="small" id="link-copied" aria-live="polite" style="margin:.35rem 0 0"></p>
+      <p class="small" style="margin:.5rem 0 0">This browser remembers it too, so your plan opens here automatically. Anyone with the link can read your plan, so keep it to yourself.</p>
+      <form class="em" id="em-form" novalidate>
+        <label for="em">Want a note when Saji replies? (optional)</label>
+        <div class="row"><input type="email" id="em" autocomplete="email" maxlength="254" placeholder="you@example.com"><button type="submit" class="da-btn ghost" id="em-save">Save</button></div>
+        <p class="small" id="em-msg" aria-live="polite" style="margin:.35rem 0 0">Notes aren't switched on yet. We'll keep your address for when they are. Your saved link always works.</p>
+      </form>
+    </section>
+
+    <form id="talk" class="card talk" novalidate hidden>
+      <label class="big" for="say" id="say-label">Your reply</label>
+      <textarea id="say" spellcheck="true" maxlength="20000" placeholder="Write (or talk) your reply here."></textarea>
       <div class="go">
-        <button class="btn-main" type="submit" id="send">Send to Saji</button>
+        <button class="btn-main" type="submit" id="send">Send</button>
         <span class="count" id="count" aria-live="polite"></span>
       </div>
       <p class="msg-err" id="err" role="alert" hidden></p>
-      <p class="reassure" id="reassure">Saji reads every word and writes back here. You can close this page; your conversation will be waiting.</p>
+      <p class="reassure" id="reassure">You can write more if you think of something, or close this page. Your conversation will be waiting.</p>
     </form>
 
-    <!-- Optional check-in, BELOW the main box in a closed fold. Empty and OFF by default (config.js -> BP_CHECKIN). Never blocks Send. -->
-    <section id="checkin" class="card checkin" hidden aria-labelledby="checkin-title"></section>
+    <!-- Guests, once Saji has written back: the calm way to go deeper. -->
+    <section id="upsell" class="card upsell" hidden>
+      <p id="upsell-text">Want to go deeper, or plan a website? Sign in and Saji can build an in-depth plan with you.</p>
+      <a class="btn-main" id="upsell-btn" href="../signin/?next=business-planning" style="text-decoration:none;display:inline-flex">Sign in</a>
+    </section>
 
     <details class="more" id="more">
       <summary>More</summary>
-      <div class="more-body">
+      <div class="more-body" id="more-body">
         <p class="small" id="limits-line"></p>
         <div id="plans"></div>
-        <p><button type="button" class="linkbtn" id="new-plan" hidden>Start a fresh conversation</button></p>
-        <p><a href="try/">Try the quick sorter on your own first</a></p>
-        <p class="small">Your messages go to Saji Tori, who may bring in Wren, our website designer, to write a starter script for your website. You paste that script into Remixer, the tool that turns it into a first draft of your site. Bryan can see conversations to keep things running well. Please leave out passwords and anyone's private details. If you use the 🎤 button, your browser turns speech into text, and some browsers send the audio to their own speech service to do that.</p>
-      </div>
-    </details>
-  </section>
-
-  <!-- Guests, people waiting for approval, and the Example level: the example run -->
-  <section id="guest" hidden>
-    <div class="card">
-      <p id="guest-line" style="margin:0 0 .8rem;font-size:1.05rem">Here's what a conversation with Saji looks like. When you're signed in, you just type (or talk) and Saji writes back.</p>
-      <div class="go" style="margin-top:0"><a class="btn-main" id="guest-cta" href="../signin/?next=business-planning" style="text-decoration:none">Sign in to talk with Saji</a></div>
-    </div>
-    <section class="card example" aria-labelledby="ex-title">
-      <p style="margin:0 0 .4rem"><span class="example-flag" id="ex-flag">Example</span></p>
-      <h2 id="ex-title">Example run</h2>
-      <p class="small" id="ex-note"></p>
-      <div class="thread" id="ex-thread"></div>
-    </section>
-    <details class="more">
-      <summary>More</summary>
-      <div class="more-body">
-        <p><a href="try/">Try the quick sorter on your own</a> (it runs on this device; nothing is sent).</p>
-        <p class="small">Guests can look around. Talking with Saji needs a sign-in so Bryan knows who's writing.</p>
+        <p><button type="button" class="linkbtn" id="new-plan" hidden>Start a fresh plan</button></p>
+        <div id="more-saved"></div>
+        <p class="small">Your answers go to Saji Tori, our business planner. If you're signed in and ready for a website, Saji can bring in Wren, our website designer, to write a starter script for your website. You paste that script into Remixer, the tool that turns it into a first draft of your site. Bryan can see conversations to keep things running well. Please leave out passwords and anyone's private details. If you use the 🎤 button, your browser turns speech into text, and some browsers send the audio to their own speech service to do that.</p>
       </div>
     </details>
   </section>
@@ -209,15 +211,21 @@ fieldset { border: 0; margin: 0; padding: 0; }
 <script>
 (function () {
   "use strict";
-  var A = window.DesksAccess, C = A.config, esc = A.esc, bp = A.api.bp, MAX = A.BP_MAX || 20000;
-  var CHECK = C.BP_CHECKIN || { enabled: false, questions: [] };
+  var A = window.DesksAccess, C = A.config, esc = A.esc, bp = A.api.bp, G = A.api.bpGuest, MAX = A.BP_MAX || 20000;
   var $ = function (id) { return document.getElementById(id); };
-  var state = { limits: null, threads: [], cur: null, msgs: [], unsub: null };
+  // mode: "member" (Basic/Full: the signed-in conversation, unchanged) or "guest" (free plan, no login; also people waiting for approval)
+  var state = { mode: null, me: null, limits: null, threads: [], cur: null, msgs: [], unsub: null, token: null, justSent: false, poll: null };
   var INTAKE_NAME = { action_plan: "Business action plan", website_consult: "Website consult" };
   var STATES = { beginning: "Just beginning", chaos: "In chaos", grounded: "Grounded", doing_well: "Doing well", something_new: "Looking for something new", other: "Other" };
   var STATE_Q = C.BP_STATE_QUESTIONS || {};
   var SCRIPT_INTRO = "That's the starter website script from Wren. Copy it, then paste it into Remixer, the tool that turns this into a first draft of your site. After that, swap in your real details. I'm still here if you have questions.";
   var HELP_AFTER = "You can write more if you think of something, or close this page. Your conversation will be waiting.";
+  var HELLO_START = "A few short questions, one at a time. Then Saji Tori writes back with a simple plan.";
+  var HELLO_THREAD = "Here's your conversation with Saji. Take your time.";
+  var LS_TOKEN = "desksBp.guestToken", LS_DEVICE = "desksBp.device", TOKEN_RE = /^[A-Za-z0-9_-]{40,100}$/;
+  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k) || ""; if (v === "") localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return ""; } }
+  function randKey(n) { var a = new Uint8Array(n); crypto.getRandomValues(a); return btoa(String.fromCharCode.apply(null, a)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+  function deviceKey() { var d = ls(LS_DEVICE); if (!/^[A-Za-z0-9_-]{20,200}$/.test(d)) { d = randKey(24); ls(LS_DEVICE, d); } return d; }
 
   // Long posts fold to a few lines so the conversation stays calm; "Show all" opens them.
   function para(s) { s = String(s || ""); return s.length > 900 ? '<div class="fold">' + esc(s) + '</div><button type="button" class="linkbtn" data-unfold>Show all</button>' : esc(s); }
@@ -267,31 +275,24 @@ fieldset { border: 0; margin: 0; padding: 0; }
     });
   }
 
-  /* ---------- guest / example ---------- */
-  function showExample(me) {
-    $("guest").hidden = false;
-    if (me.role === "pending") { $("guest-line").textContent = "Thanks for signing up. Bryan will approve your account soon, and then you can talk with Saji here. Meanwhile, here's what a conversation looks like."; $("guest-cta").hidden = true; }
-    else if (me.role !== "guest") { $("guest-line").textContent = "Your account is set to see the example for now. Bryan can open up live conversations for you."; $("guest-cta").hidden = true; }
-    fetch("example.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (ex) {
-      if (ex.placeholder) $("ex-flag").textContent = ex.label || "Example";
-      $("ex-title").textContent = ex.title || "Example run";
-      $("ex-note").textContent = ex.note || "";
-      $("ex-thread").innerHTML = ex.messages.map(bubble).join("");
-      wireCopy($("ex-thread"));
-    }).catch(function () { $("ex-note").textContent = "The example couldn't load right now."; });
-  }
-
-  /* ---------- live ---------- */
+  /* ---------- shared drawing ---------- */
   function setErr(msg) { $("err").textContent = msg || ""; $("err").hidden = !msg; }
   function count() { var n = $("say").value.length; $("count").textContent = n > MAX * 0.8 ? n.toLocaleString() + " / " + MAX.toLocaleString() : ""; }
   function turnsLeft() { var L = state.limits, t = state.cur; if (!L || L.turn_limit == null || !t) return null; return Math.max(L.turn_limit - t.visitor_turns, 0); }
+  function sajiHasReplied() { return state.msgs.some(function (m) { return m.author === "bot"; }); }
+  function signedIn() { return state.me && state.me.role !== "guest"; }
 
   function drawLimits() {
     var L = state.limits || {}, bits = [];
-    if (L.turn_limit == null) bits.push("No message limit."); else bits.push("Up to " + L.turn_limit + " messages per conversation.");
-    if (L.wren_scripts != null) bits.push(L.wren_scripts === 1 ? "One script from Wren per conversation." : "Up to " + L.wren_scripts + " scripts from Wren per conversation.");
+    if (state.mode === "guest") {
+      bits.push("A free plan includes up to " + (L.turn_limit || 6) + " messages from you.");
+    } else {
+      if (L.turn_limit == null) bits.push("No message limit."); else bits.push("Up to " + L.turn_limit + " messages per conversation.");
+      if (L.wren_scripts != null) bits.push(L.wren_scripts === 1 ? "One script from Wren per conversation." : "Up to " + L.wren_scripts + " scripts from Wren per conversation.");
+    }
     var left = turnsLeft(); if (left != null && state.cur && state.cur.status === "open") bits.push(left === 0 ? "No messages left in this conversation." : "You have " + left + " message" + (left === 1 ? "" : "s") + " left in this conversation.");
     $("limits-line").textContent = bits.join(" ");
+    if (state.mode !== "member") { $("plans").innerHTML = ""; $("new-plan").hidden = true; return; }
     var past = state.threads.filter(function (t) { return !state.cur || t.id !== state.cur.id; });
     $("plans").innerHTML = past.length ? "<p class=\"small\" style=\"margin:.2rem 0\">Earlier conversations:</p><ul>" + past.map(function (t) {
       return '<li><a href="?t=' + t.id + '" data-open="' + t.id + '">' + esc(t.title) + "</a> <span class=\"small\">(" + (t.status === "open" ? "open" : "finished") + ")</span></li>"; }).join("") + "</ul>" : "";
@@ -299,59 +300,49 @@ fieldset { border: 0; margin: 0; padding: 0; }
     $("new-plan").hidden = !state.cur;
     $("new-plan").onclick = async function () {
       if (state.cur && state.cur.status === "open") {
-        if (!confirm("Finish this conversation and start a fresh one? You can still read it later under More.")) return;
+        if (!confirm("Finish this conversation and start a fresh plan? You can still read it later under More.")) return;
         await bp.close(state.cur.id);
       }
-      history.replaceState(null, "", "./"); state.cur = null; state.start = null; await reload();
+      history.replaceState(null, "", "./"); state.cur = null; await reload();
     };
   }
 
   function drawThread() {
-    var t = state.cur;
+    var t = state.cur, guest = state.mode === "guest";
     if (!t) {
-      $("convo").hidden = true;
-      $("hello-line").textContent = "Tell me what's going on with your idea. Messy is fine. We'll sort it out together.";
-      $("send").textContent = "Send to Saji";
-      $("start").hidden = !!state.start; $("ap").hidden = state.start !== "action_plan";
-      $("talk").hidden = !(state.start === "free" || state.start === "website_consult"); $("talk-back").hidden = false;
-      if (state.start === "website_consult") { $("say-label").textContent = "Tell us about the website you'd like."; $("say").placeholder = "What's your business, who is it for, and what should the site do? Messy is fine."; }
-      else { $("say-label").textContent = "What's on your mind?"; $("say").placeholder = "Paste anything you have, or just start talking. Your idea, who it's for, what you're stuck on..."; }
-      if (state.start === "action_plan") drawAp();
-      if (state.start === "free" || state.start === "website_consult") drawCheckin(); else $("checkin").hidden = true;
+      // No conversation yet: Step A of the intake. No greeting room, no fork.
+      $("convo").hidden = true; $("talk").hidden = true; $("saved").hidden = true; $("upsell").hidden = true;
+      $("hello-line").textContent = HELLO_START;
+      $("ap").hidden = false; $("free-line").hidden = !guest;
+      if (guest && signedIn()) $("free-line").textContent = "Free while Bryan sets up your account.";
+      drawAp();
       return;
     }
-    $("start").hidden = true; $("ap").hidden = true; $("talk-back").hidden = true;
-    $("checkin").hidden = true;
+    $("ap").hidden = true;
     $("convo").hidden = false;
-    $("hello-line").textContent = "Here's your conversation. Take your time.";
+    $("hello-line").textContent = HELLO_THREAD;
     var left = turnsLeft(), wl = waitingLine(t, state.msgs), limitNote = "";
+    var more = guest ? (signedIn() ? "Once Bryan approves your account, Saji can build an in-depth plan with you." : "Sign in and Saji can build an in-depth plan with you.") : "Bryan can open up more.";
     if (t.status === "open" && left === 0) {
-      if (wl.indexOf("Saji is reading.") > -1) { wl = ""; limitNote = "Saji is still reading what you sent. That's all the messages for this conversation for now. If you'd like to keep going after he writes back, Bryan can open up more."; }
-      else limitNote = "That's all the messages for this conversation for now. If you'd like to keep going, Bryan can open up more.";
+      if (wl.indexOf("Saji is reading.") > -1) { wl = ""; limitNote = "Saji is still reading what you sent. That's all the messages for this " + (guest ? "free plan" : "conversation") + " for now." + (guest ? " " + more : " If you'd like to keep going after he writes back, Bryan can open up more."); }
+      else limitNote = "That's all the messages for this " + (guest ? "free plan" : "conversation") + " for now." + (guest ? " " + more : " If you'd like to keep going, Bryan can open up more.");
     }
     $("thread").innerHTML = state.msgs.map(bubble).join("") + wl +
       (limitNote ? '<p class="closed-note" data-limit>' + esc(limitNote) + "</p>" : "") +
-      (t.status !== "open" ? '<p class="closed-note">This conversation is finished. Open <b>More</b> to start a fresh one.</p>' : "");
+      (t.status !== "open" ? '<p class="closed-note">This conversation is finished.' + (guest ? "" : " Open <b>More</b> to start a fresh one.") + "</p>" : "");
     wireCopy($("thread"));
     $("talk").hidden = t.status !== "open" || left === 0;
-    $("say-label").textContent = "Your reply"; $("say").placeholder = "Write (or talk) your reply here.";
-    $("send").textContent = "Send";
     $("reassure").textContent = HELP_AFTER;
+    if (guest) {
+      // Return link: right under the conversation on the visit they sent it; under More after that.
+      $("saved").hidden = false; $("ret-link").value = location.origin + location.pathname + "?t=" + state.token;
+      if (state.justSent) $("talk").parentNode.insertBefore($("saved"), $("talk")); else $("more-saved").appendChild($("saved"));
+      $("upsell").hidden = !sajiHasReplied();
+      if (signedIn()) { $("upsell-text").textContent = "Once Bryan approves your account, Saji can build an in-depth plan with you, or help plan a website."; $("upsell-btn").hidden = true; }
+    } else { $("saved").hidden = true; $("upsell").hidden = true; }
   }
 
-  function drawCheckin() {
-    var qs = (CHECK.enabled && CHECK.questions) || [];
-    if (!qs.length || state.threads.length) { $("checkin").hidden = true; return; }
-    $("checkin").hidden = false;
-    $("checkin").innerHTML = '<details><summary id="checkin-title">' + esc(CHECK.title || "A few optional questions, if they help.") + '</summary><p class="small">All optional. Skip anything. &ldquo;I\'m not sure&rdquo; is a fine answer.</p>' +
-      qs.slice(0, 3).map(function (q, i) { return '<label for="ck-' + i + '">' + esc(q.q) + '</label><textarea id="ck-' + i + '" data-q="' + esc(q.q) + '"></textarea>'; }).join("") + "</details>";
-  }
-  function checkinText() {
-    var parts = [];
-    document.querySelectorAll("#checkin textarea[data-q]").forEach(function (ta) { if (ta.value.trim()) parts.push(ta.dataset.q + "\n" + ta.value.trim()); });
-    return parts.length ? "Getting started:\n" + parts.join("\n\n") + "\n\n---\n\n" : "";
-  }
-
+  /* ---------- signed-in members (Basic / Full): unchanged behaviour ---------- */
   async function openThread(id) {
     if (state.unsub) { state.unsub(); state.unsub = null; }
     state.cur = state.threads.find(function (t) { return t.id === id; }) || null;
@@ -359,6 +350,7 @@ fieldset { border: 0; margin: 0; padding: 0; }
     drawThread(); drawLimits();
   }
   async function refresh() {
+    if (state.mode === "guest") return guestRefresh();
     state.threads = await bp.threads(); state.limits = await bp.limits();
     if (state.cur) { state.cur = state.threads.find(function (t) { return t.id === state.cur.id; }) || state.cur; state.msgs = await bp.messages(state.cur.id); }
     drawThread(); drawLimits();
@@ -367,42 +359,87 @@ fieldset { border: 0; margin: 0; padding: 0; }
     state.limits = await bp.limits(); state.threads = await bp.threads();
     var want = +(new URLSearchParams(location.search).get("t") || 0);
     var pick = state.threads.find(function (t) { return t.id === want; }) || state.threads.find(function (t) { return t.status === "open"; });
-    if (pick) await openThread(pick.id); else { state.cur = null; drawThread(); drawLimits(); }
+    if (pick) await openThread(pick.id); else { state.cur = null; ap.t0 = Date.now(); drawThread(); drawLimits(); }
   }
 
+  /* ---------- guests: the free action plan (no login) ---------- */
+  function applyView(v) { state.cur = v.thread; state.msgs = v.messages || []; state.limits = v.limits || { turn_limit: 6 }; drawThread(); drawLimits(); }
+  async function guestOpen(token, quiet) {
+    try {
+      var v = await G.open(token);
+      state.token = token; ls(LS_TOKEN, token);
+      if (new URLSearchParams(location.search).get("t") !== token) history.replaceState(null, "", "?t=" + token);
+      applyView(v);
+      if (!state.unsub) state.unsub = G.subscribe(v.thread.id, guestRefresh);
+      startPoll();
+      return true;
+    } catch (e) {
+      if (ls(LS_TOKEN) === token) ls(LS_TOKEN, "");
+      history.replaceState(null, "", "./"); state.cur = null; state.token = null; drawThread(); drawLimits();
+      if (!quiet) apErr(e.code === "not_found" ? e.message : "Your plan couldn't load just now. Please refresh in a moment.");
+      return false;
+    }
+  }
+  async function guestRefresh() { if (!state.token) return; try { applyView(await G.open(state.token)); } catch (e) {} }
+  function waitingForSaji() { var last = state.msgs.filter(function (m) { return m.author !== "status"; }).pop(); return !!(state.cur && state.cur.status === "open" && last && last.author === "person"); }
+  function startPoll() {
+    if (state.poll) return;
+    // Guests have no live channel. While Saji is writing, check back every 20 seconds (only while the page is in view).
+    state.poll = setInterval(function () { if (document.visibilityState === "visible" && waitingForSaji()) guestRefresh(); }, 20000);
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") guestRefresh(); });
+  }
+  function tsToken() { return window.__bpTurnstileToken || null; }
+  function maybeTurnstile() {
+    // Wired but OFF: nothing loads until config.js TURNSTILE_SITE_KEY is set.
+    if (state.mode !== "guest" || !C.TURNSTILE_SITE_KEY || $("ap-ts").dataset.on) return;
+    $("ap-ts").dataset.on = "1";
+    window.__bpTurnstileReady = function () { window.turnstile.render("#ap-ts", { sitekey: C.TURNSTILE_SITE_KEY, callback: function (t) { window.__bpTurnstileToken = t; } }); };
+    var s = document.createElement("script"); s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=__bpTurnstileReady&render=explicit"; s.async = true; document.head.appendChild(s);
+  }
+  $("copy-link").onclick = function () {
+    var v = $("ret-link").value, done = function () { $("link-copied").textContent = "Copied. Keep it somewhere safe, like your notes or an email to yourself."; };
+    if (navigator.clipboard) navigator.clipboard.writeText(v).then(done, function () { $("ret-link").select(); $("link-copied").textContent = "Select the link above and copy it."; });
+    else { $("ret-link").select(); $("link-copied").textContent = "Select the link above and copy it."; }
+  };
+  $("ret-link").addEventListener("focus", function () { this.select(); });
+  $("em-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var v = $("em").value.trim();
+    if (v && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { $("em-msg").textContent = "That doesn't look like an email address. You can also leave it empty."; return; }
+    $("em-save").disabled = true;
+    try { await G.email(state.token, v); $("em-msg").textContent = v ? "Saved. Notes aren't switched on yet; we'll use it once they are. Your saved link always works." : "Removed."; }
+    catch (err) { $("em-msg").textContent = err.message; }
+    finally { $("em-save").disabled = false; }
+  });
+
+  /* ---------- reply box ---------- */
   $("say").addEventListener("input", function () { count(); setErr(""); });
   $("say").addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); $("talk").requestSubmit(); } });
   $("talk").addEventListener("submit", async function (e) {
     e.preventDefault(); setErr("");
     var text = $("say").value.trim(); if (!text) { setErr("Write a little something first. A sentence is plenty."); $("say").focus(); return; }
+    if (!state.cur) return;
     $("send").disabled = true;
     try {
       if (window.DesksDictate) window.DesksDictate.stop();
-      if (state.cur) await bp.post(state.cur.id, text);
-      else {
-        var intake = state.start === "website_consult" ? "website_consult" : "free";
-        var first = text.split(/\n|[.!?]\s/)[0].slice(0, 80) || "My plan";
-        var title = intake === "website_consult" ? ("Website consult: " + first).slice(0, 120) : first;
-        var id = await bp.start(title, (intake === "website_consult" ? "Intake: website_consult\n---\n" : "") + checkinText() + text, intake);
-        state.threads = await bp.threads(); await openThread(id);
-      }
-      $("say").value = ""; count(); await refresh();
+      if (state.mode === "guest") { applyView(await G.post(state.token, text)); }
+      else { await bp.post(state.cur.id, text); await refresh(); }
+      $("say").value = ""; count();
     } catch (err) { setErr(err.message || "That didn't send. Please try again."); }
     finally { $("send").disabled = false; }
   });
 
-  /* ---------- starting choice ---------- */
-  document.querySelectorAll("[data-start]").forEach(function (b) { b.onclick = function () { state.start = b.dataset.start; ap.i = 0; drawThread(); var f = state.start === "action_plan" ? document.querySelector('[name="ap-state"]') : $("say"); if (f) f.focus(); }; });
-
-  /* ---------- business action plan intake: one step at a time ---------- */
-  var ap = { i: 0 };
+  /* ---------- the action plan intake: one step at a time ---------- */
+  var ap = { i: 0, t0: Date.now() };
   function apSteps() { var st = apVal("ap-state"), qs = (st && STATE_Q[st]) || []; return ["state"].concat(qs.length ? ["stateq"] : [], ["ask", "tried", "horizon"]); }
   function apVal(name) { var r = document.querySelector('[name="' + name + '"]:checked'); return r ? r.value : ""; }
   function apErr(m) { $("ap-err").textContent = m || ""; $("ap-err").hidden = !m; }
+  function apCap(m) { $("ap-cap-text").textContent = m || ""; $("ap-cap").hidden = !m; $("ap-cap-signin").hidden = signedIn(); }
   function drawAp() {
     var steps = apSteps(), cur = steps[ap.i];
     document.querySelectorAll(".ap-step").forEach(function (d) { d.hidden = d.dataset.step !== cur; });
     $("ap-step").textContent = "Step " + (ap.i + 1) + " of " + steps.length;
+    $("ap-back").hidden = ap.i === 0;   // nothing before Step A
     $("ap-next").textContent = cur === "horizon" ? "Send to Saji" : "Next";
     $("ap-other-wrap").hidden = apVal("ap-state") !== "other";
     if (cur === "stateq") {
@@ -412,6 +449,7 @@ fieldset { border: 0; margin: 0; padding: 0; }
         box.innerHTML = (STATE_Q[st] || []).map(function (q, i) { return '<label for="apq-' + i + '">' + esc(q.q) + '</label><textarea id="apq-' + i + '" data-q="' + esc(q.q) + '" maxlength="600"></textarea>'; }).join("");
       }
     }
+    if (cur === "horizon") maybeTurnstile();
     apErr("");
   }
   document.querySelectorAll('[name="ap-state"]').forEach(function (r) { r.addEventListener("change", function () { $("ap-other-wrap").hidden = r.value !== "other" || !r.checked; if (r.value === "other") $("ap-other").focus(); apErr(""); }); });
@@ -419,14 +457,11 @@ fieldset { border: 0; margin: 0; padding: 0; }
   // Every nudge clears as soon as the person types or picks something.
   $("ap").addEventListener("input", function () { apErr(""); });
   $("ap").addEventListener("change", function () { apErr(""); });
-  document.querySelectorAll("[data-back]").forEach(function (b) { b.onclick = function () {
-    if (b.closest("#ap") && ap.i > 0) { ap.i--; drawAp(); return; }
-    state.start = null; ap.i = 0; setErr(""); drawThread();
-  }; });
+  $("ap-back").onclick = function () { if (ap.i > 0) { ap.i--; drawAp(); } };
   function apBody() {
     var st = apVal("ap-state"), stLabel = st === "other" ? ("Other" + ($("ap-other").value.trim() ? ": " + $("ap-other").value.trim() : "")) : STATES[st];
     var hz = apVal("ap-horizon");
-    var head = ["Intake: action_plan", "State: " + stLabel, "Horizon: " + hz].join("\n");
+    var head = ["Intake: action_plan", "State: " + stLabel, "Horizon: " + hz].concat(state.mode === "guest" ? ["Level: guest_free"] : []).join("\n");
     var parts = ["Where's your business right now?\n" + stLabel];
     document.querySelectorAll("#ap-stateq textarea[data-q]").forEach(function (ta) { parts.push(ta.dataset.q + "\n" + (ta.value.trim() || "(skipped)")); });
     parts.push("If you could ask a business consultant one question, what would it be?\n" + $("ap-ask").value.trim());
@@ -438,22 +473,43 @@ fieldset { border: 0; margin: 0; padding: 0; }
     var steps = apSteps(), cur = steps[ap.i];
     if (cur === "state" && !apVal("ap-state")) return apErr("Pick the one that feels closest. There's no wrong answer.");
     if (cur === "ask" && !$("ap-ask").value.trim()) { $("ap-ask").focus(); return apErr("Write your question in any words. A sentence is plenty."); }
-    if (cur !== "horizon") { ap.i++; drawAp(); var nx = document.querySelector('.ap-step:not([hidden]) textarea, .ap-step:not([hidden]) input'); if (nx) nx.focus(); return; }
+    if (cur !== "horizon") { ap.i++; drawAp(); var nx = document.querySelector('.ap-step:not([hidden]) textarea, .ap-step:not([hidden]) input:not([type=radio])'); if (nx) nx.focus(); return; }
     if (!apVal("ap-horizon")) return apErr("Pick whichever feels right. You can change it later with Saji.");
-    $("ap-next").disabled = true;
+    $("ap-next").disabled = true; apCap("");
     try {
       if (window.DesksDictate) window.DesksDictate.stop();
-      var id = await bp.start("Business action plan", apBody(), "action_plan");
-      state.threads = await bp.threads(); state.start = null; await openThread(id); await refresh();
-    } catch (err) { apErr(err.message || "That didn't send. Please try again."); }
+      if (state.mode === "guest") {
+        var r = await G.start({ body: apBody(), title: "Free action plan", device: deviceKey(), hp: $("ap-hp").value, form_ms: Date.now() - ap.t0, turnstile: tsToken() });
+        state.justSent = true; await guestOpen(r.token);
+        $("saved").scrollIntoView({ block: "nearest" });
+      } else {
+        var id = await bp.start("Business action plan", apBody(), "action_plan");
+        state.threads = await bp.threads(); await openThread(id); await refresh();
+      }
+    } catch (err) {
+      if (err.code === "cap" || err.code === "off") apCap(err.message);
+      else if (err.code === "open" && ls(LS_TOKEN)) { await guestOpen(ls(LS_TOKEN)); }
+      else apErr(err.message || "That didn't send. Please try again.");
+    }
     finally { $("ap-next").disabled = false; }
   });
 
+  /* ---------- start ---------- */
   A.ready.then(async function (me) {
+    state.me = me;
     var L = await bp.limits().catch(function () { return { level: "example" }; });
-    if (L.level === "example") return showExample(me);
     $("live").hidden = false; count();
-    try { await reload(); } catch (e) { setErr("Something went wrong loading your conversation. Please refresh."); }
+    if (L.level === "basic" || L.level === "full") {
+      state.mode = "member";
+      try { await reload(); } catch (e) { setErr("Something went wrong loading your conversation. Please refresh."); }
+      return;
+    }
+    // Guests (and anyone not yet at Basic/Full): the free action plan. A saved link (?t=...) or this browser's memory reopens it.
+    state.mode = "guest"; state.limits = { turn_limit: 6 };
+    var q = new URLSearchParams(location.search).get("t") || "", tok = TOKEN_RE.test(q) ? q : ls(LS_TOKEN);
+    ap.t0 = Date.now();
+    if (tok && TOKEN_RE.test(tok)) { await guestOpen(tok, !TOKEN_RE.test(q)); return; }   // on failure it shows Step A (and a note for a bad link)
+    drawThread(); drawLimits();
   });
 })();
 </script>

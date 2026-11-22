@@ -96,9 +96,18 @@
     document.getElementById("bn").textContent = attention ? "(" + attention + ")" : "";
     if (tab === "bp") {
       var sets = await api.bp.adminSettings(), byId = {}; sets.forEach(function (x) { byId[x.user_id] = x; });
-      var LV = { example: "Example only", basic: "Basic: Saji, limited", full: "Full: Saji + Wren + team, unlimited" };
+      var LV = { example: "Free plan only (like guests)", basic: "Basic: Saji, limited", full: "Full: Saji + Wren + team, unlimited" };
       var num = function (v) { return v == null ? "" : String(v); };
-      h = "<h2>Who can talk with Saji</h2><p class=\"small\">Pick a level for each approved person. Basic = 12 messages per conversation, 1 open conversation, 3 new ones a week, 1 Wren script. Full = no message or script limits. Fine-tune under &ldquo;Adjust&rdquo;. Guests and people waiting for approval always see the example.</p>";
+      h = "<h2>Who can talk with Saji</h2><p class=\"small\">Pick a level for each approved person. Basic = 12 messages per conversation, 1 open conversation, 3 new ones a week, 1 Wren script. Full = no message or script limits. Fine-tune under &ldquo;Adjust&rdquo;. Guests, people waiting for approval and &ldquo;Free plan only&rdquo; get the free action plan (settings below).</p>";
+      var gs = await api.bpGuest.adminSettings().catch(function () { return null; });
+      if (gs) h += "<h2 style=\"margin-top:1.3rem\">Free guest plans</h2><p class=\"small\">Anyone can get one free action plan from Saji without signing in: no Wren, no website script. Today: <b>" + gs.today + "</b> new &middot; open now: " + gs.open_now + ".</p>" +
+        "<div class=\"person\" data-guestset><div class=\"toggles\" style=\"align-items:flex-end\">" +
+        "<label class=\"tg\"><input type=\"checkbox\" data-g=\"enabled\"" + (gs.enabled ? " checked" : "") + "> Free guest plans on</label>" +
+        "<label class=\"tg\">New plans per day (everyone) <input type=\"number\" min=\"0\" max=\"1000\" data-g=\"daily_cap\" value=\"" + gs.daily_cap + "\" style=\"width:5rem\"></label>" +
+        "<label class=\"tg\">Per network per day <input type=\"number\" min=\"0\" max=\"50\" data-g=\"ip_daily\" value=\"" + gs.ip_daily + "\" style=\"width:5rem\"></label>" +
+        "<label class=\"tg\">Messages per free plan <input type=\"number\" min=\"1\" max=\"50\" data-g=\"turn_limit\" value=\"" + gs.turn_limit + "\" style=\"width:5rem\"></label>" +
+        "<label class=\"tg\"><input type=\"checkbox\" data-g=\"review_replies\"" + (gs.review_replies ? " checked" : "") + "> I check Saji's guest replies first</label>" +
+        "</div><div class=\"row\" style=\"margin-top:.4rem\"><button class=\"da-btn ghost\" data-saveguest>Save</button><span class=\"small\" data-guestmsg></span></div></div>";
       h += members.filter(function (m) { return m.status === "approved"; }).map(function (m) {
         var b = byId[m.user_id] || { bp_level: "basic" };
         return "<div class=\"person\" data-bpu=\"" + esc(m.user_id) + "\"><b>" + esc(m.display_name) + "</b> <span class=\"small\">" + esc(m.email) + "</span>" +
@@ -126,7 +135,7 @@
       var d = await api.adminDestination();
       h = "<h2>Where tickets go</h2><p>Tickets from this site go to <b>" + esc(d.label || "") + "</b>:</p><p class=\"note\">" + esc(d.to || "") + "</p>" +
         "<p class=\"small\">Each copy of the Desks has its own setting, so a client's copy can send tickets to their own email instead. Changing it is a one-line update that Pip can prepare for you.</p>" +
-        "<h2 style=\"margin-top:1.2rem\">Business Planning</h2><p class=\"small\">Each message someone sends emails Saji the usual way (subject &ldquo;Gremlin Ticket: Business Planning #&hellip;&rdquo;, to the same inbox as Office tickets). Saji brings in Wren and Pip himself. When Saji hands off to Wren, the person sees &ldquo;Wren says your script should take about 3–5 minutes. You can close this page and come back.&rdquo; Pip looks over every Wren script while we test (change per person on the Business Planning tab).</p>" +
+        "<h2 style=\"margin-top:1.2rem\">Business Planning</h2><p class=\"small\">Each message someone sends emails Saji the usual way (subject &ldquo;Gremlin Ticket: Business Planning #&hellip;&rdquo;, to the same inbox as Office tickets). Saji brings in Wren and Pip himself. When Saji hands off to Wren, the person sees &ldquo;Wren says your script should take about 3–5 minutes. You can close this page and come back.&rdquo; Pip looks over every Wren script while we test (change per person on the Business Planning tab). Guests can get one free action plan without signing in (no Wren); those emails say level=guest_free.</p>" +
         "<h2 style=\"margin-top:1.2rem\">Guest samples</h2><p class=\"small\">Guests get " + C.GUEST.samplesPerRoomPerVisit + " short try per room per visit (up to " + C.GUEST.maxChars + " characters, easy version only). New sign-ups stay at guest level until you approve them. Approved members can send " + 3 + " tickets a day.</p>";
     }
     p.innerHTML = h;
@@ -141,6 +150,11 @@
       var pr = g("pip_review").value;
       try { await api.bp.adminSetLimits(b.dataset.savebp, { turn_limit: n("turn_limit"), open_threads: n("open_threads") == null ? 1 : n("open_threads"), weekly_threads: n("weekly_threads"), wren_scripts: n("wren_scripts"), pip_review: pr === "" ? null : pr === "true", review_replies: g("review_replies").checked });
         box.querySelector("[data-bpmsg]").textContent = "Saved."; } catch (e) { alert(e.message); }
+    }; });
+    p.querySelectorAll("[data-saveguest]").forEach(function (b) { b.onclick = async function () {
+      var box = p.querySelector("[data-guestset]"), g = function (k) { return box.querySelector('[data-g="' + k + '"]'); }, n = function (k) { return Math.max(0, parseInt(g(k).value, 10) || 0); };
+      try { await api.bpGuest.adminSet({ enabled: g("enabled").checked, daily_cap: n("daily_cap"), ip_daily: n("ip_daily"), turn_limit: Math.max(1, n("turn_limit")), review_replies: g("review_replies").checked });
+        box.querySelector("[data-guestmsg]").textContent = "Saved."; } catch (e) { alert(e.message); }
     }; });
     p.querySelectorAll("[data-showheld]").forEach(function (b) { b.onclick = async function () {
       var id = +b.dataset.showheld, box = p.querySelector('[data-heldbox="' + id + '"]'), ms = (await api.bp.messages(id)).filter(function (m) { return m.status === "held"; });

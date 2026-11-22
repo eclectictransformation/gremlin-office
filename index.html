@@ -292,9 +292,9 @@ h1 {
       <span class="da-badge" data-badge="business_planning"></span>
       <p class="door-kicker">The planning room</p>
       <h2>Business Planning</h2>
-      <p class="blurb">Start your business planning with Saji Tori. Tell him what's going on, in your own words, and he'll help you shape a simple plan and website. He brings in Wren, our website designer, when it's time.</p>
-      <a class="enter" href="business-planning/" data-bp-link>See how it works</a>
-      <p class="hint" data-hint="business_planning">Guests see an example conversation.</p>
+      <p class="blurb">Get a simple business action plan from Saji Tori. Answer a few short questions, one at a time, and he writes back with your next steps. Signed-in members can go deeper and plan a website with Wren, our website designer.</p>
+      <a class="enter" href="business-planning/" data-bp-link>Get a free action plan</a>
+      <p class="hint" data-hint="business_planning">Free, no sign-in needed. Sign in for website help and in-depth plans.</p>
     </article>
     <article class="door" data-door="annex" hidden>
       <span class="da-badge" data-badge="annex"></span>
@@ -330,12 +330,12 @@ document.addEventListener("desks-access", function (e) {
   var badge = function (k, cls, text) { var b = document.querySelector('[data-badge="' + k + '"]'); if (b) { b.className = "da-badge " + cls; b.textContent = text; } };
   var hint = function (k, text) { var h = document.querySelector('[data-hint="' + k + '"]'); if (h) h.textContent = text; };
   badge("gremlin_world", "open", "Open to everyone"); badge("recipe_shelf", "open", "Open to everyone");
-  badge("business_planning", "sample", "Example");
+  badge("business_planning", "open", "Free plan");
   A.api.bp.limits().then(function (L) {
     if (L.level === "full" || L.level === "basic") document.querySelector("[data-bp-link]").textContent = "Talk with Saji";
     if (L.level === "full") { badge("business_planning", "open", "Saji + team"); hint("business_planning", "Your conversations with Saji are waiting inside."); }
     else if (L.level === "basic") { badge("business_planning", "open", "Talk with Saji"); hint("business_planning", "Your conversations with Saji are waiting inside."); }
-    else hint("business_planning", me.role === "pending" ? "You'll be able to talk with Saji once Bryan approves you. Until then, see an example." : "Guests see an example conversation. Sign in to talk with Saji.");
+    else hint("business_planning", me.role === "pending" ? "Free while you wait. Once Bryan approves you, Saji can build an in-depth plan with you." : "Free, no sign-in needed. Sign in for website help and in-depth plans.");
   }).catch(function () {});
   if (has("office")) { badge("office", "open", "You have access"); hint("office", "You're signed in with an Office login."); }
   else badge("office", "lock", "Office login");

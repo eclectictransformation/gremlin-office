@@ -196,7 +196,7 @@
       return s.threads.map(function (t) {
         var ms = s.messages.filter(function (m) { return m.thread_id === t.id; }), u = x.users.find(function (z) { return z.id === t.user; }) || {};
         var lp = ms.filter(function (m) { return m.author === "person"; }).pop(), lb = ms.filter(function (m) { return m.author === "bot"; }).pop();
-        return Object.assign({}, t, { member_name: u.name, messages: ms.length, held: ms.filter(function (m) { return m.status === "held"; }).length, last_at: t.updated_at,
+        return Object.assign({}, t, { member_name: t.guest ? "Guest (free plan)" : u.name, messages: ms.length, held: ms.filter(function (m) { return m.status === "held"; }).length, last_at: t.updated_at,
           stuck: t.status === "open" && !!lp && (!lb || Date.parse(lp.created_at) > Date.parse(lb.created_at)) && Date.parse(lp.created_at) < cut });
       }).sort(function (a, b) { return Date.parse(b.last_at) - Date.parse(a.last_at); });
     },
@@ -207,7 +207,8 @@
     reply: function (tid, body, label, kind, reviewedBy) {
       var x = db(), s = bpStore(x), t = s.threads.find(function (z) { return z.id === tid; }); if (!t || t.status !== "open") throw new Error("thread not available");
       label = label || "Saji Tori"; kind = kind || "text";
-      var u = x.users.find(function (z) { return z.id === t.user; }), b = bpOf(u);
+      var u = x.users.find(function (z) { return z.id === t.user; }), b = t.guest ? Object.assign(bpOf(null), { wren_scripts: 0, review_replies: gCfg(x).review_replies }) : bpOf(u);
+      if (t.guest && (label === "Wren" || kind === "script")) throw new Error("limit: free guest plans have no Wren and no website script. Offer the sign-in line instead.");
       if (kind === "script" && label !== "Wren") throw new Error("scripts are posted as Wren");
       if (kind === "script" && b.wren_scripts != null && t.wren_scripts >= b.wren_scripts) throw new Error("limit: Wren script limit reached");
       var now = new Date().toISOString();
@@ -217,11 +218,14 @@
     },
     status: function (tid, phase) {
       var x = db(), s = bpStore(x), t = s.threads.find(function (z) { return z.id === tid; }); if (!t) throw new Error("thread not available");
+      if (t.guest && phase !== "saji") throw new Error("limit: free guest plans have no Wren and no website script");
       var now = new Date().toISOString(); t.phase = phase; t.updated_at = now;
       if (BP_NOTES[phase]) s.messages.push({ id: nextId(s.messages), thread_id: tid, author: "status", author_label: "Saji Tori", reviewed_by: null, kind: "status", body: BP_NOTES[phase], status: "sent", created_at: now });
       put(x); bpFire(tid); return { source: "business_planning", phase: phase, note: BP_NOTES[phase] || null };
     },
-    emails: function () { return db().bpEmails || []; }
+    emails: function () { return db().bpEmails || []; },
+    // test helper: change the mock guest settings (same keys as app_config bp_guest_*)
+    guestConfig: function (o) { var x = db(); x.bpGuestCfg = Object.assign(gCfg(x), o || {}); put(x); return x.bpGuestCfg; }
   };
   var liveBp = {
     limits: async function () { var c = await sb(); return chk(await c.rpc("bp_my_limits")); },
@@ -249,8 +253,91 @@
     adminRelease: async function (mid) { var c = await sb(); chk(await c.rpc("admin_bp_release", { p_message: mid })); }
   };
 
+
+  /* ------------------------------------------------------------------ Free guest action plan (no login). Bryan t731. */
+  // Live: the public bp-guest edge function (all limits checked again in the database). Mock: the same rules in this browser.
+  var G_MSG = {
+    cap: "We've had a lot of plans today. Please try again tomorrow, or sign in.",
+    off: "Free plans are resting right now. Please try again later, or sign in.",
+    too_fast: "That was quick. Take a moment to look over your answers, then send again.",
+    open: "This browser already has a free plan open. Use your saved link to go back to it.",
+    limit: "That's all the messages for a free plan. Sign in and Saji can build an in-depth plan with you.",
+    closed: "This plan is finished. Sign in and Saji can build an in-depth plan with you.",
+    not_found: "We couldn't find that plan. Check your saved link, or start a new free plan.",
+    bad: "That didn't send. Please check your answers and try again.",
+    check: "Please try the quick check again."
+  };
+  function gErr(code) { var e = new Error(G_MSG[code] || G_MSG.bad); e.code = code; return e; }
+  function gCfg(x) { return Object.assign({ enabled: true, daily_cap: 25, ip_daily: 2, turn_limit: 6, min_seconds: 8, review_replies: false }, x.bpGuestCfg || {}); }
+  function gHash(s) { var h1 = 0x811c9dc5, h2 = 0x01000193; s = String(s); for (var i = 0; i < s.length; i++) { h1 = Math.imul(h1 ^ s.charCodeAt(i), 16777619); h2 = Math.imul(h2 + s.charCodeAt(i), 2246822507); } return "mock-" + (h1 >>> 0).toString(16) + (h2 >>> 0).toString(16); }
+  function gToken() { var a = new Uint8Array(32); crypto.getRandomValues(a); return btoa(String.fromCharCode.apply(null, a)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+  function gDayStart() { var d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); }
+  function gView(x, t) {
+    var c = gCfg(x);
+    return { source: "business_planning", level: "guest_free",
+      thread: { id: t.id, title: t.title, status: t.status, phase: t.phase, intake_type: t.intake_type, visitor_turns: t.visitor_turns, created_at: t.created_at, updated_at: t.updated_at, has_email: !!t.guest_email },
+      limits: { level: "guest_free", turn_limit: c.turn_limit, wren_scripts: 0 },
+      messages: bpStore(x).messages.filter(function (m) { return m.thread_id === t.id && m.status === "sent"; }) };
+  }
+  function gFind(x, token) { var h = gHash(token); return bpStore(x).threads.find(function (t) { return t.guest && t.token_hash === h; }); }
+  var mockGuest = {
+    start: async function (o) {
+      var x = db(), c = gCfg(x), s = bpStore(x);
+      if (String(o.hp || "") !== "") throw gErr("bad");
+      var body = String(o.body || "").trim(); if (!body || body.length > BP_MAX || !/^[A-Za-z0-9_-]{20,200}$/.test(String(o.device || ""))) throw gErr("bad");
+      if (!c.enabled) throw gErr("off");
+      if ((+o.form_ms || 0) < c.min_seconds * 1000) throw gErr("too_fast");
+      var dh = gHash(o.device), day = gDayStart(), ip = gHash("mock-ip");
+      if (s.threads.some(function (t) { return t.guest && t.device_hash === dh && t.status === "open"; })) throw gErr("open");
+      if (s.threads.filter(function (t) { return t.guest && Date.parse(t.created_at) >= day; }).length >= c.daily_cap) throw gErr("cap");
+      if (s.threads.filter(function (t) { return t.guest && t.ip_hash === ip && Date.parse(t.created_at) >= day; }).length >= c.ip_daily) throw gErr("cap");
+      var token = gToken(), now = new Date().toISOString();
+      var t = { id: nextId(s.threads), user: "guest", guest: true, title: "Free action plan", status: "open", phase: "saji", intake_type: "action_plan", visitor_turns: 1, wren_scripts: 0,
+        token_hash: gHash(token), device_hash: dh, ip_hash: ip, guest_email: o.email ? String(o.email).trim().toLowerCase() : null, created_at: now, updated_at: now };
+      s.threads.push(t); s.messages.push({ id: nextId(s.messages), thread_id: t.id, author: "person", author_label: null, reviewed_by: null, kind: "text", body: body, status: "sent", created_at: now });
+      x.bpEmails = (x.bpEmails || []).concat([{ thread: t.id, subject: "Gremlin Ticket: Business Planning #" + t.id, level: "guest_free", intake: "action_plan" }]);
+      put(x); bpFire(t.id); return { ok: true, token: token, thread_id: t.id };
+    },
+    open: async function (token) { var x = db(), t = gFind(x, token); if (!t) throw gErr("not_found"); return gView(x, t); },
+    post: async function (token, body) {
+      var x = db(), t = gFind(x, token), c = gCfg(x); if (!t) throw gErr("not_found");
+      if (t.status !== "open") throw gErr("closed");
+      if (t.visitor_turns >= c.turn_limit) throw gErr("limit");
+      body = String(body || "").trim(); if (!body || body.length > BP_MAX) throw gErr("bad");
+      var now = new Date().toISOString(), s = bpStore(x);
+      s.messages.push({ id: nextId(s.messages), thread_id: t.id, author: "person", author_label: null, reviewed_by: null, kind: "text", body: body, status: "sent", created_at: now });
+      t.visitor_turns++; t.updated_at = now; x.bpEmails = (x.bpEmails || []).concat([{ thread: t.id, subject: "Gremlin Ticket: Business Planning #" + t.id, level: "guest_free", intake: "action_plan" }]);
+      put(x); bpFire(t.id); return gView(x, t);
+    },
+    email: async function (token, email) {
+      var x = db(), t = gFind(x, token); if (!t) throw gErr("not_found");
+      var e = String(email || "").trim().toLowerCase(); if (e && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) throw gErr("bad");
+      t.guest_email = e || null; put(x); return { ok: true, has_email: !!e };
+    },
+    subscribe: function (tid, cb) { return mockBp.subscribe(tid, cb); },
+    adminSettings: async function () { var x = db(), c = gCfg(x), day = gDayStart(), g = bpStore(x).threads.filter(function (t) { return t.guest; });
+      return Object.assign({}, c, { today: g.filter(function (t) { return Date.parse(t.created_at) >= day; }).length, open_now: g.filter(function (t) { return t.status === "open"; }).length }); },
+    adminSet: async function (o) { var x = db(); x.bpGuestCfg = Object.assign(gCfg(x), o); put(x); }
+  };
+  var liveGuest = {
+    call: async function (body) {
+      var r = await fetch(C.SUPABASE_URL + "/functions/v1/bp-guest", { method: "POST", headers: { "Content-Type": "application/json", apikey: C.SUPABASE_ANON_KEY, Authorization: "Bearer " + C.SUPABASE_ANON_KEY }, body: JSON.stringify(body) });
+      var j = await r.json().catch(function () { return {}; });
+      if (!r.ok || j.error) { var e = new Error(j.message || G_MSG.bad); e.code = j.error || "bad"; throw e; }
+      return j;
+    },
+    start: function (o) { return liveGuest.call(Object.assign({ action: "start" }, o)); },
+    open: function (token) { return liveGuest.call({ action: "open", token: token }); },
+    post: function (token, body) { return liveGuest.call({ action: "post", token: token, body: body }); },
+    email: function (token, email) { return liveGuest.call({ action: "email", token: token, email: email }); },
+    subscribe: function () { return function () {}; },   // guests have no live channel; the page checks back every so often
+    adminSettings: async function () { var c = await sb(); return chk(await c.rpc("admin_bp_guest_settings")); },
+    adminSet: async function (o) { var c = await sb(); chk(await c.rpc("admin_bp_set_guest", { p_enabled: o.enabled, p_daily_cap: o.daily_cap, p_ip_daily: o.ip_daily, p_turn_limit: o.turn_limit, p_review_replies: o.review_replies })); }
+  };
+
   var API = C.MODE === "live" ? live : mock;
   API.bp = C.MODE === "live" ? liveBp : mockBp;
+  API.bpGuest = C.MODE === "live" ? liveGuest : mockGuest;
 
   // (Preview switcher removed from the live pack.)
 

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Access page &middot; The Gremlin Desks</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#3A4A33">
+<link rel="stylesheet" href="../access/page.css">
+<link rel="stylesheet" href="../access/access.css">
+<style>.tabs{flex-wrap:wrap}.tab{min-width:7.5rem}</style>
+<script src="../access/config.js"></script>
+<script src="../access/dictate.js" defer></script>
+<script src="../access/access.js" data-root="../"></script>
+</head>
+<body>
+<main class="wrap wide da-bar-slot">
+  <p class="crumb"><a href="../">&larr; Back to the Gremlin Desks</a></p>
+  <p class="kicker">The key ring</p>
+  <h1>Access page</h1>
+  <section class="card" id="locked" hidden></section>
+  <div id="app" hidden>
+    <div class="tabs" role="tablist" aria-label="Access page sections">
+      <button class="tab" role="tab" data-tab="queue" aria-selected="true" type="button">Waiting <span id="qn"></span></button>
+      <button class="tab" role="tab" data-tab="people" aria-selected="false" type="button">People</button>
+      <button class="tab" role="tab" data-tab="tickets" aria-selected="false" type="button">Tickets <span id="tn"></span></button>
+      <button class="tab" role="tab" data-tab="bp" aria-selected="false" type="button">Business Planning <span id="bn"></span></button>
+      <button class="tab" role="tab" data-tab="settings" aria-selected="false" type="button">Settings</button>
+    </div>
+    <section class="card" id="panel" aria-live="polite"></section>
+  </div>
+</main>
+<script>
+(function () {
+  var A = window.DesksAccess, C = A.config, esc = A.esc, api = A.api, tab = "queue";
+  var AREAS = C.AREAS || [];
+  function when(iso) { var d = new Date(iso); return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + ", " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); }
+
+  A.ready.then(function (me) {
+    var lock = document.getElementById("locked");
+    if (me.role !== "admin") {
+      lock.hidden = false;
+      lock.innerHTML = me.admin_needs_code
+        ? "<h2>Enter your two-step code first</h2><p>The access page opens after you verify your authenticator code in the Office this session.</p><div class=\"row\"><a class=\"da-btn\" href=\"../" + esc(C.OFFICE_PATH) + "#/mfa\">Enter code</a></div>"
+        : "<h2>This page is for Bryan</h2><p>There's nothing to see here with your account.</p><div class=\"row\"><a class=\"da-btn ghost\" href=\"../\">Back to the Desks</a></div>";
+      return;
+    }
+    document.getElementById("app").hidden = false;
+    document.querySelectorAll("[data-tab]").forEach(function (b) { b.onclick = function () { tab = b.dataset.tab; draw(); }; });
+    draw();
+  });
+
+  async function draw() {
+    document.querySelectorAll("[data-tab]").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.tab === tab); });
+    var members = await api.adminMembers(), tickets = await api.adminTickets();
+    var pending = members.filter(function (m) { return m.status === "pending"; });
+    var fresh = tickets.filter(function (t) { return t.status === "new"; });
+    document.getElementById("qn").textContent = pending.length ? "(" + pending.length + ")" : "";
+    document.getElementById("tn").textContent = fresh.length ? "(" + fresh.length + ")" : "";
+    var p = document.getElementById("panel"), h = "";
+    if (tab === "queue") {
+      h = "<h2>New sign-ups waiting for you</h2><p class=\"small\">Until you approve someone they have guest access only: public areas and one short sample per room. Approving opens the full rooms and tickets. You can fine-tune it on the People tab.</p>";
+      h += pending.length ? pending.map(function (m) {
+        return "<div class=\"person\"><b>" + esc(m.display_name) + "</b> <span class=\"small\">" + esc(m.email) + " &middot; signed up " + when(m.created_at) + "</span>" +
+          (m.intro_note ? "<div class=\"note\">" + esc(m.intro_note) + "</div>" : "<p class=\"small\">No note.</p>") +
+          "<div class=\"row\" style=\"margin-top:.4rem\"><button class=\"da-btn\" data-st=\"approved\" data-u=\"" + esc(m.user_id) + "\">Approve</button><button class=\"da-btn ghost\" data-st=\"blocked\" data-u=\"" + esc(m.user_id) + "\">Decline</button></div></div>";
+      }).join("") : "<p>Nobody's waiting. Nice.</p>";
+    }
+    if (tab === "people") {
+      h = "<h2>People and what they can open</h2><p class=\"small\">Tap an area to switch it on or off for that person. The Gremlin Office and the game use an Office login, which you set up in the Office.</p>";
+      h += members.filter(function (m) { return m.status !== "pending"; }).map(function (m) {
+        return "<div class=\"person\"><b>" + esc(m.display_name) + "</b> <span class=\"pill " + esc(m.status) + "\">" + esc(m.status) + "</span> <span class=\"small\">" + esc(m.email) + "</span>" +
+          "<div class=\"toggles\">" + AREAS.map(function (a) {
+            if (a.officeLogin) return "<span class=\"tg off-limits\" title=\"Set up in the Office\">" + esc(a.label) + ": Office login</span>";
+            var on = m.areas.indexOf(a.key) > -1 || a.guest;
+            return "<label class=\"tg\"><input type=\"checkbox\" data-area=\"" + a.key + "\" data-u=\"" + esc(m.user_id) + "\"" + (on ? " checked" : "") + (a.guest || m.status !== "approved" ? " disabled" : "") + "> " + esc(a.label) + (a.guest ? " (everyone)" : "") + "</label>";
+          }).join("") + "</div>" +
+          "<div class=\"row\" style=\"margin-top:.5rem\">" + (m.status === "approved"
+            ? "<button class=\"da-btn ghost\" data-st=\"blocked\" data-u=\"" + esc(m.user_id) + "\">Remove access</button>"
+            : "<button class=\"da-btn\" data-st=\"approved\" data-u=\"" + esc(m.user_id) + "\">Approve</button>") + "</div></div>";
+      }).join("") + "<p class=\"small\" style=\"margin-top:1rem\">To give someone an Office desk or the game: <a href=\"../" + esc(C.OFFICE_PATH) + "#/admin\">Office &rarr; Admin &rarr; Add person</a>.</p>";
+    }
+    if (tab === "tickets") {
+      h = "<h2>Tickets from signed-in visitors</h2>";
+      h += tickets.length ? tickets.map(function (t) {
+        return "<div class=\"person\"><b>#" + t.id + " " + esc(t.subject) + "</b> <span class=\"pill " + esc(t.status) + "\">" + esc(t.status) + "</span>" +
+          "<p class=\"small\" style=\"margin:.15rem 0\">From <b>" + esc(t.sender_name) + "</b> (" + esc(t.sender_email) + ") &middot; " + esc({ general: "General", wren: "Wren's Room", saji: "Saji Tori" }[t.room] || t.room) + " &middot; " + when(t.created_at) + "</p>" +
+          "<div class=\"note\">" + esc(t.body) + "</div>" +
+          "<label class=\"f\" for=\"an-" + t.id + "\">Private note (only you see this)</label><textarea id=\"an-" + t.id + "\" maxlength=\"2000\" rows=\"2\" style=\"min-height:4rem\" data-note=\"" + t.id + "\">" + esc(t.admin_note || "") + "</textarea>" +
+          "<div class=\"row\" style=\"margin-top:.3rem\"><button class=\"da-btn ghost\" data-savenote=\"" + t.id + "\">Save note</button>" +
+          ["read", "answered", "closed"].map(function (s) { return "<button class=\"da-btn ghost\" data-tk=\"" + t.id + "\" data-ts=\"" + s + "\"" + (t.status === s ? " disabled" : "") + ">Mark " + s + "</button>"; }).join("") + "</div></div>";
+      }).join("") : "<p>No tickets yet.</p>";
+    }
+    var bpThreads = await api.bp.adminThreads().catch(function () { return []; });
+    var attention = bpThreads.filter(function (t) { return t.held > 0 || t.stuck; }).length;
+    document.getElementById("bn").textContent = attention ? "(" + attention + ")" : "";
+    if (tab === "bp") {
+      var sets = await api.bp.adminSettings(), byId = {}; sets.forEach(function (x) { byId[x.user_id] = x; });
+      var LV = { example: "Example only", basic: "Basic: Saji, limited", full: "Full: Saji + Wren + team, unlimited" };
+      var num = function (v) { return v == null ? "" : String(v); };
+      h = "<h2>Who can talk with Saji</h2><p class=\"small\">Pick a level for each approved person. Basic = 12 messages per conversation, 1 open conversation, 3 new ones a week, 1 Wren script. Full = no message or script limits. Fine-tune under &ldquo;Adjust&rdquo;. Guests and people waiting for approval always see the example.</p>";
+      h += members.filter(function (m) { return m.status === "approved"; }).map(function (m) {
+        var b = byId[m.user_id] || { bp_level: "basic" };
+        return "<div class=\"person\" data-bpu=\"" + esc(m.user_id) + "\"><b>" + esc(m.display_name) + "</b> <span class=\"small\">" + esc(m.email) + "</span>" +
+          "<div class=\"row\" style=\"margin-top:.4rem\"><label class=\"small\" for=\"lv-" + esc(m.user_id) + "\">Level</label><select id=\"lv-" + esc(m.user_id) + "\" data-level=\"" + esc(m.user_id) + "\" style=\"width:auto\">" +
+          ["example", "basic", "full"].map(function (k) { return "<option value=\"" + k + "\"" + (b.bp_level === k ? " selected" : "") + ">" + LV[k] + "</option>"; }).join("") + "</select></div>" +
+          "<details style=\"margin-top:.4rem\"><summary class=\"small\" style=\"cursor:pointer\">Adjust</summary><div class=\"toggles\" style=\"align-items:flex-end\">" +
+          "<label class=\"tg\">Messages per conversation <input type=\"number\" min=\"0\" max=\"1000\" data-k=\"turn_limit\" value=\"" + num(b.bp_turn_limit) + "\" placeholder=\"no limit\" style=\"width:6rem\"></label>" +
+          "<label class=\"tg\">Open at once <input type=\"number\" min=\"0\" max=\"50\" data-k=\"open_threads\" value=\"" + num(b.bp_open_threads) + "\" style=\"width:5rem\"></label>" +
+          "<label class=\"tg\">New per week <input type=\"number\" min=\"0\" max=\"100\" data-k=\"weekly_threads\" value=\"" + num(b.bp_weekly_threads) + "\" placeholder=\"no limit\" style=\"width:6rem\"></label>" +
+          "<label class=\"tg\">Wren scripts per conversation <input type=\"number\" min=\"0\" max=\"100\" data-k=\"wren_scripts\" value=\"" + num(b.bp_wren_scripts) + "\" placeholder=\"no limit\" style=\"width:6rem\"></label>" +
+          "<label class=\"tg\">Pip checks scripts <select data-k=\"pip_review\" style=\"width:auto\"><option value=\"\"" + (b.bp_pip_review == null ? " selected" : "") + ">Default (on)</option><option value=\"true\"" + (b.bp_pip_review === true ? " selected" : "") + ">On</option><option value=\"false\"" + (b.bp_pip_review === false ? " selected" : "") + ">Off</option></select></label>" +
+          "<label class=\"tg\"><input type=\"checkbox\" data-k=\"review_replies\"" + (b.bp_review_replies ? " checked" : "") + "> I check Saji's replies first</label>" +
+          "</div><div class=\"row\" style=\"margin-top:.4rem\"><button class=\"da-btn ghost\" data-savebp=\"" + esc(m.user_id) + "\">Save</button><span class=\"small\" data-bpmsg></span></div></details></div>";
+      }).join("") || "<p>No approved people yet.</p>";
+      var PH = { saji: "With Saji", waiting_on_wren: "Wren is writing", script_review: "Pip is checking the script" };
+      h += "<h2 style=\"margin-top:1.3rem\">Conversations</h2><p class=\"small\">&ldquo;Needs a nudge&rdquo; means the person wrote 15+ minutes ago and Saji hasn't answered yet.</p>";
+      h += bpThreads.length ? bpThreads.map(function (t) {
+        return "<div class=\"person\"><b>#" + t.id + " " + esc(t.title) + "</b> " + (t.intake_type && t.intake_type !== "free" ? "<span class=\"pill\">" + esc({ action_plan: "Action plan", website_consult: "Website consult" }[t.intake_type] || t.intake_type) + "</span> " : "") + "<span class=\"pill " + (t.status === "open" ? "approved" : "blocked") + "\">" + (t.status === "open" ? esc(PH[t.phase] || t.phase) : "finished") + "</span>" +
+          (t.stuck ? " <span class=\"pill new\">Needs a nudge</span>" : "") + (t.held ? " <span class=\"pill pending\">" + t.held + " waiting for you</span>" : "") +
+          "<p class=\"small\" style=\"margin:.15rem 0\">" + esc(t.member_name) + " &middot; " + t.messages + " posts &middot; " + t.visitor_turns + " from them &middot; " + t.wren_scripts + " Wren script" + (t.wren_scripts === 1 ? "" : "s") + " &middot; " + when(t.last_at) + "</p>" +
+          (t.held ? "<button class=\"da-btn ghost\" data-showheld=\"" + t.id + "\">Read and release</button><div data-heldbox=\"" + t.id + "\"></div>" : "") + "</div>";
+      }).join("") : "<p>No conversations yet.</p>";
+    }
+    if (tab === "settings") {
+      var d = await api.adminDestination();
+      h = "<h2>Where tickets go</h2><p>Tickets from this site go to <b>" + esc(d.label || "") + "</b>:</p><p class=\"note\">" + esc(d.to || "") + "</p>" +
+        "<p class=\"small\">Each copy of the Desks has its own setting, so a client's copy can send tickets to their own email instead. Changing it is a one-line update that Pip can prepare for you.</p>" +
+        "<h2 style=\"margin-top:1.2rem\">Business Planning</h2><p class=\"small\">Each message someone sends emails Saji the usual way (subject &ldquo;Gremlin Ticket: Business Planning #&hellip;&rdquo;, to the same inbox as Office tickets). Saji brings in Wren and Pip himself. When Saji hands off to Wren, the person sees &ldquo;Wren says your script should take about 3–5 minutes. You can close this page and come back.&rdquo; Pip looks over every Wren script while we test (change per person on the Business Planning tab).</p>" +
+        "<h2 style=\"margin-top:1.2rem\">Guest samples</h2><p class=\"small\">Guests get " + C.GUEST.samplesPerRoomPerVisit + " short try per room per visit (up to " + C.GUEST.maxChars + " characters, easy version only). New sign-ups stay at guest level until you approve them. Approved members can send " + 3 + " tickets a day.</p>";
+    }
+    p.innerHTML = h;
+    p.querySelectorAll("[data-st]").forEach(function (b) { b.onclick = async function () { await api.adminSetStatus(b.dataset.u, b.dataset.st); draw(); }; });
+    p.querySelectorAll("[data-area]").forEach(function (c) { c.onchange = async function () { try { await api.adminSetArea(c.dataset.u, c.dataset.area, c.checked); } catch (e) { alert(e.message); } draw(); }; });
+    p.querySelectorAll("[data-savenote]").forEach(function (b) { b.onclick = async function () { var ta = p.querySelector('[data-note="' + b.dataset.savenote + '"]'); try { await api.adminSetNote(+b.dataset.savenote, ta.value.trim()); b.textContent = "Saved"; } catch (e) { alert(e.message); } }; });
+    if (window.DesksDictate) window.DesksDictate.scan(p);
+    p.querySelectorAll("[data-level]").forEach(function (sel) { sel.onchange = async function () { try { await api.bp.adminSetLevel(sel.dataset.level, sel.value); } catch (e) { alert(e.message); } draw(); }; });
+    p.querySelectorAll("[data-savebp]").forEach(function (b) { b.onclick = async function () {
+      var box = p.querySelector('[data-bpu="' + b.dataset.savebp + '"]'), g = function (k) { return box.querySelector('[data-k="' + k + '"]'); };
+      var n = function (k) { var v = g(k).value.trim(); return v === "" ? null : Math.max(0, parseInt(v, 10) || 0); };
+      var pr = g("pip_review").value;
+      try { await api.bp.adminSetLimits(b.dataset.savebp, { turn_limit: n("turn_limit"), open_threads: n("open_threads") == null ? 1 : n("open_threads"), weekly_threads: n("weekly_threads"), wren_scripts: n("wren_scripts"), pip_review: pr === "" ? null : pr === "true", review_replies: g("review_replies").checked });
+        box.querySelector("[data-bpmsg]").textContent = "Saved."; } catch (e) { alert(e.message); }
+    }; });
+    p.querySelectorAll("[data-showheld]").forEach(function (b) { b.onclick = async function () {
+      var id = +b.dataset.showheld, box = p.querySelector('[data-heldbox="' + id + '"]'), ms = (await api.bp.messages(id)).filter(function (m) { return m.status === "held"; });
+      box.innerHTML = ms.map(function (m) { return "<div class=\"note\"><b>" + esc(m.author_label) + (m.kind === "script" ? " (script)" : "") + "</b><div style=\"white-space:pre-wrap\">" + esc(m.body) + "</div><button class=\"da-btn\" data-release=\"" + m.id + "\" style=\"margin-top:.4rem\">Release to them</button></div>"; }).join("");
+      box.querySelectorAll("[data-release]").forEach(function (r) { r.onclick = async function () { await api.bp.adminRelease(+r.dataset.release); draw(); }; });
+    }; });
+    p.querySelectorAll("[data-tk]").forEach(function (b) { b.onclick = async function () { await api.adminSetTicket(+b.dataset.tk, b.dataset.ts); draw(); }; });
+  }
+})();
+</script>
+</body>
+</html>
