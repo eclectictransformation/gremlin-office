@@ -68,7 +68,7 @@
 <script>
 (function () {
   var A = window.DesksAccess, next = new URLSearchParams(location.search).get("next");
-  var dest = next === "ticket" ? "../ticket/" : next === "business-planning" ? "../business-planning/" : "../";
+  var dest = next === "ticket" ? "../ticket/" : next === "business-planning" ? "../business-planning/" : next === "cards" ? "../business-planning/cards/" : "../";
   var tabs = ["in", "new", "office"];
   function show(k) { tabs.forEach(function (t) { document.getElementById("t-" + t).setAttribute("aria-selected", t === k); document.getElementById("p-" + t).hidden = t !== k; }); }
   tabs.forEach(function (t) { document.getElementById("t-" + t).onclick = function () { show(t); }; });

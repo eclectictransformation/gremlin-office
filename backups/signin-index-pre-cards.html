@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign in &middot; The Gremlin Desks</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#3A4A33">
+<link rel="stylesheet" href="../access/page.css">
+<link rel="stylesheet" href="../access/access.css">
+<script src="../access/config.js"></script>
+<script src="../access/dictate.js" defer></script>
+<script src="../access/access.js" data-root="../" data-bar="off"></script>
+</head>
+<body>
+<main class="wrap">
+  <p class="crumb"><a href="../">&larr; Back to the Gremlin Desks</a></p>
+  <p class="kicker">Come on in</p>
+  <h1>Sign in to the Gremlin Desks</h1>
+  <p class="lead">Guests can look around without an account. Signing in lets you send tickets, so Bryan knows who's writing, and opens the full rooms once he approves you.</p>
+
+  <section class="card" id="signed" hidden aria-live="polite"></section>
+
+  <section class="card" id="forms">
+    <div class="tabs" role="tablist" aria-label="Sign in or create an account">
+      <button class="tab" role="tab" id="t-in" aria-controls="p-in" aria-selected="true" type="button">Sign in</button>
+      <button class="tab" role="tab" id="t-new" aria-controls="p-new" aria-selected="false" type="button">New here</button>
+      <button class="tab" role="tab" id="t-office" aria-controls="p-office" aria-selected="false" type="button">Office login</button>
+    </div>
+
+    <form id="p-in" role="tabpanel" aria-labelledby="t-in" novalidate>
+      <label class="f" for="in-email">Email</label>
+      <input id="in-email" type="email" autocomplete="email" required>
+      <label class="f" for="in-pw">Password</label>
+      <input id="in-pw" type="password" autocomplete="current-password" required>
+      <div class="row"><button class="da-btn" type="submit">Sign in</button></div>
+      <p class="status" role="status"></p>
+    </form>
+
+    <form id="p-new" role="tabpanel" aria-labelledby="t-new" hidden novalidate>
+      <label class="f" for="n-name">Your name</label>
+      <input id="n-name" type="text" autocomplete="name" maxlength="60" required>
+      <label class="f" for="n-email">Email</label>
+      <input id="n-email" type="email" autocomplete="email" required>
+      <p class="help">We'll send a link to confirm it's really you.</p>
+      <label class="f" for="n-pw">Password</label>
+      <input id="n-pw" type="password" autocomplete="new-password" minlength="12" required>
+      <p class="help">At least 12 characters.</p>
+      <label class="f" for="n-note">What brings you here? <span class="small">(optional)</span></label>
+      <textarea id="n-note" maxlength="300" rows="3" style="min-height:5rem" placeholder="For example: I'm starting a dog-walking business and want help planning a website."></textarea>
+      <p class="help">Bryan reads this when he approves new accounts. Until then you'll have guest access. You can type or use 🎤 Dictate (some browsers send the audio to their own speech service).</p>
+      <div class="row"><button class="da-btn" type="submit">Create my account</button></div>
+      <p class="status" role="status"></p>
+    </form>
+
+    <form id="p-office" role="tabpanel" aria-labelledby="t-office" hidden novalidate>
+      <p class="help" style="margin-top:0">For people Bryan has set up with an Office desk.</p>
+      <label class="f" for="o-id">Office login ID</label>
+      <input id="o-id" type="text" data-no-dictate autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      <label class="f" for="o-pw">Password</label>
+      <input id="o-pw" type="password" autocomplete="current-password" required>
+      <div class="row"><button class="da-btn" type="submit">Sign in</button><a class="small" href="../desks-preview-q7m4/#/forgot">Forgot password?</a></div>
+      <p class="status" role="status"></p>
+    </form>
+  </section>
+  <p class="small">Prefer not to sign in? <a href="../">Keep looking around as a guest.</a></p>
+</main>
+<script>
+(function () {
+  var A = window.DesksAccess, next = new URLSearchParams(location.search).get("next");
+  var dest = next === "ticket" ? "../ticket/" : next === "business-planning" ? "../business-planning/" : "../";
+  var tabs = ["in", "new", "office"];
+  function show(k) { tabs.forEach(function (t) { document.getElementById("t-" + t).setAttribute("aria-selected", t === k); document.getElementById("p-" + t).hidden = t !== k; }); }
+  tabs.forEach(function (t) { document.getElementById("t-" + t).onclick = function () { show(t); }; });
+  if (location.hash === "#new") show("new");
+  function st(form, msg, err) { var s = form.querySelector(".status"); s.textContent = msg; s.classList.toggle("err", !!err); }
+  function busy(form, on) { var b = form.querySelector("button[type=submit]"); b.disabled = on; }
+
+  document.getElementById("p-in").addEventListener("submit", async function (e) {
+    e.preventDefault(); var f = e.target, em = f.querySelector("#in-email").value.trim(), pw = f.querySelector("#in-pw").value;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em) || !pw) return st(f, "Enter your email and password.", true);
+    busy(f, true); try { await A.api.signIn(em, pw); location.href = dest; } catch (err) { st(f, "That email or password didn't match.", true); } busy(f, false);
+  });
+  document.getElementById("p-new").addEventListener("submit", async function (e) {
+    e.preventDefault(); var f = e.target, nm = f.querySelector("#n-name").value.trim(), em = f.querySelector("#n-email").value.trim(), pw = f.querySelector("#n-pw").value, note = f.querySelector("#n-note").value;
+    if (!nm) return st(f, "Add your name so Bryan knows who you are.", true);
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return st(f, "That email doesn't look right.", true);
+    if (pw.length < 12) return st(f, "Use a password with at least 12 characters.", true);
+    busy(f, true);
+    try { var r = await A.api.signUp(nm, em, pw, note);
+      if (r.needsConfirm) st(f, "Check your email for a confirmation link. After that you can sign in here.");
+      else location.href = "../";
+    } catch (err) { st(f, err.message || "Something went wrong. Try again in a minute.", true); }
+    busy(f, false);
+  });
+  document.getElementById("p-office").addEventListener("submit", async function (e) {
+    e.preventDefault(); var f = e.target, id = f.querySelector("#o-id").value.trim(), pw = f.querySelector("#o-pw").value;
+    if (!id || !pw) return st(f, "Enter your Office login ID and password.", true);
+    busy(f, true); try { await A.api.officeSignIn(id, pw); location.href = dest; } catch (err) { st(f, "Login ID or password is incorrect.", true); } busy(f, false);
+  });
+
+  A.ready.then(function (me) {
+    if (me.role === "guest") return;
+    var box = document.getElementById("signed"), esc = A.esc;
+    box.hidden = false; document.getElementById("forms").hidden = true;
+    var msg = me.role === "pending"
+      ? "<h2>Thanks, " + esc(me.display_name) + "!</h2><p>Your account is waiting for Bryan's approval. Until then you have guest access: wander Gremlin World and the Recipe Shelf, and try a short sample in each bot's room.</p>"
+      : "<h2>You're signed in, " + esc(me.display_name) + ".</h2><p>Everything you have access to is open on the main page.</p>";
+    box.innerHTML = msg + '<div class="row"><a class="da-btn" href="../">Go to the Desks</a><button class="da-btn ghost" type="button" id="out">Sign out</button></div>';
+    document.getElementById("out").onclick = async function () { await A.api.signOut(); location.reload(); };
+  });
+})();
+</script>
+</body>
+</html>

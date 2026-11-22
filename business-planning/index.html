@@ -85,6 +85,10 @@ fieldset { border: 0; margin: 0; padding: 0; }
 @media (max-width: 520px) { .b { max-width: 100%; } .btn-main { width: 100%; } .count { margin-left: 0; } }
 /* guest free plan */
 .hp { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden; }
+.tool-door { display: flex; flex-direction: column; gap: .2rem; text-decoration: none; color: var(--ink); }
+.tool-door:hover { background: #F7F5EE; }
+.tool-door .td-title { font-family: var(--serif); font-weight: 700; font-size: 1.12rem; color: var(--moss); text-decoration: underline; }
+.tool-door .td-sub { font-size: .95rem; color: var(--muted); }
 .free-line { margin: .9rem 0 0; color: var(--muted); font-size: .95rem; }
 .saved { border-color: var(--forest); box-shadow: 3px 3px 0 var(--forest); }
 .saved .linkrow { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
@@ -195,6 +199,9 @@ fieldset { border: 0; margin: 0; padding: 0; }
       <a class="btn-main" id="upsell-btn" href="../signin/?next=business-planning" style="text-decoration:none;display:inline-flex">Sign in</a>
     </section>
 
+    <!-- Gift certificates and business cards (Moth's templates). Works for everyone, all on this device. -->
+    <a class="card tool-door" id="cards-door" href="cards/"><span class="td-title">Make a gift certificate or business card</span><span class="td-sub">Pick a style, add your details, download a print-ready file. Free, and it all stays on your device.</span></a>
+
     <details class="more" id="more">
       <summary>More</summary>
       <div class="more-body" id="more-body">
@@ -215,7 +222,7 @@ fieldset { border: 0; margin: 0; padding: 0; }
   var $ = function (id) { return document.getElementById(id); };
   // mode: "member" (Basic/Full: the signed-in conversation, unchanged) or "guest" (free plan, no login; also people waiting for approval)
   var state = { mode: null, me: null, limits: null, threads: [], cur: null, msgs: [], unsub: null, token: null, justSent: false, poll: null };
-  var INTAKE_NAME = { action_plan: "Business action plan", website_consult: "Website consult" };
+  var INTAKE_NAME = { action_plan: "Business action plan", website_consult: "Website consult", moth_design: "Design request for Moth" };
   var STATES = { beginning: "Just beginning", chaos: "In chaos", grounded: "Grounded", doing_well: "Doing well", something_new: "Looking for something new", other: "Other" };
   var STATE_Q = C.BP_STATE_QUESTIONS || {};
   var SCRIPT_INTRO = "That's the starter website script from Wren. Copy it, then paste it into Remixer, the tool that turns this into a first draft of your site. After that, swap in your real details. I'm still here if you have questions.";
