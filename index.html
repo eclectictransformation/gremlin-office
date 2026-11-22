@@ -302,13 +302,6 @@ h1 {
       <a class="enter" href="business-planning/" data-bp-link>Get a free action plan</a>
       <p class="hint" data-hint="business_planning">Free, no sign-in needed. Sign in for website help and in-depth plans.</p>
     </article>
-    <article class="door" data-door="annex" hidden>
-      <span class="da-badge" data-badge="annex"></span>
-      <p class="door-kicker">The game</p>
-      <h2>Gremlin Game</h2>
-      <p class="blurb">Head through the Office and into the game the crew plays after hours.</p>
-      <a class="enter" href="desks-preview-q7m4/#/office">Play the game</a>
-    </article>
     <article class="door" data-door="tickets">
       <span class="da-badge" data-badge="send_tickets"></span>
       <p class="door-kicker">The mail slot</p>
@@ -345,7 +338,6 @@ document.addEventListener("desks-access", function (e) {
   }).catch(function () {});
   if (has("office")) { badge("office", "open", "You have access"); hint("office", "You're signed in with an Office login."); }
   else badge("office", "lock", "Office login");
-  if (has("annex")) { document.querySelector('[data-door="annex"]').hidden = false; badge("annex", "open", "You have access"); }
   if (has("send_tickets")) { badge("send_tickets", "open", "Members"); hint("send_tickets", me.role === "admin" ? "Tickets land in your Office inbox." : "You've sent " + me.tickets_used + " of " + me.ticket_cap + " today."); }
   else {
     badge("send_tickets", "lock", "Sign in first");

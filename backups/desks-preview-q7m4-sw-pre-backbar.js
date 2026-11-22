@@ -1,0 +1,32 @@
+// Desks service worker: caches the app shell ONLY.
+// Never caches Supabase (API, auth, storage/signed photo URLs) or any other cross-origin request.
+const CACHE = "desks-shell-v22";
+const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "office3d.js", "annex.js", "annex-audio.js", "glimpse.js", "rpg.js", "control.js", "annex-net.js", "annex-chat.js", "annex-battle.js", "annex-party.js", "annex-grotto-run.js", "data/elsewhere-annex.json", "data/glimpse-world.json", "data/annex-rpg.json", "data/grotto-run.json", "vendor/three.module.min.js", "manifest.webmanifest",
+  "annex-midi-player.js", "annex-scene-music.js", "data/annex-music.json", "data/annex-guide.json",
+  "midi/annex-station.mid", "midi/backrooms-arrival.mid", "midi/backrooms-explore.mid", "midi/mailroom-explore.mid", "midi/mailroom-battle.mid",
+  "midi/grotto-explore.mid", "midi/grotto-battle.mid", "midi/grotto-boss.mid", "midi/deep-boss.mid", "midi/victory-jingle.mid", "midi/stare-fanfare.mid", "midi/snorble-theme.mid",
+  "midi/office-theme.mid", "midi/cathouse-play.mid",
+  "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "assets/bryan-avatar.webp",
+  "assets/gallery/tea-under-the-old-oak.webp", "assets/gallery/still-life-with-tea-and-small-visitors.webp",
+  "assets/gallery/healing-herbs-plate.webp", "assets/gallery/morning-check-in-highlands.webp", "assets/gallery/slow-hands.webp",
+  "assets/gallery/three-stones.webp", "assets/gallery/desks-floor-plan-gremlin-edition.webp"];
+self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
+self.addEventListener("activate", (e) => {
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+});
+self.addEventListener("fetch", (e) => {
+  const req = e.request, url = new URL(req.url);
+  if (req.method !== "GET" || url.origin !== self.location.origin) return; // Supabase & CDNs: straight to network
+  const scopePath = new URL(self.registration.scope).pathname;
+  if (!url.pathname.startsWith(scopePath)) return;
+  const isHTML = req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
+  if (isHTML || /\.(js|css|webmanifest|json)$/.test(url.pathname)) {
+    // network-first so updates show up; cache only as offline fallback
+    e.respondWith(fetch(req).then((r) => { if (r.ok) { const cp = r.clone(); caches.open(CACHE).then((c) => c.put(req, cp)); } return r; })
+      .catch(() => caches.match(req).then((m) => m || caches.match("index.html"))));
+    return;
+  }
+  if (url.pathname.includes("/assets/avatars/pixel/") || SHELL.some((s) => url.pathname.endsWith(s.replace("./", "")) && s !== "./")) {
+    e.respondWith(caches.match(req).then((m) => m || fetch(req).then((r) => { if (r.ok && url.pathname.includes("/assets/avatars/pixel/")) { const cp = r.clone(); caches.open(CACHE).then((c) => c.put(req, cp)); } return r; })));
+  }
+});

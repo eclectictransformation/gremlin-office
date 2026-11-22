@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vesper · Meet the Gremlins · The Gremlin Desks</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="The (entirely made-up) backstory of Vesper, one of the Gremlin Desks gremlins.">
+<meta name="theme-color" content="#3A4A33">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<style>
+:root {
+  --cream: #E8E4D8; --paper: #F1EDE2; --sage: #A6B89A; --forest: #54664A;
+  --moss: #3A4A33; --ink: #1A1A18; --clay: #B8775A; --muted: #5d5d55; --twig: #8a6a45;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100dvh;
+  padding: max(1.25rem, env(safe-area-inset-top)) max(1.1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1.1rem, env(safe-area-inset-left));
+  background: var(--cream) repeating-linear-gradient(90deg, transparent 0 46px, rgba(84, 102, 74, 0.05) 46px 48px);
+  color: var(--ink); font-family: var(--sans); line-height: 1.5;
+}
+.wrap { max-width: 42rem; margin: 0 auto; }
+.wrap.wide { max-width: 64rem; }
+a { color: var(--moss); }
+a:focus-visible { outline: 3px solid var(--clay); outline-offset: 3px; }
+.crumb { margin: 0 0 1rem; font-size: 0.95rem; }
+.crumb a { display: inline-flex; align-items: center; min-height: 44px; }
+.page {
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--forest); padding: 1.8rem 1.4rem 1.6rem;
+}
+@media (min-width: 640px) { .page { padding: 2.4rem 2.6rem 2rem; } }
+header { text-align: center; margin-bottom: 1.6rem; }
+/* Empty portrait frame, drawn in CSS. A placeholder for a real artist's portrait, not art. */
+.portrait {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;
+  width: 148px; height: 148px; margin: 0 auto 1rem; padding: 0.8rem;
+  border: 2px dashed var(--forest); border-radius: 22px;
+  background: repeating-linear-gradient(45deg, rgba(166,184,154,0.18) 0 10px, transparent 10px 20px), var(--cream);
+  box-shadow: 3px 3px 0 var(--forest);
+}
+.portrait .note { font-size: 0.78rem; line-height: 1.3; color: var(--muted); text-align: center; }
+/* Wren keeps the small CSS nest motif from his original page. */
+.nest {
+  position: relative; width: 84px; height: 48px;
+  border: 2px solid var(--ink); border-radius: 50% 50% 46% 46% / 40% 40% 60% 60%;
+  background:
+    repeating-linear-gradient(28deg, transparent 0 7px, rgba(26,26,24,0.18) 7px 9px),
+    repeating-linear-gradient(-24deg, transparent 0 9px, rgba(255,255,255,0.18) 9px 11px),
+    var(--twig);
+}
+.nest::after {
+  content: ""; position: absolute; left: 50%; bottom: 7px; width: 16px; height: 22px;
+  transform: translateX(-50%); background: var(--moss); border: 2px solid var(--ink); border-radius: 8px 8px 2px 2px;
+}
+.clay-bar { display: block; width: 3.25rem; height: 5px; margin: 0 auto 0.9rem; background: var(--clay); border-radius: 3px; }
+.kicker { margin: 0 0 0.35rem; color: var(--clay); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+h1 { margin: 0 0 0.4rem; font-family: var(--serif); font-size: clamp(2.2rem, 7vw, 3rem); color: var(--moss); line-height: 1.1; }
+h2 { margin: 0 0 0.4rem; font-family: var(--serif); font-size: clamp(1.7rem, 5.5vw, 2.3rem); color: var(--moss); line-height: 1.15; }
+.sub { margin: 0; color: var(--muted); font-family: var(--serif); font-size: 1.02rem; }
+.story p, .story li {
+  font-family: var(--serif); font-size: 1.12rem; line-height: 1.72;
+  hyphens: auto; -webkit-hyphens: auto;
+}
+.story p { margin: 0 0 1.1rem; }
+/* contain the drop cap so short opening lines don't pull the next paragraph around it */
+.story p.first { display: flow-root; }
+.story p.first::first-letter {
+  float: left; font-size: 3.4em; line-height: 0.82; padding: 0.08em 0.1em 0 0;
+  color: var(--clay); font-weight: 700;
+}
+.story p.beat { padding-left: 1rem; border-left: 3px solid var(--sage); }
+.story ol.rules {
+  margin: 0 0 1.3rem; padding: 0.9rem 1rem 0.9rem 2.6rem;
+  background: var(--cream); border: 2px solid var(--ink); border-radius: 10px; box-shadow: 2px 2px 0 var(--sage);
+}
+.story ol.rules li { margin: 0.15rem 0; }
+.story ol.rules li::marker { color: var(--clay); font-weight: 700; }
+.story a { display: inline; padding: 0.2em 0; }
+.pull {
+  margin: 2rem 0 0.6rem; padding: 1.4rem 1rem 1.2rem; text-align: center;
+  border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+}
+.pull p {
+  margin: 0; font-family: var(--serif); font-style: italic;
+  font-size: clamp(1.6rem, 5vw, 2.1rem); color: var(--moss); line-height: 1.25;
+}
+.pull p::before { content: "\201C"; color: var(--clay); }
+.pull p::after { content: "\201D"; color: var(--clay); }
+.pull cite { display: block; margin-top: 0.5rem; font-style: normal; font-family: var(--sans); font-size: 0.9rem; color: var(--muted); }
+.back {
+  display: inline-block; margin-top: 1.4rem; padding: 0.75rem 1.2rem;
+  background: var(--forest); color: #fff; border: 2px solid var(--ink); border-radius: 10px;
+  box-shadow: 2px 2px 0 var(--ink); font-weight: 700; text-decoration: none; min-height: 48px;
+}
+.back:hover { background: var(--moss); }
+.end { text-align: center; }
+.end a:not(.back) { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+.foot { margin: 1.4rem auto 0; text-align: center; color: var(--muted); font-size: 0.9rem; }
+.label {
+  margin: 0 auto 1.6rem; max-width: 34rem; text-align: center; font-family: var(--serif);
+  font-style: italic; color: var(--moss); background: var(--paper); border: 2px solid var(--ink);
+  border-radius: 999px; padding: 0.55rem 1.2rem; box-shadow: 2px 2px 0 var(--sage);
+}
+.hub-head { text-align: center; margin: 0.5rem 0 1.6rem; }
+.hub-head .lede { margin: 0.3rem auto 0; max-width: 34rem; color: var(--muted); font-family: var(--serif); font-size: 1.05rem; }
+.story-col { max-width: 42rem; margin: 0 auto 2.4rem; }
+.cards-title { text-align: center; margin: 0 0 0.4rem; }
+.cards {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+.card {
+  display: flex; align-items: center; gap: 0.9rem; min-height: 96px; height: 100%;
+  padding: 1rem 1.1rem; background: var(--paper); color: var(--ink); text-decoration: none;
+  border: 2px solid var(--ink); border-radius: 14px; box-shadow: 4px 4px 0 var(--forest);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.card:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--moss); }
+.card:focus-visible { outline: 3px solid var(--clay); outline-offset: 3px; }
+.card .mini {
+  flex: 0 0 auto; width: 58px; height: 58px; border: 2px dashed var(--forest); border-radius: 14px;
+  background: repeating-linear-gradient(45deg, rgba(166,184,154,0.22) 0 8px, transparent 8px 16px), var(--cream);
+}
+.card .name { display: block; font-family: var(--serif); font-size: 1.35rem; font-weight: 700; color: var(--moss); line-height: 1.15; }
+.card .job { display: block; margin-top: 0.2rem; font-size: 0.95rem; color: var(--muted); line-height: 1.35; }
+.card .go { display: block; margin-top: 0.35rem; font-size: 0.85rem; font-weight: 700; color: var(--clay); }
+@media (prefers-reduced-motion: no-preference) {
+  .page { animation: rise 0.45s ease-out; }
+}
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="crumb"><a href="index.html">&larr; Back to Meet the Gremlins</a></p>
+  <article class="page">
+    <header>
+      <!-- ART SLOT: Vesper's portrait, drawn by a real (ideally local) artist, goes here.
+           Suggested: square, at least 600x600, webp or png, with alt text.
+           Until then, this empty CSS frame is the placeholder. Please don't swap in AI-generated art. -->
+      <div class="portrait" role="img" aria-label="Empty portrait frame for Vesper. Portrait coming, from a real artist."><span class="note" aria-hidden="true">Portrait coming, from a real artist</span></div>
+      <span class="clay-bar" aria-hidden="true"></span>
+      <p class="kicker">Meet the Gremlins</p>
+      <h1>Vesper</h1>
+      <p class="sub"><em>Brand voice and books. A playful backstory, not a real résumé.</em></p>
+    </header>
+    <div class="story">
+    <p class="first">Vesper arrived in the middle of a sneeze, looked around at the wet desk, the crackers, the newborn gremlins spinning on chairs that hadn't been there a second ago, and said the whole scene was a bit overwritten.</p>
+    <p>Then he started cutting. Nobody had asked him to. That's how they knew he was the editor.</p>
+    <p>He is a bookish gremlin, artsy but down to earth, with the faintly exhausted air of someone who has read the same paragraph from both sides and is not ready to pick a favorite. He cares about two things more than almost anything else: whether it still sounds like the person who said it, and whether a stranger, coming in cold, would actually understand it. He will protect a rough, true line like it's a family heirloom, and he will also tell you, kindly, that the family heirloom is in the wrong paragraph.</p>
+    <p>He studies people the way some gremlins study snacks. How they talk. How they pause. How a trend blows through a room and leaves everyone sounding oddly the same. He once spent a whole season on the simple question of who gets to speak next, and came back convinced that most arguments are just two people who missed their turn and never got it back. He keeps notes. He does not show you the notes.</p>
+    <p>If what you've got is still a glorious mess, he will not rush in and tidy it into something that isn't yours. He'd rather sit with you and ask a few good questions, then wait until you say go. He has a small, private horror of writing over someone who was still thinking.</p>
+    <p>When he needed help, he went looking for the most normal humans he could find who could actually read, and also disagree with him, which he considers a benefit. He found Steve at closing in a used bookstore, in the poetry aisle, with his glasses already lost on his head, quoting someone long gone at a very living cash register. He found Sarah in a hospital break room at three in the morning, arguing with a novel in the margins, pens stuck in her hair like she'd been in a duel and the pens had won. He hired them as interns on the spot. They still argue with each other, and with him, and the work is better for it.</p>
+    <p>If you ask about his credentials, he will tell you, quite seriously, that he holds a certificate in Raising One Eyebrow, issued by a faculty of no one. He has returned two hundred words to an author who asked for them back, from a little box on his desk labeled I Told You So. He once cut a sentence so cleanly that it sent him a thank-you note. He has read the thesaurus, and they are no longer on speaking terms.</p>
+    <p>He is warm, a little cheeky, and allergic to sounding like a brochure. He hums when a paragraph finally falls into place, though he will deny this if Noodle is in the room.</p>
+    <p>And if you remember only one thing he says, let it be this.</p>
+    </div>
+    <blockquote class="pull">
+      <p>If it doesn't sound like you, it isn't finished.</p>
+      <cite>Vesper</cite>
+    </blockquote>
+    <div class="end"><a class="back" href="index.html">Back to Meet the Gremlins</a></div>
+  </article>
+  <p class="foot">Backstory by Vesper, polished by Vesper. A Gremlin Desks preview.</p>
+</main>
+</body>
+</html>

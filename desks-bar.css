@@ -1,0 +1,39 @@
+/* Gremlin Desks: the slim "back to the Desks" bar, shared by the rooms you reach from the welcome page.
+   Markup (static, no JS needed):  <nav class="desks-bar" aria-label="Gremlin Desks"><a href="(path to site root)">&larr; Gremlin Desks</a></nav>
+   Pages with body padding add class "bleed" and set --db-t / --db-r / --db-l to that padding so the bar runs edge to edge.
+   Full-screen pages (Gremlin World) use a small pill inside their own HUD instead: <a class="desks-home ...">. */
+.desks-bar {
+  display: flex; align-items: center; gap: .5rem;
+  min-height: 44px; margin: 0;
+  padding: 0 max(.6rem, env(safe-area-inset-right)) 0 max(.6rem, env(safe-area-inset-left));
+  background: #3A4A33; border-bottom: 2px solid #1A1A18;
+  font: 600 .95rem/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  position: relative; z-index: 30;
+}
+.desks-bar.bleed {
+  margin: calc(-1 * var(--db-t, 0px)) calc(-1 * var(--db-r, 0px)) 1rem calc(-1 * var(--db-l, 0px));
+  padding-top: var(--db-safe-t, 0px);
+}
+.desks-bar a {
+  display: inline-flex; align-items: center; gap: .35rem;
+  min-height: 44px; padding: 0 .65rem; border-radius: 8px;
+  color: #F1EDE2; text-decoration: none; letter-spacing: .01em;
+}
+.desks-bar a:hover { background: #54664A; text-decoration: underline; text-underline-offset: 3px; }
+.desks-bar a:focus-visible { outline: 3px solid #E8E4D8; outline-offset: -4px; }
+/* Gremlin World: pill inside the HUD, hidden when the world is embedded in another site's page. */
+.desks-home { min-height: 44px; display: inline-flex; align-items: center; gap: .3rem; text-decoration: none; white-space: nowrap; flex: 0 0 auto; }
+.desks-home:focus-visible { outline: 3px solid #B8775A; outline-offset: 2px; }
+.framed .desks-home { display: none; }
+/* Phones and portrait tablets: the HUD row is already full, so the pill sits just below it at top-left
+   instead of squeezing the room name. */
+@media (max-width: 820px) {
+  .hud-left .desks-home { position: fixed; top: calc(max(6px, env(safe-area-inset-top)) + 62px); left: max(10px, env(safe-area-inset-left)); z-index: 5; }
+}
+@media (max-width: 560px) {
+  .hud-left .desks-home { top: calc(max(6px, env(safe-area-inset-top)) + 54px); left: max(8px, env(safe-area-inset-left)); }
+  body.noprompt #hint { top: 112px; }
+}
+/* Added to the Home Screen as an app: the visitor didn't come in through the welcome page, so no bar. */
+@media (display-mode: standalone) { .desks-bar.app-hide { display: none; } }
+@media print { .desks-bar, .desks-home { display: none !important; } }
