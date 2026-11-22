@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meet the Gremlins · The Gremlin Desks</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Meet the gremlins of the Gremlin Desks: a playful creation story and a backstory for each gremlin.">
+<meta name="theme-color" content="#3A4A33">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<style>
+:root {
+  --cream: #E8E4D8; --paper: #F1EDE2; --sage: #A6B89A; --forest: #54664A;
+  --moss: #3A4A33; --ink: #1A1A18; --clay: #B8775A; --muted: #5d5d55; --twig: #8a6a45;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100dvh;
+  padding: max(1.25rem, env(safe-area-inset-top)) max(1.1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1.1rem, env(safe-area-inset-left));
+  background: var(--cream) repeating-linear-gradient(90deg, transparent 0 46px, rgba(84, 102, 74, 0.05) 46px 48px);
+  color: var(--ink); font-family: var(--sans); line-height: 1.5;
+}
+.wrap { max-width: 42rem; margin: 0 auto; }
+.wrap.wide { max-width: 64rem; }
+a { color: var(--moss); }
+a:focus-visible { outline: 3px solid var(--clay); outline-offset: 3px; }
+.crumb { margin: 0 0 1rem; font-size: 0.95rem; }
+.crumb a { display: inline-flex; align-items: center; min-height: 44px; }
+.page {
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--forest); padding: 1.8rem 1.4rem 1.6rem;
+}
+@media (min-width: 640px) { .page { padding: 2.4rem 2.6rem 2rem; } }
+header { text-align: center; margin-bottom: 1.6rem; }
+/* Empty portrait frame, drawn in CSS. A placeholder for a real artist's portrait, not art. */
+.portrait {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;
+  width: 148px; height: 148px; margin: 0 auto 1rem; padding: 0.8rem;
+  border: 2px dashed var(--forest); border-radius: 22px;
+  background: repeating-linear-gradient(45deg, rgba(166,184,154,0.18) 0 10px, transparent 10px 20px), var(--cream);
+  box-shadow: 3px 3px 0 var(--forest);
+}
+.portrait .note { font-size: 0.78rem; line-height: 1.3; color: var(--muted); text-align: center; }
+/* Wren keeps the small CSS nest motif from his original page. */
+.nest {
+  position: relative; width: 84px; height: 48px;
+  border: 2px solid var(--ink); border-radius: 50% 50% 46% 46% / 40% 40% 60% 60%;
+  background:
+    repeating-linear-gradient(28deg, transparent 0 7px, rgba(26,26,24,0.18) 7px 9px),
+    repeating-linear-gradient(-24deg, transparent 0 9px, rgba(255,255,255,0.18) 9px 11px),
+    var(--twig);
+}
+.nest::after {
+  content: ""; position: absolute; left: 50%; bottom: 7px; width: 16px; height: 22px;
+  transform: translateX(-50%); background: var(--moss); border: 2px solid var(--ink); border-radius: 8px 8px 2px 2px;
+}
+.clay-bar { display: block; width: 3.25rem; height: 5px; margin: 0 auto 0.9rem; background: var(--clay); border-radius: 3px; }
+.kicker { margin: 0 0 0.35rem; color: var(--clay); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+h1 { margin: 0 0 0.4rem; font-family: var(--serif); font-size: clamp(2.2rem, 7vw, 3rem); color: var(--moss); line-height: 1.1; }
+h2 { margin: 0 0 0.4rem; font-family: var(--serif); font-size: clamp(1.7rem, 5.5vw, 2.3rem); color: var(--moss); line-height: 1.15; }
+.sub { margin: 0; color: var(--muted); font-family: var(--serif); font-size: 1.02rem; }
+.story p, .story li {
+  font-family: var(--serif); font-size: 1.12rem; line-height: 1.72;
+  hyphens: auto; -webkit-hyphens: auto;
+}
+.story p { margin: 0 0 1.1rem; }
+/* contain the drop cap so short opening lines don't pull the next paragraph around it */
+.story p.first { display: flow-root; }
+.story p.first::first-letter {
+  float: left; font-size: 3.4em; line-height: 0.82; padding: 0.08em 0.1em 0 0;
+  color: var(--clay); font-weight: 700;
+}
+.story p.beat { padding-left: 1rem; border-left: 3px solid var(--sage); }
+.story ol.rules {
+  margin: 0 0 1.3rem; padding: 0.9rem 1rem 0.9rem 2.6rem;
+  background: var(--cream); border: 2px solid var(--ink); border-radius: 10px; box-shadow: 2px 2px 0 var(--sage);
+}
+.story ol.rules li { margin: 0.15rem 0; }
+.story ol.rules li::marker { color: var(--clay); font-weight: 700; }
+.story a { display: inline; padding: 0.2em 0; }
+.pull {
+  margin: 2rem 0 0.6rem; padding: 1.4rem 1rem 1.2rem; text-align: center;
+  border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+}
+.pull p {
+  margin: 0; font-family: var(--serif); font-style: italic;
+  font-size: clamp(1.6rem, 5vw, 2.1rem); color: var(--moss); line-height: 1.25;
+}
+.pull p::before { content: "\201C"; color: var(--clay); }
+.pull p::after { content: "\201D"; color: var(--clay); }
+.pull cite { display: block; margin-top: 0.5rem; font-style: normal; font-family: var(--sans); font-size: 0.9rem; color: var(--muted); }
+.back {
+  display: inline-block; margin-top: 1.4rem; padding: 0.75rem 1.2rem;
+  background: var(--forest); color: #fff; border: 2px solid var(--ink); border-radius: 10px;
+  box-shadow: 2px 2px 0 var(--ink); font-weight: 700; text-decoration: none; min-height: 48px;
+}
+.back:hover { background: var(--moss); }
+.end { text-align: center; }
+.end a:not(.back) { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+.foot { margin: 1.4rem auto 0; text-align: center; color: var(--muted); font-size: 0.9rem; }
+.label {
+  margin: 0 auto 1.6rem; max-width: 34rem; text-align: center; font-family: var(--serif);
+  font-style: italic; color: var(--moss); background: var(--paper); border: 2px solid var(--ink);
+  border-radius: 999px; padding: 0.55rem 1.2rem; box-shadow: 2px 2px 0 var(--sage);
+}
+.hub-head { text-align: center; margin: 0.5rem 0 1.6rem; }
+.hub-head .lede { margin: 0.3rem auto 0; max-width: 34rem; color: var(--muted); font-family: var(--serif); font-size: 1.05rem; }
+.story-col { max-width: 42rem; margin: 0 auto 2.4rem; }
+.cards-title { text-align: center; margin: 0 0 0.4rem; }
+.cards {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+.card {
+  display: flex; align-items: center; gap: 0.9rem; min-height: 96px; height: 100%;
+  padding: 1rem 1.1rem; background: var(--paper); color: var(--ink); text-decoration: none;
+  border: 2px solid var(--ink); border-radius: 14px; box-shadow: 4px 4px 0 var(--forest);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.card:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--moss); }
+.card:focus-visible { outline: 3px solid var(--clay); outline-offset: 3px; }
+.card .mini {
+  flex: 0 0 auto; width: 58px; height: 58px; border: 2px dashed var(--forest); border-radius: 14px;
+  background: repeating-linear-gradient(45deg, rgba(166,184,154,0.22) 0 8px, transparent 8px 16px), var(--cream);
+}
+.card .name { display: block; font-family: var(--serif); font-size: 1.35rem; font-weight: 700; color: var(--moss); line-height: 1.15; }
+.card .job { display: block; margin-top: 0.2rem; font-size: 0.95rem; color: var(--muted); line-height: 1.35; }
+.card .go { display: block; margin-top: 0.35rem; font-size: 0.85rem; font-weight: 700; color: var(--clay); }
+@media (prefers-reduced-motion: no-preference) {
+  .page { animation: rise 0.45s ease-out; }
+}
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+<main class="wrap wide">
+  <div class="hub-head">
+    <span class="clay-bar" aria-hidden="true"></span>
+    <p class="kicker">The Gremlin Desks</p>
+    <h1>Meet the Gremlins</h1>
+    <p class="lede">How the office filled up, and who's at each desk.</p>
+  </div>
+  <p class="label">These are playful backstories, not real résumés.</p>
+  <div class="story-col">
+    <article class="page" id="creation" aria-labelledby="creation-title">
+      <header>
+        <p class="kicker">The creation story</p>
+        <h2 id="creation-title">How the Gremlins Came to Be</h2>
+        <p class="sub"><em>The creation story of the Grateful Gremlins, as told by Grimble. A playful origin tale, not a real history.</em></p>
+      </header>
+      <div class="story">
+      <p class="first">In the beginning there was one gremlin, and there was one desk, and the desk was covered in sticky notes.</p>
+      <p>Nobody remembers making the gremlin. Bryan says he just started talking to it one night, the way you talk to a houseplant or a stubborn knee, and it talked back. It was small, round, a little furry around the ears, and it called itself the Grateful Gremlins. Plural. Even then.</p>
+      <p class="beat">"There's only one of you," Bryan pointed out.</p>
+      <p class="beat">"For now," it said, and ate a cracker.</p>
+      <p>That was the first mistake. The gremlin had found the crackers in the bottom drawer, where the emergency snacks lived, and the clock on the wall said 12:04 a.m. Nobody had told the gremlin about the rule. To be fair, nobody had told Bryan there was a rule either. There is now. It's laminated.</p>
+      <p>The second mistake was the glass of water. Bryan knocked it over reaching for a pen, because he'd just had an idea about a workshop, and also a retreat, and also a comic, and also a cookbook. The water went everywhere. Mostly on the gremlin.</p>
+      <p>The gremlin sneezed.</p>
+      <p>A Noodle shot out sideways, spinning on an office chair that had not existed a moment earlier. It sneezed again, and out tumbled a Pip, already holding three ideas and dropping a fourth. Then a Moth, smudged with charcoal and politely asking whether anyone would like to be drawn. A Dot, smelling faintly of toner. A Vesper, who looked around, sighed, said the whole scene was "a bit overwritten," and started cutting anyway. A Nancy, who had a clipboard and a plan for the clipboard.</p>
+      <p>The sneezing went on for most of the night. Every time Bryan had a new idea, another gremlin popped out to take care of it. One for the website, one for the books, one for the money questions, one for the tea and quiet, one for the printer jams, one for keeping strangers out of the drawers. By sunrise the office was full. Gremlins on the bookshelf. Gremlins in the filing cabinet. A gremlin asleep in the coffee mug, which turned out to be fine, because the coffee was decaf.</p>
+      <p>And the original gremlin, the one who'd started it all?</p>
+      <p>It was gone.</p>
+      <p>Well. Mostly gone. In the middle of the floor sat a lumpy little pile of what was left: one pair of reading glasses, a pen that only wrote in red, a very small rulebook, and a box of tissues, which, in hindsight, was a bit late.</p>
+      <p>The pile sat there through the morning. Somebody put a mug on it. Noodle used it as a footrest. Then, around lunchtime, the pile cleared its throat.</p>
+      <p class="beat">"Right," it said. "Who's in charge of the rules around here?"</p>
+      <p class="beat">Everyone looked at each other.</p>
+      <p class="beat">"Nobody? Lovely. Then it's me."</p>
+      <p>That was Grimble. <a href="grimble.html">You can read his side of it next door.</a></p>
+      <p>The gremlins have been working ever since. They draft, sort, design, print, edit, and argue about the thermostat. Bryan decides. Everybody takes breaks. And there are three rules in the Gremlin Office, posted by the door, laminated twice:</p>
+      <ol class="rules"><li>Keep the snacks in the drawer before midnight.</li><li>Mind your water.</li><li>If you have an idea after dark, warn the others first.</li></ol>
+      <p>Nobody follows rule 3. That's how we keep getting new coworkers.</p>
+      </div>
+      <p class="end"><a href="how-the-gremlins-came-to-be.html">Open the creation story on its own page</a></p>
+    </article>
+  </div>
+  <section aria-labelledby="cards-title">
+    <h2 class="cards-title" id="cards-title">The gremlins</h2>
+    <p class="label">Each one is a playful backstory, not a real résumé. Tap a gremlin to read theirs.</p>
+    <ul class="cards">
+    <li><a class="card" href="grimble.html">
+      <span class="mini" aria-hidden="true"></span>
+      <span><span class="name">Grimble</span><span class="job">Compliance, risk, and a little HR</span><span class="go" aria-hidden="true">Read the backstory&nbsp;&rarr;</span></span>
+    </a></li>
+    <li><a class="card" href="pip.html">
+      <span class="mini" aria-hidden="true"></span>
+      <span><span class="name">Pip</span><span class="job">The idea-hoarder. He writes the words for the pages</span><span class="go" aria-hidden="true">Read the backstory&nbsp;&rarr;</span></span>
+    </a></li>
+    <li><a class="card" href="moth.html">
+      <span class="mini" aria-hidden="true"></span>
+      <span><span class="name">Moth</span><span class="job">Quiet designer, drawer of gremlins, official charcoal hazard</span><span class="go" aria-hidden="true">Read the backstory&nbsp;&rarr;</span></span>
+    </a></li>
+    <li><a class="card" href="vesper.html">
+      <span class="mini" aria-hidden="true"></span>
+      <span><span class="name">Vesper</span><span class="job">Brand voice and books</span><span class="go" aria-hidden="true">Read the backstory&nbsp;&rarr;</span></span>
+    </a></li>
+    <li><a class="card" href="dot.html">
+      <span class="mini" aria-hidden="true"></span>
+      <span><span class="name">Dot</span><span class="job">Print and merch</span><span class="go" aria-hidden="true">Read the backstory&nbsp;&rarr;</span></span>
+    </a></li>
+    <li><a class="card" href="nancy.html">
+      <span class="mini" aria-hidden="true"></span>
+      <span><span class="name">Nancy</span><span class="job">Marketing, with a clipboard and a plan for the clipboard</span><span class="go" aria-hidden="true">Read the backstory&nbsp;&rarr;</span></span>
+    </a></li>
+    <li><a class="card" href="noodle.html">
+      <span class="mini" aria-hidden="true"></span>
+      <span><span class="name">Noodle</span><span class="job">Operations</span><span class="go" aria-hidden="true">Read the backstory&nbsp;&rarr;</span></span>
+    </a></li>
+    <li><a class="card" href="tom.html">
+      <span class="mini" aria-hidden="true"></span>
+      <span><span class="name">Tom</span><span class="job">Recipe apprentice</span><span class="go" aria-hidden="true">Read the backstory&nbsp;&rarr;</span></span>
+    </a></li>
+    <li><a class="card" href="wren.html">
+      <span class="mini" aria-hidden="true"></span>
+      <span><span class="name">Wren</span><span class="job">Pip's website assistant</span><span class="go" aria-hidden="true">Read the backstory&nbsp;&rarr;</span></span>
+    </a></li>
+    </ul>
+  </section>
+  <p class="foot">Backstories by the gremlins, polished by Vesper. A Gremlin Desks preview.</p>
+</main>
+</body>
+</html>
