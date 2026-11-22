@@ -1,4 +1,4 @@
-/* Business Planning password gate (Bryan t757u): a friendly "enter the password" box in front of
+/* Business Planning gate (Bryan t757u; username version t759u): a friendly "type the username" box in front of
    Business Planning (both tabs) and Moth's Design Studio, so random visitors and bots can't just submit.
    Signed-in members skip it. The page stays hidden AND inert until it's unlocked, and the free-plan
    send/reply calls refuse to run while it's locked.
@@ -6,19 +6,17 @@
 (function () {
   "use strict";
 
-  /* ===================== THE PASSWORD (change it here) =====================
-     The password is never written in this file, only its SHA-256 fingerprint (lowercase hex).
-     (Bryan has the current password; it is deliberately not written here.)
-     To change it: open any page's browser console and run
-       crypto.subtle.digest("SHA-256", new TextEncoder().encode("new password"))
-         .then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("")))
-     then paste the result between the quotes below. Changing it also signs everyone out of the gate. */
-  var PASSWORD_SHA256 = "84983c60f7daadc1cb8698621f802c0d9f9a3c3c295c810748fb048115c186ec";
-  /* How long this browser stays unlocked after the right password (days). */
+  /* ===================== THE USERNAME (change it here) =====================
+     The one shared word people type to get in. Checked as plain text: spaces around it are ignored and
+     capitals don't matter ("Guest" works too). This is a light spam door, not a real login.
+     Changing it also asks everyone to type the new one (old unlocks stop counting). */
+  var GATE_USERNAME = "guest";
+  /* How long this browser stays unlocked after the right username (days). */
   var REMEMBER_DAYS = 30;
   /* ======================================================================== */
 
-  var KEY = "desksBp.gate.v1", MARK = PASSWORD_SHA256.slice(0, 16);
+  function norm(v) { return String(v == null ? "" : v).trim().toLowerCase(); }
+  var KEY = "desksBp.gate.v2", MARK = "u:" + norm(GATE_USERNAME);   // v2: the old password-version unlocks no longer count
   var me = document.currentScript, ROOT = (me && me.getAttribute("data-root")) || "../";
   var doc = document, html = doc.documentElement;
   function remembered() {
@@ -61,11 +59,6 @@
 
   var box, input, err, btn, form, wait, observer, hidden = [];
 
-  function sha256hex(s) {
-    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)).then(function (b) {
-      return Array.prototype.map.call(new Uint8Array(b), function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
-    });
-  }
   function shut(el) {   // make one page element unreachable (no clicks, no focus, hidden from screen readers)
     if (el === box || el.nodeType !== 1 || el.tagName === "SCRIPT" || el.tagName === "STYLE") return;
     hidden.push([el, el.hasAttribute("inert"), el.getAttribute("aria-hidden")]);
@@ -79,13 +72,13 @@
       '<div class="bpg-card">' +
         '<span class="bpg-bar" aria-hidden="true"></span>' +
         '<p class="bpg-k">The Gremlin Desks</p>' +
-        '<h1 id="bpg-title" tabindex="-1">Enter the password to get into Business Planning</h1>' +
-        '<p id="bpg-desc">A little door to keep the robots out. If Bryan gave you the password, pop it in below.</p>' +
+        '<h1 id="bpg-title" tabindex="-1">Type the username to get into Business Planning</h1>' +
+        '<p id="bpg-desc">A little door to keep the robots out. If Bryan gave you the username, pop it in below.</p>' +
         '<p class="bpg-wait" id="bpg-wait" role="status">One moment&hellip;</p>' +
         '<form id="bpg-form" novalidate hidden>' +
-          '<label for="bpg-pass">Password</label>' +
+          '<label for="bpg-pass">Username</label>' +
           '<div class="bpg-row">' +
-            '<input type="password" id="bpg-pass" name="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" aria-describedby="bpg-err" required>' +
+            '<input type="text" id="bpg-pass" name="gate_username" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-no-dictate aria-describedby="bpg-err" required>' +
             '<button type="submit" id="bpg-go">Enter</button>' +
           '</div>' +
           '<p class="bpg-err" id="bpg-err" role="alert" aria-live="assertive"></p>' +
@@ -104,26 +97,21 @@
     var tries = 0;
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      var v = input.value.trim();
-      if (!v) { bad("Please type the password first."); return; }
-      if (!window.crypto || !crypto.subtle) { bad("This browser can't check the password on this page. Please try another browser."); return; }
-      btn.disabled = true;
-      sha256hex(v).then(function (h) {
-        btn.disabled = false;
-        if (h === PASSWORD_SHA256) {
-          try { localStorage.setItem(KEY, JSON.stringify({ p: MARK, until: Date.now() + REMEMBER_DAYS * 864e5 })); } catch (x) {}
-          state.unlocked = true; open("password");
-        } else {
-          tries++;
-          bad(tries < 3 ? "Hmm, that's not quite it. Check the spelling and try again." : "Still not it. If you're stuck, ask Bryan for the password, or sign in instead.");
-          input.select();
-        }
-      }, function () { btn.disabled = false; bad("Something went wrong checking that. Please try again."); });
+      var v = norm(input.value);
+      if (!v) { bad("Please type the username first."); return; }
+      if (v === norm(GATE_USERNAME)) {
+        try { localStorage.setItem(KEY, JSON.stringify({ p: MARK, until: Date.now() + REMEMBER_DAYS * 864e5 })); } catch (x) {}
+        state.unlocked = true; open("username");
+      } else {
+        tries++;
+        bad(tries < 3 ? "Hmm, that's not quite it. Check the spelling and try again." : "Still not it. If you're stuck, ask Bryan for the username, or sign in instead.");
+        input.select();
+      }
     });
     input.addEventListener("input", function () { if (input.getAttribute("aria-invalid")) { input.removeAttribute("aria-invalid"); err.textContent = ""; } });
   }
   function bad(msg) { err.textContent = msg; input.setAttribute("aria-invalid", "true"); input.focus(); }
-  function ask() {   // not a member: show the password box
+  function ask() {   // not a member: show the username box
     if (api.isOpen() || !box) return;
     wait.hidden = true; form.hidden = false; input.focus();
   }
@@ -149,7 +137,7 @@
     ["start", "post", "email"].forEach(function (k) {
       var f = G[k]; if (typeof f !== "function") return;
       G[k] = function () {
-        if (!api.isOpen()) { var e = new Error("Please enter the Business Planning password first."); e.code = "locked"; return Promise.reject(e); }
+        if (!api.isOpen()) { var e = new Error("Please type the Business Planning username first."); e.code = "locked"; return Promise.reject(e); }
         return f.apply(this, arguments);
       };
     });
