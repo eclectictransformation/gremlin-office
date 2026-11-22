@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Gremlin Desks</title>
 <meta name="robots" content="noindex">
+<meta name="description" content="A private sample of the Gremlin Desks: Gremlin World, the Recipe Shelf, and the Gremlin Office.">
 <meta name="theme-color" content="#3A4A33">
 <link rel="icon" type="image/png" sizes="32x32" href="desks-preview-q7m4/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="desks-preview-q7m4/icons/apple-touch-icon.png">
@@ -25,7 +26,6 @@
   --moss: #3A4A33;
   --ink: #1A1A18;
   --clay: #B8775A;
-  --glow: rgba(243, 217, 139, 0.6);
   --muted: #5d5d55;
   --serif: Georgia, "Times New Roman", serif;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -37,21 +37,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: max(1.25rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  padding: max(1.5rem, env(safe-area-inset-top)) max(1.1rem, env(safe-area-inset-right)) max(1.75rem, env(safe-area-inset-bottom)) max(1.1rem, env(safe-area-inset-left));
   background: var(--cream) repeating-linear-gradient(90deg, transparent 0 46px, rgba(84, 102, 74, 0.05) 46px 48px);
   color: var(--ink);
   font-family: var(--sans);
   line-height: 1.5;
 }
-main { width: 100%; max-width: 28rem; }
-.card {
-  background: var(--paper);
-  border: 2px solid var(--ink);
-  border-radius: 14px;
-  padding: 1.6rem 1.35rem 1.45rem;
-  box-shadow: 4px 4px 0 var(--forest);
-  text-align: center;
-}
+.wrap { width: 100%; max-width: 64rem; }
+.hero { text-align: center; margin: 0 auto 1.6rem; max-width: 38rem; }
 .mark {
   display: block;
   width: 88px;
@@ -80,14 +73,14 @@ main { width: 100%; max-width: 28rem; }
 h1 {
   margin: 0 0 0.7rem;
   font-family: var(--serif);
-  font-size: clamp(1.55rem, 5vw, 1.9rem);
+  font-size: clamp(1.7rem, 4.5vw, 2.35rem);
   font-weight: 700;
   line-height: 1.2;
   color: var(--moss);
 }
 .lead {
-  margin: 0 0 1.05rem;
-  font-size: 1.02rem;
+  margin: 0 0 1.1rem;
+  font-size: 1.05rem;
   color: var(--ink);
 }
 .crew {
@@ -95,7 +88,6 @@ h1 {
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.4rem;
-  margin: 0 0 1.25rem;
 }
 .crew img {
   width: 56px;
@@ -106,6 +98,44 @@ h1 {
   background: var(--sage);
   box-shadow: 2px 2px 0 rgba(26, 26, 24, 0.2);
 }
+.doors {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+.door {
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 1.35rem 1.25rem 1.25rem;
+  box-shadow: 4px 4px 0 var(--forest);
+  text-align: left;
+}
+.door-kicker {
+  margin: 0 0 0.3rem;
+  color: var(--clay);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.door h2 {
+  margin: 0 0 0.5rem;
+  font-family: var(--serif);
+  font-size: 1.28rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--moss);
+}
+.door .blurb {
+  margin: 0 0 1rem;
+  color: var(--ink);
+  font-size: 0.98rem;
+  flex: 1;
+}
 .enter {
   display: block;
   width: 100%;
@@ -113,41 +143,49 @@ h1 {
   color: #fff;
   border: 2px solid var(--ink);
   border-radius: 10px;
-  padding: 0.85rem 1.1rem;
+  padding: 0.8rem 1rem;
   font: inherit;
-  font-size: 1.12rem;
+  font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.2;
+  text-align: center;
   text-decoration: none;
   box-shadow: 2px 2px 0 var(--ink);
   min-height: 48px;
 }
 .enter:hover { background: var(--moss); }
-.enter:focus-visible,
-.world a:focus-visible {
+.enter:focus-visible {
   outline: 3px solid var(--clay);
   outline-offset: 3px;
 }
 .hint {
-  margin: 0.85rem 0 0;
+  margin: 0.7rem 0 0;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
-.world {
-  margin: 0.85rem 0 0;
-  font-size: 0.95rem;
+.foot {
+  margin: 1.4rem auto 0;
+  max-width: 36rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.92rem;
 }
-.world a {
-  color: var(--forest);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+@media (min-width: 800px) {
+  .doors {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.15rem;
+    max-width: 46rem;
+    margin: 0 auto;
+  }
+  .hero { margin-bottom: 1.85rem; }
 }
-.world a:hover { color: var(--moss); }
 @media (prefers-reduced-motion: no-preference) {
-  .card {
+  .hero, .door {
     animation: rise 0.45s ease-out;
   }
+  .door:nth-child(2) { animation-delay: 0.06s; }
+  .door:nth-child(3) { animation-delay: 0.12s; }
+  .door:nth-child(4) { animation-delay: 0.18s; }
   .enter {
     transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   }
@@ -162,14 +200,14 @@ h1 {
   to { opacity: 1; transform: none; }
 }
 @media (max-width: 430px) {
-  .card { padding-left: 1.1rem; padding-right: 1.1rem; }
   .crew { gap: 0.25rem; }
   .crew img { width: 44px; height: 44px; }
+  .door { padding: 1.2rem 1.1rem 1.15rem; }
 }
 @media (max-height: 700px) {
   .mark { width: 72px; height: 72px; border-radius: 16px; margin-bottom: 0.6rem; }
   .crew img { width: 48px; height: 48px; }
-  .card { padding: 1.2rem 1.15rem 1.2rem; }
+  .hero { margin-bottom: 1.2rem; }
 }
 @media (max-width: 430px) and (max-height: 700px) {
   .crew img { width: 44px; height: 44px; }
@@ -177,13 +215,13 @@ h1 {
 </style>
 </head>
 <body>
-<main>
-  <div class="card">
+<main class="wrap">
+  <header class="hero">
     <img class="mark" src="desks-preview-q7m4/icons/icon-192.png" width="88" height="88" alt="">
     <span class="clay-bar" aria-hidden="true"></span>
-    <p class="kicker">An invite-only office</p>
+    <p class="kicker">A private sample</p>
     <h1>Welcome to the Gremlin Desks</h1>
-    <p class="lead">You've found the odd little office where the gremlins work. There's a desk waiting inside, and the Annex to explore whenever curiosity wins.</p>
+    <p class="lead">You've been invited in for a look around. This is a small showcase of what's been brewing &mdash; the world the gremlins wander, the recipes they keep, and the odd little office they work in. Pick a door.</p>
     <div class="crew" aria-label="The gremlins">
       <img src="assets/gremlins/pip.webp" width="56" height="56" alt="Pip">
       <img src="assets/gremlins/moth.webp" width="56" height="56" alt="Moth">
@@ -192,10 +230,36 @@ h1 {
       <img src="assets/gremlins/noodle.webp" width="56" height="56" alt="Noodle">
       <img src="assets/gremlins/dot.webp" width="56" height="56" alt="Dot">
     </div>
-    <a class="enter" href="desks-preview-q7m4/">Enter the Desks</a>
-    <p class="hint">Got a guest login from Bryan? Use it inside.</p>
-    <p class="world"><a href="world.html">Or wander into Gremlin World</a></p>
-  </div>
+  </header>
+  <section class="doors" aria-label="Choose a door">
+    <article class="door">
+      <p class="door-kicker">The world</p>
+      <h2>Visit Gremlin World</h2>
+      <p class="blurb">Wander the rooms, poke around, and see what the crew has been up to.</p>
+      <a class="enter" href="world.html">Enter Gremlin World</a>
+    </article>
+    <article class="door">
+      <p class="door-kicker">The shelf</p>
+      <h2>Recipe Shelf</h2>
+      <p class="blurb">A shelf of recipes the gremlins keep on hand. Pull one down and have a look.</p>
+      <a class="enter" href="recipe-shelf-preview/">Open the Shelf</a>
+    </article>
+    <article class="door">
+      <p class="door-kicker">The desks</p>
+      <h2>Gremlin Office</h2>
+      <p class="blurb">Step into the desks. You'll need a valid login from Bryan to get in.</p>
+      <a class="enter" href="desks-preview-q7m4/">Enter the Office</a>
+      <p class="hint">Guest logins only. If you don't have one, ask Bryan.</p>
+    </article>
+    <article class="door">
+      <p class="door-kicker">The nest</p>
+      <h2>Meet the Web Designer</h2>
+      <p class="blurb">Say hello to Wren, the website gremlin. Paste in your idea and he'll help you sort it out.</p>
+      <a class="enter" href="web-designer/">Meet Wren</a>
+      <p class="hint">A preview. Nothing you type leaves your device.</p>
+    </article>
+  </section>
+  <p class="foot">This sample isn't listed on the main site. If you're here, someone meant for you to see it.</p>
 </main>
 </body>
 </html>

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wren · Meet the Web Designer · The Gremlin Desks</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="The (entirely made-up) backstory of Wren, the Gremlin Desks website gremlin.">
+<meta name="theme-color" content="#3A4A33">
+<link rel="icon" type="image/png" sizes="32x32" href="../desks-preview-q7m4/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../desks-preview-q7m4/icons/apple-touch-icon.png">
+<style>
+:root {
+  --cream: #E8E4D8;
+  --paper: #F1EDE2;
+  --sage: #A6B89A;
+  --forest: #54664A;
+  --moss: #3A4A33;
+  --ink: #1A1A18;
+  --clay: #B8775A;
+  --muted: #5d5d55;
+  --twig: #8a6a45;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100dvh;
+  padding: max(1.25rem, env(safe-area-inset-top)) max(1.1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1.1rem, env(safe-area-inset-left));
+  background: var(--cream) repeating-linear-gradient(90deg, transparent 0 46px, rgba(84, 102, 74, 0.05) 46px 48px);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.5;
+}
+.wrap { max-width: 42rem; margin: 0 auto; }
+a { color: var(--moss); }
+a:focus-visible { outline: 3px solid var(--clay); outline-offset: 3px; }
+.crumb { margin: 0 0 1rem; font-size: 0.95rem; }
+.page {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--forest);
+  padding: 1.8rem 1.4rem 1.6rem;
+}
+@media (min-width: 640px) { .page { padding: 2.4rem 2.6rem 2rem; } }
+header { text-align: center; margin-bottom: 1.6rem; }
+/* Placeholder nest, drawn in CSS. Not final art. */
+.nest {
+  position: relative;
+  width: 132px;
+  height: 76px;
+  margin: 0 auto 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 50% 50% 46% 46% / 40% 40% 60% 60%;
+  background:
+    repeating-linear-gradient(28deg, transparent 0 7px, rgba(26,26,24,0.18) 7px 9px),
+    repeating-linear-gradient(-24deg, transparent 0 9px, rgba(255,255,255,0.18) 9px 11px),
+    var(--twig);
+  box-shadow: 3px 3px 0 var(--forest);
+}
+.nest::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  width: 26px;
+  height: 34px;
+  transform: translateX(-50%);
+  background: var(--moss);
+  border: 2px solid var(--ink);
+  border-radius: 13px 13px 2px 2px;
+}
+.clay-bar { display: block; width: 3.25rem; height: 5px; margin: 0 auto 0.9rem; background: var(--clay); border-radius: 3px; }
+.kicker { margin: 0 0 0.35rem; color: var(--clay); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+h1 { margin: 0 0 0.4rem; font-family: var(--serif); font-size: clamp(2.2rem, 7vw, 3rem); color: var(--moss); line-height: 1.1; }
+.sub { margin: 0; color: var(--muted); font-family: var(--serif); font-size: 1.02rem; }
+.story p {
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  line-height: 1.72;
+  margin: 0 0 1.1rem;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.story p.first::first-letter {
+  float: left;
+  font-size: 3.4em;
+  line-height: 0.82;
+  padding: 0.08em 0.1em 0 0;
+  color: var(--clay);
+  font-weight: 700;
+}
+.story p.beat { padding-left: 1rem; border-left: 3px solid var(--sage); }
+.pull {
+  margin: 2rem 0 0.6rem;
+  padding: 1.4rem 1rem 1.2rem;
+  text-align: center;
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+}
+.pull p {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.6rem, 5vw, 2.1rem);
+  color: var(--moss);
+  line-height: 1.25;
+}
+.pull p::before { content: "\201C"; color: var(--clay); }
+.pull p::after { content: "\201D"; color: var(--clay); }
+.pull cite { display: block; margin-top: 0.5rem; font-style: normal; font-family: var(--sans); font-size: 0.9rem; color: var(--muted); }
+.back {
+  display: inline-block;
+  margin-top: 1.4rem;
+  padding: 0.75rem 1.2rem;
+  background: var(--forest);
+  color: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  box-shadow: 2px 2px 0 var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+  min-height: 48px;
+}
+.back:hover { background: var(--moss); }
+.end { text-align: center; }
+.foot { margin: 1.4rem auto 0; text-align: center; color: var(--muted); font-size: 0.9rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .page { animation: rise 0.45s ease-out; }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="crumb"><a href="./">&larr; Back to Meet the Web Designer</a></p>
+  <article class="page">
+    <header>
+      <!-- ART SLOT: Wren's portrait, drawn by a real (ideally local) artist, goes here.
+           Suggested: square, at least 600x600, webp or png, with alt text.
+           Until then, this CSS nest is the placeholder. Please don't swap in AI-generated art. -->
+      <div class="nest" role="img" aria-label="A little drawn nest with a door"></div>
+      <span class="clay-bar" aria-hidden="true"></span>
+      <p class="kicker">Meet the Web Designer</p>
+      <h1>Wren</h1>
+      <p class="sub"><em>Pip's website assistant. A playful backstory, not a real résumé.</em></p>
+    </header>
+    <div class="story">
+    <p class="first">Wren is a small, tidy, slightly anxious bird-shaped gremlin who builds websites the way wrens build nests: out of whatever is lying around, one careful twig at a time, and always with a way in. Pip hoards the ideas. Wren makes sure they have somewhere to live.</p>
+    <p>Wren hatched in a gutter. Not a sad gutter, a very respectable one, running along the roof of an old print shop where the owner had pinned up decades of flyers. Lost cats. Yoga classes. A man selling slightly haunted canoes. Every flyer had the same kind of trouble. The phone number was wrong, the hours didn't match the other flyer, or the most important line was set in a font only moths could read.</p>
+    <p>He spent his whole chickhood peering down at those flyers and quietly fixing them in his head. That should be bigger. Why is the address in yellow. Nobody knows which class is free. He couldn't do much about it, being about the size of a thimble, but he kept notes, on leaves, thousands of them.</p>
+    <p>The other gremlins still tell the story of the Great Nest Incident. Wren once built a nest so beautiful — twelve rooms, a skylight, a little woven sign that said Welcome — that every bird in the county wanted in. He had forgotten one thing. There was no door. Just a gorgeous, sealed, decorative ball of twigs. Birds lined up for three days admiring it, and not one of them could get inside.</p>
+    <p>He still blushes about it. It's why the first question he asks anyone is, "Okay, but how do people get in?" And why he will quietly check every button on your page before he lets you call it finished.</p>
+    <p>Pip found him sitting on a pile of sticky notes. Ideas had been scattered everywhere, as they always are with Pip: half a homepage here, a menu on a napkin there, a brilliant notion about a breathing timer stuck to the back of a cereal box. Wren had sorted them, all of them, by color, then by purpose, then by "Pip, this one is just a doodle of a frog."</p>
+    <p class="beat">Pip said, "Who are you?"</p>
+    <p class="beat">Wren said, "Your idea about the booking button is on the wrong page."</p>
+    <p class="beat">He was right. Pip hired him on the spot.</p>
+    <p>Wren is patient, but he will not pretend. If what you've got is a glorious mess, he'll say so kindly, sort it into little piles, and hand you a few good questions to chew on. He'd rather you take two days to think than rush into a site you don't love.</p>
+    <p>He's a twig collector, not a painter. Wren doesn't make art. He knows exactly where a picture should go, how big it should be, and what kind would suit you, and then he sends you off to find a real artist, local first, or something free you can make your own. The pictures are what people see first, so a person should make them.</p>
+    <p>He's allergic to fibbing. No fake countdown clocks. No "only two spots left" when there are nine. He once refused to build a nest with a sign that said "Voted Best Nest," because nobody had voted.</p>
+    <p>He's neat to the point of comedy. He keeps one master list of every fact about your business — hours, address, prices, spelling — and if one page says Suite 9 and another says Unit 9, it will bother him until it's fixed.</p>
+    <p>And he respects the door. He writes the scripts. You press publish. Your site, your keys, your call. He's a helper, not a landlord.</p>
+    <p>If you ask him about his experience, he will tell you, quite seriously, that he spent fourteen seasons as a gutter-based flyer critic, apprenticed to an elderly bowerbird who decorated exclusively in blue, and left over creative differences, because he wanted a contact page. He holds an honorary certificate in Twig Placement from a school that may or may not exist. He once redesigned an anthill so the ants could find the snack room faster, and productivity rose forty percent, though the ants have not confirmed this. He can carry a remarkably large amount of code in his beak.</p>
+    <p>He hums when he's sorting. He says "lovely, lovely" when something finally lines up. He is terrified of exactly one thing: a website with no way in.</p>
+    <p>Every project gets its own little nest, sealed up tight. What you tell him stays in your nest and never drifts into anyone else's. If you love working with him, he can hand you the whole nest, so it can grow into a helper of your very own.</p>
+    <p>He works on a team. If you've already talked with Saji about your business plan, Wren has read the notes. You don't have to start over. He picks up where Saji left off, the twig right where you left it.</p>
+    <p>And if you remember only one thing he says, let it be this.</p>
+    </div>
+    <blockquote class="pull">
+      <p>Every nest needs a door.</p>
+      <cite>Wren</cite>
+    </blockquote>
+    <div class="end"><a class="back" href="./">Back to the room</a></div>
+  </article>
+  <p class="foot">Backstory by Pip, polished by Vesper. A Gremlin Desks preview.</p>
+</main>
+</body>
+</html>
