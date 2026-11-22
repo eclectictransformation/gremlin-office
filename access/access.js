@@ -15,13 +15,13 @@
   var ROOT = root();
 
   /* ------------------------------------------------------------------ mock backend (prototype) */
-  var MK = "desksAccess.mock.v1", MS = "desksAccess.mockSession.v1";
+  var MK = "desksAccess.mock.v2", MS = "desksAccess.mockSession.v1";
   function seed() {
     var now = Date.now(), d = function (h) { return new Date(now - h * 3600e3).toISOString(); };
     return {
       users: [
         { id: "u-bryan", email: "bryan@eclectictransformation.com", name: "Bryan", kind: "admin", status: "approved", areas: [], created: d(900) },
-        { id: "u-theo", email: "theo.marsh@example.com", name: "Theo Marsh", kind: "member", status: "approved", areas: ["gremlin_world", "recipe_shelf", "wren_room", "saji_room", "send_tickets"], note: "Friend from the Thursday class. Building a site for my bike repair stand.", created: d(70) },
+        { id: "u-theo", email: "theo.marsh@example.com", name: "Theo Marsh", kind: "member", status: "approved", areas: ["gremlin_world", "recipe_shelf", "wren_room", "saji_room", "send_tickets"], note: "Friend from the Thursday class. Building a site for my bike repair stand.", bp: { level: "basic" }, created: d(70) },
         { id: "u-rosa", email: "rosa.l@example.com", name: "Rosa Lindqvist", kind: "member", status: "pending", areas: [], note: "I make small-batch ceramics and want a simple shop page.", created: d(5) },
         { id: "u-dana", email: "dana.o@example.com", name: "Dana Okafor", kind: "member", status: "pending", areas: [], note: "Saw the Desks at the open house. Curious about Saji.", created: d(26) }
       ],
@@ -136,7 +136,121 @@
     adminDestination: async function () { var c = await sb(); return chk(await c.rpc("admin_ticket_destination")); }
   };
 
+
+  /* ------------------------------------------------------------------ Business Planning (one thread with Saji Tori) */
+  var BP_PRESET = { basic: { turn_limit: 12, open_threads: 1, weekly_threads: 3, wren_scripts: 1 }, full: { turn_limit: null, open_threads: 5, weekly_threads: null, wren_scripts: null } };
+  var BP_MAX = 20000;
+  var BP_NOTES = { waiting_on_wren: C.BP_WREN_NOTE || "Wren says your script should take about 3–5 minutes. You can close this page and come back.", script_review: "Your script is getting a quick look-over." };
+  function bpOf(u) { var b = Object.assign({ level: "basic", pip_review: null, review_replies: false }, BP_PRESET.basic, (u && u.bp) || {}); if (u && u.kind === "admin" && !(u.bp && u.bp.level)) Object.assign(b, { level: "full" }, BP_PRESET.full, { open_threads: 50 }); return b; }
+  function bpStore(x) { x.bp = x.bp || { threads: [], messages: [] }; return x.bp; }
+  function bpFire(tid) { try { window.dispatchEvent(new CustomEvent("desks-bp-change", { detail: { thread: tid } })); } catch (e) {} }
+  function bpMe(x) { var u = x.users.find(function (z) { return z.id === sid(); }); return u && (u.kind === "admin" || u.status === "approved") ? u : null; }
+  function nextId(a) { return a.reduce(function (m, z) { return Math.max(m, z.id); }, 0) + 1; }
+  function bpBody(s) { s = String(s || "").trim(); if (!s) throw new Error("Write something first."); if (s.length > BP_MAX) throw new Error("That's over " + BP_MAX.toLocaleString() + " characters. Split it into two posts."); return s; }
+  var mockBp = {
+    limits: async function () {
+      var x = db(), u = bpMe(x); if (!u) return { level: "example" };
+      var b = bpOf(u), s = bpStore(x), week = Date.now() - 7 * 864e5, mine = s.threads.filter(function (t) { return t.user === u.id; });
+      return { level: b.level, turn_limit: b.turn_limit, open_threads: b.open_threads, weekly_threads: b.weekly_threads, wren_scripts: b.wren_scripts,
+        open_now: mine.filter(function (t) { return t.status === "open"; }).length, this_week: mine.filter(function (t) { return Date.parse(t.created_at) > week; }).length };
+    },
+    threads: async function () { var x = db(), s = bpStore(x); return s.threads.filter(function (t) { return t.user === sid(); }).sort(function (a, b) { return b.id - a.id; }); },
+    messages: async function (tid) {
+      var x = db(), s = bpStore(x), u = x.users.find(function (z) { return z.id === sid(); }), t = s.threads.find(function (z) { return z.id === tid; });
+      if (!t || !u || (t.user !== u.id && u.kind !== "admin")) return [];
+      return s.messages.filter(function (m) { return m.thread_id === tid && (m.status === "sent" || u.kind === "admin"); });
+    },
+    start: async function (title, body, intake) {
+      var x = db(), u = bpMe(x); if (!u || bpOf(u).level === "example") throw new Error("Business Planning needs an approved account.");
+      var b = bpOf(u), s = bpStore(x), mine = s.threads.filter(function (t) { return t.user === u.id; }), week = Date.now() - 7 * 864e5;
+      var open = mine.filter(function (t) { return t.status === "open"; }).length;
+      if (open >= b.open_threads) throw new Error("You already have " + open + " open plan" + (open === 1 ? "" : "s") + ". Close one to start another.");
+      if (b.weekly_threads != null && mine.filter(function (t) { return Date.parse(t.created_at) > week; }).length >= b.weekly_threads) throw new Error("Weekly limit reached (" + b.weekly_threads + " new plans per week).");
+      body = bpBody(body); title = String(title || "").trim().slice(0, 120) || "My plan";
+      var now = new Date().toISOString(), t = { id: nextId(s.threads), user: u.id, title: title, status: "open", phase: "saji", intake_type: intake || "free", visitor_turns: 1, wren_scripts: 0, created_at: now, updated_at: now };
+      s.threads.push(t); s.messages.push({ id: nextId(s.messages), thread_id: t.id, author: "person", author_label: null, reviewed_by: null, kind: "text", body: body, status: "sent", created_at: now });
+      x.bpEmails = (x.bpEmails || []).concat([{ thread: t.id, subject: "Gremlin Ticket: Business Planning #" + t.id }]);
+      put(x); bpFire(t.id); return t.id;
+    },
+    post: async function (tid, body) {
+      var x = db(), u = bpMe(x), s = bpStore(x), t = s.threads.find(function (z) { return z.id === tid; });
+      if (!u || !t || t.user !== u.id) throw new Error("Thread not available.");
+      if (t.status !== "open") throw new Error("This plan is closed.");
+      var b = bpOf(u); if (b.turn_limit != null && t.visitor_turns >= b.turn_limit) throw new Error("Turn limit reached (" + b.turn_limit + " messages in this plan). Bryan can open up more.");
+      body = bpBody(body); var now = new Date().toISOString();
+      s.messages.push({ id: nextId(s.messages), thread_id: t.id, author: "person", author_label: null, reviewed_by: null, kind: "text", body: body, status: "sent", created_at: now });
+      t.visitor_turns++; t.updated_at = now; x.bpEmails = (x.bpEmails || []).concat([{ thread: t.id, subject: "Gremlin Ticket: Business Planning #" + t.id }]);
+      put(x); bpFire(t.id); return true;
+    },
+    close: async function (tid) { var x = db(), s = bpStore(x), t = s.threads.find(function (z) { return z.id === tid; }); if (t && t.status === "open") { t.status = "closed"; t.updated_at = new Date().toISOString(); put(x); bpFire(tid); } },
+    subscribe: function (tid, cb) {
+      var h = function (e) { if (!e.detail || e.detail.thread === tid) cb(); }, st = function (e) { if (e.key === MK) cb(); };
+      window.addEventListener("desks-bp-change", h); window.addEventListener("storage", st);
+      return function () { window.removeEventListener("desks-bp-change", h); window.removeEventListener("storage", st); };
+    },
+    adminSettings: async function () { var x = db(); return x.users.filter(function (u) { return u.kind === "member"; }).map(function (u) { var b = bpOf(u); return { user_id: u.id, bp_level: b.level, bp_turn_limit: b.turn_limit, bp_open_threads: b.open_threads, bp_weekly_threads: b.weekly_threads, bp_wren_scripts: b.wren_scripts, bp_pip_review: b.pip_review, bp_review_replies: b.review_replies }; }); },
+    adminSetLevel: async function (id, level) { var x = db(), u = x.users.find(function (z) { return z.id === id; }); if (!u) return; u.bp = Object.assign(bpOf(u), { level: level }, BP_PRESET[level] || {}); put(x); },
+    adminSetLimits: async function (id, o) { var x = db(), u = x.users.find(function (z) { return z.id === id; }); if (!u) return; u.bp = Object.assign(bpOf(u), o); put(x); },
+    adminThreads: async function () {
+      var x = db(), s = bpStore(x), cut = Date.now() - 15 * 60e3;
+      return s.threads.map(function (t) {
+        var ms = s.messages.filter(function (m) { return m.thread_id === t.id; }), u = x.users.find(function (z) { return z.id === t.user; }) || {};
+        var lp = ms.filter(function (m) { return m.author === "person"; }).pop(), lb = ms.filter(function (m) { return m.author === "bot"; }).pop();
+        return Object.assign({}, t, { member_name: u.name, messages: ms.length, held: ms.filter(function (m) { return m.status === "held"; }).length, last_at: t.updated_at,
+          stuck: t.status === "open" && !!lp && (!lb || Date.parse(lp.created_at) > Date.parse(lb.created_at)) && Date.parse(lp.created_at) < cut });
+      }).sort(function (a, b) { return Date.parse(b.last_at) - Date.parse(a.last_at); });
+    },
+    adminRelease: async function (mid) { var x = db(), m = bpStore(x).messages.find(function (z) { return z.id === mid; }); if (m && m.status === "held") { m.status = "sent"; put(x); bpFire(m.thread_id); } }
+  };
+  // Mock-only stand-in for Saji's side (bp-api). Used by the local tests; never present in live mode.
+  var mockBot = {
+    reply: function (tid, body, label, kind, reviewedBy) {
+      var x = db(), s = bpStore(x), t = s.threads.find(function (z) { return z.id === tid; }); if (!t || t.status !== "open") throw new Error("thread not available");
+      label = label || "Saji Tori"; kind = kind || "text";
+      var u = x.users.find(function (z) { return z.id === t.user; }), b = bpOf(u);
+      if (kind === "script" && label !== "Wren") throw new Error("scripts are posted as Wren");
+      if (kind === "script" && b.wren_scripts != null && t.wren_scripts >= b.wren_scripts) throw new Error("limit: Wren script limit reached");
+      var now = new Date().toISOString();
+      s.messages.push({ id: nextId(s.messages), thread_id: tid, author: "bot", author_label: label, reviewed_by: reviewedBy || null, kind: kind, body: String(body).trim(), status: b.review_replies ? "held" : "sent", created_at: now });
+      if (kind === "script") { t.wren_scripts++; t.phase = "saji"; }
+      t.updated_at = now; put(x); bpFire(tid); return { source: "business_planning", status: b.review_replies ? "held_for_bryan" : "posted" };
+    },
+    status: function (tid, phase) {
+      var x = db(), s = bpStore(x), t = s.threads.find(function (z) { return z.id === tid; }); if (!t) throw new Error("thread not available");
+      var now = new Date().toISOString(); t.phase = phase; t.updated_at = now;
+      if (BP_NOTES[phase]) s.messages.push({ id: nextId(s.messages), thread_id: tid, author: "status", author_label: "Saji Tori", reviewed_by: null, kind: "status", body: BP_NOTES[phase], status: "sent", created_at: now });
+      put(x); bpFire(tid); return { source: "business_planning", phase: phase, note: BP_NOTES[phase] || null };
+    },
+    emails: function () { return db().bpEmails || []; }
+  };
+  var liveBp = {
+    limits: async function () { var c = await sb(); return chk(await c.rpc("bp_my_limits")); },
+    threads: async function () { var c = await sb(); return chk(await c.from("bp_threads").select("id,title,status,phase,intake_type,visitor_turns,wren_scripts,created_at,updated_at").order("id", { ascending: false }).limit(50)); },
+    messages: async function (tid) { var c = await sb(); return chk(await c.from("bp_messages").select("id,thread_id,author,author_label,reviewed_by,kind,body,status,created_at").eq("thread_id", tid).order("id").limit(500)); },
+    start: async function (title, body, intake) { var c = await sb(); bpBody(body); return chk(await c.rpc("bp_start_thread", { p_title: String(title || "").trim() || "My plan", p_body: body, p_intake: intake || "free" })); },
+    post: async function (tid, body) { var c = await sb(); bpBody(body); return chk(await c.rpc("bp_post", { p_thread: tid, p_body: body })); },
+    close: async function (tid) { var c = await sb(); chk(await c.rpc("bp_close_thread", { p_thread: tid })); },
+    subscribe: function (tid, cb) {
+      var ch = null, stop = false;
+      sb().then(async function (c) {
+        if (stop) return;
+        var s = (await c.auth.getSession()).data.session; if (s) c.realtime.setAuth(s.access_token);
+        ch = c.channel("bp:" + tid, { config: { private: true } })
+          .on("postgres_changes", { event: "*", schema: "public", table: "bp_messages", filter: "thread_id=eq." + tid }, function () { cb(); })
+          .on("postgres_changes", { event: "UPDATE", schema: "public", table: "bp_threads", filter: "id=eq." + tid }, function () { cb(); })
+          .subscribe();
+      });
+      return function () { stop = true; sb().then(function (c) { if (ch) c.removeChannel(ch); }); };
+    },
+    adminSettings: async function () { var c = await sb(); return chk(await c.rpc("admin_bp_settings")); },
+    adminSetLevel: async function (id, level) { var c = await sb(); chk(await c.rpc("admin_bp_set_level", { p_user: id, p_level: level })); },
+    adminSetLimits: async function (id, o) { var c = await sb(); chk(await c.rpc("admin_bp_set_limits", { p_user: id, p_turn_limit: o.turn_limit, p_open_threads: o.open_threads, p_weekly_threads: o.weekly_threads, p_wren_scripts: o.wren_scripts, p_pip_review: o.pip_review, p_review_replies: o.review_replies })); },
+    adminThreads: async function () { var c = await sb(); return chk(await c.rpc("admin_bp_threads")); },
+    adminRelease: async function (mid) { var c = await sb(); chk(await c.rpc("admin_bp_release", { p_message: mid })); }
+  };
+
   var API = C.MODE === "live" ? live : mock;
+  API.bp = C.MODE === "live" ? liveBp : mockBp;
 
   // (Preview switcher removed from the live pack.)
 
@@ -212,7 +326,8 @@
 
   /* ------------------------------------------------------------------ boot */
   var ready = API.me().catch(function () { return { role: "guest", areas: GUEST_AREAS.slice(), tickets_used: 0, ticket_cap: 0 }; });
-  window.DesksAccess = { api: API, config: C, ready: ready, esc: esc, root: ROOT, ss: ss };
+  window.DesksAccess = { api: API, config: C, ready: ready, esc: esc, root: ROOT, ss: ss, BP_MAX: BP_MAX };
+  if (C.MODE !== "live") window.DesksAccess.mockBot = mockBot;
   document.addEventListener("DOMContentLoaded", function () {
     ready.then(function (me) {
       var s = $('script[src*="access/access.js"]'), room = s && s.getAttribute("data-room");

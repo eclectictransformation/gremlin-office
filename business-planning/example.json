@@ -1,0 +1,50 @@
+{
+  "placeholder": true,
+  "label": "Example",
+  "note": "This is a sample conversation, so you can see how it feels. It isn't a real customer.",
+  "title": "Example: a mobile bike tune-up stand",
+  "messages": [
+    {
+      "author": "person",
+      "body": "I fix bikes out of a cargo trailer at the Saturday market and want to do weekday house calls too. Right now people just text me. I'd like a simple site that shows what I do, my prices, and lets people ask for a tune-up without a long back-and-forth."
+    },
+    {
+      "author": "bot",
+      "label": "Saji Tori",
+      "body": "Thanks, this is a clear start. A few questions so the plan fits you:\n\n1. Who books most: commuters, families, or weekend riders?\n2. Which neighborhoods will you drive to?\n3. Do you want people to pick a time, or send a request you confirm?"
+    },
+    {
+      "author": "person",
+      "body": "Mostly commuters and a few families. North and East side only. I'd rather confirm each request myself."
+    },
+    {
+      "author": "bot",
+      "label": "Saji Tori",
+      "body": "Here's a simple plan to start from.\n\nWhat you offer: three tune-up levels with set prices, plus house calls in two areas.\nWho it's for: commuters who need their bike back fast, and families with several bikes.\nWhat the site needs: one page with your services and prices, the market hours, a map of the two house-call areas, a short request form (name, bike, area, a few times that work), and a few photos.\nWhat can wait: online payment and a full booking calendar.\n\nI'm bringing in Wren, our website designer, to write a starter script for your website."
+    },
+    {
+      "author": "status",
+      "body": "Wren says your script should take about 3–5 minutes. You can close this page and come back."
+    },
+    {
+      "author": "bot",
+      "label": "Wren",
+      "body": "Two quick questions before I write it:\n1. Any colors you like, or should I pick something calm and outdoorsy?\n2. What should the request button say?"
+    },
+    {
+      "author": "person",
+      "body": "Green and orange. \"Request a tune-up\"."
+    },
+    {
+      "author": "status",
+      "body": "Your script is getting a quick look-over."
+    },
+    {
+      "author": "bot",
+      "label": "Wren",
+      "kind": "script",
+      "reviewed_by": "Pip",
+      "body": "Build a one-page placeholder website for a mobile bike tune-up business (business name: [Your Business Name]).\n\nStyle: friendly and outdoorsy. Colors: forest green with orange buttons. Large readable text. Works well on phones.\n\nSections, in order:\n1. Header: business name, one line \"Bike tune-ups at the market and at your door\", and an orange button \"Request a tune-up\" that scrolls to the form.\n2. Services and prices: three cards (Basic, Standard, Full) with placeholder prices and a one-line description each.\n3. Where to find us: Saturday market hours (placeholder) and a simple map area showing two house-call zones labeled North and East.\n4. Photos: a gallery of 6 placeholder images.\n5. Request form: name, phone or email, bike type, area (North / East), and three preferred times. A note under the button: \"We'll confirm by text.\"\n6. Footer: contact placeholder and \"© [Year] [Your Business Name]\".\n\nUse placeholder text in brackets wherever a real detail is needed."
+    }
+  ]
+}

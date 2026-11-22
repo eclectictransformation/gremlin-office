@@ -10,11 +10,29 @@ window.DESKS_ACCESS = {
   TICKET_DEST_LABEL: "Bryan",
   GUEST: { samplesPerRoomPerVisit: 1, maxChars: 1200, deepAllowed: false },
   MAX_TICKET_CHARS: 2000,
+  // Business Planning: levels, turn limits and the Wren time note live in the database (Access page -> Business Planning).
+  // Guests and anyone not approved see the example run in business-planning/example.json.
+  // OPTIONAL "getting started" check-in, shown in a closed fold BELOW the main box before someone's first post (never blocks Send). OFF until Bryan and Saji write the questions.
+  // To turn it on: enabled: true, and list a few short questions, e.g. { id: "stage", q: "Where are you with this today?" }.
+  // Answers are optional and are added to the top of the first message to Saji. Keep it to 3 questions or fewer.
+  BP_CHECKIN: { enabled: false, title: "A few optional questions, if they help.", questions: [] },
+  // PLACEHOLDER: public Remixer link shown next to "Copy the script". Left empty on purpose (no confirmed public URL yet).
+  // Bryan: paste the real link here, e.g. REMIXER_URL: "https://...". While empty, no link is shown.
+  REMIXER_URL: "",
+  // PLACEHOLDER: Business action plan intake, step 2. A few short questions for each "Where's your business right now?" answer.
+  // Saji writes these for Bryan's review. Format: { id: "short_key", q: "Question text?" }. Empty array = that step is skipped.
+  BP_STATE_QUESTIONS: {
+    beginning: [],      // Just beginning
+    chaos: [],          // In chaos
+    grounded: [],       // Grounded
+    doing_well: [],     // Doing well
+    something_new: [],  // Looking for something new
+    other: []           // Other
+  },
   AREAS: [
     { key: "gremlin_world", label: "Gremlin World", guest: true },
     { key: "recipe_shelf", label: "Recipe Shelf", guest: true },
-    { key: "wren_room", label: "Wren's Room (full)" },
-    { key: "saji_room", label: "Saji Tori (full)" },
+    { key: "saji_room", label: "Quick sorter (full)" },
     { key: "send_tickets", label: "Send tickets" },
     { key: "office", label: "Gremlin Office", officeLogin: true },
     { key: "annex", label: "Gremlin game", officeLogin: true }
