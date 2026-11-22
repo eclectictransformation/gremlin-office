@@ -177,6 +177,11 @@ h1 {
     max-width: 46rem;
     margin: 0 auto;
   }
+  .door:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    width: calc((100% - 1.15rem) / 2);
+    justify-self: center;
+  }
   .hero { margin-bottom: 1.85rem; }
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -186,6 +191,7 @@ h1 {
   .door:nth-child(2) { animation-delay: 0.06s; }
   .door:nth-child(3) { animation-delay: 0.12s; }
   .door:nth-child(4) { animation-delay: 0.18s; }
+  .door:nth-child(5) { animation-delay: 0.24s; }
   .enter {
     transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   }
@@ -253,9 +259,16 @@ h1 {
     </article>
     <article class="door">
       <p class="door-kicker">The nest</p>
-      <h2>Meet the Web Designer</h2>
+      <h2>Wren's Room</h2>
       <p class="blurb">Say hello to Wren, the website gremlin. Paste in your idea and he'll help you sort it out.</p>
-      <a class="enter" href="web-designer/">Meet Wren</a>
+      <a class="enter" href="web-designer/">Enter Wren's Room</a>
+      <p class="hint">A preview. Nothing you type leaves your device.</p>
+    </article>
+    <article class="door">
+      <p class="door-kicker">The planning room</p>
+      <h2>Meet Saji Tori</h2>
+      <p class="blurb">A business planning room. Tell him your idea, paste what you've got so far, and ask his advice on what the website should include &mdash; so you can go to Wren with a clearer brief.</p>
+      <a class="enter" href="business-planning/">Meet Saji Tori</a>
       <p class="hint">A preview. Nothing you type leaves your device.</p>
     </article>
   </section>

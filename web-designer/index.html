@@ -242,6 +242,10 @@ ol.qs .why { display: block; color: var(--muted); font-size: 0.9rem; margin-top:
     </fieldset>
 
     <label class="big" for="paste">Paste it here</label>
+    <p class="help" id="saji-note">Have a brief from Saji? Paste it here.</p>
+    <p class="help" id="saji-import-wrap" hidden>
+      <button class="btn quiet" type="button" id="use-saji-brief">Use the brief I made with Saji</button>
+    </p>
     <p class="help" id="paste-help">Who it's for, what you offer, pages you picture, how people book or pay, the look you like, things you're not sure about. Any order is fine. Please don't include passwords or anyone's private details.</p>
     <textarea id="paste" name="paste" aria-describedby="paste-help" spellcheck="true" placeholder="For example: I teach small yoga classes for beginners and older folks. I want people to see the schedule and book a spot. Maybe a page about me? I like calm greens. Not sure if I need a shop..."></textarea>
 
@@ -522,6 +526,33 @@ ol.qs .why { display: block; color: var(--muted); font-size: 0.9rem; margin-top:
     statusEl.textContent = "All cleared. Fresh nest.";
     paste.focus();
   });
+
+  /* ---------- brief from Saji, if one was saved on this device ---------- */
+  var SAJI_BRIEF_KEY = "gremlinDesks.saji.briefForWren.v1";
+  var importWrap = document.getElementById("saji-import-wrap");
+  var useSaji = document.getElementById("use-saji-brief");
+  function readSajiBrief() {
+    try {
+      var raw = localStorage.getItem(SAJI_BRIEF_KEY);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (data && typeof data.text === "string" && data.text.trim()) return data.text;
+    } catch (e) {}
+    return null;
+  }
+  if (readSajiBrief() && importWrap) importWrap.hidden = false;
+  if (useSaji) {
+    useSaji.addEventListener("click", function () {
+      var text = readSajiBrief();
+      if (!text) return;
+      paste.value = text;
+      state.paste = text;
+      save(state);
+      statusEl.classList.remove("err");
+      statusEl.textContent = "Pasted your brief from Saji. Press “Sort it for me” when you're ready.";
+      paste.focus();
+    });
+  }
 
   /* ---------- restore ---------- */
   if (state.depth) setRadio("depth", state.depth);

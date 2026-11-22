@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meet Saji Tori · The Gremlin Desks</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Meet Saji Tori in the business planning room. A preview: tell him your idea and get a website brief for Wren, right in your browser.">
+<meta name="theme-color" content="#3A4A33">
+<link rel="icon" type="image/png" sizes="32x32" href="../desks-preview-q7m4/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../desks-preview-q7m4/icons/apple-touch-icon.png">
+<style>
+:root {
+  --cream: #E8E4D8;
+  --paper: #F1EDE2;
+  --sage: #A6B89A;
+  --forest: #54664A;
+  --moss: #3A4A33;
+  --ink: #1A1A18;
+  --clay: #B8775A;
+  --muted: #5d5d55;
+  --twig: #8a6a45;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100dvh;
+  padding: max(1.25rem, env(safe-area-inset-top)) max(1.1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1.1rem, env(safe-area-inset-left));
+  background: var(--cream) repeating-linear-gradient(90deg, transparent 0 46px, rgba(84, 102, 74, 0.05) 46px 48px);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.55;
+}
+.wrap { width: 100%; max-width: 46rem; margin: 0 auto; }
+a { color: var(--moss); }
+a:focus-visible, button:focus-visible, textarea:focus-visible, input:focus-visible + span {
+  outline: 3px solid var(--clay);
+  outline-offset: 3px;
+}
+.crumb { margin: 0 0 1rem; font-size: 0.95rem; }
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: 1rem; top: 1rem; background: var(--paper); padding: 0.5rem 0.8rem; border: 2px solid var(--ink); border-radius: 8px; z-index: 5; }
+
+/* Placeholder writing desk, drawn in CSS. Not final art. */
+.desk {
+  position: relative;
+  width: 120px;
+  height: 74px;
+  margin: 0 auto 0.9rem;
+}
+.desk .shade {
+  position: absolute;
+  left: 18px;
+  top: 0;
+  width: 28px;
+  height: 18px;
+  background: var(--clay);
+  border: 2px solid var(--ink);
+  border-radius: 12px 12px 2px 2px;
+}
+.desk .arm {
+  position: absolute;
+  left: 30px;
+  top: 16px;
+  width: 4px;
+  height: 28px;
+  background: var(--ink);
+  border-radius: 2px;
+}
+.desk .base {
+  position: absolute;
+  left: 22px;
+  top: 42px;
+  width: 20px;
+  height: 6px;
+  background: var(--ink);
+  border-radius: 2px;
+}
+.desk .paper {
+  position: absolute;
+  right: 22px;
+  top: 18px;
+  width: 36px;
+  height: 28px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  box-shadow: 1px 1px 0 rgba(26,26,24,0.2);
+  transform: rotate(6deg);
+}
+.desk .paper::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 7px;
+  height: 10px;
+  border-top: 2px solid var(--sage);
+  border-bottom: 2px solid var(--sage);
+}
+.desk .top {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 8px;
+  height: 16px;
+  background: var(--twig);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 var(--forest);
+}
+
+.clay-bar { display: block; width: 3.25rem; height: 5px; margin: 0 auto 0.9rem; background: var(--clay); border-radius: 3px; }
+.kicker { margin: 0 0 0.35rem; color: var(--clay); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+h1, h2, h3 { font-family: var(--serif); color: var(--moss); line-height: 1.25; }
+h1 { margin: 0 0 0.7rem; font-size: clamp(1.7rem, 4.5vw, 2.35rem); }
+h2 { margin: 0 0 0.6rem; font-size: 1.3rem; }
+h3 { margin: 0 0 0.4rem; font-size: 1.05rem; }
+.hero { text-align: center; margin: 0 auto 1.5rem; }
+.lead { margin: 0 0 0.9rem; font-size: 1.06rem; }
+.card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 1.25rem 1.2rem;
+  box-shadow: 4px 4px 0 var(--forest);
+  margin: 0 0 1.25rem;
+}
+.notice {
+  background: #f7f0dc;
+  border: 2px dashed var(--clay);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin: 0 0 1.25rem;
+  font-size: 0.97rem;
+}
+.notice strong { color: var(--moss); }
+.picker-intro { margin: 0 0 0.9rem; color: var(--ink); }
+.services {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+.service {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 0.8rem 0.95rem;
+  min-height: 48px;
+  box-shadow: 2px 2px 0 var(--forest);
+  cursor: pointer;
+}
+.service .title {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.08rem;
+  color: var(--moss);
+  line-height: 1.3;
+}
+.service .blurb {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ink);
+  font-size: 0.93rem;
+}
+.service.is-live:hover { background: #fffdf6; }
+.service.is-live[aria-pressed="true"] {
+  background: var(--sage);
+  box-shadow: inset 0 0 0 2px var(--moss), 2px 2px 0 var(--forest);
+}
+.service.is-live[aria-pressed="true"] .title::before { content: "\2713\00a0"; }
+.service.is-off,
+.service:disabled {
+  background: #e6e2d6;
+  color: var(--muted);
+  border-style: dashed;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.service.is-off .title,
+.service:disabled .title { color: #4f4f48; }
+.service.is-off .blurb,
+.service:disabled .blurb { color: var(--muted); }
+.soon {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--clay);
+  border-radius: 999px;
+  color: var(--clay);
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: 0.12em;
+}
+fieldset { border: 0; margin: 0 0 1.1rem; padding: 0; }
+legend { font-family: var(--serif); font-weight: 700; font-size: 1.1rem; color: var(--moss); margin-bottom: 0.5rem; padding: 0; }
+.choices { display: grid; gap: 0.6rem; grid-template-columns: 1fr; }
+@media (min-width: 640px) {
+  .choices.two { grid-template-columns: repeat(2, 1fr); }
+}
+.choice { position: relative; display: block; cursor: pointer; }
+.choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.choice span {
+  display: block;
+  height: 100%;
+  padding: 0.75rem 0.85rem;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  min-height: 48px;
+}
+.choice b { display: block; color: var(--moss); }
+.choice small { display: block; color: var(--muted); font-size: 0.88rem; margin-top: 0.15rem; }
+.choice input:checked + span { background: var(--sage); box-shadow: inset 0 0 0 2px var(--moss); }
+.choice input:checked + span b::before { content: "\2713\00a0"; }
+label.big { display: block; font-family: var(--serif); font-weight: 700; font-size: 1.1rem; color: var(--moss); margin-bottom: 0.35rem; }
+.help { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.93rem; }
+textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 0.8rem;
+  resize: vertical;
+  margin: 0 0 0.9rem;
+}
+#idea { min-height: 8rem; padding-bottom: 1.1rem; }
+#notes { min-height: 12rem; }
+.answer { min-height: 5rem; margin-top: 0.4rem; margin-bottom: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; margin-top: 0.3rem; }
+.btn {
+  background: var(--forest);
+  color: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 0.8rem 1.2rem;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-shadow: 2px 2px 0 var(--ink);
+  min-height: 48px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+}
+.btn:hover { background: var(--moss); }
+.btn.quiet { background: var(--paper); color: var(--moss); }
+.btn.quiet:hover { background: #fff; }
+.status { color: var(--muted); font-size: 0.92rem; margin: 0; }
+.err { color: #8a2f1c; font-weight: 700; }
+.piles { display: grid; gap: 0.8rem; grid-template-columns: 1fr; margin: 0.6rem 0 0.4rem; }
+@media (min-width: 640px) { .piles { grid-template-columns: repeat(2, 1fr); } }
+.pile { background: #fff; border: 2px solid var(--ink); border-radius: 10px; padding: 0.8rem 0.9rem; }
+.pile.optional { border-style: dashed; }
+.pile h3 { display: flex; justify-content: space-between; gap: 0.5rem; align-items: baseline; }
+.pile .count { font-family: var(--sans); font-size: 0.8rem; color: var(--muted); font-weight: 400; }
+.pile ul { margin: 0; padding-left: 1.1rem; }
+.pile li { margin: 0.25rem 0; }
+.pile .empty { margin: 0; color: var(--clay); font-style: italic; font-size: 0.93rem; }
+.saji-says {
+  border-left: 5px solid var(--clay);
+  padding: 0.2rem 0 0.2rem 0.9rem;
+  margin: 0.4rem 0 1rem;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+}
+ol.qs { padding-left: 1.3rem; margin: 0.4rem 0 0; }
+ol.qs li { margin: 0 0 1.1rem; }
+ol.qs .why { display: block; color: var(--muted); font-size: 0.9rem; margin-top: 0.15rem; }
+.take-time { text-align: center; font-family: var(--serif); font-size: 1.15rem; color: var(--moss); margin: 1rem 0 0.4rem; }
+.brief-box {
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 0.6rem 0 0.9rem;
+  max-height: 28rem;
+  overflow: auto;
+}
+.brief-box pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.foot { margin: 1.6rem auto 0; text-align: center; color: var(--muted); font-size: 0.9rem; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero, .card { animation: rise 0.45s ease-out; }
+  .btn, .service.is-live { transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#services-title">Skip to what Saji can help with</a>
+<main class="wrap">
+  <p class="crumb"><a href="../">&larr; Back to the Gremlin Desks</a></p>
+
+  <header class="hero">
+    <!-- ART SLOT: a portrait of Saji Tori by a real (ideally local) artist goes here.
+         Until then, this small CSS writing desk is the placeholder. Please don't swap in AI-generated art. -->
+    <div class="desk" role="img" aria-label="A little drawn writing desk with a lamp and a page">
+      <span class="shade" aria-hidden="true"></span>
+      <span class="arm" aria-hidden="true"></span>
+      <span class="base" aria-hidden="true"></span>
+      <span class="paper" aria-hidden="true"></span>
+      <span class="top" aria-hidden="true"></span>
+    </div>
+    <span class="clay-bar" aria-hidden="true"></span>
+    <p class="kicker">The planning room</p>
+    <h1>Hi, I'm Saji Tori.</h1>
+    <p class="lead">This is a business planning room. Tell me your idea, and paste whatever you've come up with so far. I'll help you think through what the website should include, so you can take a clearer brief to Wren.</p>
+  </header>
+
+  <div class="notice" role="note">
+    <strong>This is a click-through preview.</strong> No AI runs on this page, and nothing you type is sent anywhere. The sorting happens right in your browser, and your notes are saved only on this device. Use &ldquo;Start over&rdquo; to wipe them.
+  </div>
+
+  <section class="card" aria-labelledby="services-title">
+    <h2 id="services-title">What can Saji help with?</h2>
+    <p class="picker-intro">Right now, website consultation is open as a test. The other services will open as they're ready. Choose one below.</p>
+    <ul class="services" id="services"></ul>
+    <noscript>
+      <p class="help">This preview needs JavaScript, which runs only on your device. JavaScript is off, so the list can't be shown.</p>
+    </noscript>
+  </section>
+
+  <form id="consult" class="card" hidden novalidate aria-labelledby="consult-title">
+    <h2 id="consult-title">Website consultation</h2>
+    <p class="help">Quick advice on what your site should include. A test version, in your browser only.</p>
+
+    <fieldset>
+      <legend>How deep do you want to go today?</legend>
+      <div class="choices two">
+        <label class="choice"><input type="radio" name="depth" value="easy" checked><span><b>The easy version</b><small>A few questions to get you going.</small></span></label>
+        <label class="choice"><input type="radio" name="depth" value="deep"><span><b>The in-depth version</b><small>More questions, and slower ones.</small></span></label>
+      </div>
+    </fieldset>
+
+    <label class="big" for="idea">What's your idea?</label>
+    <p class="help" id="idea-help">A few sentences is plenty. Who you hope to serve, and what you want to offer.</p>
+    <textarea id="idea" name="idea" aria-describedby="idea-help" spellcheck="true" placeholder="For example: I want to open a small neighborhood pottery studio, with evening classes for beginners."></textarea>
+
+    <label class="big" for="notes">Paste what you've come up with so far</label>
+    <p class="help" id="notes-help">Goals, how people find or book or buy, content you already have, must-haves and nice-to-haves. Budget and timeline are optional &mdash; leave them out if you'd rather. Please don't include passwords or anyone's private details.</p>
+    <textarea id="notes" name="notes" aria-describedby="notes-help" spellcheck="true" placeholder="For example: I'd like people to see the schedule and sign up without messaging me first. I already have a logo and photos. A shop can wait. Hoping to launch in the spring..."></textarea>
+
+    <div class="row">
+      <button class="btn" type="submit">Help me think this through</button>
+      <button class="btn quiet" type="button" id="start-over">Start over</button>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </div>
+  </form>
+
+  <section id="results" class="card" hidden aria-labelledby="results-title">
+    <h2 id="results-title" tabindex="-1">Here's how I sorted it</h2>
+    <p class="saji-says" id="saji-intro"></p>
+    <div class="piles" id="piles"></div>
+
+    <h2 id="questions-title">A few things to think through</h2>
+    <p class="help" id="questions-help"></p>
+    <ol class="qs" id="questions"></ol>
+
+    <p class="take-time">There's no rush. Sit with the questions. Come back when you're ready.</p>
+    <p class="help" style="text-align:center">Your answers save on this device as you type. No need to finish today.</p>
+  </section>
+
+  <section id="brief-card" class="card" hidden aria-labelledby="brief-title">
+    <h2 id="brief-title">Website brief for Wren</h2>
+    <p class="help">A clean summary from your own words, ready to copy or download. It isn't a finished plan, and no AI wrote it. You can take it to Wren's Room next.</p>
+    <div class="brief-box" id="brief-box"><pre id="brief-text"></pre></div>
+    <div class="row">
+      <button class="btn" type="button" id="copy-brief">Copy brief</button>
+      <button class="btn quiet" type="button" id="download-brief">Download as text</button>
+      <a class="btn" href="../web-designer/" id="to-wren">Take this brief to Wren's Room</a>
+      <p class="status" id="brief-status" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <p class="foot">A Gremlin Desks preview. No accounts, no tracking, nothing sent. No AI runs on this page.</p>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var KEY = "gremlinDesks.saji.v1";
+  var BRIEF_KEY = "gremlinDesks.saji.briefForWren.v1";
+  var servicesEl = document.getElementById("services");
+  var form = document.getElementById("consult");
+  var ideaEl = document.getElementById("idea");
+  var notesEl = document.getElementById("notes");
+  var statusEl = document.getElementById("status");
+  var results = document.getElementById("results");
+  var pilesEl = document.getElementById("piles");
+  var qsEl = document.getElementById("questions");
+  var briefCard = document.getElementById("brief-card");
+  var briefTextEl = document.getElementById("brief-text");
+  var briefStatus = document.getElementById("brief-status");
+
+  /* Flip `live` to true when a service is ready to open.
+     Only live services are clickable. Others render as "Coming soon."
+     Add a matching flow (see selectService) before flipping a flag. */
+  var SERVICES = [
+    {
+      id: "website-consultation",
+      title: "Website consultation",
+      blurb: "Quick advice on what your site should include (test version)",
+      live: true
+    },
+    {
+      id: "business-planning-indepth",
+      title: "Business planning (in depth)",
+      blurb: "A slower pass through your idea, your offers, and the path ahead.",
+      live: false
+    },
+    {
+      id: "marketing-plan",
+      title: "Marketing plan",
+      blurb: "How people will find you, and what to say when they do.",
+      live: false
+    },
+    {
+      id: "pricing-offers",
+      title: "Pricing & offers",
+      blurb: "Help thinking through what you charge and what you include.",
+      live: false
+    },
+    {
+      id: "launch-checklist",
+      title: "Launch checklist",
+      blurb: "A practical list of what to have in place before you go live.",
+      live: false
+    }
+  ];
+
+  var FLOWS = { "website-consultation": true };
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
+  }
+  function save(state) {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage off: still works, just won't remember */ }
+  }
+  function saveBrief(text) {
+    try { localStorage.setItem(BRIEF_KEY, JSON.stringify({ text: text, updatedAt: new Date().toISOString() })); } catch (e) {}
+  }
+  function clearBrief() {
+    try { localStorage.removeItem(BRIEF_KEY); } catch (e) {}
+  }
+  var state = load();
+  if (!state.answers) state.answers = {};
+
+  function radio(name) {
+    var el = form.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : null;
+  }
+  function setRadio(name, value) {
+    var el = form.querySelector('input[name="' + name + '"][value="' + value + '"]');
+    if (el) el.checked = true;
+  }
+  function serviceById(id) {
+    for (var i = 0; i < SERVICES.length; i++) if (SERVICES[i].id === id) return SERVICES[i];
+    return null;
+  }
+
+  function renderServices(selected) {
+    servicesEl.textContent = "";
+    SERVICES.forEach(function (s) {
+      var li = document.createElement("li");
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "service " + (s.live ? "is-live" : "is-off");
+      btn.setAttribute("data-service", s.id);
+      var title = document.createElement("span");
+      title.className = "title";
+      title.appendChild(document.createTextNode(s.title));
+      if (!s.live) {
+        var badge = document.createElement("span");
+        badge.className = "soon";
+        badge.textContent = "Coming soon";
+        title.appendChild(document.createTextNode(" "));
+        title.appendChild(badge);
+      }
+      var blurb = document.createElement("span");
+      blurb.className = "blurb";
+      blurb.textContent = s.blurb;
+      btn.appendChild(title);
+      btn.appendChild(blurb);
+      if (!s.live) {
+        btn.disabled = true;
+        btn.setAttribute("aria-disabled", "true");
+        btn.setAttribute("aria-label", s.title + ", coming soon");
+      } else {
+        btn.setAttribute("aria-pressed", selected === s.id ? "true" : "false");
+        btn.addEventListener("click", function () { selectService(s.id, true); });
+      }
+      li.appendChild(btn);
+      servicesEl.appendChild(li);
+    });
+  }
+
+  function selectService(id, focus) {
+    var s = serviceById(id);
+    if (!s || !s.live || !FLOWS[id]) return;
+    state.service = id;
+    save(state);
+    renderServices(id);
+    form.hidden = false;
+    if (focus) {
+      var t = document.getElementById("consult-title");
+      t.setAttribute("tabindex", "-1");
+      t.focus({ preventScroll: true });
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      form.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    }
+  }
+
+  var PILES = [
+    { id: "who", title: "Who it's for",
+      re: /\b(clients?|customers?|people|folks|audience|students?|families|parents|kids|teens|seniors|older folks|beginners?|locals?|community|members?|patients?|women|men|anyone|everyone|neighbou?rs?|adults?|visitors?|guests?|aimed at|designed for|for (?:the )?(?:beginners?|families|kids|children|teens|seniors|students?|clients?|customers?|locals?|community|members?|patients?|women|men|adults?|guests?|visitors?))\b/i,
+      empty: "I couldn't tell who this is for yet." },
+    { id: "offer", title: "What you offer",
+      re: /\b(offer|offering|sell|selling|services?|class(es)?|workshops?|sessions?|lessons?|coaching|teach|teaching|products?|menu|retreats?|events?|programs?|courses?|consult(ing|ations?)?|studio|practice|make|making|build|repair|treatments?|packages?|memberships?)\b/i,
+      empty: "I didn't spot what you offer yet." },
+    { id: "goals", title: "Goals",
+      re: /\b(goals?|aim|aims|purpose|mission|hoping|hope to|want to|wanted|I'd like|i would like|looking to|plan to|planning to|launch|grow|so that|success|outcome|in the spring|this year|by the (end|time)|60 days)\b/i,
+      empty: "No goals jumped out yet. That's a useful gap to sit with." },
+    { id: "findbuy", title: "How people find, book, or buy",
+      re: /\b(find|found|finding|search|google|instagram|facebook|referral|word of mouth|market|book|booking|bookings|appointments?|reserve|sign ?ups?|register|pay|payments?|buy|buying|shop|store|checkout|contact|call|email|walk-?in|schedule|calendly|stripe|social media|discover)\b/i,
+      empty: "Nothing yet on how people find you, or how they book or buy." },
+    { id: "content", title: "Content you already have",
+      re: /\b(already have|i have|we've got|we have|photos?|pictures?|images?|logo|writing|copy|videos?|testimonials?|reviews?|inventory|materials|content|drawings?|existing site|text ready|blog posts?)\b/i,
+      empty: "I didn't spot materials you already have. We can still plan around what's missing." },
+    { id: "musts", title: "Must-haves and nice-to-haves",
+      re: /\b(must-?haves?|must have|need to|have to|essential|required|day one|can't launch|cannot launch|nice to have|would be nice|later|someday|eventually|can wait|optional|if possible|for launch|need a|needs a)\b/i,
+      empty: "Nothing marked as a must-have or a later idea yet." },
+    { id: "budget", title: "Budget and timeline",
+      optional: true,
+      re: /\b(budget|price range|afford|timeline|deadline|by spring|by next|in the spring|this year|next (month|year|spring|fall|summer|winter)|months?|weeks?|\$\d+|investment|spend|dollars?)\b/i,
+      empty: "Optional, and left blank. Share a range or a date only if you want to." }
+  ];
+
+  function splitBits(text) {
+    return text
+      .replace(/\r/g, "")
+      .replace(/([.!?])\s+/g, "$1\n")
+      .split(/\n+|;\s+|\s+-\s+|•/)
+      .map(function (s) { return s.replace(/^[\s\-*\d.)]+/, "").trim(); })
+      .filter(function (s) { return s.length > 2; });
+  }
+
+  function combinedText() {
+    var a = (state.idea || "").trim();
+    var b = (state.notes || "").trim();
+    if (a && b) return a + "\n\n" + b;
+    return a || b || "";
+  }
+
+  function sort(text) {
+    var bits = splitBits(text);
+    var piles = {}, loose = [];
+    PILES.forEach(function (p) { piles[p.id] = []; });
+    bits.forEach(function (bit) {
+      var hit = false;
+      PILES.forEach(function (p) {
+        if (p.re.test(bit)) { piles[p.id].push(bit); hit = true; }
+      });
+      if (!hit) loose.push(bit);
+    });
+    return { bits: bits, piles: piles, loose: loose };
+  }
+
+  var GAP_Q = {
+    who: { q: "Who is this really for — and who is it not for?", why: "A site that tries to welcome everyone rarely helps the people you most want to serve." },
+    offer: { q: "If a stranger had only ten seconds, what should they understand that you offer?", why: "If this is fuzzy here, it will be fuzzier on a homepage." },
+    goals: { q: "If this website is working, what changes for you in the next couple of months? Be as specific as you can.", why: "A site is easier to shape when we know what 'working' looks like." },
+    findbuy: { q: "How does someone go from first hearing about you to booking, buying, or getting in touch? Where does that path get stuck today?", why: "The website should make the next step obvious, not add another hurdle." },
+    content: { q: "What do you already have that could go on the site, and what is still missing?", why: "Building around what you actually have keeps the first version honest." },
+    musts: { q: "What must be on the site on the day it launches, and what can honestly wait?", why: "Most good first sites are small on purpose." }
+  };
+
+  var EASY_Q = [
+    { q: "What's the one action you hope someone takes once they arrive?", why: "Every other page and button should point toward that, or stay out of the way." },
+    { q: "What would you rather leave off the first version, even if it's a lovely idea?", why: "Leaving something out is a decision, and it makes the rest easier to see." }
+  ];
+
+  var DEEP_Q = [
+    { q: "What problem does this site solve for the person arriving, in their words, not yours?", why: "If we can say it the way they would, the pages almost arrange themselves." },
+    { q: "Which promises or claims need to stay strictly true? What should the site never say, imply, or collect?", why: "An honest site is easier to stand behind, and safer to publish." },
+    { q: "Who can say yes to going live, and who else should look at this before then?", why: "Clear ownership now prevents a rushed, unclear launch later." },
+    { q: "If you want to share a timeline or a budget range, Wren can plan around it. If you'd rather not, leave this blank.", why: "This is optional. A blank answer is a perfectly good answer." }
+  ];
+
+  function pickQuestions(depth, sorted) {
+    var max = depth === "deep" ? 6 : 4;
+    var out = [], seen = {};
+    function add(item, id) { if (item && out.length < max && !seen[id]) { seen[id] = 1; out.push({ id: id, q: item.q, why: item.why }); } }
+    var gapOrder = ["who", "offer", "goals", "findbuy", "content", "musts"];
+    var gaps = gapOrder.filter(function (g) { return sorted.piles[g].length === 0; });
+    var gapLimit = depth === "deep" ? 3 : 2;
+    gaps.slice(0, gapLimit).forEach(function (g) { add(GAP_Q[g], "gap-" + g); });
+    var extras = depth === "deep" ? DEEP_Q : EASY_Q;
+    extras.forEach(function (item, i) { add(item, (depth === "deep" ? "deep-" : "easy-") + i); });
+    gaps.forEach(function (g) { add(GAP_Q[g], "gap-" + g); });
+    gapOrder.forEach(function (g) { if (out.length < 4) add(GAP_Q[g], "gap-" + g); });
+    return out;
+  }
+
+  function siteMayNeed(sorted) {
+    var items = [];
+    function add(s) { if (items.indexOf(s) === -1) items.push(s); }
+    if (sorted.piles.who.length) add("A plain sentence, near the top, about who this is for.");
+    else add("A short line that says who the site is for. That wasn't clear in the notes yet.");
+    if (sorted.piles.offer.length) add("A clear description of what you offer, easy to find from the first page.");
+    else add("A simple explanation of what you offer. That's still an open question.");
+    if (sorted.piles.goals.length) add("Pages and buttons that support the goal you named, instead of competing with it.");
+    if (sorted.piles.findbuy.length) add("A clear way for someone to book, buy, or get in touch, without hunting for it.");
+    else add("An obvious next step: how to book, buy, or reach you.");
+    if (sorted.piles.content.length) add("A place for the photos, writing, logo, or other materials you already have.");
+    if (sorted.piles.musts.length) add("The must-haves you named, on the first version. Nice-to-haves can wait.");
+    else add("A short must-have list for launch day, so the first version stays small.");
+    add("A simple way to contact you, with the facts a person would need (who, where, how).");
+    if (sorted.piles.budget.length === 0) add("Budget and timeline can stay blank for now, unless you choose to share them with Wren.");
+    return items;
+  }
+
+  function linesFor(items) {
+    if (!items || !items.length) return "(none yet)";
+    return items.map(function (t) { return "- " + t; }).join("\n");
+  }
+
+  function todayLabel() {
+    try {
+      return new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    } catch (e) {
+      return new Date().toISOString().slice(0, 10);
+    }
+  }
+
+  function briefText(sorted, qs) {
+    var who = sorted.piles.who, offer = sorted.piles.offer, goals = sorted.piles.goals;
+    var findbuy = sorted.piles.findbuy, content = sorted.piles.content, musts = sorted.piles.musts;
+    var budget = sorted.piles.budget;
+    var parts = [];
+    parts.push("Website brief for Wren");
+    parts.push("Prepared with Saji Tori's website consultation");
+    parts.push(todayLabel());
+    parts.push("");
+    parts.push("THE IDEA");
+    parts.push((state.idea || "").trim() || "(not given)");
+    parts.push("");
+    parts.push("NOTES SO FAR");
+    parts.push((state.notes || "").trim() || "(none pasted)");
+    parts.push("");
+    parts.push("WHO IT'S FOR");
+    parts.push(linesFor(who));
+    parts.push("");
+    parts.push("WHAT YOU OFFER");
+    parts.push(linesFor(offer));
+    parts.push("");
+    parts.push("GOALS");
+    parts.push(linesFor(goals));
+    parts.push("");
+    parts.push("HOW PEOPLE FIND, BOOK, OR BUY");
+    parts.push(linesFor(findbuy));
+    parts.push("");
+    parts.push("CONTENT ALREADY ON HAND");
+    parts.push(linesFor(content));
+    parts.push("");
+    parts.push("MUST-HAVES AND NICE-TO-HAVES");
+    parts.push(linesFor(musts));
+    parts.push("");
+    parts.push("BUDGET AND TIMELINE (optional; leave blank if you'd rather not say)");
+    parts.push(budget.length ? linesFor(budget) : "");
+    parts.push("");
+    parts.push("A STARTING LIST OF WHAT THE SITE MAY NEED");
+    parts.push("These are first-pass suggestions, sorted from your own words. They are not a finished plan, and no AI wrote them.");
+    parts.push(linesFor(siteMayNeed(sorted)));
+    parts.push("");
+    parts.push("ANSWERS TO SAJI'S QUESTIONS");
+    if (!qs || !qs.length) {
+      parts.push("(none yet)");
+    } else {
+      qs.forEach(function (item, i) {
+        var ans = (state.answers[item.id] || "").trim();
+        parts.push((i + 1) + ". " + item.q);
+        parts.push("   " + (ans || "(not answered yet)"));
+        parts.push("");
+      });
+    }
+    parts.push("---");
+    parts.push("This brief was sorted in the visitor's browser. No AI ran on the page. Nothing was sent anywhere.");
+    return parts.join("\n").replace(/\n{3,}/g, "\n\n");
+  }
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  var currentQs = [];
+
+  function render(focus) {
+    var depth = state.depth || "easy";
+    var sorted = sort(combinedText());
+    document.getElementById("saji-intro").textContent =
+      "Thank you. I read what you wrote and sorted it into a few piles, so we can see what's already clear and what still needs a thought. Take the questions slowly. A short, honest answer is better than a rushed one.";
+    pilesEl.textContent = "";
+    PILES.forEach(function (p) {
+      var box = el("div", "pile" + (p.optional ? " optional" : ""));
+      var h = el("h3", null, p.title);
+      var items = sorted.piles[p.id];
+      var countLabel = items.length ? items.length + (items.length === 1 ? " bit" : " bits") : (p.optional ? "optional, blank" : "empty");
+      h.appendChild(el("span", "count", countLabel));
+      box.appendChild(h);
+      if (items.length) {
+        var ul = el("ul");
+        items.slice(0, 6).forEach(function (t) { ul.appendChild(el("li", null, t)); });
+        if (items.length > 6) ul.appendChild(el("li", null, "…and " + (items.length - 6) + " more"));
+        box.appendChild(ul);
+      } else {
+        box.appendChild(el("p", "empty", p.empty));
+      }
+      pilesEl.appendChild(box);
+    });
+    if (sorted.loose.length) {
+      var lb = el("div", "pile");
+      var lh = el("h3", null, "Didn't fit a pile yet");
+      lh.appendChild(el("span", "count", sorted.loose.length + (sorted.loose.length === 1 ? " bit" : " bits")));
+      lb.appendChild(lh);
+      var lu = el("ul");
+      sorted.loose.slice(0, 6).forEach(function (t) { lu.appendChild(el("li", null, t)); });
+      lb.appendChild(lu);
+      pilesEl.appendChild(lb);
+    }
+
+    currentQs = pickQuestions(depth, sorted);
+    document.getElementById("questions-help").textContent = depth === "deep"
+      ? "You picked the in-depth version, so these go a little further. Answer in your own words. Short is fine. The budget and timeline question is optional."
+      : "You picked the easy version, so I kept it to a few. Answer in your own words. Short is fine.";
+    qsEl.textContent = "";
+    currentQs.forEach(function (item, i) {
+      var li = el("li");
+      var qid = "q-" + item.id;
+      var lab = el("label", null, item.q);
+      lab.setAttribute("for", qid);
+      lab.style.fontWeight = "700";
+      li.appendChild(lab);
+      li.appendChild(el("span", "why", item.why));
+      var ta = el("textarea", "answer");
+      ta.id = qid;
+      ta.value = state.answers[item.id] || "";
+      ta.setAttribute("aria-label", "Your answer to question " + (i + 1));
+      ta.addEventListener("input", function () {
+        state.answers[item.id] = ta.value;
+        save(state);
+        updateBrief(sorted);
+      });
+      li.appendChild(ta);
+      qsEl.appendChild(li);
+    });
+
+    results.hidden = false;
+    briefCard.hidden = false;
+    updateBrief(sorted);
+    if (focus) {
+      var t = document.getElementById("results-title");
+      t.focus({ preventScroll: true });
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      results.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    }
+  }
+
+  function updateBrief(sorted) {
+    if (!sorted) sorted = sort(combinedText());
+    var text = briefText(sorted, currentQs);
+    briefTextEl.textContent = text;
+    saveBrief(text);
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var idea = ideaEl.value.trim();
+    var notes = notesEl.value.trim();
+    statusEl.classList.remove("err");
+    if ((idea + " " + notes).trim().length < 10) {
+      statusEl.textContent = "Tell me a little more first. A few sentences about your idea is plenty.";
+      statusEl.classList.add("err");
+      (idea ? notesEl : ideaEl).focus();
+      return;
+    }
+    state.idea = ideaEl.value;
+    state.notes = notesEl.value;
+    state.depth = radio("depth");
+    state.sortedAt = new Date().toISOString();
+    save(state);
+    statusEl.textContent = "Sorted. Saved on this device only.";
+    render(true);
+  });
+
+  ideaEl.addEventListener("input", function () { state.idea = ideaEl.value; save(state); });
+  notesEl.addEventListener("input", function () { state.notes = notesEl.value; save(state); });
+  form.addEventListener("change", function (e) {
+    if (e.target.name === "depth") {
+      state.depth = e.target.value;
+      save(state);
+    }
+  });
+
+  document.getElementById("start-over").addEventListener("click", function () {
+    if (!window.confirm("Start over? This clears your notes, your answers, and the brief for Wren from this device.")) return;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    clearBrief();
+    state = { answers: {} };
+    form.reset();
+    ideaEl.value = "";
+    notesEl.value = "";
+    results.hidden = true;
+    briefCard.hidden = true;
+    qsEl.textContent = "";
+    pilesEl.textContent = "";
+    briefTextEl.textContent = "";
+    statusEl.classList.remove("err");
+    statusEl.textContent = "All cleared.";
+    briefStatus.textContent = "";
+    renderServices(null);
+    form.hidden = true;
+    document.getElementById("services-title").focus({ preventScroll: true });
+    document.getElementById("services-title").setAttribute("tabindex", "-1");
+  });
+
+  function currentBrief() { return briefTextEl.textContent || ""; }
+
+  document.getElementById("copy-brief").addEventListener("click", function () {
+    var text = currentBrief();
+    if (!text) return;
+    function ok() { briefStatus.textContent = "Copied. You can paste this in Wren's Room."; }
+    function fail() { briefStatus.textContent = "Couldn't copy automatically. You can select the brief and copy it yourself."; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, function () { fallback(); });
+    } else {
+      fallback();
+    }
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        if (document.execCommand("copy")) ok();
+        else fail();
+      } catch (err) { fail(); }
+      document.body.removeChild(ta);
+    }
+  });
+
+  document.getElementById("download-brief").addEventListener("click", function () {
+    var text = currentBrief();
+    if (!text) return;
+    var blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "website-brief-for-wren.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    briefStatus.textContent = "Downloaded as website-brief-for-wren.txt.";
+  });
+
+  renderServices(state.service && serviceById(state.service) && serviceById(state.service).live ? state.service : null);
+  if (state.depth) setRadio("depth", state.depth);
+  if (state.idea) ideaEl.value = state.idea;
+  if (state.notes) notesEl.value = state.notes;
+  if (state.service && FLOWS[state.service] && serviceById(state.service) && serviceById(state.service).live) {
+    form.hidden = false;
+  }
+  if (state.sortedAt && combinedText()) {
+    form.hidden = false;
+    if (!state.service) {
+      state.service = "website-consultation";
+      renderServices(state.service);
+    }
+    render(false);
+    statusEl.textContent = "Welcome back. Your notes are where you left them.";
+  }
+})();
+</script>
+</body>
+</html>
