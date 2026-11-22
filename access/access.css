@@ -1,0 +1,34 @@
+/* Desks hub access layer. Small, no images, no web fonts. */
+.da-bar{display:flex;flex-wrap:wrap;gap:.4rem .9rem;align-items:center;justify-content:space-between;
+  width:100%;max-width:64rem;margin:0 auto 1rem;padding:.55rem .8rem;background:#F1EDE2;border:2px solid #1A1A18;
+  border-radius:12px;box-shadow:2px 2px 0 #54664A;font:0.92rem/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1A1A18}
+.da-who b{color:#3A4A33}
+.da-links{display:flex;flex-wrap:wrap;gap:.35rem}
+.da-link{display:inline-block;min-height:40px;padding:.45rem .75rem;border:2px solid #1A1A18;border-radius:9px;background:#fff;
+  color:#3A4A33;font:inherit;font-weight:700;text-decoration:none;cursor:pointer;line-height:1.3}
+.da-link:hover{background:#E8E4D8}
+.da-link:focus-visible,.da-btn:focus-visible{outline:3px solid #B8775A;outline-offset:2px}
+.da-note{margin:0 0 1rem;padding:.75rem .9rem;border:2px dashed #54664A;border-radius:12px;background:#fff;font-size:.95rem}
+.da-note a,.da-used a,.da-cta a:not(.da-btn){color:#3A4A33;font-weight:700}
+.da-locked{opacity:.55}
+.da-locked small{color:#B8775A!important;font-weight:700}
+.da-count{margin:.3rem 0 0;color:#5d5d55;font-size:.85rem}
+.da-used{margin:.7rem 0 0;padding:.6rem .8rem;border-radius:10px;background:#E8E4D8;font-size:.95rem}
+.da-cta{margin-top:1.1rem;padding:.9rem;border:2px solid #1A1A18;border-radius:12px;background:#F1EDE2}
+.da-cta p{margin:0 0 .6rem}
+.da-btn{display:inline-block;min-height:46px;padding:.7rem 1rem;border:2px solid #1A1A18;border-radius:10px;background:#54664A;color:#fff;
+  font-weight:700;text-decoration:none;box-shadow:2px 2px 0 #1A1A18;line-height:1.2;cursor:pointer;font:inherit;font-weight:700}
+.da-btn:hover{background:#3A4A33}
+.da-btn.ghost{background:#fff;color:#3A4A33}
+.da-btn[disabled]{opacity:.5;cursor:not-allowed}
+.da-proto{position:fixed;right:.6rem;bottom:.6rem;z-index:50;background:#1A1A18;color:#fff;border-radius:10px;padding:.35rem .6rem;
+  font:12px/1.4 system-ui,sans-serif;opacity:.85;max-width:12rem}
+.da-proto summary{cursor:pointer}
+.da-proto a{display:block;color:#fff;padding:.2rem 0}
+.da-badge{display:inline-block;margin:0 0 .55rem;padding:.12rem .5rem;border-radius:999px;border:1.5px solid #1A1A18;
+  font-size:.74rem;font-weight:700;letter-spacing:.02em;background:#fff;color:#3A4A33}
+.da-badge.open{background:#A6B89A}
+.da-badge.sample{background:#F6E3D3;color:#7a4a33}
+.da-badge.lock{background:#E8E4D8;color:#5d5d55}
+@media (prefers-reduced-motion:no-preference){.da-link,.da-btn{transition:background .15s ease}}
+.door .da-badge{align-self:flex-start}

@@ -9,10 +9,13 @@
 <meta name="theme-color" content="#3A4A33">
 <link rel="icon" type="image/png" sizes="32x32" href="desks-preview-q7m4/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="desks-preview-q7m4/icons/apple-touch-icon.png">
-<!-- Old Gremlin World links (query or #room hash) still go straight to world.html. A bare URL shows this welcome page. -->
+<link rel="stylesheet" href="access/access.css">
+<script src="access/config.js"></script>
+<script src="access/access.js" data-root=""></script>
+<!-- Old Gremlin World links (query or #room hash) still go straight to world.html. A bare URL shows this welcome page. ?as= is the local preview switcher only. -->
 <script>
 (function () {
-  if (location.search || location.hash) {
+  if ((location.search && !/^\?(as|next)=/.test(location.search)) || location.hash) {
     location.replace("world.html" + location.search + location.hash);
   }
 })();
@@ -218,10 +221,27 @@ h1 {
 @media (max-width: 430px) and (max-height: 700px) {
   .crew img { width: 44px; height: 44px; }
 }
+.choice-panel {
+  max-width: 38rem;
+  margin: 0 auto 1.5rem;
+  padding: 1.1rem 1.15rem;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--clay);
+  text-align: center;
+}
+.choice-panel h2 { margin: 0 0 .35rem; font-family: var(--serif); color: var(--moss); font-size: 1.2rem; }
+.choice-panel p { margin: 0 0 .85rem; }
+.choice-row { display: grid; gap: .6rem; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .choice-row { grid-template-columns: 1fr 1fr; } }
+.enter.ghost { background: #fff; color: var(--moss); }
+.enter.ghost:hover { background: var(--cream); }
+.door[hidden] { display: none; }
 </style>
 </head>
 <body>
-<main class="wrap">
+<main class="wrap da-bar-slot">
   <header class="hero">
     <img class="mark" src="desks-preview-q7m4/icons/icon-192.png" width="88" height="88" alt="">
     <span class="clay-bar" aria-hidden="true"></span>
@@ -237,42 +257,102 @@ h1 {
       <img src="assets/gremlins/dot.webp" width="56" height="56" alt="Dot">
     </div>
   </header>
+  <section class="choice-panel" id="choice" hidden aria-labelledby="choice-title">
+    <h2 id="choice-title">How would you like to come in?</h2>
+    <p>Guests can wander everywhere public and try a short sample in each bot's room. Signing in lets you send tickets and use the full rooms.</p>
+    <div class="choice-row">
+      <a class="enter" href="signin/">Sign in or create an account</a>
+      <button class="enter ghost" type="button" id="as-guest">Look around as a guest</button>
+    </div>
+  </section>
   <section class="doors" aria-label="Choose a door">
     <article class="door">
+      <span class="da-badge" data-badge="gremlin_world"></span>
       <p class="door-kicker">The world</p>
       <h2>Visit Gremlin World</h2>
       <p class="blurb">Wander the rooms, poke around, and see what the crew has been up to.</p>
       <a class="enter" href="world.html">Enter Gremlin World</a>
     </article>
     <article class="door">
+      <span class="da-badge" data-badge="recipe_shelf"></span>
       <p class="door-kicker">The shelf</p>
       <h2>Recipe Shelf</h2>
       <p class="blurb">A shelf of recipes the gremlins keep on hand. Pull one down and have a look.</p>
       <a class="enter" href="recipe-shelf-preview/">Open the Shelf</a>
     </article>
     <article class="door">
+      <span class="da-badge" data-badge="office"></span>
       <p class="door-kicker">The desks</p>
       <h2>Gremlin Office</h2>
       <p class="blurb">Step into the desks. You'll need a valid login from Bryan to get in.</p>
       <a class="enter" href="desks-preview-q7m4/">Enter the Office</a>
-      <p class="hint">Guest logins only. If you don't have one, ask Bryan.</p>
+      <p class="hint" data-hint="office">Needs an Office login from Bryan.</p>
     </article>
     <article class="door">
+      <span class="da-badge" data-badge="wren_room"></span>
       <p class="door-kicker">The nest</p>
       <h2>Wren's Room</h2>
       <p class="blurb">Say hello to Wren, the website gremlin. Paste in your idea and he'll help you sort it out.</p>
       <a class="enter" href="web-designer/">Enter Wren's Room</a>
-      <p class="hint">A preview. Nothing you type leaves your device.</p>
+      <p class="hint" data-hint="wren_room">A preview. Nothing you type leaves your device.</p>
     </article>
     <article class="door">
+      <span class="da-badge" data-badge="saji_room"></span>
       <p class="door-kicker">The planning room</p>
       <h2>Meet Saji Tori</h2>
       <p class="blurb">A business planning room. Tell him your idea, paste what you've got so far, and ask his advice on what the website should include &mdash; so you can go to Wren with a clearer brief.</p>
       <a class="enter" href="business-planning/">Meet Saji Tori</a>
-      <p class="hint">A preview. Nothing you type leaves your device.</p>
+      <p class="hint" data-hint="saji_room">A preview. Nothing you type leaves your device.</p>
+    </article>
+    <article class="door" data-door="annex" hidden>
+      <span class="da-badge" data-badge="annex"></span>
+      <p class="door-kicker">The game</p>
+      <h2>Gremlin Game</h2>
+      <p class="blurb">Head through the Office and into the game the crew plays after hours.</p>
+      <a class="enter" href="desks-preview-q7m4/#/office">Play the game</a>
+    </article>
+    <article class="door" data-door="tickets">
+      <span class="da-badge" data-badge="send_tickets"></span>
+      <p class="door-kicker">The mail slot</p>
+      <h2>Send Bryan a Ticket</h2>
+      <p class="blurb">Have a question, an idea, or a brief from Saji or Wren? Send it over and Bryan will see who it's from.</p>
+      <a class="enter" href="ticket/" data-ticket-link>Write a ticket</a>
+      <p class="hint" data-hint="send_tickets">Sign in to send a ticket.</p>
+    </article>
+    <article class="door" data-door="admin" hidden>
+      <span class="da-badge open">Only you</span>
+      <p class="door-kicker">The key ring</p>
+      <h2>Access Page</h2>
+      <p class="blurb">Approve new sign-ups, choose which rooms each person can open, and read incoming tickets.</p>
+      <a class="enter" href="admin/">Open the access page</a>
     </article>
   </section>
   <p class="foot">This sample isn't listed on the main site. If you're here, someone meant for you to see it.</p>
 </main>
+<script>
+document.addEventListener("desks-access", function (e) {
+  var me = e.detail, has = function (k) { return me.areas.indexOf(k) > -1; }, signed = me.role !== "guest";
+  var A = window.DesksAccess, choice = document.getElementById("choice");
+  if (!signed && A.ss("desksAccess.choice") !== "guest") choice.hidden = false;
+  document.getElementById("as-guest").onclick = function () { A.ss("desksAccess.choice", "guest"); choice.hidden = true; document.querySelector(".doors").scrollIntoView({ block: "start" }); };
+  var badge = function (k, cls, text) { var b = document.querySelector('[data-badge="' + k + '"]'); if (b) { b.className = "da-badge " + cls; b.textContent = text; } };
+  var hint = function (k, text) { var h = document.querySelector('[data-hint="' + k + '"]'); if (h) h.textContent = text; };
+  badge("gremlin_world", "open", "Open to everyone"); badge("recipe_shelf", "open", "Open to everyone");
+  ["wren_room", "saji_room"].forEach(function (k) {
+    if (has(k)) { badge(k, "open", "Full room"); hint(k, "Your notes stay on your device unless you send them as a ticket."); }
+    else { badge(k, "sample", "Guest sample"); hint(k, "One short try per visit. Sign in for the full room."); }
+  });
+  if (has("office")) { badge("office", "open", "You have access"); hint("office", "You're signed in with an Office login."); }
+  else badge("office", "lock", "Office login");
+  if (has("annex")) { document.querySelector('[data-door="annex"]').hidden = false; badge("annex", "open", "You have access"); }
+  if (has("send_tickets")) { badge("send_tickets", "open", "Members"); hint("send_tickets", me.role === "admin" ? "Tickets land in your Office inbox." : "You've sent " + me.tickets_used + " of " + me.ticket_cap + " today."); }
+  else {
+    badge("send_tickets", "lock", "Sign in first");
+    var l = document.querySelector("[data-ticket-link]"); l.href = "signin/?next=ticket"; l.textContent = me.role === "pending" ? "Waiting for approval" : "Sign in to send";
+    hint("send_tickets", me.role === "pending" ? "Bryan will approve your account soon. Then you can send tickets." : "Guests can look around, but tickets need a sign-in so Bryan knows who's writing.");
+  }
+  if (me.role === "admin") document.querySelector('[data-door="admin"]').hidden = false;
+});
+</script>
 </body>
 </html>

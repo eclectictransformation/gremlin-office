@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Send a ticket &middot; The Gremlin Desks</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#3A4A33">
+<link rel="stylesheet" href="../access/page.css">
+<link rel="stylesheet" href="../access/access.css">
+<script src="../access/config.js"></script>
+<script src="../access/dictate.js" defer></script>
+<script src="../access/access.js" data-root="../"></script>
+</head>
+<body>
+<main class="wrap da-bar-slot">
+  <p class="crumb"><a href="../">&larr; Back to the Gremlin Desks</a></p>
+  <p class="kicker">The mail slot</p>
+  <h1>Send a ticket</h1>
+
+  <section class="card" id="gate" hidden></section>
+
+  <form class="card" id="tf" hidden novalidate>
+    <p class="lead" id="tf-lead" style="margin-top:0"></p>
+    <label class="f" for="room">About</label>
+    <select id="room">
+      <option value="general">Something general</option>
+      <option value="wren">Wren's Room (website)</option>
+      <option value="saji">Saji Tori (website consultation)</option>
+    </select>
+    <label class="f" for="subj">Subject</label>
+    <input id="subj" type="text" maxlength="120" required>
+    <label class="f" for="body">Your message</label>
+    <textarea id="body" required></textarea>
+    <p class="help" id="count"></p>
+    <p class="help">Please don't include passwords, card numbers, or anyone else's private details. If you use 🎤 Dictate, some browsers send the audio to their own speech service.</p>
+    <div class="row"><button class="da-btn" type="submit">Send ticket</button><button class="da-btn ghost" type="button" id="paste-brief" hidden>Add my brief from Saji</button></div>
+    <p class="status" id="st" role="status"></p>
+  </form>
+
+  <section class="card" id="mine" hidden><h2>Your recent tickets</h2><div id="mine-list"></div></section>
+</main>
+<script>
+(function () {
+  var A = window.DesksAccess, C = A.config, esc = A.esc, MAX = C.MAX_TICKET_CHARS || 2000;
+  var gate = document.getElementById("gate"), f = document.getElementById("tf"), body = document.getElementById("body");
+  var room = new URLSearchParams(location.search).get("room");
+  if (room) document.getElementById("room").value = room;
+  body.maxLength = MAX;
+  function count() { document.getElementById("count").textContent = body.value.length + " / " + MAX + " characters"; }
+  body.addEventListener("input", count); count();
+
+  A.ready.then(async function (me) {
+    if (me.areas.indexOf("send_tickets") < 0) {
+      gate.hidden = false;
+      gate.innerHTML = me.role === "pending"
+        ? "<h2>Almost there</h2><p>Your account is waiting for Bryan's approval. Once he says yes, you can send tickets from here.</p><div class=\"row\"><a class=\"da-btn ghost\" href=\"../\">Back to the Desks</a></div>"
+        : "<h2>Sign in to send a ticket</h2><p>Tickets need a sign-in so " + esc(C.TICKET_DEST_LABEL) + " knows who's writing and can reply. Guests are welcome to keep looking around.</p>" +
+          "<div class=\"row\"><a class=\"da-btn\" href=\"../signin/?next=ticket\">Sign in</a><a class=\"da-btn ghost\" href=\"../signin/?next=ticket#new\">Create an account</a></div>";
+      return;
+    }
+    f.hidden = false;
+    var left = Math.max(0, me.ticket_cap - me.tickets_used);
+    document.getElementById("tf-lead").innerHTML = "This goes to " + esc(C.TICKET_DEST_LABEL) + "'s Office inbox with your name attached." +
+      (me.role === "admin" ? "" : " You can send " + left + " more today.");
+    try { var b = JSON.parse(localStorage.getItem("gremlinDesks.saji.briefForWren.v1") || "null"); if (b && b.text) {
+      var btn = document.getElementById("paste-brief"); btn.hidden = false;
+      btn.onclick = function () { body.value = (body.value ? body.value + "\n\n" : "") + b.text.slice(0, MAX - body.value.length - 2); count(); btn.hidden = true; };
+    } } catch (e) {}
+    loadMine();
+  });
+
+  async function loadMine() {
+    var list = await A.api.myTickets(); if (!list.length) return;
+    document.getElementById("mine").hidden = false;
+    document.getElementById("mine-list").innerHTML = "<table><tr><th>#</th><th>Subject</th><th>Status</th></tr>" +
+      list.slice(0, 10).map(function (t) { return "<tr><td>" + t.id + "</td><td>" + esc(t.subject) + "</td><td><span class=\"pill " + esc(t.status) + "\">" + esc(t.status) + "</span></td></tr>"; }).join("") + "</table>";
+  }
+
+  f.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var st = document.getElementById("st"), subj = document.getElementById("subj").value.trim(), text = body.value.trim();
+    st.classList.remove("err");
+    if (subj.length < 3) { st.textContent = "Add a short subject."; st.classList.add("err"); return; }
+    if (text.length < 10) { st.textContent = "Write a little more so Bryan has something to go on."; st.classList.add("err"); return; }
+    var btn = f.querySelector("button[type=submit]"); btn.disabled = true;
+    try {
+      var id = await A.api.sendTicket({ room: document.getElementById("room").value, subject: subj, body: text });
+      st.textContent = "Sent! Ticket #" + id + " is in " + C.TICKET_DEST_LABEL + "'s inbox.";
+      f.reset(); count(); loadMine();
+    } catch (err) { st.textContent = err.message || "That didn't go through. Try again in a minute."; st.classList.add("err"); }
+    btn.disabled = false;
+  });
+})();
+</script>
+</body>
+</html>
