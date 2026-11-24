@@ -62,6 +62,10 @@ const STATIC_ART = {
     description: "A hand-drawn floor plan of Desks, with cubicles along a hallway that opens into the gallery. At the end of the hallway is a locked door with a taped-up note: \"Gremlin World, the gremlins have us locked in here right now.\"",
     find: ["Gremlin eyes and green fingers at the padlocked door, west end of the hallway", "A tiny moth in the gallery's lower right", "A seedling in the 4th cubicle on the bottom row"] },
 };
+// A found piece, hung on the gallery's entrance wall (Bryan t767u). Not one of the numbered frames, so an upload never replaces it.
+// No artist credit: it's a thrift-shop find.
+const FOUND_ART = { title: "The Watcher", note: "found in a thrift shop", src: "assets/gallery/the-watcher.webp", thumb: "assets/gallery/the-watcher-thumb.webp", aspect: 1000 / 1400,
+  description: "An airbrushed print of two eyes and a pair of red lips, found in a thrift shop. It hangs by the hallway door and keeps an eye on everyone who wanders into the gallery." };
 export function startOffice(root, opts) {
   const { me, floor, myDesk, notes = [], notices = [], art = [], online = new Set(), api = {} } = opts;
   root.innerHTML = "";
@@ -255,18 +259,23 @@ export function startOffice(root, opts) {
   };
   const artMeshes = [];
   const byPos = new Map(art.map((a) => [a.position, a]));
-  Object.keys(artSpots).map(Number).forEach((p) => {
-    const row = byPos.get(p), st = STATIC_ART[p], s = artSpots[p];
-    const a = row?.image_path ? { ...row, title: row.title || st.title, artist: row.artist || st.artist, aspect: st.aspect } // uploaded art wins
-      : { id: row?.id ?? "static-" + p, position: p, image_path: null, title: st.title, artist: st.artist, aspect: st.aspect, static: st };
+  function hang(a, s) {
     const g = new THREE.Group(); g.position.set(s.x, 1.75, s.z); g.rotation.y = s.ry; scene.add(g);
     const land = a.aspect > 1, ph = land ? 1.3 : 1.5, pw = ph * a.aspect;
     box(0, 0, 0, pw + 0.28, ph + 0.28, 0.06, mat("#2c2a24", { roughness: 0.5 }), g); box(0, 0, 0.035, pw + 0.12, ph + 0.12, 0.02, mat("#f8f5ec"), g);
     const pic = plane(canvasTex(8, 8, (c, w, h) => { c.fillStyle = "#e8e4d8"; c.fillRect(0, 0, w, h); }), pw, ph, 0, 0, 0.055, 0, g);
-    plane(plate(a.title, "by " + a.artist, { w: 1152, h: 140, bg: PAL.paper, fg: PAL.ink, accent: PAL.forest }), 1.3, 0.158, 0, -(ph / 2 + 0.3), 0.03, 0, g);
+    plane(plate(a.title, a.artist ? "by " + a.artist : a.static?.note || "", { w: 1152, h: 140, bg: PAL.paper, fg: PAL.ink, accent: PAL.forest }), 1.3, 0.158, 0, -(ph / 2 + 0.3), 0.03, 0, g);
     const wp = new THREE.Vector3(); g.getWorldPosition(wp);
     artMeshes.push({ a, pic, wp, url: a.static?.src || null });
+  }
+  Object.keys(artSpots).map(Number).forEach((p) => {
+    const row = byPos.get(p), st = STATIC_ART[p], s = artSpots[p];
+    const a = row?.image_path ? { ...row, title: row.title || st.title, artist: row.artist || st.artist, aspect: st.aspect } // uploaded art wins
+      : { id: row?.id ?? "static-" + p, position: p, image_path: null, title: st.title, artist: st.artist, aspect: st.aspect, static: st };
+    hang(a, s);
   });
+  // The Watcher: entrance wall, left of the hallway door, facing into the gallery
+  hang({ id: "found-watcher", position: null, image_path: null, title: FOUND_ART.title, artist: null, aspect: FOUND_ART.aspect, static: FOUND_ART }, { x: -5, z: gz0 - 0.1, ry: Math.PI });
   // notice board on the side near the entrance (left wall center)
   const nb = new THREE.Group(); nb.position.set(-gx + 0.09, 1.6, (gz0 + gz1) / 2); nb.rotation.y = Math.PI / 2; scene.add(nb);
   box(0, 0, 0, 2.6, 1.7, 0.06, mat(PAL.wood), nb);
@@ -589,13 +598,13 @@ export function startOffice(root, opts) {
   }) }); }
   function openArt(m) { const a = m.a; openPanel(a.title, (p) => {
     const im = el("img", "o3-art"); im.src = m.url || a.static?.thumb || ""; im.alt = a.title; p.appendChild(im);
-    p.appendChild(el("p", "o3-credit", "by " + a.artist));
+    p.appendChild(el("p", "o3-credit", a.artist ? "by " + a.artist : a.static?.note ? a.static.note.charAt(0).toUpperCase() + a.static.note.slice(1) : ""));
     if (a.static) { p.appendChild(el("p", null, a.static.description));
       if (a.static.find?.length) p.appendChild(el("p", "o3-find", "Things to find: " + a.static.find.join(" · "))); }
   }); }
   function openPhoto(f) { openPanel("Photo", (p) => { const im = el("img", "o3-art"); im.src = f.url; im.alt = "Desk photo"; p.appendChild(im); }); }
   function artList() { openPanel("The Gallery", (p) => {
-    p.appendChild(el("p", "o3-small", "Art by Moth's Design Studio. Pick a piece to look closer."));
+    p.appendChild(el("p", "o3-small", "Art by Moth's Design Studio, plus one thrift-shop find. Pick a piece to look closer."));
     const l = el("div", "o3-artlist");
     artMeshes.forEach((m) => { const b = el("button", "o3-artitem"); const t = el("img"); t.src = m.a.static?.thumb || m.url || ""; t.alt = "";
       b.append(t, el("span", null, m.a.title)); b.onclick = () => openArt(m); l.appendChild(b); });

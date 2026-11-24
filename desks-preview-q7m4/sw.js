@@ -1,6 +1,6 @@
 // Desks service worker: caches the app shell ONLY.
 // Never caches Supabase (API, auth, storage/signed photo URLs) or any other cross-origin request.
-const CACHE = "desks-shell-v23";
+const CACHE = "desks-shell-v24";
 const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "office3d.js", "annex.js", "annex-audio.js", "glimpse.js", "rpg.js", "control.js", "annex-net.js", "annex-chat.js", "annex-battle.js", "annex-party.js", "annex-grotto-run.js", "data/elsewhere-annex.json", "data/glimpse-world.json", "data/annex-rpg.json", "data/grotto-run.json", "vendor/three.module.min.js", "manifest.webmanifest",
   "annex-midi-player.js", "annex-scene-music.js", "data/annex-music.json", "data/annex-guide.json",
   "midi/annex-station.mid", "midi/backrooms-arrival.mid", "midi/backrooms-explore.mid", "midi/mailroom-explore.mid", "midi/mailroom-battle.mid",
@@ -9,7 +9,7 @@ const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "office3d
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "assets/bryan-avatar.webp",
   "assets/gallery/tea-under-the-old-oak.webp", "assets/gallery/still-life-with-tea-and-small-visitors.webp",
   "assets/gallery/healing-herbs-plate.webp", "assets/gallery/morning-check-in-highlands.webp", "assets/gallery/slow-hands.webp",
-  "assets/gallery/three-stones.webp", "assets/gallery/desks-floor-plan-gremlin-edition.webp"];
+  "assets/gallery/three-stones.webp", "assets/gallery/desks-floor-plan-gremlin-edition.webp", "assets/gallery/the-watcher.webp"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
