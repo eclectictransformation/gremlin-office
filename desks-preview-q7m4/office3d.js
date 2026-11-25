@@ -30,8 +30,11 @@ function plate(text, sub, { w = 512, h = 160, bg = PAL.moss, fg = PAL.paper, acc
   return canvasTex(w, h, (c) => {
     c.fillStyle = bg; c.fillRect(0, 0, w, h); c.strokeStyle = accent; c.lineWidth = 8; c.strokeRect(8, 8, w - 16, h - 16);
     c.fillStyle = fg; c.textAlign = "center"; c.textBaseline = "middle";
-    c.font = `bold ${sub ? 52 : 60}px Georgia, serif`; c.fillText(fit(c, text, w - 50), w / 2, sub ? h * 0.4 : h / 2);
-    if (sub) { c.font = "30px system-ui, sans-serif"; c.globalAlpha = 0.85; c.fillText(fit(c, sub, w - 50), w / 2, h * 0.75); }
+    const lines = !sub && sub !== 0 ? [] : Array.isArray(sub) ? sub.filter(Boolean) : String(sub).split("\n").filter(Boolean);
+    const n = lines.length;
+    c.font = `bold ${n ? 52 : 60}px Georgia, serif`; c.fillText(fit(c, text, w - 50), w / 2, n > 1 ? h * 0.28 : n ? h * 0.4 : h / 2);
+    if (n) { c.font = (n > 1 ? 36 : 30) + "px system-ui, sans-serif"; c.globalAlpha = 0.85;
+      lines.forEach((line, i) => c.fillText(fit(c, line, w - 50), w / 2, n > 1 ? h * (0.54 + i * 0.22) : h * 0.75)); }
   });
 }
 function fit(c, s, max) { s = String(s || ""); while (s.length > 1 && c.measureText(s).width > max) s = s.slice(0, -2) + "…"; return s; }
@@ -63,9 +66,12 @@ const STATIC_ART = {
     find: ["Gremlin eyes and green fingers at the padlocked door, west end of the hallway", "A tiny moth in the gallery's lower right", "A seedling in the 4th cubicle on the bottom row"] },
 };
 // A found piece, hung on the gallery's entrance wall (Bryan t767u). Not one of the numbered frames, so an upload never replaces it.
-// No artist credit: it's a thrift-shop find.
-const FOUND_ART = { title: "The Watcher", note: "found in a thrift shop", src: "assets/gallery/the-watcher.webp", thumb: "assets/gallery/the-watcher-thumb.webp", aspect: 1000 / 1400,
-  description: "An airbrushed print of two eyes and a pair of red lips, found in a thrift shop. It hangs by the hallway door and keeps an eye on everyone who wanders into the gallery." };
+// No artist credit: a found piece (Habitat for Humanity, Randolph, NJ).
+const FOUND_ART = { title: "The Watcher",
+  note: ["Found at Habitat for Humanity, Randolph, NJ", "Tuesday, November 24, 2026"],
+  credit: "Found at Habitat for Humanity in Randolph, New Jersey, on Tuesday, November 24, 2026.",
+  src: "assets/gallery/the-watcher.webp", thumb: "assets/gallery/the-watcher-thumb.webp", aspect: 1000 / 1400,
+  description: "An airbrushed print of two eyes and a pair of red lips, found at Habitat for Humanity in Randolph, New Jersey. It hangs by the hallway door and keeps an eye on everyone who wanders into the gallery." };
 export function startOffice(root, opts) {
   const { me, floor, myDesk, notes = [], notices = [], art = [], online = new Set(), api = {} } = opts;
   root.innerHTML = "";
@@ -264,7 +270,10 @@ export function startOffice(root, opts) {
     const land = a.aspect > 1, ph = land ? 1.3 : 1.5, pw = ph * a.aspect;
     box(0, 0, 0, pw + 0.28, ph + 0.28, 0.06, mat("#2c2a24", { roughness: 0.5 }), g); box(0, 0, 0.035, pw + 0.12, ph + 0.12, 0.02, mat("#f8f5ec"), g);
     const pic = plane(canvasTex(8, 8, (c, w, h) => { c.fillStyle = "#e8e4d8"; c.fillRect(0, 0, w, h); }), pw, ph, 0, 0, 0.055, 0, g);
-    plane(plate(a.title, a.artist ? "by " + a.artist : a.static?.note || "", { w: 1152, h: 140, bg: PAL.paper, fg: PAL.ink, accent: PAL.forest }), 1.3, 0.158, 0, -(ph / 2 + 0.3), 0.03, 0, g);
+    const sub = a.artist ? "by " + a.artist : a.static?.note || "";
+    const subLines = Array.isArray(sub) ? sub.filter(Boolean) : String(sub).split("\n").filter(Boolean);
+    const tall = subLines.length > 1, pH = tall ? 200 : 140, pW = tall ? 1.72 : 1.3, pY = tall ? 0.26 : 0.158;
+    plane(plate(a.title, tall ? subLines : (subLines[0] || ""), { w: 1152, h: pH, bg: PAL.paper, fg: PAL.ink, accent: PAL.forest }), pW, pY, 0, -(ph / 2 + 0.18 + pY / 2), 0.03, 0, g);
     const wp = new THREE.Vector3(); g.getWorldPosition(wp);
     artMeshes.push({ a, pic, wp, url: a.static?.src || null });
   }
@@ -598,13 +607,13 @@ export function startOffice(root, opts) {
   }) }); }
   function openArt(m) { const a = m.a; openPanel(a.title, (p) => {
     const im = el("img", "o3-art"); im.src = m.url || a.static?.thumb || ""; im.alt = a.title; p.appendChild(im);
-    p.appendChild(el("p", "o3-credit", a.artist ? "by " + a.artist : a.static?.note ? a.static.note.charAt(0).toUpperCase() + a.static.note.slice(1) : ""));
+    p.appendChild(el("p", "o3-credit", a.artist ? "by " + a.artist : a.static?.credit || ""));
     if (a.static) { p.appendChild(el("p", null, a.static.description));
       if (a.static.find?.length) p.appendChild(el("p", "o3-find", "Things to find: " + a.static.find.join(" · "))); }
   }); }
   function openPhoto(f) { openPanel("Photo", (p) => { const im = el("img", "o3-art"); im.src = f.url; im.alt = "Desk photo"; p.appendChild(im); }); }
   function artList() { openPanel("The Gallery", (p) => {
-    p.appendChild(el("p", "o3-small", "Art by Moth's Design Studio, plus one thrift-shop find. Pick a piece to look closer."));
+    p.appendChild(el("p", "o3-small", "Art by Moth's Design Studio, plus a piece found at Habitat for Humanity. Pick a piece to look closer."));
     const l = el("div", "o3-artlist");
     artMeshes.forEach((m) => { const b = el("button", "o3-artitem"); const t = el("img"); t.src = m.a.static?.thumb || m.url || ""; t.alt = "";
       b.append(t, el("span", null, m.a.title)); b.onclick = () => openArt(m); l.appendChild(b); });
