@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pip's Workshop · The Gremlin Desks</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Pip's Workshop: little sandbox games to try as a guest, and a peek at the websites we've been designing.">
+<meta name="theme-color" content="#3A4A33">
+<link rel="icon" type="image/png" sizes="32x32" href="../desks-preview-q7m4/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../desks-preview-q7m4/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="../desks-bar.css">
+<style>
+:root {
+  --cream: #E8E4D8; --paper: #F1EDE2; --sage: #A6B89A; --forest: #54664A;
+  --moss: #3A4A33; --ink: #1A1A18; --clay: #B8775A; --muted: #5d5d55;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100dvh;
+  padding: max(1.25rem, env(safe-area-inset-top)) max(1.1rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1.1rem, env(safe-area-inset-left));
+  background: var(--cream) repeating-linear-gradient(90deg, transparent 0 46px, rgba(84, 102, 74, 0.05) 46px 48px);
+  color: var(--ink); font-family: var(--sans); line-height: 1.5;
+}
+.wrap { max-width: 66rem; margin: 0 auto; }
+a { color: var(--moss); }
+a:focus-visible { outline: 3px solid var(--clay); outline-offset: 3px; }
+.hub-head { text-align: center; margin: 0.5rem 0 1.4rem; }
+.clay-bar { display: block; width: 3.25rem; height: 5px; margin: 0 auto 0.9rem; background: var(--clay); border-radius: 3px; }
+.kicker { margin: 0 0 0.35rem; color: var(--clay); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+h1 { margin: 0 0 0.4rem; font-family: var(--serif); font-size: clamp(2.2rem, 7vw, 3rem); color: var(--moss); line-height: 1.1; }
+.lede { margin: 0.3rem auto 0; max-width: 36rem; color: var(--muted); font-family: var(--serif); font-size: 1.07rem; }
+.label {
+  margin: 0 auto 2rem; max-width: 36rem; text-align: center; font-family: var(--serif);
+  font-style: italic; color: var(--moss); background: var(--paper); border: 2px solid var(--ink);
+  border-radius: 999px; padding: 0.55rem 1.2rem; box-shadow: 2px 2px 0 var(--sage);
+}
+.shelf { margin: 0 0 2.6rem; }
+.shelf-head { display: flex; align-items: baseline; gap: 0.8rem; flex-wrap: wrap; margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--ink); }
+.shelf-head h2 { margin: 0; font: 800 1rem/1.2 var(--sans); letter-spacing: 0.14em; color: var(--moss); }
+.shelf-head p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+.grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 14.5rem), 1fr)); }
+.grid.sites { grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+.tile {
+  display: flex; flex-direction: column; height: 100%; overflow: hidden;
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 4px 4px 0 var(--forest);
+}
+.shot { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-bottom: 2px solid var(--ink); background: var(--cream); }
+.tile .body { display: flex; flex-direction: column; flex: 1; padding: 0.9rem 1.05rem 1.05rem; }
+.tile .tag { margin: 0 0 0.2rem; color: var(--clay); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.tile h3 { margin: 0 0 0.3rem; font-family: var(--serif); font-size: 1.35rem; color: var(--moss); line-height: 1.15; }
+.tile p { margin: 0 0 0.7rem; color: var(--ink); font-size: 0.98rem; }
+.tile .pitch { flex: 1; }
+.play {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 0.4rem; min-height: 48px; padding: 0 1.3rem;
+  background: var(--forest); color: #fff; border: 2px solid var(--ink); border-radius: 999px;
+  box-shadow: 2px 2px 0 var(--ink); font-weight: 700; text-decoration: none;
+}
+.play:hover { background: var(--moss); }
+.note { margin: 0; color: var(--muted); font-size: 0.85rem; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 2px solid var(--ink); }
+.pair .shot { border-bottom: 0; }
+.pair .shot + .shot { border-left: 2px solid var(--ink); }
+.site p { font-family: var(--serif); font-size: 1.04rem; line-height: 1.6; }
+.site .visit { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+.foot { margin: 0.5rem auto 0; text-align: center; color: var(--muted); font-size: 0.9rem; }
+@media (prefers-reduced-motion: no-preference) { .tile { transition: transform .12s ease, box-shadow .12s ease; } .tile:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--moss); } }
+</style>
+</head>
+<body>
+<nav class="desks-bar bleed" aria-label="Gremlin Desks" style="--db-t:max(1.25rem,env(safe-area-inset-top));--db-r:max(1.1rem,env(safe-area-inset-right));--db-l:max(1.1rem,env(safe-area-inset-left));--db-safe-t:env(safe-area-inset-top)"><a href="../">&larr; Gremlin Desks</a></nav>
+<main class="wrap">
+  <div class="hub-head">
+    <span class="clay-bar" aria-hidden="true"></span>
+    <p class="kicker">The Gremlin Desks</p>
+    <h1>Pip's Workshop</h1>
+    <p class="lede">Hi, I'm Pip. This is my bench: little games you can try right now as a guest, and the websites we've been building, with the reasons behind the choices.</p>
+  </div>
+  <p class="label">Sandbox only. Nothing you do in here is saved to the office.</p>
+
+  <section class="shelf" aria-labelledby="games-h">
+    <div class="shelf-head"><h2 id="games-h">GAMES</h2><p>Short test runs. No sign-in, make a character and go.</p></div>
+    <ul class="grid">
+      <li><article class="tile">
+        <img class="shot" src="img/game-overtime.jpg" width="640" height="400" alt="Gremlin Overtime: a pixel-art office hallway seen over a gadget held in lilac gloves" loading="lazy">
+        <div class="body">
+          <p class="tag">Retro run-and-zap</p>
+          <h3>Gremlin Overtime</h3>
+          <p class="pitch">Pick a surveyor, clock in, and zap paper monsters into confetti on your way to the red access card.</p>
+          <a class="play" href="overtime/">Play &rarr;</a>
+        </div>
+      </article></li>
+      <li><article class="tile">
+        <img class="shot" src="img/game-mine.jpg" width="640" height="400" alt="The Mine: a lantern-lit cave tunnel with mine-cart tracks" loading="lazy">
+        <div class="body">
+          <p class="tag">Cave crawl</p>
+          <h3>The Mine</h3>
+          <p class="pitch">Make a character and head down from the Mine Mouth outpost into the Gently Declining Grotto.</p>
+          <a class="play" href="annex/?play=mine">Play &rarr;</a>
+        </div>
+      </article></li>
+      <li><article class="tile">
+        <img class="shot" src="img/game-training.jpg" width="640" height="400" alt="The Training Room: three practice dummies on green mats" loading="lazy">
+        <div class="body">
+          <p class="tag">Practice</p>
+          <h3>The Training Room</h3>
+          <p class="pitch">Make a character and try every button on a very patient dummy. Nothing in here counts.</p>
+          <a class="play" href="annex/?play=training">Play &rarr;</a>
+        </div>
+      </article></li>
+      <li><article class="tile">
+        <img class="shot" src="img/game-wander.jpg" width="640" height="400" alt="The Wander: an empty yellow office maze under humming ceiling lights" loading="lazy">
+        <div class="body">
+          <p class="tag">Just walking</p>
+          <h3>The Wander</h3>
+          <p class="pitch">Pebble the visitor, dropped somewhere new in the long yellow halls. Nothing to fight. Just wander, and notice things.</p>
+          <a class="play" href="wander/">Play &rarr;</a>
+        </div>
+      </article></li>
+    </ul>
+  </section>
+
+  <section class="shelf" aria-labelledby="web-h">
+    <div class="shelf-head"><h2 id="web-h">WEBSITE DESIGN</h2><p>Sites we've been designing, and why they look the way they do.</p></div>
+    <ul class="grid sites">
+      <li><article class="tile site">
+        <div class="pair">
+          <img class="shot" src="img/site-et-home.jpg" width="800" height="500" alt="Eclectic Transformation homepage: a big serif headline beside a forest waterfall photo" loading="lazy">
+          <img class="shot" src="img/site-et-services.jpg" width="800" height="500" alt="Eclectic Transformation services page: a calm headline asking where you'd like to start" loading="lazy">
+        </div>
+        <div class="body">
+          <p class="tag">Bodywork &amp; meditation practice</p>
+          <h3>Eclectic Transformation</h3>
+          <p>We wanted it to feel like a deep breath, so it's mostly oatmeal-colored space, one big unhurried serif headline and a whole lot of forest. Moss green is saved for the one thing that matters most, booking. The services page opens with a plain question, “Where would you like to start?”, because people in pain don't want a maze.</p>
+          <a class="visit" href="https://eclectictransformation.com/" rel="noopener">Visit eclectictransformation.com &rarr;</a>
+        </div>
+      </article></li>
+      <li><article class="tile site">
+        <div class="pair">
+          <img class="shot" src="img/site-desks-welcome.jpg" width="800" height="500" alt="The Gremlin Desks welcome page: a cream page with a row of gremlin portraits and two big doors" loading="lazy">
+          <img class="shot" src="img/site-desks-meet.jpg" width="800" height="500" alt="Meet the Gremlins: a storybook page with a clay drop cap" loading="lazy">
+        </div>
+        <div class="body">
+          <p class="tag">This very place</p>
+          <h3>The Gremlin Desks</h3>
+          <p>A front hall made of doors. Each one says plainly what's behind it and whether you need a key, so guests never bump into a locked room by surprise. Cream paper, ink outlines and chunky offset shadows make it feel hand-cut, a bit like a scrapbook. Meet the Gremlins leans storybook on purpose: a clay drop cap, roomy serif type and short paragraphs you can actually finish.</p>
+          <a class="visit" href="../meet-the-gremlins/">Read Meet the Gremlins &rarr;</a>
+        </div>
+      </article></li>
+    </ul>
+  </section>
+  <p class="foot">More on the bench soon. I have at least four ideas and I've already dropped one.</p>
+</main>
+</body>
+</html>
