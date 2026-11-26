@@ -56,10 +56,10 @@
       if (id === "bryan" || id === "bryan@eclectictransformation.com") { sid("u-bryan"); return true; }
       throw new Error("Login ID or password is incorrect.");
     },
-    signUp: async function (name, email, pw, note) {
+    signUp: async function (name, email, pw, note, bizLead) {
       var x = db(); email = String(email).trim().toLowerCase();
       if (x.users.some(function (z) { return z.email === email; })) throw new Error("There's already an account for that email. Try signing in.");
-      var u = { id: "u-" + Math.random().toString(36).slice(2, 9), email: email, name: name.trim().slice(0, 60), kind: "member", status: "pending", areas: [], note: (note || "").trim().slice(0, 300), created: new Date().toISOString() };
+      var u = { id: "u-" + Math.random().toString(36).slice(2, 9), email: email, name: name.trim().slice(0, 60), kind: "member", status: "pending", areas: [], note: (note || "").trim().slice(0, 300), business_tools_interest: !!bizLead, created: new Date().toISOString() };
       x.users.push(u); put(x); sid(u.id); return { needsConfirm: false };
     },
     signOut: async function () { sid(null); },
@@ -72,7 +72,7 @@
     myTickets: async function () { var x = db(); return x.tickets.filter(function (t) { return t.user === sid(); }); },
     adminMembers: async function () {
       var x = db(); return x.users.filter(function (u) { return u.kind === "member"; })
-        .map(function (u) { return { user_id: u.id, display_name: u.name, email: u.email, intro_note: u.note, status: u.status, areas: u.areas, created_at: u.created }; })
+        .map(function (u) { return { user_id: u.id, display_name: u.name, email: u.email, intro_note: u.note, status: u.status, areas: u.areas, created_at: u.created, business_tools_interest: !!u.business_tools_interest }; })
         .sort(function (a, b) { return (b.status === "pending") - (a.status === "pending") || Date.parse(b.created_at) - Date.parse(a.created_at); });
     },
     adminSetStatus: async function (id, s) {
@@ -109,7 +109,7 @@
   var live = {
     me: async function () {
       var c = await sb(), s = (await c.auth.getSession()).data.session;
-      if (s) { var pend = ss("desksAccess.pendingJoin"); if (pend) { try { var p = JSON.parse(pend); await c.rpc("request_membership", { p_display_name: p.name, p_intro_note: p.note }); } catch (e) {} ss("desksAccess.pendingJoin", ""); } }
+      if (s) { var pend = ss("desksAccess.pendingJoin"); if (pend) { try { var p = JSON.parse(pend); await c.rpc("request_membership", { p_display_name: p.name, p_intro_note: p.note, p_business_tools_interest: !!p.business_tools_interest }); } catch (e) {} ss("desksAccess.pendingJoin", ""); } }
       return chk(await c.rpc("my_access"));
     },
     signIn: async function (email, pw) { var c = await sb(); chk(await c.auth.signInWithPassword({ email: email, password: pw })); return true; },
@@ -118,10 +118,10 @@
       if (r.error || !r.data || !r.data.access_token) throw new Error("Login ID or password is incorrect.");
       chk(await c.auth.setSession({ access_token: r.data.access_token, refresh_token: r.data.refresh_token })); return true;
     },
-    signUp: async function (name, email, pw, note) {
-      var c = await sb(); ss("desksAccess.pendingJoin", JSON.stringify({ name: name, note: note }));
+    signUp: async function (name, email, pw, note, bizLead) {
+      var c = await sb(); ss("desksAccess.pendingJoin", JSON.stringify({ name: name, note: note, business_tools_interest: !!bizLead }));
       var d = chk(await c.auth.signUp({ email: email, password: pw, options: { emailRedirectTo: location.origin + "/" + ROOT + "signin/" } }));
-      if (d.session) { await c.rpc("request_membership", { p_display_name: name, p_intro_note: note }); ss("desksAccess.pendingJoin", ""); }
+      if (d.session) { await c.rpc("request_membership", { p_display_name: name, p_intro_note: note, p_business_tools_interest: !!bizLead }); ss("desksAccess.pendingJoin", ""); }
       return { needsConfirm: !d.session };
     },
     signOut: async function () { var c = await sb(); await c.auth.signOut(); },

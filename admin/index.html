@@ -8,7 +8,8 @@
 <meta name="theme-color" content="#3A4A33">
 <link rel="stylesheet" href="../access/page.css">
 <link rel="stylesheet" href="../access/access.css">
-<style>.tabs{flex-wrap:wrap}.tab{min-width:7.5rem}</style>
+<style>.tabs{flex-wrap:wrap}.tab{min-width:7.5rem}.intake-card{border-top:1px solid rgba(26,26,24,.14);padding:0.9rem 0}.intake-card:first-of-type{border-top:0;padding-top:0}.intake-meta{font-size:.9rem;color:#3A4A33;margin:.25rem 0}.intake-body{white-space:pre-wrap;margin:.35rem 0 .6rem}.reviewed{opacity:.78}</style>
+<script src="../entry/live-flag.js"></script>
 <script src="../access/config.js"></script>
 <script src="../access/dictate.js" defer></script>
 <script src="../access/access.js" data-root="../"></script>
@@ -25,6 +26,8 @@
       <button class="tab" role="tab" data-tab="people" aria-selected="false" type="button">People</button>
       <button class="tab" role="tab" data-tab="tickets" aria-selected="false" type="button">Tickets <span id="tn"></span></button>
       <button class="tab" role="tab" data-tab="bp" aria-selected="false" type="button">Business Planning <span id="bn"></span></button>
+      <button class="tab" role="tab" data-tab="intake" aria-selected="false" type="button">Client intake <span id="in"></span></button>
+      <button class="tab" role="tab" data-tab="leads" aria-selected="false" type="button">Business tools leads <span id="ln"></span></button>
       <button class="tab" role="tab" data-tab="settings" aria-selected="false" type="button">Settings</button>
     </div>
     <section class="card" id="panel" aria-live="polite"></section>
@@ -36,7 +39,110 @@
   var AREAS = C.AREAS || [];
   function when(iso) { var d = new Date(iso); return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + ", " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); }
 
-  A.ready.then(function (me) {
+  var LIVE = !!(window.DESKS_ENTRY_CONFIG && window.DESKS_ENTRY_CONFIG.USE_LIVE_SUPABASE);
+  var GRANT_AREAS = (AREAS || []).filter(function (a) { return !a.guest; });
+
+  var MOCK_PREFORMS = [
+    { id: "pf-1", first_name: "Alex", brings_you_in: "Tight shoulders and a stiff neck after long days at the desk.", conditions_surgeries: "Old sprained ankle, fully healed.", hardware: "", medications_history: "Occasional ibuprofen.", allergies: "Lavender oil", created_at: new Date(Date.now() - 2 * 3600e3).toISOString(), reviewed_at: null },
+    { id: "pf-2", first_name: "Jordan", brings_you_in: "Looking for a relaxing first session and help with lower-back tightness.", conditions_surgeries: "Appendectomy years ago.", hardware: "", medications_history: "", allergies: "None I know of", created_at: new Date(Date.now() - 28 * 3600e3).toISOString(), reviewed_at: new Date(Date.now() - 20 * 3600e3).toISOString() }
+  ];
+  var MOCK_UPLOADS = [
+    { name: "submissions/2026-11-24/7c2e1b4a-9d3f-4a11-8c5e-2b9f0d41a8c1.pdf", created_at: new Date(Date.now() - 6 * 3600e3).toISOString(), metadata: { size: 87160 } },
+    { name: "submissions/2026-11-20/c4a91e22-0b7d-4e9a-bf12-8a6d3c71e0f4.pdf", created_at: new Date(Date.now() - 5 * 86400e3).toISOString(), metadata: { size: 66684 } }
+  ];
+  var MOCK_LEADS = [
+    { user_id: "u-lead-sam", display_name: "Sam Rivera", email: "sam.rivera@example.com", intro_note: "Curious about business tools for a small studio.", status: "pending", areas: [], business_tools_interest: true, created_at: new Date(Date.now() - 8 * 3600e3).toISOString() },
+    { user_id: "u-lead-priya", display_name: "Priya Shah", email: "priya.shah@example.com", intro_note: "Wanted to explore first; interested in planning tools once approved.", status: "approved", areas: ["gremlin_world", "recipe_shelf"], business_tools_interest: true, created_at: new Date(Date.now() - 3 * 86400e3).toISOString() }
+  ];
+
+  function previewSb() {
+    return new Promise(function (ok, bad) {
+      var Cfg = window.DESKS_ACCESS || {};
+      if (!Cfg.SUPABASE_URL || !Cfg.SUPABASE_ANON_KEY) { bad(new Error("Live connection is not configured.")); return; }
+      function make() { ok(window.supabase.createClient(Cfg.SUPABASE_URL, Cfg.SUPABASE_ANON_KEY)); }
+      if (window.supabase) return make();
+      var s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"; s.async = true;
+      s.onload = make; s.onerror = bad; document.head.appendChild(s);
+    });
+  }
+
+  async function loadPreforms() {
+    if (!LIVE) return MOCK_PREFORMS.slice();
+    var c = await previewSb();
+    var r = await c.from("intake_preform").select("id,created_at,first_name,brings_you_in,conditions_surgeries,hardware,medications_history,allergies,reviewed_at").order("created_at", { ascending: false });
+    if (r.error) throw r.error;
+    return r.data || [];
+  }
+  async function markPreform(id, on) {
+    if (!LIVE) {
+      var row = MOCK_PREFORMS.find(function (x) { return x.id === id; });
+      if (row) row.reviewed_at = on ? new Date().toISOString() : null;
+      return;
+    }
+    var c = await previewSb();
+    var r = await c.from("intake_preform").update({ reviewed_at: on ? new Date().toISOString() : null }).eq("id", id);
+    if (r.error) throw r.error;
+  }
+  async function deletePreform(id) {
+    if (!LIVE) { MOCK_PREFORMS = MOCK_PREFORMS.filter(function (x) { return x.id !== id; }); return; }
+    var c = await previewSb();
+    var r = await c.from("intake_preform").delete().eq("id", id);
+    if (r.error) throw r.error;
+  }
+  async function loadUploads() {
+    if (!LIVE) return MOCK_UPLOADS.slice();
+    var c = await previewSb();
+    var root = await c.storage.from("intake-uploads").list("submissions", { limit: 100, sortBy: { column: "name", order: "desc" } });
+    if (root.error) throw root.error;
+    var out = [];
+    var folders = (root.data || []).filter(function (x) { return !x.metadata || x.id === null; });
+    var filesAtRoot = (root.data || []).filter(function (x) { return x.metadata && x.name && /\.pdf$/i.test(x.name); });
+    filesAtRoot.forEach(function (f) {
+      out.push({ name: "submissions/" + f.name, created_at: f.created_at, metadata: f.metadata || {} });
+    });
+    for (var i = 0; i < folders.length; i++) {
+      var folder = folders[i];
+      var listed = await c.storage.from("intake-uploads").list("submissions/" + folder.name, { limit: 100, sortBy: { column: "created_at", order: "desc" } });
+      if (listed.error) throw listed.error;
+      (listed.data || []).forEach(function (f) {
+        if (!f.name || !/\.pdf$/i.test(f.name)) return;
+        out.push({ name: "submissions/" + folder.name + "/" + f.name, created_at: f.created_at || folder.created_at, metadata: f.metadata || {} });
+      });
+    }
+    out.sort(function (a, b) { return Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0); });
+    return out;
+  }
+  async function downloadUpload(path) {
+    if (!LIVE) { alert("Preview mode: this would open a short-lived download link for " + path + "."); return; }
+    var c = await previewSb();
+    var r = await c.storage.from("intake-uploads").createSignedUrl(path, 60);
+    if (r.error) throw r.error;
+    var url = r.data && (r.data.signedUrl || r.data.signedURL);
+    if (url) window.open(url, "_blank", "noopener");
+    else throw new Error("No download link was returned.");
+  }
+  async function deleteUpload(path) {
+    if (!LIVE) { MOCK_UPLOADS = MOCK_UPLOADS.filter(function (x) { return x.name !== path; }); return; }
+    var c = await previewSb();
+    var r = await c.storage.from("intake-uploads").remove([path]);
+    if (r.error) throw r.error;
+  }
+  async function loadLeads() {
+    if (!LIVE) return MOCK_LEADS.slice();
+    var members = await api.adminMembers();
+    return (members || []).filter(function (m) { return !!m.business_tools_interest; })
+      .sort(function (a, b) { return Date.parse(b.created_at) - Date.parse(a.created_at); });
+  }
+
+  function fmtSize(n) {
+    n = Number(n || 0);
+    if (!n) return "";
+    if (n < 1024) return n + " B";
+    if (n < 1048576) return (n / 1024).toFixed(1) + " KB";
+    return (n / 1048576).toFixed(2) + " MB";
+  }
+
+  if (LIVE) A.ready.then(function (me) {
     var lock = document.getElementById("locked");
     if (me.role !== "admin") {
       lock.hidden = false;
@@ -46,18 +152,122 @@
       return;
     }
     document.getElementById("app").hidden = false;
+    var qtab = new URLSearchParams(location.search).get("tab");
+    if (qtab) tab = qtab;
     document.querySelectorAll("[data-tab]").forEach(function (b) { b.onclick = function () { tab = b.dataset.tab; draw(); }; });
     draw();
   });
+  else {
+    document.getElementById("app").hidden = false;
+    var qtab2 = new URLSearchParams(location.search).get("tab");
+    if (qtab2) tab = qtab2;
+    document.querySelectorAll("[data-tab]").forEach(function (b) { b.onclick = function () { tab = b.dataset.tab; draw(); }; });
+    draw();
+  }
 
   async function draw() {
     document.querySelectorAll("[data-tab]").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.tab === tab); });
-    var members = await api.adminMembers(), tickets = await api.adminTickets();
+    var members = [], tickets = [];
+    if (LIVE || (A && A.config && A.config.MODE !== "live")) {
+      try { members = await api.adminMembers(); } catch (e) { members = []; }
+      try { tickets = await api.adminTickets(); } catch (e) { tickets = []; }
+    }
     var pending = members.filter(function (m) { return m.status === "pending"; });
     var fresh = tickets.filter(function (t) { return t.status === "new"; });
     document.getElementById("qn").textContent = pending.length ? "(" + pending.length + ")" : "";
     document.getElementById("tn").textContent = fresh.length ? "(" + fresh.length + ")" : "";
     var p = document.getElementById("panel"), h = "";
+    if (tab === "intake") {
+      var preforms = [], uploads = [], loadErr = "";
+      try { preforms = await loadPreforms(); uploads = await loadUploads(); } catch (e) { loadErr = e.message || String(e); }
+      var openPf = preforms.filter(function (r) { return !r.reviewed_at; }).length;
+      var inn = document.getElementById("in"); if (inn) inn.textContent = openPf ? "(" + openPf + ")" : "";
+      h = "<h2>Client intake</h2><p class=\"small\">Pre-form notes and uploaded PDFs. Nothing here includes payment information.</p>";
+      if (loadErr) h += "<p class=\"err\">" + esc(loadErr) + "</p>";
+      h += "<h3 style=\"margin-top:1.1rem\">Pre-form submissions</h3>";
+      if (!preforms.length) h += "<p class=\"small\">No pre-form notes yet.</p>";
+      h += preforms.map(function (r) {
+        var reviewed = !!r.reviewed_at;
+        return "<div class=\"intake-card" + (reviewed ? " reviewed" : "") + "\" data-pf=\"" + esc(r.id) + "\"><b>" + esc(r.first_name) + "</b> <span class=\"pill " + (reviewed ? "approved" : "pending") + "\">" + (reviewed ? "reviewed" : "new") + "</span>" +
+          "<div class=\"intake-meta\">" + esc(when(r.created_at)) + (reviewed ? " · reviewed " + esc(when(r.reviewed_at)) : "") + "</div>" +
+          "<div class=\"intake-body\"><b>What brings you in:</b> " + esc(r.brings_you_in || "") +
+          (r.conditions_surgeries ? "\n<b>Conditions or surgeries:</b> " + esc(r.conditions_surgeries) : "") +
+          (r.hardware ? "\n<b>Hardware:</b> " + esc(r.hardware) : "") +
+          (r.medications_history ? "\n<b>Medications and history:</b> " + esc(r.medications_history) : "") +
+          (r.allergies ? "\n<b>Allergies:</b> " + esc(r.allergies) : "") + "</div>" +
+          "<div class=\"row\"><button class=\"da-btn\" data-pfr=\"" + esc(r.id) + "\" data-on=\"" + (reviewed ? "0" : "1") + "\">" + (reviewed ? "Mark unreviewed" : "Mark reviewed") + "</button> <button class=\"da-btn ghost\" data-pfd=\"" + esc(r.id) + "\">Delete</button></div></div>";
+      }).join("");
+      h += "<h3 style=\"margin-top:1.4rem\">Uploaded PDFs</h3>";
+      if (!uploads.length) h += "<p class=\"small\">No uploaded PDFs yet.</p>";
+      h += uploads.map(function (u) {
+        var size = fmtSize(u.metadata && (u.metadata.size || u.metadata.contentLength));
+        var label = (u.name || "").split("/").slice(-1)[0];
+        return "<div class=\"intake-card\"><b>" + esc(label) + "</b>" +
+          "<div class=\"intake-meta\">" + esc(u.name) + (u.created_at ? " · " + esc(when(u.created_at)) : "") + (size ? " · " + size : "") + "</div>" +
+          "<div class=\"row\"><button class=\"da-btn\" data-udl=\"" + esc(u.name) + "\">Download</button> <button class=\"da-btn ghost\" data-udl-del=\"" + esc(u.name) + "\">Delete</button></div></div>";
+      }).join("");
+      p.innerHTML = h;
+      p.querySelectorAll("[data-pfr]").forEach(function (b) { b.onclick = async function () { try { await markPreform(b.dataset.pfr, b.dataset.on === "1"); draw(); } catch (e) { alert(e.message); } }; });
+      p.querySelectorAll("[data-pfd]").forEach(function (b) { b.onclick = async function () { if (!confirm("Delete this pre-form note?")) return; try { await deletePreform(b.dataset.pfd); draw(); } catch (e) { alert(e.message); } }; });
+      p.querySelectorAll("[data-udl]").forEach(function (b) { b.onclick = async function () { try { await downloadUpload(b.dataset.udl); } catch (e) { alert(e.message); } }; });
+      p.querySelectorAll("[data-udl-del]").forEach(function (b) { b.onclick = async function () { if (!confirm("Delete this uploaded PDF?")) return; try { await deleteUpload(b.dataset.udlDel); draw(); } catch (e) { alert(e.message); } }; });
+      return;
+    }
+    if (tab === "leads") {
+      var leads = [], leadErr = "";
+      try { leads = await loadLeads(); } catch (e) { leadErr = e.message || String(e); }
+      var lnn = document.getElementById("ln"); if (lnn) lnn.textContent = leads.length ? "(" + leads.length + ")" : "";
+      h = "<h2>Business tools leads</h2><p class=\"small\">People who checked that they are interested in business tools when they asked for an account. Approve them and grant areas the same way as on the People tab. No payment information is shown here.</p>";
+      if (leadErr) h += "<p class=\"err\">" + esc(leadErr) + "</p>";
+      if (!leads.length) h += "<p class=\"small\">No business-tools leads yet.</p>";
+      h += leads.map(function (m) {
+        return "<div class=\"person\"><b>" + esc(m.display_name) + "</b> <span class=\"pill " + esc(m.status) + "\">" + esc(m.status) + "</span> <span class=\"small\">" + esc(m.email || "") + "</span>" +
+          "<div class=\"intake-meta\">Asked " + esc(when(m.created_at)) + (m.intro_note ? " · " + esc(m.intro_note) : "") + "</div>" +
+          "<div class=\"toggles\">" + GRANT_AREAS.map(function (a) {
+            var on = (m.areas || []).indexOf(a.key) > -1;
+            return "<label class=\"tg\"><input type=\"checkbox\" data-area=\"" + a.key + "\" data-u=\"" + esc(m.user_id) + "\"" + (on ? " checked" : "") + (m.status !== "approved" ? " disabled" : "") + "> " + esc(a.label) + "</label>";
+          }).join("") + "</div>" +
+          "<div class=\"row\" style=\"margin-top:.5rem\">" + (m.status === "approved"
+            ? "<button class=\"da-btn ghost\" data-st=\"suspended\" data-u=\"" + esc(m.user_id) + "\">Suspend</button>"
+            : "<button class=\"da-btn\" data-st=\"approved\" data-u=\"" + esc(m.user_id) + "\">Approve and grant</button> <button class=\"da-btn ghost\" data-st=\"declined\" data-u=\"" + esc(m.user_id) + "\">Decline</button>") +
+          "</div></div>";
+      }).join("");
+      p.innerHTML = h;
+      p.querySelectorAll("[data-st]").forEach(function (b) { b.onclick = async function () {
+        try {
+          if (LIVE) {
+            await api.adminSetStatus(b.dataset.u, b.dataset.st);
+            if (b.dataset.st === "approved") {
+              var defaults = ["gremlin_world", "recipe_shelf", "wren_room", "saji_room", "send_tickets"];
+              for (var i = 0; i < defaults.length; i++) {
+                try { await api.adminSetArea(b.dataset.u, defaults[i], true); } catch (e) {}
+              }
+            }
+          } else {
+            var lead = MOCK_LEADS.find(function (x) { return x.user_id === b.dataset.u; });
+            if (lead) {
+              lead.status = b.dataset.st;
+              if (b.dataset.st === "approved") lead.areas = ["gremlin_world", "recipe_shelf", "wren_room", "saji_room", "send_tickets"];
+            }
+          }
+          draw();
+        } catch (e) { alert(e.message); }
+      }; });
+      p.querySelectorAll("[data-area]").forEach(function (c) { c.onchange = async function () {
+        try {
+          if (LIVE) await api.adminSetArea(c.dataset.u, c.dataset.area, c.checked);
+          else {
+            var lead = MOCK_LEADS.find(function (x) { return x.user_id === c.dataset.u; });
+            if (lead) {
+              lead.areas = lead.areas || [];
+              if (c.checked && lead.areas.indexOf(c.dataset.area) < 0) lead.areas.push(c.dataset.area);
+              if (!c.checked) lead.areas = lead.areas.filter(function (k) { return k !== c.dataset.area; });
+            }
+          }
+        } catch (e) { alert(e.message); c.checked = !c.checked; }
+      }; });
+      return;
+    }
     if (tab === "queue") {
       h = "<h2>New sign-ups waiting for you</h2><p class=\"small\">Until you approve someone they have guest access only: public areas and one short sample per room. Approving opens the full rooms and tickets. You can fine-tune it on the People tab.</p>";
       h += pending.length ? pending.map(function (m) {
