@@ -28,6 +28,7 @@
       <button class="tab" role="tab" data-tab="bp" aria-selected="false" type="button">Business Planning <span id="bn"></span></button>
       <button class="tab" role="tab" data-tab="intake" aria-selected="false" type="button">Client intake <span id="in"></span></button>
       <button class="tab" role="tab" data-tab="waivers" aria-selected="false" type="button">Event waivers <span id="wn"></span></button>
+      <button class="tab" role="tab" data-tab="parks" aria-selected="false" type="button">Parks <span id="pn"></span></button>
       <button class="tab" role="tab" data-tab="leads" aria-selected="false" type="button">Business tools leads <span id="ln"></span></button>
       <button class="tab" role="tab" data-tab="settings" aria-selected="false" type="button">Settings</button>
     </div>
@@ -221,6 +222,72 @@
       p.querySelectorAll("[data-pfd]").forEach(function (b) { b.onclick = async function () { if (!confirm("Delete this pre-form note?")) return; try { await deletePreform(b.dataset.pfd); draw(); } catch (e) { alert(e.message); } }; });
       p.querySelectorAll("[data-udl]").forEach(function (b) { b.onclick = async function () { try { await downloadUpload(b.dataset.udl); } catch (e) { alert(e.message); } }; });
       p.querySelectorAll("[data-udl-del]").forEach(function (b) { b.onclick = async function () { if (!confirm("Delete this uploaded PDF?")) return; try { await deleteUpload(b.dataset.udlDel); draw(); } catch (e) { alert(e.message); } }; });
+      return;
+    }
+    if (tab === "parks") {
+      // Wandering the Local Parks: Bryan's notes + one approval queue (corrections, visitor notes, photos). No payment info.
+      var pk = { parks: [], corr: [], revs: [], phs: [], notes: [], on: true }, pkErr = "";
+      if (LIVE) {
+        try {
+          var pc = await previewSb();
+          var rr = await Promise.all([
+            pc.from("parks").select("id,name,published").order("name"),
+            pc.from("park_corrections").select("*").order("created_at", { ascending: false }).limit(200),
+            pc.from("park_reviews").select("*").order("created_at", { ascending: false }).limit(200),
+            pc.from("park_photos").select("*").order("created_at", { ascending: false }).limit(200),
+            pc.from("park_admin_notes").select("*").order("created_at", { ascending: false }).limit(100),
+            pc.from("park_settings").select("photos_enabled").eq("id", 1).maybeSingle()
+          ]);
+          rr.forEach(function (x) { if (x.error) throw x.error; });
+          pk = { parks: rr[0].data || [], corr: rr[1].data || [], revs: rr[2].data || [], phs: rr[3].data || [], notes: rr[4].data || [], on: !!(rr[5].data && rr[5].data.photos_enabled) };
+        } catch (e) { pkErr = e.message || String(e); }
+      }
+      var pname = {}; pk.parks.forEach(function (x) { pname[x.id] = x.name; });
+      var PQ = { fav_saw: "Favorite thing they saw", wildlife: "Birds or wildlife", why_go: "Why tell a friend" };
+      var waitC = pk.corr.filter(function (x) { return x.status === "new"; }), waitR = pk.revs.filter(function (x) { return x.status === "pending"; }), waitP = pk.phs.filter(function (x) { return x.status === "pending"; });
+      var nWait = waitC.length + waitR.length + waitP.length;
+      var pnn = document.getElementById("pn"); if (pnn) pnn.textContent = nWait ? "(" + nWait + ")" : "";
+      h = "<h2>Wandering the Local Parks</h2><p class=\"small\">" + pk.parks.filter(function (x) { return x.published; }).length + " places showing on <a href=\"../parks/\" target=\"_blank\" rel=\"noopener\">the parks page</a>. Visitor notes and photos stay hidden until you approve them. Nothing here includes payment information.</p>";
+      if (pkErr) h += "<p class=\"err\">" + esc(pkErr) + "</p>";
+      h += "<h3 style=\"margin-top:1rem\">Notes for park updates</h3><p class=\"small\">Jot what should change (for Nancy or Pip). Only you can see these.</p>" +
+        "<textarea class=\"input\" id=\"pk-note\" rows=\"3\" maxlength=\"4000\" style=\"width:100%\" placeholder=\"Example: Add Ricketts Glen. Stokes cabins close Dec 15 now.\"></textarea><div class=\"row\"><button class=\"da-btn\" id=\"pk-note-save\">Save note</button></div>";
+      h += pk.notes.map(function (n) {
+        return "<div class=\"intake-card" + (n.done ? " reviewed" : "") + "\"><div class=\"intake-meta\">" + esc(when(n.created_at)) + (n.done ? " · done" : "") + "</div><div class=\"intake-body\">" + esc(n.body) + "</div>" +
+          "<div class=\"row\"><button class=\"da-btn ghost\" data-pkn-done=\"" + esc(n.id) + "\" data-on=\"" + (n.done ? "0" : "1") + "\">" + (n.done ? "Not done" : "Mark done") + "</button> <button class=\"da-btn ghost\" data-pkn-del=\"" + esc(n.id) + "\">Delete</button></div></div>";
+      }).join("");
+      h += "<h3 style=\"margin-top:1.3rem\">Visitor photos</h3><label style=\"display:flex;gap:.5rem;align-items:center\"><input type=\"checkbox\" id=\"pk-photos-on\"" + (pk.on ? " checked" : "") + "> Let visitors add a photo with their note</label>";
+      h += "<h3 style=\"margin-top:1.3rem\">Waiting for you (" + nWait + ")</h3>";
+      var items = [];
+      waitC.forEach(function (x) { items.push({ t: x.created_at, html: "<div class=\"intake-card\"><b>Correction</b> · " + esc(pname[x.park_id] || x.park_id) + "<div class=\"intake-meta\">" + esc(when(x.created_at)) + "</div><div class=\"intake-body\"><b>What to fix:</b> " + esc(x.what_to_fix) + (x.where_seen ? "\n<b>Where they saw it:</b> " + esc(x.where_seen) : "") + "</div><div class=\"row\"><button class=\"da-btn\" data-pkc=\"" + esc(x.id) + "\" data-s=\"fixed\">Fixed</button> <button class=\"da-btn ghost\" data-pkc=\"" + esc(x.id) + "\" data-s=\"dismissed\">Dismiss</button></div></div>" }); });
+      waitR.forEach(function (x) { items.push({ t: x.created_at, html: "<div class=\"intake-card\"><b>Visitor note</b> · " + esc(pname[x.park_id] || x.park_id) + (x.season ? " · " + esc(x.season) : "") + "<div class=\"intake-meta\">" + esc(when(x.created_at)) + "</div><div class=\"intake-body\">" + ["fav_saw", "wildlife", "why_go"].map(function (k) { return x[k] ? "<b>" + PQ[k] + ":</b> " + esc(x[k]) : ""; }).filter(Boolean).join("\n") + "</div><div class=\"row\"><button class=\"da-btn\" data-pkr=\"" + esc(x.id) + "\" data-s=\"approved\">Approve</button> <button class=\"da-btn ghost\" data-pkr=\"" + esc(x.id) + "\" data-s=\"declined\">Decline</button></div></div>" }); });
+      var SEAS = ["spring", "summer", "fall", "winter"];
+      waitP.forEach(function (x) { items.push({ t: x.created_at, html: "<div class=\"intake-card\"><b>Photo</b> · " + esc(pname[x.park_id] || x.park_id) + "<div class=\"intake-meta\">" + esc(when(x.created_at)) + (x.review_id ? " · sent with a visitor note" : "") + "</div><img data-pkimg=\"" + esc(x.storage_path) + "\" alt=\"Visitor photo waiting for review\" style=\"max-width:100%;max-height:260px;border-radius:8px;background:#eee;display:block;margin:.4rem 0\"><label class=\"small\">Season <select data-pks=\"" + esc(x.id) + "\"><option value=\"\">Any time</option>" + SEAS.map(function (s) { return "<option" + (x.season === s ? " selected" : "") + ">" + s + "</option>"; }).join("") + "</select></label><div class=\"row\"><button class=\"da-btn\" data-pkp=\"" + esc(x.id) + "\" data-s=\"approved\">Approve</button> <button class=\"da-btn ghost\" data-pkp=\"" + esc(x.id) + "\" data-s=\"declined\" data-path=\"" + esc(x.storage_path) + "\">Decline and delete</button></div></div>" }); });
+      items.sort(function (a, b) { return Date.parse(b.t) - Date.parse(a.t); });
+      h += items.length ? items.map(function (i) { return i.html; }).join("") : "<p class=\"small\">Nothing waiting.</p>";
+      var showR = pk.revs.filter(function (x) { return x.status === "approved"; }), showP = pk.phs.filter(function (x) { return x.status === "approved"; });
+      h += "<details style=\"margin-top:1.2rem\"><summary>Showing on the page (" + (showR.length + showP.length) + ")</summary>" +
+        showR.map(function (x) { return "<div class=\"intake-card\"><b>Visitor note</b> · " + esc(pname[x.park_id] || x.park_id) + "<div class=\"intake-body\">" + esc([x.fav_saw, x.wildlife, x.why_go].filter(Boolean).join(" / ")) + "</div><div class=\"row\"><button class=\"da-btn ghost\" data-pkr=\"" + esc(x.id) + "\" data-s=\"declined\">Hide</button></div></div>"; }).join("") +
+        showP.map(function (x) { return "<div class=\"intake-card\"><b>Photo</b> · " + esc(pname[x.park_id] || x.park_id) + (x.season ? " · " + esc(x.season) : "") + "<img data-pkimg=\"" + esc(x.storage_path) + "\" alt=\"Approved visitor photo\" style=\"max-width:100%;max-height:160px;border-radius:8px;display:block;margin:.4rem 0\"><div class=\"row\"><button class=\"da-btn ghost\" data-pkp=\"" + esc(x.id) + "\" data-s=\"declined\" data-path=\"" + esc(x.storage_path) + "\">Hide and delete</button></div></div>"; }).join("") + "</details>";
+      p.innerHTML = h;
+      async function pkUpd(table, id, patch) { var c = await previewSb(); var r = await c.from(table).update(patch).eq("id", id); if (r.error) throw r.error; }
+      document.getElementById("pk-note-save").onclick = async function () { var v = document.getElementById("pk-note").value.trim(); if (!v || !LIVE) return; try { var c = await previewSb(); var r = await c.from("park_admin_notes").insert({ body: v }); if (r.error) throw r.error; draw(); } catch (e) { alert(e.message); } };
+      p.querySelectorAll("[data-pkn-done]").forEach(function (b) { b.onclick = async function () { var on = b.dataset.on === "1"; try { await pkUpd("park_admin_notes", b.dataset.pknDone, { done: on, done_at: on ? new Date().toISOString() : null }); draw(); } catch (e) { alert(e.message); } }; });
+      p.querySelectorAll("[data-pkn-del]").forEach(function (b) { b.onclick = async function () { if (!confirm("Delete this note?")) return; try { var c = await previewSb(); var r = await c.from("park_admin_notes").delete().eq("id", b.dataset.pknDel); if (r.error) throw r.error; draw(); } catch (e) { alert(e.message); } }; });
+      document.getElementById("pk-photos-on").onchange = async function () { try { await pkUpd("park_settings", 1, { photos_enabled: this.checked, updated_at: new Date().toISOString() }); } catch (e) { alert(e.message); draw(); } };
+      p.querySelectorAll("[data-pkc]").forEach(function (b) { b.onclick = async function () { try { await pkUpd("park_corrections", b.dataset.pkc, { status: b.dataset.s, reviewed_at: new Date().toISOString() }); draw(); } catch (e) { alert(e.message); } }; });
+      p.querySelectorAll("[data-pkr]").forEach(function (b) { b.onclick = async function () { try { await pkUpd("park_reviews", b.dataset.pkr, { status: b.dataset.s, reviewed_at: new Date().toISOString() }); draw(); } catch (e) { alert(e.message); } }; });
+      p.querySelectorAll("[data-pks]").forEach(function (sel) { sel.onchange = async function () { try { await pkUpd("park_photos", sel.dataset.pks, { season: sel.value || null }); } catch (e) { alert(e.message); } }; });
+      p.querySelectorAll("[data-pkp]").forEach(function (b) { b.onclick = async function () {
+        var decline = b.dataset.s === "declined";
+        if (decline && !confirm("Hide this photo and delete the file?")) return;
+        try {
+          await pkUpd("park_photos", b.dataset.pkp, { status: b.dataset.s, reviewed_at: new Date().toISOString() });
+          if (decline && b.dataset.path) { var c = await previewSb(); await c.storage.from("park-photos").remove([b.dataset.path]); }
+          draw();
+        } catch (e) { alert(e.message); }
+      }; });
+      var imgs = Array.prototype.slice.call(p.querySelectorAll("[data-pkimg]"));
+      if (LIVE && imgs.length) { try { var sc = await previewSb(); var su = await sc.storage.from("park-photos").createSignedUrls(imgs.map(function (i) { return i.dataset.pkimg; }), 600); (su.data || []).forEach(function (u) { imgs.forEach(function (i) { if (i.dataset.pkimg === u.path && u.signedUrl) i.src = u.signedUrl; }); }); } catch (e) {} }
       return;
     }
     if (tab === "waivers") {

@@ -41,6 +41,16 @@
       badge: "Open to everyone"
     },
     {
+      id: "local_parks",
+      enabled: true,
+      kicker: "The trailhead",
+      title: "Wandering the Local Parks",
+      blurb: "Places to camp near Hackettstown, with links straight to booking. Put together by us, one park at a time.",
+      href: "parks/",
+      action: "Start wandering",
+      badge: "Open to everyone"
+    },
+    {
       id: "meet_gremlins",
       enabled: true,
       kicker: "The crew",
