@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Gremlin Desks</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="A private sample of the Gremlin Desks: come in, tell us what to call you, and pick a door.">
+<meta name="theme-color" content="#3A4A33">
+<link rel="icon" type="image/png" sizes="32x32" href="desks-preview-q7m4/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="desks-preview-q7m4/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="entry/entry.css">
+<!-- Old Gremlin World links (query or #room hash) still go straight to world.html. A bare URL shows this welcome. ?as= is the local preview switcher only. ?door= is the entry path. -->
+<script>
+(function () {
+  function gate() {
+    var q = location.search, h = location.hash;
+    var okQ = !q || /^\?(as|next|door)=/.test(q);
+    var okH = !h;
+    if (!okQ || !okH) location.replace("world.html" + q + h);
+  }
+  gate();
+  window.addEventListener("hashchange", gate);
+})();
+</script>
+</head>
+<body>
+<main class="wrap">
+
+  <!-- 1. Fun human check -->
+  <section class="stage" id="stage-puzzle" aria-labelledby="puzzle-title">
+    <header class="hero">
+      <img class="mark" src="assets/brand/et-logo.png" width="112" height="112" alt="Eclectic Transformation">
+      <span class="clay-bar" aria-hidden="true"></span>
+      <p class="kicker">The Gremlin Desks</p>
+      <h1 id="puzzle-title">Come on in</h1>
+      <p class="lead">A little help first for a gremlin who dropped their nest stone, then tell us what to call you.</p>
+    </header>
+    <div class="card">
+      <p class="speech" id="speech">Help me get home!</p>
+      <div class="play" id="play" role="group" aria-label="Drag the stone to the gremlin's nest">
+        <div class="home" id="home">
+          <svg class="gremlin" viewBox="0 0 58 70" aria-hidden="true" focusable="false">
+            <ellipse cx="29" cy="66" rx="16" ry="3.2" fill="rgba(26,26,24,0.18)"/>
+            <path d="M14 22c0-12 8-20 15-20s15 8 15 20c0 2.2-.4 4.2-1 6.1C46 32 50 39 50 47c0 12-9 18-21 18S8 59 8 47c0-8 4-15 7-18.9-.6-1.9-1-3.9-1-6.1z" fill="#6f8a5e" stroke="#1A1A18" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M16 22c-7-8-11-6-12-2 2 5 8 8 12 8" fill="#6f8a5e" stroke="#1A1A18" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M42 22c7-8 11-6 12-2-2 5-8 8-12 8" fill="#6f8a5e" stroke="#1A1A18" stroke-width="1.7" stroke-linejoin="round"/>
+            <ellipse cx="22.5" cy="40" rx="3.2" ry="3.6" fill="#1A1A18"/>
+            <ellipse cx="35.5" cy="40" rx="3.2" ry="3.6" fill="#1A1A18"/>
+            <ellipse cx="21.6" cy="39" rx="1.1" ry="1.2" fill="#F1EDE2"/>
+            <ellipse cx="34.6" cy="39" rx="1.1" ry="1.2" fill="#F1EDE2"/>
+            <path d="M25 48c2.2 2.4 5.8 2.4 8 0" fill="none" stroke="#1A1A18" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M20 56c3 3.5 15 3.5 18 0" fill="#B8775A" stroke="#1A1A18" stroke-width="1.4" stroke-linejoin="round"/>
+          </svg>
+          <svg class="nest" viewBox="0 0 72 64" aria-hidden="true" focusable="false">
+            <ellipse class="nest-glow" cx="36" cy="38" rx="26" ry="16" fill="#A6B89A" opacity="0"/>
+            <path d="M10 34c2-12 16-22 26-22 12 0 24 8 27 20 2 8-3 20-15 24-10 3.5-24 1-32-8-5-6-7-11-6-14z" fill="#6b4a32" stroke="#1A1A18" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M16 36c4-8 14-14 22-14 9 0 18 5 21 13 2 6-2 15-12 18-9 2.5-20 .5-26-6-3.5-4-5-8-5-11z" fill="#8a6244" stroke="#1A1A18" stroke-width="1.2" stroke-linejoin="round"/>
+            <ellipse cx="36" cy="40" rx="16" ry="8" fill="#3A4A33" opacity=".55"/>
+            <path d="M12 30c8-6 14-2 20-8M50 28c-6-6-12-1-18-7M18 46c8 4 20 6 32 1" fill="none" stroke="#1A1A18" stroke-width="1.2" stroke-linecap="round" opacity=".55"/>
+          </svg>
+        </div>
+        <svg class="stone" id="stone" viewBox="0 0 48 48" role="img" aria-label="Stone" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="24" cy="26" rx="16.5" ry="13.5" fill="#8a8174" stroke="#1A1A18" stroke-width="1.8"/>
+          <ellipse cx="20" cy="22" rx="6" ry="4.2" fill="#c4bdb3" opacity=".85"/>
+          <path d="M14 28c3 3 9 4 14 2" fill="none" stroke="#1A1A18" stroke-width="1.1" opacity=".35" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p class="sr" id="puzzle-live" role="status" aria-live="polite"></p>
+      <div class="actions">
+        <button class="btn ghost" type="button" id="place-stone">I'm human, place the stone</button>
+      </div>
+    </div>
+    <p class="foot">This sample isn't listed on the main site. If you're here, someone meant for you to see it.</p>
+  </section>
+
+  <!-- 2. Name -->
+  <section class="stage" id="stage-name" hidden aria-labelledby="name-title">
+    <header class="hero">
+      <img class="mark" src="assets/brand/et-logo.png" width="112" height="112" alt="Eclectic Transformation">
+      <span class="clay-bar" aria-hidden="true"></span>
+      <p class="kicker">The Gremlin Desks</p>
+      <h1 id="name-title">What's your name?</h1>
+      <p class="lead">That's all we need to welcome you in as a guest on this device.</p>
+    </header>
+    <div class="card">
+      <p class="thanks" role="status">Good job, thanks!</p>
+      <form id="name-form" novalidate>
+        <div class="form-row">
+          <p class="field">
+            <label for="guest-name">What's your name?</label>
+            <input class="input" id="guest-name" name="name" type="text" maxlength="40" autocomplete="nickname" required placeholder="Name or initials">
+          </p>
+          <button class="btn" type="submit" style="align-self:flex-end">Come in</button>
+        </div>
+        <p class="err" id="name-err" role="alert"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- 3. Three doors -->
+  <section class="stage" id="stage-doors" hidden aria-labelledby="doors-title">
+    <header class="hero">
+      <img class="mark" src="assets/brand/et-logo.png" width="112" height="112" alt="Eclectic Transformation">
+      <span class="clay-bar" aria-hidden="true"></span>
+      <p class="kicker">A private sample</p>
+      <h1 id="doors-title" class="doors-title">Welcome to &quot;the Desks&quot; at eclectictransformation.com</h1>
+      <p class="lead" id="hello">Nice to meet you.</p>
+      <p class="lead">You've been invited in for a look around. Which way would you like to go?</p>
+      <p class="meta" id="not-you-wrap">
+        <button class="link" type="button" id="not-you">Not you?</button>
+        <a class="link" href="signin/">Already have an account? Sign in</a>
+      </p>
+      <div class="crew" aria-label="The gremlins">
+        <img src="assets/gremlins/pip.webp" width="56" height="56" alt="Pip">
+        <img src="assets/gremlins/moth.webp" width="56" height="56" alt="Moth">
+        <img src="assets/gremlins/vesper.webp" width="56" height="56" alt="Vesper">
+        <img src="assets/gremlins/grimble.webp" width="56" height="56" alt="Grimble">
+        <img src="assets/gremlins/noodle.webp" width="56" height="56" alt="Noodle">
+        <img src="assets/gremlins/dot.webp" width="56" height="56" alt="Dot">
+      </div>
+    </header>
+    <div class="doors" aria-label="Choose a door">
+      <button class="door" type="button" data-go="client">
+        <svg class="door-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <rect x="10" y="8" width="28" height="34" rx="3" fill="#F1EDE2" stroke="#1A1A18" stroke-width="1.8"/>
+          <path d="M16 18h16M16 24h16M16 30h10" stroke="#54664A" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M28 32l4 4 8-10" fill="none" stroke="#B8775A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p class="door-kicker">For a first visit</p>
+        <h2>New client</h2>
+        <p class="blurb">Fill out intake &amp; waiver on an iPad, sign just the waiver on your phone, download or upload filled PDFs, or send a quick pre-form.</p>
+        <span class="enter">Open this door</span>
+      </button>
+      <button class="door" type="button" data-go="explore">
+        <svg class="door-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <circle cx="24" cy="24" r="16" fill="#A6B89A" stroke="#1A1A18" stroke-width="1.8"/>
+          <path d="M12 24h24M24 12c-6 6-6 18 0 24 6-6 6-18 0-24z" fill="none" stroke="#1A1A18" stroke-width="1.5"/>
+          <path d="M8 24h4M36 24h4M24 8v4M24 36v4" stroke="#3A4A33" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <p class="door-kicker">Wander and play</p>
+        <h2>Here to explore</h2>
+        <p class="blurb">Explore as a guest or make an account to wander Gremlin World, Pip's Workshop, and the shelves.</p>
+        <span class="enter">Open this door</span>
+      </button>
+      <button class="door" type="button" data-go="business">
+        <svg class="door-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <rect x="7" y="22" width="34" height="16" rx="2" fill="#F1EDE2" stroke="#1A1A18" stroke-width="1.8"/>
+          <path d="M12 22v-6l12-8 12 8v6" fill="#54664A" stroke="#1A1A18" stroke-width="1.8" stroke-linejoin="round"/>
+          <rect x="20" y="28" width="8" height="10" fill="#B8775A" stroke="#1A1A18" stroke-width="1.4"/>
+        </svg>
+        <p class="door-kicker">Plans and studio</p>
+        <h2>Business &amp; planning tools</h2>
+        <p class="blurb">Meet Saji Tori, visit Moth's Design Studio, or start a simple business plan.</p>
+        <span class="enter">Open this door</span>
+      </button>
+    </div>
+    <article class="tile admin-door" id="admin-door" hidden style="max-width:28rem;margin:1rem auto 0">
+      <span class="badge open">Only you</span>
+      <p class="door-kicker">The key ring</p>
+      <h2>Access Page</h2>
+      <p class="blurb">Approve new sign-ups, choose which rooms each person can open, and read incoming tickets.</p>
+      <a class="enter" href="admin/">Open the access page</a>
+    </article>
+    <p class="foot">This sample isn't listed on the main site. If you're here, someone meant for you to see it.</p>
+  </section>
+
+  <!-- 4. New client hub: 4 options -->
+  <section class="stage" id="stage-client" hidden aria-labelledby="client-title">
+    <div class="backrow">
+      <button class="link" type="button" data-go="doors">&larr; Back to the doors</button>
+    </div>
+    <header class="hero" style="margin-bottom:1.1rem">
+      <p class="kicker">Eclectic Transformation · New client</p>
+      <h1 id="client-title">Intake &amp; waiver</h1>
+      <p class="lead">Choose whichever way works best for your visit.</p>
+    </header>
+    <div class="client-options" aria-label="Client intake options">
+      <button class="door" type="button" data-go="client-ipad">
+        <span class="badge open">Nothing saved online</span>
+        <p class="door-kicker">Option 1</p>
+        <h2>In the office (iPad)</h2>
+        <p class="blurb">Fill out the full intake and waiver together in the browser, save a PDF copy, and clear the screen.</p>
+        <span class="enter">Open iPad form</span>
+      </button>
+      <button class="door" type="button" data-go="client-waiver">
+        <span class="badge open">Phone and iPad</span>
+        <p class="door-kicker">Option 2</p>
+        <h2>Sign the waiver</h2>
+        <p class="blurb">Just the waiver, on a screen made for signing with your finger — or type your name if that's easier. Nothing is stored.</p>
+        <span class="enter">Sign the waiver</span>
+      </button>
+      <button class="door" type="button" data-go="client-download">
+        <span class="badge open">Fillable PDFs</span>
+        <p class="door-kicker">Option 3</p>
+        <h2>Download forms</h2>
+        <p class="blurb">Get the fillable PDFs to print and bring along, or fill them on your device and upload them privately here.</p>
+        <span class="enter">Download or upload PDFs</span>
+      </button>
+      <button class="door" type="button" data-go="client-preform">
+        <span class="badge soon">First name only</span>
+        <p class="door-kicker">Option 4</p>
+        <h2>Quick pre-form (online)</h2>
+        <p class="blurb">Share a few session basics before you arrive — first name only, with no identifiable information saved here.</p>
+        <span class="enter">Open quick pre-form</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 4a. In the office (iPad): full intake + waiver word for word + signature pad -->
+  <section class="stage" id="stage-client-ipad" hidden aria-labelledby="ipad-title">
+    <div class="backrow no-print">
+      <button class="link" type="button" data-go="client">&larr; Back to New client options</button>
+    </div>
+    <header class="hero no-print" style="margin-bottom:1rem">
+      <p class="kicker">Option 1 · In the office (iPad)</p>
+      <h1 id="ipad-title">Client Intake &amp; Waiver</h1>
+      <p class="lead">Nothing typed or signed here is stored or sent anywhere.</p>
+    </header>
+
+    <div class="toolbar no-print">
+      <p class="toolbar-tip"><strong>Tip:</strong> On iPad Safari, tap <strong>Save as PDF</strong>, then use Share / Print &rarr; <strong>Save to Files</strong>. Tap <strong>Clear form</strong> when you're finished.</p>
+      <div class="toolbar-btns">
+        <button class="btn" type="button" id="ipad-print">Save as PDF</button>
+        <button class="btn ghost" type="button" id="ipad-clear">Clear form</button>
+      </div>
+      <p class="sr" id="ipad-clear-status" role="status" aria-live="polite" style="position:static;width:auto;height:auto;clip:auto;margin:0;color:#3A4A33;font-weight:700"></p>
+    </div>
+
+    <form id="ipad-form" novalidate>
+      <!-- PART 1: CLIENT INTAKE (word for word from intake-draft-v1.md) -->
+      <article class="paper-sheet" aria-labelledby="sheet-intake-h">
+        <header class="sheet-head">
+          <p class="sheet-brand">Eclectic Transformation</p>
+          <h2 id="sheet-intake-h">Client Intake</h2>
+          <p class="sheet-contact">Bryan Nolan, LMT &middot; N.J. Lic. #18KT01214900 &middot; EclecticTransformation.com &middot; bryan@eclectictransformation.com &middot; (973) 462-8810</p>
+        </header>
+
+        <p class="sheet-intro">Thanks for being here. A little information helps me take good care of you. Keep it short — we can always talk more in the room. If something comes to mind later, just tell me during the session.</p>
+
+        <div class="fgrid cols-3">
+          <p class="ffield"><label for="ci-name">Name:</label><input class="input" id="ci-name" name="name" type="text" autocomplete="off"></p>
+          <p class="ffield"><label for="ci-dob">Date of birth:</label><input class="input" id="ci-dob" name="dob" type="text" placeholder="MM/DD/YYYY" autocomplete="off"></p>
+          <p class="ffield"><label for="ci-date">Date:</label><input class="input" id="ci-date" name="intake_date" type="text" placeholder="MM/DD/YYYY" autocomplete="off"></p>
+        </div>
+
+        <div class="fgrid cols-2">
+          <p class="ffield"><label for="ci-email">Email:</label><input class="input" id="ci-email" name="email" type="email" autocomplete="off"></p>
+          <p class="ffield"><label for="ci-phone">Phone:</label><input class="input" id="ci-phone" name="phone" type="tel" autocomplete="off"></p>
+        </div>
+
+        <div class="fgrid cols-2">
+          <p class="ffield"><label for="ci-ec-name">Emergency contact name:</label><input class="input" id="ci-ec-name" name="emergency_name" type="text" autocomplete="off"></p>
+          <p class="ffield"><label for="ci-ec-phone">Phone:</label><input class="input" id="ci-ec-phone" name="emergency_phone" type="tel" autocomplete="off"></p>
+        </div>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="ci-brings">What brings you in today?</label>
+          <textarea class="textarea" id="ci-brings" name="brings_you_in" rows="2"></textarea>
+        </p>
+
+        <fieldset class="fgroup">
+          <legend>Which session are you thinking about?</legend>
+          <div class="fcheck-row">
+            <label class="fchoice"><input type="checkbox" name="session_functional" value="1"> Functional Massage (clothed)</label>
+            <label class="fchoice"><input type="checkbox" name="session_ooey" value="1"> Ooey Gooey Massage (spa-style)</label>
+            <label class="fchoice"><input type="checkbox" name="session_unsure" value="1"> Not sure yet — we’ll talk</label>
+          </div>
+        </fieldset>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="ci-chronic">Any chronic conditions, surgeries or ailments I should know about?</label>
+          <textarea class="textarea" id="ci-chronic" name="chronic_conditions" rows="2"></textarea>
+        </p>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="ci-hardware">Any hardware in your body from surgeries? <span style="font-weight:400">(If something comes to mind later, feel free to tell me during a session.)</span></label>
+          <textarea class="textarea" id="ci-hardware" name="hardware" rows="2"></textarea>
+        </p>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="ci-meds">Any medical conditions, medications or other health history I should know about before we begin?</label>
+          <textarea class="textarea" id="ci-meds" name="medications_history" rows="2"></textarea>
+        </p>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="ci-allergies">Any allergies to lotions, essential oils or anything else?</label>
+          <textarea class="textarea" id="ci-allergies" name="allergies" rows="2"></textarea>
+        </p>
+
+        <fieldset class="fgroup">
+          <legend>Are you pregnant, or is there a chance you might be?</legend>
+          <div class="fcheck-row" style="margin-bottom:0.5rem">
+            <label class="fchoice"><input type="radio" name="pregnant" value="no"> No</label>
+            <label class="fchoice"><input type="radio" name="pregnant" value="yes"> Yes</label>
+            <label class="fchoice"><input type="radio" name="pregnant" value="na"> Not sure / not applicable</label>
+          </div>
+          <p class="ffield"><label for="ci-preg-notes">Notes:</label><input class="input" id="ci-preg-notes" name="pregnant_notes" type="text" autocomplete="off"></p>
+        </fieldset>
+
+        <fieldset class="fgroup">
+          <legend>Pressure preference</legend>
+          <div class="fcheck-row">
+            <label class="fchoice"><input type="checkbox" name="pressure_light" value="1"> Light</label>
+            <label class="fchoice"><input type="checkbox" name="pressure_medium" value="1"> Medium</label>
+            <label class="fchoice"><input type="checkbox" name="pressure_firm" value="1"> Firm</label>
+            <label class="fchoice"><input type="checkbox" name="pressure_mix" value="1"> Mix it up — we’ll find it together</label>
+          </div>
+        </fieldset>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="ci-avoid">Any areas you’d like me to avoid?</label>
+          <textarea class="textarea" id="ci-avoid" name="areas_avoid" rows="2"></textarea>
+        </p>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="ci-hear">How did you hear about us? <span style="font-weight:400"><em>(optional)</em></span></label>
+          <input class="input" id="ci-hear" name="heard_about" type="text" autocomplete="off">
+        </p>
+
+        <p style="margin:0.85rem 0 0.55rem;font-weight:600">I have answered honestly, and I will let Bryan know if anything changes.</p>
+
+        <div class="fgrid cols-2">
+          <div class="ffield sig-block" data-sig="sig-intake" data-date="ci-sig-date">
+            <span class="fgroup-label" id="sig-intake-label">Signature:</span>
+            <div class="sig-modes" role="group" aria-labelledby="sig-intake-label">
+              <button type="button" class="sig-mode" data-mode="finger" aria-pressed="true">Sign with your finger</button>
+              <button type="button" class="sig-mode" data-mode="type" aria-pressed="false">Type your name instead</button>
+            </div>
+            <div class="sig-finger">
+              <div class="sig-wrap">
+                <canvas class="sig-canvas" id="sig-intake" aria-label="Client intake signature pad"></canvas>
+                <div class="sig-bar">
+                  <span class="sig-hint">A big pad — sign with your finger, stylus, or mouse</span>
+                  <button class="sig-clear" type="button" data-clear-sig="sig-intake">Clear / Redo</button>
+                </div>
+              </div>
+            </div>
+            <div class="sig-type" hidden>
+              <label for="sig-intake-type">Type your name</label>
+              <input class="input sig-type-input" id="sig-intake-type" type="text" maxlength="80" autocomplete="off" placeholder="Your full name">
+              <div class="sig-type-line" aria-hidden="true"><span class="sig-type-preview"></span></div>
+            </div>
+          </div>
+          <p class="ffield"><label for="ci-sig-date">Date:</label><input class="input" id="ci-sig-date" name="intake_sign_date" type="text" placeholder="MM/DD/YYYY" autocomplete="off"></p>
+        </div>
+
+        <div class="practitioner-box">
+          <p>Practitioner notes <span style="font-weight:400"><em>(for Bryan — not filled out by the client)</em></span></p>
+          <textarea class="textarea practitioner-lines" id="ci-prac-notes" name="practitioner_notes" aria-label="Practitioner notes (for Bryan — not filled out by the client)" rows="3"></textarea>
+        </div>
+
+      </article>
+
+      <!-- PART 2: CLIENT WAIVER AND CONSENT (word for word from waiver-draft-v1.md) -->
+      <article class="paper-sheet sheet-break" aria-labelledby="sheet-waiver-h">
+        <header class="sheet-head">
+          <p class="sheet-brand">Eclectic Transformation</p>
+          <h2 id="sheet-waiver-h">Client Waiver and Consent</h2>
+          <p class="sheet-contact">Bryan Nolan, LMT &middot; N.J. Lic. #18KT01214900 &middot; EclecticTransformation.com &middot; bryan@eclectictransformation.com &middot; (973) 462-8810</p>
+        </header>
+
+        <p class="sheet-intro">Please read this short form, ask me anything that’s unclear, and sign before we begin.</p>
+
+        <section class="sheet-sec">
+          <h3>Required acknowledgement</h3>
+          <p><em>The following statement is required, word for word, by N.J.A.C. 13:37A-3.7. It must appear on the signed form before the first service.</em></p>
+          <blockquote class="njac-quote">Massage and bodywork therapy practices are designed to promote and maintain the health and well-being of the client. Massage and bodywork therapies do not include the diagnosis of illness, disease, impairment or disability. If I experience any pain or discomfort during this session, I will immediately inform the therapist so that the pressure and/or manipulations may be adjusted to my level of comfort. Because massage and bodywork therapy may be contraindicated due to certain medical conditions, I affirm that I have informed the therapist of all my known medical conditions and will keep the therapist updated as to any changes in my medical condition.</blockquote>
+          <div class="fgrid cols-2" style="align-items:center;margin-top:0.35rem">
+            <p style="margin:0;font-weight:600">I have read and understand the statement above.</p>
+            <p class="ffield" style="margin:0"><label for="cw-initials">Initials:</label><input class="input" id="cw-initials" name="ack_initials" type="text" maxlength="10" autocomplete="off" style="max-width:10rem"></p>
+          </div>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>The session</h3>
+          <p>I am receiving massage and bodywork from Bryan Nolan, LMT, doing business as Eclectic Transformation. Sessions may include Functional Massage (clothed) or Ooey Gooey Massage (spa-style, with draping). Massage is not a substitute for medical care. Bryan does not diagnose, treat or prescribe for illness, disease, impairment or disability. I will continue to see my own health-care providers as needed.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>My health, my say</h3>
+          <p>I will tell Bryan about conditions, surgeries, implants or hardware, medications, allergies and anything else that might affect a session, and I will update him if that changes. I can ask him to stop, change the pressure or skip any area at any time, for any reason.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Comfort and draping</h3>
+          <p>In clothed sessions, I remain dressed. In spa-style sessions, only the area being worked is undraped; I will be draped at all other times. Intimate areas are not included. I will say if I want more coverage or a different approach.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Ordinary risks</h3>
+          <p>I understand that massage can bring ordinary, foreseeable effects such as temporary soreness, lightheadedness or an emotional release, and I accept those ordinary risks.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Energetic restoration</h3>
+          <p>Energetic restoration is offered as a form of faith healing — a spiritual practice by an ordained Universal Life Church minister, separate from licensed massage, with no medical claims and no promised results.</p>
+          <p>Occasional side effect: some people report feeling better. No extra charge. Results are not promised.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Other thoughts I may share</h3>
+          <p>Any thoughts I share on diet, supplements, psychology or behaviors of the mind come from experience, research and work with people. They are offered for exploration only and do not replace a doctor or other medical professional.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Release</h3>
+          <p>To the extent New Jersey law allows, I release and hold harmless Bryan Nolan, LMT, and Eclectic Transformation from claims arising out of ordinary negligence in connection with these services. This does not apply to gross negligence, recklessness or willful misconduct, and it does not waive any duty that cannot legally be waived, including duties under New Jersey massage and bodywork law.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Privacy</h3>
+          <p>Your information is kept confidential, and records are kept as required by law. You may have a copy of this form.</p>
+          <p style="font-weight:600">I have read this form, had a chance to ask questions, and I sign it voluntarily.</p>
+        </section>
+
+        <div class="fgrid cols-2">
+          <p class="ffield"><label for="cw-name">Client name (print):</label><input class="input" id="cw-name" name="client_name" type="text" autocomplete="off"></p>
+          <p class="ffield"><label for="cw-dob">Date of birth:</label><input class="input" id="cw-dob" name="client_dob" type="text" placeholder="MM/DD/YYYY" autocomplete="off"></p>
+        </div>
+
+        <div class="sign-group">
+          <div class="ffield sig-block" data-sig="sig-waiver" data-date="cw-date">
+            <span class="fgroup-label" id="sig-waiver-label">Signature:</span>
+            <div class="sig-modes" role="group" aria-labelledby="sig-waiver-label">
+              <button type="button" class="sig-mode" data-mode="finger" aria-pressed="true">Sign with your finger</button>
+              <button type="button" class="sig-mode" data-mode="type" aria-pressed="false">Type your name instead</button>
+            </div>
+            <div class="sig-finger">
+              <div class="sig-wrap">
+                <canvas class="sig-canvas" id="sig-waiver" aria-label="Client waiver signature pad"></canvas>
+                <div class="sig-bar">
+                  <span class="sig-hint">A big pad — sign with your finger, stylus, or mouse</span>
+                  <button class="sig-clear" type="button" data-clear-sig="sig-waiver">Clear / Redo</button>
+                </div>
+              </div>
+            </div>
+            <div class="sig-type" hidden>
+              <label for="sig-waiver-type">Type your name as your signature</label>
+              <input class="input sig-type-input" id="sig-waiver-type" type="text" maxlength="80" autocomplete="off" placeholder="This appears in script on the signature line">
+              <div class="sig-type-line" aria-hidden="true"><span class="sig-type-preview"></span></div>
+            </div>
+          </div>
+          <p class="ffield sign-date"><label for="cw-date">Date:</label><input class="input" id="cw-date" name="client_sign_date" type="text" placeholder="MM/DD/YYYY" autocomplete="off" style="max-width:14rem"></p>
+        </div>
+
+        <section class="sheet-sec" style="padding-top:0.5rem;border-top:1px solid rgba(26,26,24,0.2)">
+          <p>If the client is under 18, a parent or legal guardian must sign below to consent to the session. If the client is under 16, a parent or legal guardian must also remain in the room. A parent or guardian’s signature does not waive the minor’s own legal claims to the extent New Jersey law does not allow that.</p>
+          <div class="fgrid cols-2">
+            <p class="ffield"><label for="cw-g-name">Parent/guardian name (print):</label><input class="input" id="cw-g-name" name="guardian_name" type="text" autocomplete="off"></p>
+            <p class="ffield"><label for="cw-g-rel">Relationship:</label><input class="input" id="cw-g-rel" name="guardian_relationship" type="text" autocomplete="off"></p>
+          </div>
+        <div class="sign-group">
+          <div class="ffield sig-block" data-sig="sig-guardian" data-date="cw-g-date">
+            <span class="fgroup-label" id="sig-guardian-label">Signature:</span>
+            <div class="sig-modes" role="group" aria-labelledby="sig-guardian-label">
+              <button type="button" class="sig-mode" data-mode="finger" aria-pressed="true">Sign with your finger</button>
+              <button type="button" class="sig-mode" data-mode="type" aria-pressed="false">Type your name instead</button>
+            </div>
+            <div class="sig-finger">
+              <div class="sig-wrap">
+                <canvas class="sig-canvas" id="sig-guardian" aria-label="Parent or guardian signature pad"></canvas>
+                <div class="sig-bar">
+                  <span class="sig-hint">Only needed if the client is under 18</span>
+                  <button class="sig-clear" type="button" data-clear-sig="sig-guardian">Clear / Redo</button>
+                </div>
+              </div>
+            </div>
+            <div class="sig-type" hidden>
+              <label for="sig-guardian-type">Type your name as your signature</label>
+              <input class="input sig-type-input" id="sig-guardian-type" type="text" maxlength="80" autocomplete="off" placeholder="This appears in script on the signature line">
+              <div class="sig-type-line" aria-hidden="true"><span class="sig-type-preview"></span></div>
+            </div>
+          </div>
+          <p class="ffield sign-date"><label for="cw-g-date">Date:</label><input class="input" id="cw-g-date" name="guardian_sign_date" type="text" placeholder="MM/DD/YYYY" autocomplete="off" style="max-width:14rem"></p>
+        </div>
+        </section>
+
+      </article>
+    </form>
+  </section>
+
+
+  <!-- 4a2. Sign the waiver only (phone + iPad friendly) -->
+  <section class="stage" id="stage-client-waiver" hidden aria-labelledby="waiver-title">
+    <div class="backrow no-print">
+      <button class="link" type="button" data-go="client">&larr; Back to New client options</button>
+    </div>
+    <header class="hero no-print" style="margin-bottom:1rem">
+      <p class="kicker">Option 2 · Sign the waiver</p>
+      <h1 id="waiver-title">Client Waiver and Consent</h1>
+      <p class="lead">Sign with your finger, or type your name if that's easier. Nothing typed or signed here is stored or sent anywhere.</p>
+    </header>
+
+    <div class="toolbar no-print">
+      <p class="toolbar-tip"><strong>Tip:</strong> On a phone or iPad, use <strong>Sign with your finger</strong> on the large pad. If that's tricky, choose <strong>Type your name instead</strong>. Then tap <strong>Save as PDF</strong> (Safari: Share / Print &rarr; Save to Files) and <strong>Clear form</strong> when you're done.</p>
+      <div class="toolbar-btns">
+        <button class="btn" type="button" id="waiver-print">Save as PDF</button>
+        <button class="btn ghost" type="button" id="waiver-clear">Clear form</button>
+      </div>
+      <p class="sr" id="waiver-clear-status" role="status" aria-live="polite" style="position:static;width:auto;height:auto;clip:auto;margin:0;color:#3A4A33;font-weight:700"></p>
+    </div>
+
+    <form id="waiver-form" novalidate>
+      <article class="paper-sheet" aria-labelledby="sheet-waiver-solo-h">
+        <header class="sheet-head">
+          <p class="sheet-brand">Eclectic Transformation</p>
+          <h2 id="sheet-waiver-solo-h">Client Waiver and Consent</h2>
+          <p class="sheet-contact">Bryan Nolan, LMT &middot; N.J. Lic. #18KT01214900 &middot; EclecticTransformation.com &middot; bryan@eclectictransformation.com &middot; (973) 462-8810</p>
+        </header>
+
+        <p class="sheet-intro">Please read this short form, ask me anything that’s unclear, and sign before we begin.</p>
+
+        <section class="sheet-sec">
+          <h3>Required acknowledgement</h3>
+          <p><em>The following statement is required, word for word, by N.J.A.C. 13:37A-3.7. It must appear on the signed form before the first service.</em></p>
+          <blockquote class="njac-quote">Massage and bodywork therapy practices are designed to promote and maintain the health and well-being of the client. Massage and bodywork therapies do not include the diagnosis of illness, disease, impairment or disability. If I experience any pain or discomfort during this session, I will immediately inform the therapist so that the pressure and/or manipulations may be adjusted to my level of comfort. Because massage and bodywork therapy may be contraindicated due to certain medical conditions, I affirm that I have informed the therapist of all my known medical conditions and will keep the therapist updated as to any changes in my medical condition.</blockquote>
+          <div class="fgrid cols-2" style="align-items:center;margin-top:0.35rem">
+            <p style="margin:0;font-weight:600">I have read and understand the statement above.</p>
+            <p class="ffield" style="margin:0"><label for="ws-initials">Initials:</label><input class="input" id="ws-initials" name="ack_initials" type="text" maxlength="10" autocomplete="off" style="max-width:10rem"></p>
+          </div>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>The session</h3>
+          <p>I am receiving massage and bodywork from Bryan Nolan, LMT, doing business as Eclectic Transformation. Sessions may include Functional Massage (clothed) or Ooey Gooey Massage (spa-style, with draping). Massage is not a substitute for medical care. Bryan does not diagnose, treat or prescribe for illness, disease, impairment or disability. I will continue to see my own health-care providers as needed.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>My health, my say</h3>
+          <p>I will tell Bryan about conditions, surgeries, implants or hardware, medications, allergies and anything else that might affect a session, and I will update him if that changes. I can ask him to stop, change the pressure or skip any area at any time, for any reason.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Comfort and draping</h3>
+          <p>In clothed sessions, I remain dressed. In spa-style sessions, only the area being worked is undraped; I will be draped at all other times. Intimate areas are not included. I will say if I want more coverage or a different approach.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Ordinary risks</h3>
+          <p>I understand that massage can bring ordinary, foreseeable effects such as temporary soreness, lightheadedness or an emotional release, and I accept those ordinary risks.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Energetic restoration</h3>
+          <p>Energetic restoration is offered as a form of faith healing — a spiritual practice by an ordained Universal Life Church minister, separate from licensed massage, with no medical claims and no promised results.</p>
+          <p>Occasional side effect: some people report feeling better. No extra charge. Results are not promised.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Other thoughts I may share</h3>
+          <p>Any thoughts I share on diet, supplements, psychology or behaviors of the mind come from experience, research and work with people. They are offered for exploration only and do not replace a doctor or other medical professional.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Release</h3>
+          <p>To the extent New Jersey law allows, I release and hold harmless Bryan Nolan, LMT, and Eclectic Transformation from claims arising out of ordinary negligence in connection with these services. This does not apply to gross negligence, recklessness or willful misconduct, and it does not waive any duty that cannot legally be waived, including duties under New Jersey massage and bodywork law.</p>
+        </section>
+
+        <section class="sheet-sec">
+          <h3>Privacy</h3>
+          <p>Your information is kept confidential, and records are kept as required by law. You may have a copy of this form.</p>
+          <p style="font-weight:600">I have read this form, had a chance to ask questions, and I sign it voluntarily.</p>
+        </section>
+
+        <div class="fgrid cols-2">
+          <p class="ffield"><label for="ws-name">Client name (print):</label><input class="input" id="ws-name" name="client_name" type="text" autocomplete="off"></p>
+          <p class="ffield"><label for="ws-dob">Date of birth:</label><input class="input" id="ws-dob" name="client_dob" type="text" placeholder="MM/DD/YYYY" autocomplete="off"></p>
+        </div>
+
+        <div class="sign-group">
+          <div class="ffield sig-block" data-sig="sig-waiver-solo" data-date="ws-date">
+            <span class="fgroup-label" id="sig-waiver-solo-label">Signature:</span>
+            <div class="sig-modes" role="group" aria-labelledby="sig-waiver-solo-label">
+              <button type="button" class="sig-mode" data-mode="finger" aria-pressed="true">Sign with your finger</button>
+              <button type="button" class="sig-mode" data-mode="type" aria-pressed="false">Type your name instead</button>
+            </div>
+            <div class="sig-finger">
+              <div class="sig-wrap sig-wrap-lg">
+                <canvas class="sig-canvas" id="sig-waiver-solo" aria-label="Waiver signature pad"></canvas>
+                <div class="sig-bar">
+                  <span class="sig-hint">A big pad — sign with your finger on this phone or iPad</span>
+                  <button class="sig-clear" type="button" data-clear-sig="sig-waiver-solo">Clear / Redo</button>
+                </div>
+              </div>
+            </div>
+            <div class="sig-type" hidden>
+              <label for="sig-waiver-solo-type">Type your name as your signature</label>
+              <input class="input sig-type-input" id="sig-waiver-solo-type" type="text" maxlength="80" autocomplete="off" placeholder="This appears in script on the signature line">
+              <div class="sig-type-line" aria-hidden="true"><span class="sig-type-preview"></span></div>
+            </div>
+          </div>
+          <p class="ffield sign-date"><label for="ws-date">Date:</label><input class="input" id="ws-date" name="client_sign_date" type="text" placeholder="MM/DD/YYYY" autocomplete="off" style="max-width:14rem"></p>
+        </div>
+
+        <section class="sheet-sec" style="padding-top:0.5rem;border-top:1px solid rgba(26,26,24,0.2)">
+          <p>If the client is under 18, a parent or legal guardian must sign below to consent to the session. If the client is under 16, a parent or legal guardian must also remain in the room. A parent or guardian’s signature does not waive the minor’s own legal claims to the extent New Jersey law does not allow that.</p>
+          <div class="fgrid cols-2">
+            <p class="ffield"><label for="ws-g-name">Parent/guardian name (print):</label><input class="input" id="ws-g-name" name="guardian_name" type="text" autocomplete="off"></p>
+            <p class="ffield"><label for="ws-g-rel">Relationship:</label><input class="input" id="ws-g-rel" name="guardian_relationship" type="text" autocomplete="off"></p>
+          </div>
+        <div class="sign-group">
+          <div class="ffield sig-block" data-sig="sig-guardian-solo" data-date="ws-g-date">
+            <span class="fgroup-label" id="sig-guardian-solo-label">Signature:</span>
+            <div class="sig-modes" role="group" aria-labelledby="sig-guardian-solo-label">
+              <button type="button" class="sig-mode" data-mode="finger" aria-pressed="true">Sign with your finger</button>
+              <button type="button" class="sig-mode" data-mode="type" aria-pressed="false">Type your name instead</button>
+            </div>
+            <div class="sig-finger">
+              <div class="sig-wrap sig-wrap-lg">
+                <canvas class="sig-canvas" id="sig-guardian-solo" aria-label="Parent or guardian signature pad"></canvas>
+                <div class="sig-bar">
+                  <span class="sig-hint">Only needed if the client is under 18</span>
+                  <button class="sig-clear" type="button" data-clear-sig="sig-guardian-solo">Clear / Redo</button>
+                </div>
+              </div>
+            </div>
+            <div class="sig-type" hidden>
+              <label for="sig-guardian-solo-type">Type your name as your signature</label>
+              <input class="input sig-type-input" id="sig-guardian-solo-type" type="text" maxlength="80" autocomplete="off" placeholder="This appears in script on the signature line">
+              <div class="sig-type-line" aria-hidden="true"><span class="sig-type-preview"></span></div>
+            </div>
+          </div>
+          <p class="ffield sign-date"><label for="ws-g-date">Date:</label><input class="input" id="ws-g-date" name="guardian_sign_date" type="text" placeholder="MM/DD/YYYY" autocomplete="off" style="max-width:14rem"></p>
+        </div>
+        </section>
+      </article>
+    </form>
+  </section>
+
+  <!-- 4b. Download forms + Upload filled PDF -->
+  <section class="stage" id="stage-client-download" hidden aria-labelledby="dl-title">
+    <div class="backrow">
+      <button class="link" type="button" data-go="client">&larr; Back to New client options</button>
+    </div>
+    <header class="hero" style="margin-bottom:1rem">
+      <p class="kicker">Option 3 · Fillable PDFs</p>
+      <h1 id="dl-title">Download forms</h1>
+      <p class="lead">Download both forms, then either print and bring them with you, or fill them out on your device and upload the PDF below.</p>
+    </header>
+
+    <div class="card wide">
+      <div class="pdf-grid">
+        <article class="pdf-card">
+          <h3>Client Intake (Fillable PDF)</h3>
+          <p>Short first-visit health history and session preferences (28 fillable fields).</p>
+          <a class="enter" href="forms/intake-fillable-v1.pdf" download="Eclectic-Transformation-Intake-Draft.pdf">Download Intake PDF</a>
+          <a class="link" href="forms/intake-fillable-v1.pdf" target="_blank" rel="noopener">Open in browser tab</a>
+        </article>
+        <article class="pdf-card">
+          <h3>Client Waiver &amp; Consent (Fillable PDF)</h3>
+          <p>Required acknowledgement, session comfort, energetic restoration note, and signature (9 fillable fields).</p>
+          <a class="enter" href="forms/waiver-fillable-v1.pdf" download="Eclectic-Transformation-Waiver-Draft.pdf">Download Waiver PDF</a>
+          <a class="link" href="forms/waiver-fillable-v1.pdf" target="_blank" rel="noopener">Open in browser tab</a>
+        </article>
+      </div>
+
+      <div class="note-box">
+        <strong>Two ways to return them:</strong><br>
+        1. <strong>Print and bring them</strong> to your appointment in person.<br>
+        2. <strong>Or fill them out and upload the saved PDF</strong> below so it goes privately to Bryan.
+      </div>
+
+      <form id="upload-form" novalidate>
+        <h2 style="margin:0 0 0.5rem;font-family:var(--serif);color:var(--moss);font-size:1.3rem">Upload a filled PDF</h2>
+
+        <p class="hp-field" aria-hidden="true">
+          <label for="hp-upload-website">Website</label>
+          <input id="hp-upload-website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </p>
+
+        <div class="ffield" style="margin-bottom:0.85rem">
+          <label for="upload-pdf">Choose filled PDF (PDF only, up to 10 MB)</label>
+          <label class="file-drop">
+            <input id="upload-pdf" name="pdf" type="file" accept=".pdf,application/pdf">
+          </label>
+          <p class="hint" id="upload-file-info"></p>
+        </div>
+
+        <p class="ffield" style="margin-bottom:0.95rem">
+          <label for="upload-email">Email <span style="font-weight:400">(optional, at your own risk)</span></label>
+          <input class="input" id="upload-email" name="email" type="email" autocomplete="email" placeholder="Optional — leave blank if you prefer">
+          <span class="hint" style="display:block;margin-top:0.25rem">Ordinary email is not encrypted. Include an email only if you'd like Bryan to reply about this upload, at your own risk.</span>
+        </p>
+
+        <p class="err" id="upload-err" role="alert"></p>
+        <div class="actions" style="justify-content:flex-start;margin-top:0.65rem">
+          <button class="btn" type="submit">Send PDF privately to Bryan</button>
+        </div>
+      </form>
+
+      <div class="success-box" id="upload-success" hidden>
+        <h3>Sent privately to Bryan</h3>
+        <p>Your filled PDF has been received. Only Bryan can open it.</p>
+        <div class="actions">
+          <button class="btn ghost" type="button" id="upload-another">Upload another PDF</button>
+          <button class="btn" type="button" data-go="doors">Back to the doors</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4c. Quick pre-form (online) -->
+  <section class="stage" id="stage-client-preform" hidden aria-labelledby="pf-title">
+    <div class="backrow">
+      <button class="link" type="button" data-go="client">&larr; Back to New client options</button>
+    </div>
+    <header class="hero" style="margin-bottom:1rem">
+      <p class="kicker">Option 4 · Quick pre-form (online)</p>
+      <h1 id="pf-title">Quick session pre-form</h1>
+      <p class="lead">Give Bryan a short heads-up before your visit. We'll sign the full waiver together in person.</p>
+    </header>
+
+    <div class="card">
+      <div class="note-box warn">
+        <strong>No identifiable information will be saved here.</strong> Please share your first name only — leave out your last name, date of birth, phone number, email, and address.
+      </div>
+
+      <form id="preform" novalidate>
+        <p class="hp-field" aria-hidden="true">
+          <label for="hp-preform-website">Website</label>
+          <input id="hp-preform-website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </p>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="pf-first">First name</label>
+          <input class="input" id="pf-first" name="first_name" type="text" maxlength="60" autocomplete="given-name" required placeholder="First name only">
+        </p>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="pf-why">What brings you in</label>
+          <textarea class="textarea" id="pf-why" name="brings_you_in" rows="2" required placeholder="Soreness, tension, relaxation, or what you'd like to focus on"></textarea>
+        </p>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="pf-cond">Conditions or surgeries</label>
+          <textarea class="textarea" id="pf-cond" name="conditions_surgeries" rows="2" placeholder="Any chronic conditions, recent injuries, or surgeries"></textarea>
+        </p>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="pf-hw">Hardware</label>
+          <textarea class="textarea" id="pf-hw" name="hardware" rows="2" placeholder="Any surgical hardware, pins, plates, or implants"></textarea>
+        </p>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="pf-meds">Medications and history</label>
+          <textarea class="textarea" id="pf-meds" name="medications_history" rows="2" placeholder="Medications or health history Bryan should know before we begin"></textarea>
+        </p>
+
+        <p class="ffield" style="margin-bottom:0.85rem">
+          <label for="pf-allergy">Allergies</label>
+          <textarea class="textarea" id="pf-allergy" name="allergies" rows="2" placeholder="Lotions, essential oils, scents, or anything else"></textarea>
+        </p>
+
+        <p class="err" id="preform-err" role="alert"></p>
+        <div class="actions" style="justify-content:flex-start;margin-top:0.5rem">
+          <button class="btn" type="submit">Send privately to Bryan</button>
+        </div>
+      </form>
+
+      <div class="success-box" id="preform-success" hidden>
+        <h3>Sent privately to Bryan</h3>
+        <p>Thank you. Bryan has your quick session notes for your visit, and no identifiable information was saved here.</p>
+        <div class="actions">
+          <button class="btn ghost" type="button" id="preform-another">Send another note</button>
+          <button class="btn" type="button" data-go="doors">Back to the doors</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 5. Here to explore (Explore as guest OR Make an account) -->
+  <section class="stage" id="stage-explore" hidden aria-labelledby="explore-title">
+    <div class="backrow">
+      <button class="link" type="button" data-go="doors">&larr; Back to the doors</button>
+      <button class="link" type="button" id="not-you-2">Not you?</button>
+    </div>
+    <header class="hero" style="margin-bottom:1.1rem">
+      <p class="kicker">Wander and play</p>
+      <h1 id="explore-title">Here to explore</h1>
+      <p class="lead">A few doors to wander through. Take whichever looks like fun.</p>
+    </header>
+
+    <div class="mode-box" aria-label="Explore options">
+      <div class="mode-tabs" role="group" aria-label="How would you like to explore?">
+        <button class="mode-tab" type="button" id="exp-tab-guest" aria-pressed="true">
+          Explore as guest
+          <small>Name only — wander everything open right away</small>
+        </button>
+        <button class="mode-tab" type="button" id="exp-tab-acct" aria-pressed="false">
+          Make an account
+          <small>Save your spot and request extra tools when approved</small>
+        </button>
+      </div>
+
+      <div class="mode-panel" id="exp-panel-guest">
+        <p id="exp-guest-name" style="margin:0"></p>
+      </div>
+
+      <div class="mode-panel" id="exp-panel-acct" hidden>
+        <form id="exp-acct-form" novalidate>
+          <p class="hp-field" aria-hidden="true">
+            <label for="hp-acct-website">Website</label>
+            <input id="hp-acct-website" name="website" type="text" tabindex="-1" autocomplete="off">
+          </p>
+          <div class="fgrid cols-2">
+            <p class="ffield">
+              <label for="ea-name">Your name</label>
+              <input class="input" id="ea-name" name="name" type="text" maxlength="60" autocomplete="name" required>
+            </p>
+            <p class="ffield">
+              <label for="ea-email">Email</label>
+              <input class="input" id="ea-email" name="email" type="email" autocomplete="email" required>
+            </p>
+          </div>
+          <div class="fgrid cols-2">
+            <p class="ffield">
+              <label for="ea-pw">Password <span style="font-weight:400">(12+ characters)</span></label>
+              <input class="input" id="ea-pw" name="password" type="password" minlength="12" autocomplete="new-password" required>
+            </p>
+            <p class="ffield">
+              <label for="ea-note">What brings you here? <span style="font-weight:400">(optional)</span></label>
+              <input class="input" id="ea-note" name="note" type="text" maxlength="300" placeholder="Optional short note">
+            </p>
+          </div>
+          <label class="biz-check">
+            <input type="checkbox" id="ea-biz" name="business_tools_interest" value="1">
+            <span><strong>I'm interested in business tools</strong> (permissions must be granted and approved)</span>
+          </label>
+          <p class="err" id="exp-acct-err" role="alert"></p>
+          <div class="actions" style="justify-content:flex-start">
+            <button class="btn" type="submit">Request account</button>
+          </div>
+        </form>
+
+        <div class="success-box" id="exp-acct-success" hidden>
+          <h3>Account request saved</h3>
+          <p id="exp-acct-summary"></p>
+          <div class="actions">
+            <button class="btn ghost" type="button" id="exp-acct-reset">Edit or try another</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tiles" id="explore-tiles" aria-label="Places to explore"></div>
+  </section>
+
+  <!-- 6. Business & planning tools -->
+  <section class="stage" id="stage-business" hidden aria-labelledby="business-title">
+    <div class="backrow">
+      <button class="link" type="button" data-go="doors">&larr; Back to the doors</button>
+    </div>
+    <header class="hero" style="margin-bottom:1.1rem">
+      <p class="kicker">Plans and studio</p>
+      <h1 id="business-title">Business &amp; planning tools</h1>
+      <p class="lead">Meet the planners and designers, or open the planning room itself.</p>
+    </header>
+    <div class="tiles" id="business-tiles" aria-label="Business and planning tools"></div>
+  </section>
+
+</main>
+<noscript>
+  <div class="noscript">
+    <p>Please turn on JavaScript to come in this way. You can still open <a href="world.html">Gremlin World</a>, <a href="workshop/">Pip's Workshop</a>, or <a href="business-planning/">Business Planning</a> directly.</p>
+  </div>
+</noscript>
+<link rel="stylesheet" href="access/access.css">
+<script src="access/config.js"></script>
+<script src="access/access.js" data-root="" data-bar="off"></script>
+<script src="entry/live-flag.js"></script>
+<script src="entry/entry.js"></script>
+<script src="entry/intake.js"></script>
+</body>
+</html>

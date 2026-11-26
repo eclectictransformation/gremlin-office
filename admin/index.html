@@ -27,6 +27,7 @@
       <button class="tab" role="tab" data-tab="tickets" aria-selected="false" type="button">Tickets <span id="tn"></span></button>
       <button class="tab" role="tab" data-tab="bp" aria-selected="false" type="button">Business Planning <span id="bn"></span></button>
       <button class="tab" role="tab" data-tab="intake" aria-selected="false" type="button">Client intake <span id="in"></span></button>
+      <button class="tab" role="tab" data-tab="waivers" aria-selected="false" type="button">Event waivers <span id="wn"></span></button>
       <button class="tab" role="tab" data-tab="leads" aria-selected="false" type="button">Business tools leads <span id="ln"></span></button>
       <button class="tab" role="tab" data-tab="settings" aria-selected="false" type="button">Settings</button>
     </div>
@@ -89,6 +90,15 @@
     var r = await c.from("intake_preform").delete().eq("id", id);
     if (r.error) throw r.error;
   }
+  async function wvQuery(table, cols) {
+    if (!LIVE) return [];
+    var c = await previewSb();
+    var r = await c.from(table).select(cols).order("created_at", { ascending: false });
+    if (r.error) throw r.error;
+    return r.data || [];
+  }
+  async function wvUpdate(table, id, patch) { if (!LIVE) return; var c = await previewSb(); var r = await c.from(table).update(patch).eq("id", id); if (r.error) throw r.error; }
+  async function wvDelete(table, id) { if (!LIVE) return; var c = await previewSb(); var r = await c.from(table).delete().eq("id", id); if (r.error) throw r.error; }
   async function loadUploads() {
     if (!LIVE) return MOCK_UPLOADS.slice();
     var c = await previewSb();
@@ -211,6 +221,32 @@
       p.querySelectorAll("[data-pfd]").forEach(function (b) { b.onclick = async function () { if (!confirm("Delete this pre-form note?")) return; try { await deletePreform(b.dataset.pfd); draw(); } catch (e) { alert(e.message); } }; });
       p.querySelectorAll("[data-udl]").forEach(function (b) { b.onclick = async function () { try { await downloadUpload(b.dataset.udl); } catch (e) { alert(e.message); } }; });
       p.querySelectorAll("[data-udl-del]").forEach(function (b) { b.onclick = async function () { if (!confirm("Delete this uploaded PDF?")) return; try { await deleteUpload(b.dataset.udlDel); draw(); } catch (e) { alert(e.message); } }; });
+      return;
+    }
+    if (tab === "waivers") {
+      var wvs = [], news = [], wvErr = "";
+      try { wvs = await wvQuery("event_waivers", "id,created_at,full_name,event_description,printed_name,signature_type,signature_data,signed_on,waiver_version,newsletter_opt_in,reviewed_at"); news = await wvQuery("newsletter_signups", "id,created_at,name,email,source"); } catch (e) { wvErr = e.message || String(e); }
+      var wnn = document.getElementById("wn"), openW = wvs.filter(function (r) { return !r.reviewed_at; }).length; if (wnn) wnn.textContent = openW ? "(" + openW + ")" : "";
+      h = "<h2>Event waivers</h2><p class=\"small\">Signed event waivers and newsletter sign-ups. Nothing here includes payment information.</p>";
+      if (wvErr) h += "<p class=\"err\">" + esc(wvErr) + "</p>";
+      if (!wvs.length) h += "<p class=\"small\">No event waivers yet.</p>";
+      h += wvs.map(function (r) {
+        var reviewed = !!r.reviewed_at;
+        var sig = r.signature_type === "drawn" && /^data:image\/(png|jpeg);base64,/.test(r.signature_data || "") ? "<img alt=\"Signature\" style=\"max-width:100%;height:90px;background:#fff;border:1px solid #ccc;border-radius:6px\" src=\"" + esc(r.signature_data) + "\">" : "<span style=\"font-style:italic;font-size:1.3rem\">" + esc(r.signature_data || "") + "</span> <span class=\"small\">(typed)</span>";
+        return "<div class=\"intake-card" + (reviewed ? " reviewed" : "") + "\"><b>" + esc(r.full_name) + "</b> <span class=\"pill " + (reviewed ? "approved" : "pending") + "\">" + (reviewed ? "reviewed" : "new") + "</span>" + (r.newsletter_opt_in ? " <span class=\"pill approved\">newsletter</span>" : "") +
+          "<div class=\"intake-meta\">Signed " + esc(r.signed_on || "") + " · received " + esc(when(r.created_at)) + "</div>" +
+          "<div class=\"intake-body\"><b>Event:</b> " + esc(r.event_description || "") + "\n<b>Printed name:</b> " + esc(r.printed_name || "") + "\n<b>Waiver version:</b> " + esc(r.waiver_version || "") + "</div>" + sig +
+          "<div class=\"row\" style=\"margin-top:.5rem\"><button class=\"da-btn\" data-wvr=\"" + esc(r.id) + "\" data-on=\"" + (reviewed ? "0" : "1") + "\">" + (reviewed ? "Mark unreviewed" : "Mark reviewed") + "</button> <button class=\"da-btn ghost\" data-wvd=\"" + esc(r.id) + "\">Delete</button></div></div>";
+      }).join("");
+      h += "<h3 style=\"margin-top:1.4rem\">Newsletter sign-ups (" + news.length + ")</h3>";
+      if (!news.length) h += "<p class=\"small\">No newsletter sign-ups yet.</p>";
+      h += news.map(function (n) {
+        return "<div class=\"intake-card\"><b>" + esc(n.name || "(no name)") + "</b> · " + esc(n.email) + "<div class=\"intake-meta\">" + esc(when(n.created_at)) + " · " + esc(n.source || "") + "</div><div class=\"row\"><button class=\"da-btn ghost\" data-nsd=\"" + esc(n.id) + "\">Remove</button></div></div>";
+      }).join("");
+      p.innerHTML = h;
+      p.querySelectorAll("[data-wvr]").forEach(function (b) { b.onclick = async function () { try { await wvUpdate("event_waivers", b.dataset.wvr, { reviewed_at: b.dataset.on === "1" ? new Date().toISOString() : null }); draw(); } catch (e) { alert(e.message); } }; });
+      p.querySelectorAll("[data-wvd]").forEach(function (b) { b.onclick = async function () { if (!confirm("Delete this signed waiver? This can't be undone.")) return; try { await wvDelete("event_waivers", b.dataset.wvd); draw(); } catch (e) { alert(e.message); } }; });
+      p.querySelectorAll("[data-nsd]").forEach(function (b) { b.onclick = async function () { if (!confirm("Remove this newsletter sign-up?")) return; try { await wvDelete("newsletter_signups", b.dataset.nsd); draw(); } catch (e) { alert(e.message); } }; });
       return;
     }
     if (tab === "leads") {
