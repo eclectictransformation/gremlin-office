@@ -275,118 +275,8 @@
   }
 
   /* ------------------------------------------------------------------ */
-  /* 2. Download forms + Upload filled PDF (stone puzzle + honeypot)    */
+  /* 2. Download forms + Upload filled PDF (honeypot only)             */
   /* ------------------------------------------------------------------ */
-  var upPlaced = false;
-  var upDrag = null;
-  var STONE = 48, HOME_W = 118, HOME_H = 92, NEST_W = 72, NEST_H = 64, PAD = 10;
-
-  function rand(min, max) { return Math.floor(min + Math.random() * (max - min + 1)); }
-
-  function overlapEnough(sx, sy, hx, hy) {
-    var nestX = hx + (HOME_W - NEST_W), nestY = hy + (HOME_H - NEST_H);
-    var cx = sx + STONE / 2, cy = sy + STONE / 2;
-    return cx >= nestX - 6 && cx <= nestX + NEST_W + 6 && cy >= nestY - 6 && cy <= nestY + NEST_H + 6;
-  }
-
-  function collide(ax, ay, aw, ah, bx, by, bw, bh, pad) {
-    var p = pad || 0;
-    return ax < bx + bw + p && ax + aw + p > bx && ay < by + bh + p && ay + ah + p > by;
-  }
-
-  function setupUploadPuzzle() {
-    var play = $("upload-play"), home = $("upload-home"), stone = $("upload-stone");
-    var speech = $("upload-speech"), live = $("upload-puzzle-live"), btn = $("upload-place-stone");
-    if (!play || !home || !stone) return;
-
-    function placeRandom() {
-      var r = play.getBoundingClientRect();
-      var W = r.width, H = r.height;
-      if (W < 80 || H < 80) return;
-      var maxHX = Math.max(PAD, W - HOME_W - PAD);
-      var maxHY = Math.max(PAD, H - HOME_H - PAD);
-      var homeOnRight = Math.random() < 0.5;
-      var mid = W / 2;
-      var hx = homeOnRight ? rand(Math.floor(mid + 8), maxHX) : rand(PAD, Math.max(PAD, Math.floor(mid - HOME_W - 8)));
-      var hy = rand(PAD, maxHY);
-      var sx, sy, tries = 0;
-      do {
-        sx = homeOnRight
-          ? rand(PAD, Math.max(PAD, Math.floor(mid - STONE - 8)))
-          : rand(Math.floor(mid + 8), Math.max(Math.floor(mid + 8), W - STONE - PAD));
-        sy = rand(PAD, Math.max(PAD, H - STONE - PAD));
-        tries += 1;
-      } while (tries < 40 && (overlapEnough(sx, sy, hx, hy) || collide(sx, sy, STONE, STONE, hx, hy, HOME_W, HOME_H, 20)));
-      home.style.left = hx + "px";
-      home.style.top = hy + "px";
-      stone.style.left = sx + "px";
-      stone.style.top = sy + "px";
-      home.classList.remove("ready");
-      stone.classList.remove("home", "dragging");
-      upPlaced = false;
-      speech.textContent = "Help me get home!";
-      if (live) live.textContent = "";
-    }
-
-    function settle() {
-      var hx = parseFloat(home.style.left) || 0, hy = parseFloat(home.style.top) || 0;
-      stone.style.left = (hx + (HOME_W - NEST_W) + (NEST_W - STONE) / 2) + "px";
-      stone.style.top = (hy + (HOME_H - NEST_H) + (NEST_H - STONE) / 2 + 4) + "px";
-      stone.classList.add("home");
-      stone.classList.remove("dragging");
-      home.classList.add("ready");
-      upPlaced = true;
-      speech.textContent = "Good job, thanks!";
-      if (live) live.textContent = "Good job, thanks!";
-      var err = $("upload-err");
-      if (err && err.textContent.indexOf("stone") > -1) err.textContent = "";
-    }
-
-    function posFrom(e) {
-      var r = play.getBoundingClientRect();
-      return {
-        x: Math.max(0, Math.min(e.clientX - r.left - STONE / 2, r.width - STONE)),
-        y: Math.max(0, Math.min(e.clientY - r.top - STONE / 2, r.height - STONE))
-      };
-    }
-
-    stone.addEventListener("pointerdown", function (e) {
-      if (upPlaced || (e.button != null && e.button !== 0)) return;
-      e.preventDefault();
-      stone.setPointerCapture(e.pointerId);
-      upDrag = { id: e.pointerId };
-      stone.classList.add("dragging");
-      var p = posFrom(e);
-      stone.style.left = p.x + "px";
-      stone.style.top = p.y + "px";
-    });
-    stone.addEventListener("pointermove", function (e) {
-      if (!upDrag || e.pointerId !== upDrag.id) return;
-      e.preventDefault();
-      var p = posFrom(e);
-      stone.style.left = p.x + "px";
-      stone.style.top = p.y + "px";
-    });
-    function endDrag(e) {
-      if (!upDrag || e.pointerId !== upDrag.id) return;
-      upDrag = null;
-      stone.classList.remove("dragging");
-      try { stone.releasePointerCapture(e.pointerId); } catch (err) {}
-      var sx = parseFloat(stone.style.left) || 0, sy = parseFloat(stone.style.top) || 0;
-      var hx = parseFloat(home.style.left) || 0, hy = parseFloat(home.style.top) || 0;
-      if (overlapEnough(sx, sy, hx, hy)) settle();
-    }
-    stone.addEventListener("pointerup", endDrag);
-    stone.addEventListener("pointercancel", endDrag);
-    if (btn) btn.addEventListener("click", settle);
-
-    window._resetUploadPuzzle = placeRandom;
-    window.addEventListener("beforeprint", function () { sigPads.forEach(function (p) { p.syncPrint && p.syncPrint(); }); });
-    window.addEventListener("resize", function () {
-      var st = $("stage-client-download");
-      if (st && !st.hidden && !upPlaced) placeRandom();
-    });
-  }
 
   function checkPdfMagic(file) {
     return new Promise(function (resolve) {
@@ -448,12 +338,6 @@
         fileInput.focus();
         return;
       }
-      if (!upPlaced) {
-        err.textContent = "Please drag the stone to the gremlin's nest (or use the button) first.";
-        $("upload-place-stone") && $("upload-place-stone").focus();
-        return;
-      }
-
       if (!CFG.USE_LIVE_SUPABASE) {
         form.hidden = true;
         okBox.hidden = false;
@@ -488,7 +372,6 @@
         err.textContent = "";
         form.hidden = false;
         okBox.hidden = true;
-        if (window._resetUploadPuzzle) window._resetUploadPuzzle();
       });
     }
   }
@@ -699,15 +582,11 @@
           sigPads.forEach(function (p) { p.resize(); });
         });
       }
-      if (st === "client-download" && window._resetUploadPuzzle && !upPlaced) {
-        window.requestAnimationFrame(window._resetUploadPuzzle);
-      }
     });
   }
 
   function bindAll() {
     setupSignatures();
-    setupUploadPuzzle();
     setupUploadForm();
     setupPreform();
     setupExploreModes();
