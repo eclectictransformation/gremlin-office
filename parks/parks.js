@@ -36,7 +36,7 @@
   }
 
   /* ---------- state ---------- */
-  var parks = [], byId = {}, reviews = {}, photos = {}, photosOn = false;
+  var parks = [], byId = {}, reviews = {}, photos = {}, events = {}, photosOn = false;
   var st = { q: "", r: C.defaultRadius, f: {}, shown: C.pageSize };
   C.filters.forEach(function (g) { st.f[g.key] = []; });
 
@@ -99,6 +99,20 @@
     return true;
   }
 
+  /* ---------- outside links (Google Maps; we never copy or embed photos) ---------- */
+  function hasLL(p) { return p.latitude != null && p.longitude != null && isFinite(p.latitude) && isFinite(p.longitude); }
+  function photosUrl(p) { return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent([p.name, p.town, p.state].filter(Boolean).join(", ")); }
+  function dirUrl(p) { return hasLL(p) ? "https://www.google.com/maps/dir/?api=1&destination=" + Number(p.latitude).toFixed(5) + "," + Number(p.longitude).toFixed(5) : "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent([p.name, p.town, p.state].filter(Boolean).join(", ")); }
+  var EXT = ' target="_blank" rel="noopener noreferrer"';
+
+  /* ---------- my trip (this browser only) ---------- */
+  var TRIP_KEY = "wlp.trip.v1";
+  function tripIds() { try { var a = JSON.parse(localStorage.getItem(TRIP_KEY) || "[]"); return Array.isArray(a) ? a.filter(function (x) { return typeof x === "string"; }) : []; } catch (e) { return []; } }
+  function tripSave(a) { try { localStorage.setItem(TRIP_KEY, JSON.stringify(a)); } catch (e) {} }
+  function inTrip(id) { return tripIds().indexOf(id) >= 0; }
+  function tripToggle(id) { var a = tripIds(), i = a.indexOf(id); if (i >= 0) a.splice(i, 1); else a.push(id); tripSave(a); tripFab(); }
+  function tripParks() { return tripIds().map(function (id) { return byId[id]; }).filter(Boolean); }
+
   /* ---------- cards ---------- */
   function fact(label, v) { v = String(v || "").trim(); return v && !/^(n\/a|none)$/i.test(v) ? "<li><b>" + esc(label) + ":</b> " + esc(v) + "</li>" : ""; }
   function card(p) {
@@ -113,14 +127,21 @@
       fact("Shelter heat", p.shelter_heat) + fact("Shelter power", p.shelter_power) + fact("Run by", p.managing_agency) + fact("Books through", p.reservation_system) + fact("Good to know", p.notes);
     if (p.booking_link_depth === "park-level") facts += "<li>" + esc(T.parkLevel) + "</li>";
     var where = esc([p.town, p.state].filter(Boolean).join(", ")) + " &middot; " + esc(Number(p.distance_miles).toFixed(0)) + " mi";
-    return '<article class="pk-card" data-id="' + esc(p.id) + '">' +
-      "<h2>" + esc(p.name) + "</h2>" +
+    var ev = (events[p.id] || [])[0], on = inTrip(p.id);
+    var lines = "";
+    if (p.closed) lines += '<p class="pk-line closed">' + esc(p.closed_note || T.closedBadge) + "</p>";
+    if (p.unconfirmed) lines += '<p class="pk-line unconf">' + esc(T.unconfirmed) + "</p>";
+    if (ev) lines += '<p class="pk-line event"><a class="pk-event" href="' + esc(ev.link) + '"' + EXT + ' title="' + esc(ev.title + " · " + T.eventLinkHint) + '">' + esc(ev.date_text || ev.title) + " &rarr;</a></p>";
+    return '<article class="pk-card' + (p.closed ? " is-closed" : "") + '" data-id="' + esc(p.id) + '">' +
+      "<h2>" + esc(p.name) + (p.closed ? ' <span class="pk-badge">' + esc(T.closedBadge) + "</span>" : "") + "</h2>" +
       '<p class="pk-where">' + where + "</p>" +
-      '<div class="pk-icons">' + icons + "</div>" +
+      '<div class="pk-icons">' + icons + "</div>" + lines +
       '<div class="pk-actions">' +
-        (p.reservation_url ? '<a class="btn" href="' + esc(p.reservation_url) + '" target="_blank" rel="noopener noreferrer">' + esc(T.book) + "</a>" : "") +
-        (p.official_page_url ? '<a href="' + esc(p.official_page_url) + '" target="_blank" rel="noopener noreferrer">' + esc(T.official) + "</a>" : "") +
+        (p.closed ? '<span class="pk-nobook">' + esc(T.closedNoBooking) + "</span>" : (p.reservation_url ? '<a class="btn" href="' + esc(p.reservation_url) + '"' + EXT + ">" + esc(T.book) + "</a>" : "")) +
+        (p.official_page_url ? '<a href="' + esc(p.official_page_url) + '"' + EXT + ">" + esc(T.official) + "</a>" : "") +
       "</div>" +
+      '<p class="pk-links"><a data-photos href="' + esc(photosUrl(p)) + '"' + EXT + ">" + esc(T.seePhotos) + '</a> &middot; <a data-dir href="' + esc(dirUrl(p)) + '"' + EXT + ">" + esc(T.directions) + "</a></p>" +
+      '<p class="pk-tripline"><button class="chip trip" type="button" data-trip aria-pressed="' + on + '">' + esc(on ? T.tripAdded + " \u2713" : T.tripAdd) + "</button></p>" +
       '<details class="pk-more"><summary>' + esc(T.about) + '</summary><ul class="pk-facts">' + facts + "</ul></details>" +
       '<details class="pk-more" data-noticed><summary>' + esc(T.noticed) + '</summary><div class="pk-noticed"></div></details>' +
       '<p class="pk-bottom">' + esc(fill(T.lastChecked, { d: monYear(p.last_checked) })) + ' &middot; <button class="linkbtn" type="button" data-corr>' + esc(T.suggest) + "</button></p>" +
@@ -177,6 +198,8 @@
     $("pk-grid").querySelectorAll(".pk-card").forEach(function (el) {
       var p = byId[el.dataset.id];
       el.querySelector("[data-corr]").onclick = function () { openCorr(p); };
+      var tb = el.querySelector("[data-trip]");
+      tb.onclick = function () { tripToggle(p.id); var now = inTrip(p.id); tb.setAttribute("aria-pressed", now); tb.textContent = now ? T.tripAdded + " \u2713" : T.tripAdd; };
       var d = el.querySelector("[data-noticed]");
       d.addEventListener("toggle", function () { if (d.open && !d.dataset.done) { d.dataset.done = "1"; noticed(p, d.querySelector(".pk-noticed"), false); } });
     });
@@ -274,17 +297,97 @@
     revBusy = false; $("rev-send").disabled = false;
   });
 
+  /* ---------- my trip pop-up ---------- */
+  var tripMap = null, tripLayer = null, leafletP = null;
+  $("trip-h").textContent = T.tripTitle; $("trip-lead").textContent = T.tripLead; $("trip-map-note").textContent = T.tripMapNote;
+  $("trip-print").textContent = T.tripPrint; $("trip-share").textContent = T.tripShare; $("trip-sms").textContent = T.tripText;
+  $("trip-mail").textContent = T.tripEmail; $("trip-clear").textContent = T.tripClear; $("trip-close").textContent = T.close;
+  $("trip-print-note").textContent = T.tripPrintNote;
+  if (!navigator.share) $("trip-share").hidden = true;
+  function tripFab() {
+    var n = tripParks().length, b = $("trip-fab");
+    b.textContent = fill(T.tripButton, { n: n }); b.hidden = n === 0;
+  }
+  function loadLeaflet() {
+    if (window.L) return Promise.resolve(window.L);
+    if (leafletP) return leafletP;
+    var M = C.tripMap;
+    leafletP = new Promise(function (ok, bad) {
+      var l = document.createElement("link"); l.rel = "stylesheet"; l.href = M.leafletCss; l.integrity = M.leafletCssSri; l.crossOrigin = ""; document.head.appendChild(l);
+      var s = document.createElement("script"); s.src = M.leafletJs; s.integrity = M.leafletJsSri; s.crossOrigin = ""; s.async = true;
+      s.onload = function () { ok(window.L); }; s.onerror = function () { leafletP = null; bad(new Error("map")); };
+      document.head.appendChild(s);
+    });
+    return leafletP;
+  }
+  function tripText() {
+    var ps = tripParks(), out = [T.tripShareHeader, ""];
+    ps.forEach(function (p, i) {
+      out.push((i + 1) + ". " + p.name + " (" + [p.town, p.state].filter(Boolean).join(", ") + ")");
+      out.push(T.tripDirections + ": " + dirUrl(p));
+      out.push("");
+    });
+    out.push(T.tripShareFooter);
+    out.push(location.origin + location.pathname);
+    return out.join("\n");
+  }
+  function drawTrip() {
+    var ps = tripParks();
+    $("trip-empty").textContent = T.tripEmpty; $("trip-empty").hidden = ps.length > 0;
+    $("trip-list").innerHTML = ps.map(function (p, i) {
+      return '<li><span class="num">' + (i + 1) + '</span><div class="tl-body"><b>' + esc(p.name) + "</b>" +
+        '<span class="tl-town">' + esc([p.town, p.state].filter(Boolean).join(", ")) + (p.closed ? " &middot; " + esc(T.closedBadge) : "") + "</span>" +
+        '<a class="tl-dir" href="' + esc(dirUrl(p)) + '"' + EXT + ">" + esc(T.directions) + "</a></div>" +
+        '<button class="linkbtn no-print" type="button" data-rm="' + esc(p.id) + '" aria-label="' + esc(T.tripRemove + " " + p.name) + '">' + esc(T.tripRemove) + "</button></li>";
+    }).join("");
+    $("trip-list").querySelectorAll("[data-rm]").forEach(function (b) { b.onclick = function () { tripToggle(b.dataset.rm); drawTrip(); render(); }; });
+    var txt = tripText();
+    $("trip-sms").href = "sms:?&body=" + encodeURIComponent(txt);
+    $("trip-mail").href = "mailto:?subject=" + encodeURIComponent(T.tripEmailSubject) + "&body=" + encodeURIComponent(txt);
+    ["trip-actions", "trip-map-wrap"].forEach(function (id) { $(id).hidden = !ps.length; });
+    if (!ps.length) return;
+    loadLeaflet().then(function (L) {
+      if (!tripMap) {
+        tripMap = L.map("trip-map", { scrollWheelZoom: false });
+        L.tileLayer(C.tripMap.tiles, { maxZoom: 18, attribution: C.tripMap.attribution }).addTo(tripMap);
+      }
+      if (tripLayer) tripLayer.remove();
+      tripLayer = L.layerGroup().addTo(tripMap);
+      var pts = [];
+      ps.forEach(function (p, i) {
+        if (!hasLL(p)) return;
+        var ll = [Number(p.latitude), Number(p.longitude)]; pts.push(ll);
+        L.marker(ll, { icon: L.divIcon({ className: "trip-pin", html: "<span>" + (i + 1) + "</span>", iconSize: [28, 28], iconAnchor: [14, 14] }), title: p.name, alt: p.name })
+          .bindPopup("<b>" + esc(p.name) + "</b><br>" + esc([p.town, p.state].filter(Boolean).join(", ")))
+          .addTo(tripLayer);
+      });
+      setTimeout(function () {
+        tripMap.invalidateSize();
+        if (pts.length === 1) tripMap.setView(pts[0], 11); else if (pts.length) tripMap.fitBounds(pts, { padding: [28, 28], maxZoom: 12 });
+      }, 60);
+    }).catch(function () { $("trip-map").innerHTML = '<p class="pk-soon">' + esc(T.loadError) + "</p>"; });
+  }
+  $("trip-fab").onclick = function () { $("dlg-trip").showModal(); drawTrip(); };
+  $("trip-close").onclick = function () { $("dlg-trip").close(); };
+  $("trip-clear").onclick = function () { if (!confirm(T.tripClearAsk)) return; tripSave([]); tripFab(); drawTrip(); render(); };
+  $("trip-share").onclick = function () { navigator.share({ title: T.tripShareTitle, text: tripText() }).catch(function () {}); };
+  $("trip-print").onclick = function () { window.print(); };
+  window.addEventListener("beforeprint", function () { if ($("dlg-trip").open) { document.body.classList.add("print-trip"); if (tripMap) tripMap.invalidateSize(); } });
+  window.addEventListener("afterprint", function () { document.body.classList.remove("print-trip"); });
+  window.addEventListener("storage", function (e) { if (e.key === TRIP_KEY) { tripFab(); if (parks.length) render(); } });
+
   /* ---------- load ---------- */
   (async function load() {
     $("pk-results").textContent = "…";
     try {
       var c = await sb();
-      var cols = "id,name,parent_park,state,town,county,nearest_town_county,distance_miles,camping_types,other_lodging_structures,lean_tos_shelters,winter_dates_season,pets_allowed_campsites,pets_allowed_cabins,electric_hookup_sites,cabin_power,cabin_heat_source,shelter_heat,shelter_power,managing_agency,reservation_system,reservation_url,booking_link_depth,official_page_url,notes,stay_types,winter_open,pets,electric,last_checked";
+      var cols = "id,name,parent_park,state,town,county,nearest_town_county,distance_miles,camping_types,other_lodging_structures,lean_tos_shelters,winter_dates_season,pets_allowed_campsites,pets_allowed_cabins,electric_hookup_sites,cabin_power,cabin_heat_source,shelter_heat,shelter_power,managing_agency,reservation_system,reservation_url,booking_link_depth,official_page_url,notes,stay_types,winter_open,pets,electric,last_checked,latitude,longitude,closed,closed_note,unconfirmed";
       var res = await Promise.all([
         c.from("parks").select(cols).eq("published", true).eq("kind", "camp").order("distance_miles"),
         c.from("park_reviews").select("park_id,fav_saw,wildlife,why_go,season,created_at").eq("status", "approved").order("created_at", { ascending: false }),
         c.from("park_photos").select("park_id,season,storage_path,created_at").eq("status", "approved").order("created_at", { ascending: false }),
-        c.from("park_settings").select("photos_enabled").eq("id", 1).maybeSingle()
+        c.from("park_settings").select("photos_enabled").eq("id", 1).maybeSingle(),
+        c.from("park_events").select("park_id,title,date_text,starts_on,ends_on,link").eq("published", true).order("starts_on", { nullsFirst: false })
       ]);
       if (res[0].error) throw res[0].error;
       parks = res[0].data || [];
@@ -292,7 +395,8 @@
       (res[1].data || []).forEach(function (r) { (reviews[r.park_id] = reviews[r.park_id] || []).push(r); });
       (res[2].data || []).forEach(function (r) { (photos[r.park_id] = photos[r.park_id] || []).push(r); });
       photosOn = !!(res[3].data && res[3].data.photos_enabled);
-      render();
+      (res[4].data || []).forEach(function (e) { (events[e.park_id] = events[e.park_id] || []).push(e); });
+      render(); tripFab();
     } catch (e) {
       drawRadii();
       $("pk-results").textContent = T.loadError;

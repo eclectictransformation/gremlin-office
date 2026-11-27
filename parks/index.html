@@ -77,6 +77,26 @@
   <div class="ok" id="rev-ok" hidden><p id="rev-ok-msg"></p><div class="row"><button class="btn" type="button" data-close></button></div></div>
 </dialog>
 
+<button class="trip-fab no-print" id="trip-fab" type="button" hidden></button>
+
+<dialog class="pk-dlg trip-dlg" id="dlg-trip" aria-labelledby="trip-h">
+  <div class="trip-sheet">
+    <div class="trip-head"><h2 id="trip-h"></h2><button class="btn ghost no-print" type="button" id="trip-close"></button></div>
+    <p class="sub" id="trip-lead"></p>
+    <p class="sub" id="trip-empty" hidden></p>
+    <div id="trip-map-wrap"><div id="trip-map" role="region" aria-label="Map of my trip"></div><p class="help" id="trip-map-note"></p></div>
+    <ol class="trip-list" id="trip-list"></ol>
+    <div class="trip-actions no-print" id="trip-actions">
+      <button class="btn" type="button" id="trip-print"></button>
+      <button class="btn ghost" type="button" id="trip-share"></button>
+      <a class="btn ghost" id="trip-sms" href="sms:"></a>
+      <a class="btn ghost" id="trip-mail" href="mailto:"></a>
+      <button class="linkbtn" type="button" id="trip-clear"></button>
+    </div>
+    <p class="help print-only" id="trip-print-note"></p>
+  </div>
+</dialog>
+
 <script src="../access/config.js"></script>
 <script src="parks-config.js"></script>
 <script src="parks.js"></script>

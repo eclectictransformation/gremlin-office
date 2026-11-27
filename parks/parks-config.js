@@ -8,7 +8,7 @@ window.PARKS_CONFIG = {
 
   // Filter groups behind the "Filters" button. "value" must match the database fields; labels are free text.
   filters: [
-    { key: "state",   label: "State",     options: [ { value: "NJ", label: "New Jersey" }, { value: "PA", label: "Pennsylvania" } ] },
+    { key: "state",   label: "State",     options: [ { value: "NJ", label: "New Jersey" }, { value: "NY", label: "New York" }, { value: "PA", label: "Pennsylvania" } ] },
     { key: "stay",    label: "Stay type", options: [ { value: "tent", label: "Tent" }, { value: "rv", label: "RV" }, { value: "cabin", label: "Cabin" }, { value: "group", label: "Group site" } ] },
     { key: "winter",  label: "Winter",    options: [ { value: "yes", label: "Open in winter" } ] },
     { key: "pets",    label: "Pets",      options: [ { value: "yes", label: "Pets allowed" } ] },
@@ -31,6 +31,16 @@ window.PARKS_CONFIG = {
     { key: "wildlife", label: "Did you spot any birds or wildlife?" },
     { key: "why_go",   label: "Why would you tell a friend to go?" }
   ],
+
+  // Map for "My trip" (loaded only when the pop-up opens). Free OpenStreetMap tiles; keep the attribution.
+  tripMap: {
+    leafletCss: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
+    leafletCssSri: "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=",
+    leafletJs: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+    leafletJsSri: "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=",
+    tiles: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+  },
 
   seasons: [ { value: "spring", label: "Spring" }, { value: "summer", label: "Summer" }, { value: "fall", label: "Fall" }, { value: "winter", label: "Winter" } ],
 
@@ -83,6 +93,36 @@ window.PARKS_CONFIG = {
     close: "Close",
     sendFail: "Sorry, that didn't go through. Please try again in a little bit.",
     backLink: "Back to the Desks",
-    footer: "Built by hand, one park at a time. If something's wrong, tell us and we'll fix it."
+    footer: "Built by hand, one park at a time. If something's wrong, tell us and we'll fix it.",
+
+    // Card extras
+    closedBadge: "Closed",
+    closedNoBooking: "Not taking bookings right now",
+    unconfirmed: "Some details here aren't confirmed yet. Check the official page before you go.",
+    seePhotos: "See photos",
+    directions: "Get directions",
+    eventLinkHint: "Opens our workshops page",
+    tripAdd: "Add to my trip",
+    tripAdded: "In my trip",
+
+    // Plan my park trip (saved only in this browser; nothing is sent to us)
+    tripButton: "My trip ({n})",
+    tripTitle: "My park trip",
+    tripLead: "Here are the parks you picked. This list lives only on this device, so nothing is sent to us. Print it, save it, or send it to yourself.",
+    tripEmpty: "Nothing here yet. Tap \"Add to my trip\" on a park or two.",
+    tripMapNote: "Map: pins show roughly where each park is.",
+    tripRemove: "Remove",
+    tripPrint: "Print or save as PDF",
+    tripShare: "Share",
+    tripText: "Text it to myself",
+    tripEmail: "Email it to myself",
+    tripClear: "Clear my trip",
+    tripClearAsk: "Clear every park from your trip?",
+    tripShareTitle: "My park trip",
+    tripShareHeader: "My park trip, from Wandering the Local Parks",
+    tripShareFooter: "Hours, fees and openings change. Check each official page before you go.",
+    tripEmailSubject: "My park trip",
+    tripDirections: "Directions",
+    tripPrintNote: "Put together with Wandering the Local Parks. Hours, fees and openings change, so check each official page before you go."
   }
 };
