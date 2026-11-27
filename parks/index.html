@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wandering the Local Parks · Eclectic Transformation</title>
-<meta name="description" content="Places to camp near Hackettstown, NJ, with links straight to each park's booking page.">
+<meta name="description" content="Places to camp and places to see near Hackettstown, NJ, with links straight to each park's own pages.">
 <meta name="theme-color" content="#3E5A45">
 <link rel="icon" type="image/png" sizes="32x32" href="../desks-preview-q7m4/icons/favicon-32.png">
 <link rel="stylesheet" href="parks.css">
@@ -18,11 +18,11 @@
   <p class="pk-note" id="pk-note"></p>
 
   <div class="pk-tabs" role="tablist">
-    <button class="pk-tab" role="tab" id="tab-camp" aria-selected="true" aria-controls="pane-camp" type="button"></button>
-    <button class="pk-tab grey" role="tab" id="tab-see" aria-selected="false" aria-controls="pane-see" type="button"></button>
+    <button class="pk-tab" role="tab" id="tab-camp" aria-selected="true" aria-controls="pane-list" type="button"></button>
+    <button class="pk-tab" role="tab" id="tab-see" aria-selected="false" aria-controls="pane-list" type="button"></button>
   </div>
 
-  <section id="pane-camp" role="tabpanel" aria-labelledby="tab-camp">
+  <section id="pane-list" role="tabpanel" aria-labelledby="tab-camp">
     <label class="pk-hp" for="pk-q">Search</label>
     <input class="pk-search" id="pk-q" type="search" autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="pk-row" id="pk-radii" role="group" aria-label="Distance"></div>
@@ -32,10 +32,6 @@
     <div class="pk-grid" id="pk-grid"></div>
     <div class="pk-empty" id="pk-empty" hidden></div>
     <div class="pk-more-wrap"><button class="btn ghost" id="pk-more" type="button" hidden></button></div>
-  </section>
-
-  <section id="pane-see" role="tabpanel" aria-labelledby="tab-see" hidden>
-    <p class="pk-soon" id="pk-see-soon"></p>
   </section>
 
   <p class="pk-foot" id="pk-foot"></p>

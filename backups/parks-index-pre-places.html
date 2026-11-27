@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wandering the Local Parks · Eclectic Transformation</title>
+<meta name="description" content="Places to camp near Hackettstown, NJ, with links straight to each park's booking page.">
+<meta name="theme-color" content="#3E5A45">
+<link rel="icon" type="image/png" sizes="32x32" href="../desks-preview-q7m4/icons/favicon-32.png">
+<link rel="stylesheet" href="parks.css">
+</head>
+<body>
+<main class="pk-wrap">
+  <p class="pk-back"><a href="../?door=explore" id="pk-back">&larr; Back to the Desks</a></p>
+  <p class="pk-kicker" id="pk-kicker"></p>
+  <h1 id="pk-title"></h1>
+  <p class="pk-intro" id="pk-intro"></p>
+  <p class="pk-note" id="pk-note"></p>
+
+  <div class="pk-tabs" role="tablist">
+    <button class="pk-tab" role="tab" id="tab-camp" aria-selected="true" aria-controls="pane-camp" type="button"></button>
+    <button class="pk-tab grey" role="tab" id="tab-see" aria-selected="false" aria-controls="pane-see" type="button"></button>
+  </div>
+
+  <section id="pane-camp" role="tabpanel" aria-labelledby="tab-camp">
+    <label class="pk-hp" for="pk-q">Search</label>
+    <input class="pk-search" id="pk-q" type="search" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="pk-row" id="pk-radii" role="group" aria-label="Distance"></div>
+    <div class="pk-panel" id="pk-panel" hidden></div>
+    <div class="pk-row" id="pk-active" aria-label="Active filters"></div>
+    <p class="pk-results" id="pk-results" aria-live="polite"></p>
+    <div class="pk-grid" id="pk-grid"></div>
+    <div class="pk-empty" id="pk-empty" hidden></div>
+    <div class="pk-more-wrap"><button class="btn ghost" id="pk-more" type="button" hidden></button></div>
+  </section>
+
+  <section id="pane-see" role="tabpanel" aria-labelledby="tab-see" hidden>
+    <p class="pk-soon" id="pk-see-soon"></p>
+  </section>
+
+  <p class="pk-foot" id="pk-foot"></p>
+</main>
+
+<dialog class="pk-dlg" id="dlg-corr" aria-labelledby="corr-h">
+  <form id="corr-form" novalidate>
+    <h2 id="corr-h"></h2>
+    <p class="sub" id="corr-park"></p>
+    <p class="sub" id="corr-lead"></p>
+    <p class="pk-hp" aria-hidden="true"><label for="corr-site">Website</label><input id="corr-site" type="text" tabindex="-1" autocomplete="off"></p>
+    <label for="corr-what" id="corr-what-l"></label>
+    <textarea id="corr-what" rows="4" maxlength="1500" required></textarea>
+    <label for="corr-where" id="corr-where-l"></label>
+    <input id="corr-where" type="text" maxlength="500" autocomplete="off">
+    <p class="err" id="corr-err" role="alert"></p>
+    <div class="row"><button class="btn ghost" type="button" data-close></button><button class="btn" type="submit" id="corr-send"></button></div>
+  </form>
+  <div class="ok" id="corr-ok" hidden><p id="corr-ok-msg"></p><div class="row"><button class="btn" type="button" data-close></button></div></div>
+</dialog>
+
+<dialog class="pk-dlg" id="dlg-rev" aria-labelledby="rev-h">
+  <form id="rev-form" novalidate>
+    <h2 id="rev-h"></h2>
+    <p class="sub" id="rev-park"></p>
+    <p class="help" id="rev-help"></p>
+    <p class="pk-hp" aria-hidden="true"><label for="rev-site">Website</label><input id="rev-site" type="text" tabindex="-1" autocomplete="off"></p>
+    <div id="rev-prompts"></div>
+    <label id="rev-season-l"></label>
+    <div class="pk-row" id="rev-season" role="group" aria-labelledby="rev-season-l"></div>
+    <div id="rev-photo-box">
+      <label for="rev-photo" id="rev-photo-l"></label>
+      <input id="rev-photo" type="file" accept="image/*">
+      <img class="pk-prev" id="rev-prev" alt="" hidden>
+    </div>
+    <p class="err" id="rev-err" role="alert"></p>
+    <div class="row"><button class="btn ghost" type="button" data-close></button><button class="btn" type="submit" id="rev-send"></button></div>
+  </form>
+  <div class="ok" id="rev-ok" hidden><p id="rev-ok-msg"></p><div class="row"><button class="btn" type="button" data-close></button></div></div>
+</dialog>
+
+<button class="trip-fab no-print" id="trip-fab" type="button" hidden></button>
+
+<dialog class="pk-dlg trip-dlg" id="dlg-trip" aria-labelledby="trip-h">
+  <div class="trip-sheet">
+    <div class="trip-head"><h2 id="trip-h"></h2><button class="btn ghost no-print" type="button" id="trip-close"></button></div>
+    <p class="sub" id="trip-lead"></p>
+    <p class="sub" id="trip-empty" hidden></p>
+    <div id="trip-map-wrap"><div id="trip-map" role="region" aria-label="Map of my trip"></div><p class="help" id="trip-map-note"></p></div>
+    <ol class="trip-list" id="trip-list"></ol>
+    <div class="trip-actions no-print" id="trip-actions">
+      <button class="btn" type="button" id="trip-print"></button>
+      <button class="btn ghost" type="button" id="trip-share"></button>
+      <a class="btn ghost" id="trip-sms" href="sms:"></a>
+      <a class="btn ghost" id="trip-mail" href="mailto:"></a>
+      <button class="linkbtn" type="button" id="trip-clear"></button>
+    </div>
+    <p class="help print-only" id="trip-print-note"></p>
+  </div>
+</dialog>
+
+<script src="../access/config.js"></script>
+<script src="parks-config.js"></script>
+<script src="parks.js"></script>
+</body>
+</html>

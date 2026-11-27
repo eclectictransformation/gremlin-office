@@ -36,20 +36,24 @@
   }
 
   /* ---------- state ---------- */
-  var parks = [], byId = {}, reviews = {}, photos = {}, events = {}, photosOn = false;
-  var st = { q: "", r: C.defaultRadius, f: {}, shown: C.pageSize };
-  C.filters.forEach(function (g) { st.f[g.key] = []; });
+  var parks = [], places = [], placesErr = false, byId = {}, reviews = {}, photos = {}, events = {}, photosOn = false;
+  function newState(groups) { var o = { q: "", r: C.defaultRadius, f: {}, shown: C.pageSize }; groups.forEach(function (g) { o.f[g.key] = []; }); return o; }
+  var tab = "camp", stCamp = newState(C.filters), stSee = newState(C.seeFilters), st = stCamp;
+  function FG() { return tab === "see" ? C.seeFilters : C.filters; }
 
   /* ---------- static text ---------- */
   $("pk-kicker").textContent = T.kicker; $("pk-title").textContent = T.title; $("pk-intro").textContent = T.intro;
   $("pk-note").textContent = T.note; $("tab-camp").textContent = T.tabCamp; $("tab-see").textContent = T.tabSee;
-  $("pk-see-soon").textContent = T.seeSoon; $("pk-q").placeholder = T.searchPlaceholder; $("pk-foot").textContent = T.footer;
+  $("pk-q").placeholder = T.searchPlaceholder; $("pk-foot").textContent = T.footer;
   $("pk-back").innerHTML = "&larr; " + esc(T.backLink);
   document.querySelectorAll("[data-close]").forEach(function (b) { b.textContent = T.close; b.onclick = function () { b.closest("dialog").close(); }; });
 
   function setTab(see) {
     $("tab-camp").setAttribute("aria-selected", !see); $("tab-see").setAttribute("aria-selected", see);
-    $("pane-camp").hidden = see; $("pane-see").hidden = !see;
+    $("pane-list").setAttribute("aria-labelledby", see ? "tab-see" : "tab-camp");
+    tab = see ? "see" : "camp"; st = see ? stSee : stCamp;
+    $("pk-q").value = st.q; $("pk-panel").hidden = true;
+    if (parks.length || places.length) render(); else drawRadii();
   }
   $("tab-camp").onclick = function () { setTab(false); };
   $("tab-see").onclick = function () { setTab(true); };
@@ -65,7 +69,7 @@
   }
   function drawPanel() {
     if ($("pk-panel").hidden) return;
-    var h = C.filters.map(function (g) {
+    var h = FG().map(function (g) {
       return '<div class="pk-group"><h3>' + esc(g.label) + '</h3><div class="pk-row" role="group" aria-label="' + esc(g.label) + '">' +
         g.options.map(function (o) { var on = st.f[g.key].indexOf(o.value) >= 0; return '<button class="chip" type="button" data-g="' + esc(g.key) + '" data-v="' + esc(o.value) + '" aria-pressed="' + on + '">' + esc(o.label) + "</button>"; }).join("") + "</div></div>";
     }).join("");
@@ -77,7 +81,7 @@
   function toggle(g, v) { var a = st.f[g], i = a.indexOf(v); if (i >= 0) a.splice(i, 1); else a.push(v); st.shown = C.pageSize; drawPanel(); render(); }
   function drawActive() {
     var pills = [];
-    C.filters.forEach(function (g) { g.options.forEach(function (o) { if (st.f[g.key].indexOf(o.value) >= 0) pills.push('<button class="pill" type="button" data-g="' + esc(g.key) + '" data-v="' + esc(o.value) + '" aria-label="Remove ' + esc(o.label) + '">' + esc(o.label) + ' <span aria-hidden="true">&times;</span></button>'); }); });
+    FG().forEach(function (g) { g.options.forEach(function (o) { if (st.f[g.key].indexOf(o.value) >= 0) pills.push('<button class="pill" type="button" data-g="' + esc(g.key) + '" data-v="' + esc(o.value) + '" aria-label="Remove ' + esc(o.label) + '">' + esc(o.label) + ' <span aria-hidden="true">&times;</span></button>'); }); });
     var el = $("pk-active");
     el.innerHTML = pills.length ? pills.join("") + '<button class="linkbtn" type="button" id="pk-clear">' + esc(T.clearFilters) + "</button>" : "";
     el.hidden = !pills.length;
@@ -87,6 +91,17 @@
 
   /* ---------- filtering ---------- */
   function norm(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+  function matchSee(p) {
+    if (Number(p.distance_miles) > st.r) return false;
+    if (st.q) { var hay = norm([p.name, p.parent_park, p.town, p.county, p.nearest_town_county].join(" ")); if (norm(st.q).split(/\s+/).some(function (w) { return w && hay.indexOf(w) < 0; })) return false; }
+    var f = st.f;
+    if (f.state.length && f.state.indexOf(p.state) < 0) return false;
+    if (f.type.length && !f.type.some(function (v) { return v.split(",").indexOf(p.category) >= 0; })) return false;
+    if (f.bath.length && p.bathrooms_kind !== "yes") return false;
+    if (f.fee.length && p.fee_kind !== "free") return false;
+    if (f.drive.length && p.drive_up_kind !== "yes") return false;
+    return true;
+  }
   function match(p) {
     if (Number(p.distance_miles) > st.r) return false;
     if (st.q) { var hay = norm([p.name, p.parent_park, p.town, p.county, p.nearest_town_county].join(" ")); if (norm(st.q).split(/\s+/).some(function (w) { return w && hay.indexOf(w) < 0; })) return false; }
@@ -102,7 +117,11 @@
   /* ---------- outside links (Google Maps; we never copy or embed photos) ---------- */
   function hasLL(p) { return p.latitude != null && p.longitude != null && isFinite(p.latitude) && isFinite(p.longitude); }
   function photosUrl(p) { return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent([p.name, p.town, p.state].filter(Boolean).join(", ")); }
-  function dirUrl(p) { return hasLL(p) ? "https://www.google.com/maps/dir/?api=1&destination=" + Number(p.latitude).toFixed(5) + "," + Number(p.longitude).toFixed(5) : "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent([p.name, p.town, p.state].filter(Boolean).join(", ")); }
+  function hasParking(p) { return p.parking_latitude != null && p.parking_longitude != null && isFinite(p.parking_latitude) && isFinite(p.parking_longitude); }
+  function dirUrl(p) {
+    if (hasParking(p)) return "https://www.google.com/maps/dir/?api=1&destination=" + Number(p.parking_latitude).toFixed(5) + "," + Number(p.parking_longitude).toFixed(5);
+    return hasLL(p) ? "https://www.google.com/maps/dir/?api=1&destination=" + Number(p.latitude).toFixed(5) + "," + Number(p.longitude).toFixed(5) : "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent([p.name, p.town, p.state].filter(Boolean).join(", "));
+  }
   var EXT = ' target="_blank" rel="noopener noreferrer"';
 
   /* ---------- my trip (this browser only) ---------- */
@@ -148,6 +167,30 @@
       "</article>";
   }
 
+  function tripBtn(p) { var on = inTrip(p.id); return '<p class="pk-tripline"><button class="chip trip" type="button" data-trip aria-pressed="' + on + '">' + esc(on ? T.tripAdded + " \u2713" : T.tripAdd) + "</button></p>"; }
+  function cardSee(p) {
+    var Q = C.quick, type = C.typeLabels[p.category] || "";
+    var where = esc([p.town, p.state].filter(Boolean).join(", ")) + " &middot; " + esc(Number(p.distance_miles).toFixed(0)) + " mi" + (type ? " &middot; " + esc(type) : "");
+    var parent = p.parent_park && norm(p.name).indexOf(norm(p.parent_park)) < 0 ? '<p class="pk-parent">' + esc(fill(T.seeIn, { park: p.parent_park })) + "</p>" : "";
+    var quick = [Q.fee[p.fee_kind] || Q.fee.unknown, Q.bath[p.bathrooms_kind] || Q.bath.unknown, Q.drive[p.drive_up_kind] || Q.drive.unknown]
+      .map(function (t, i) { return '<li class="q' + i + '">' + esc(t) + "</li>"; }).join("");
+    var facts = fact(T.seeFee, p.fee) + fact(T.seeBath, p.bathrooms) + fact(T.seeDrive, p.drive_up_access) + fact(T.seePets, p.pets_allowed) +
+      fact(T.seeWhat, p.highlights) + fact(T.seeRunBy, p.managing_agency);
+    return '<article class="pk-card pk-see' + (p.unconfirmed ? " is-unconf" : "") + '" data-id="' + esc(p.id) + '">' +
+      "<h2>" + esc(p.name) + "</h2>" + parent +
+      '<p class="pk-where">' + where + "</p>" +
+      (p.unconfirmed ? '<div class="pk-unconf" role="note"><p class="pk-unconf-h">' + esc(T.notConfirmed) + "</p><p>" + esc(p.unconfirmed_note || T.unconfirmed) + "</p></div>" : "") +
+      (p.hours_season ? '<p class="pk-hours"><b>' + esc(T.seeHours) + ":</b> " + esc(p.hours_season) + "</p>" : "") +
+      '<ul class="pk-quick">' + quick + "</ul>" +
+      '<div class="pk-actions">' + (p.official_page_url ? '<a class="btn" href="' + esc(p.official_page_url) + '"' + EXT + ">" + esc(T.officialBtn) + "</a>" : "") + "</div>" +
+      '<p class="pk-links"><a data-photos href="' + esc(photosUrl(p)) + '"' + EXT + ">" + esc(T.seePhotos) + '</a> &middot; <a data-dir href="' + esc(dirUrl(p)) + '"' + EXT + ">" + esc(T.directions) + "</a>" +
+        (hasParking(p) ? '<br><span class="pk-dirnote">' + esc(T.dirParking) + "</span>" : "") + "</p>" +
+      tripBtn(p) +
+      (facts ? '<details class="pk-more"><summary>' + esc(T.about) + '</summary><ul class="pk-facts">' + facts + "</ul></details>" : "") +
+      '<p class="pk-bottom">' + esc(fill(T.lastChecked, { d: monYear(p.last_checked) })) + "</p>" +
+      "</article>";
+  }
+
   function noticed(p, box, all) {
     var rs = reviews[p.id] || [], ph = photos[p.id] || [], h = "";
     if (!rs.length && !ph.length) h += '<p class="pk-rev who">' + esc(T.noticedNone) + "</p>";
@@ -182,10 +225,12 @@
 
   function render() {
     drawRadii(); drawActive();
-    var list = parks.filter(match);
+    var see = tab === "see";
+    var list = see ? places.filter(matchSee) : parks.filter(match);
     var n = list.length;
     $("pk-results").textContent = fill(T.results, { n: n, places: n === 1 ? T.resultsOne : T.resultsMany, r: st.r });
-    $("pk-grid").innerHTML = list.slice(0, st.shown).map(card).join("");
+    $("pk-grid").innerHTML = list.slice(0, st.shown).map(see ? cardSee : card).join("");
+    if (see && placesErr) $("pk-results").textContent = T.loadError;
     $("pk-more").hidden = n <= st.shown; $("pk-more").textContent = T.showMore;
     var empty = $("pk-empty");
     empty.hidden = n > 0;
@@ -197,11 +242,11 @@
     }
     $("pk-grid").querySelectorAll(".pk-card").forEach(function (el) {
       var p = byId[el.dataset.id];
-      el.querySelector("[data-corr]").onclick = function () { openCorr(p); };
+      var cb = el.querySelector("[data-corr]"); if (cb) cb.onclick = function () { openCorr(p); };
       var tb = el.querySelector("[data-trip]");
       tb.onclick = function () { tripToggle(p.id); var now = inTrip(p.id); tb.setAttribute("aria-pressed", now); tb.textContent = now ? T.tripAdded + " \u2713" : T.tripAdd; };
       var d = el.querySelector("[data-noticed]");
-      d.addEventListener("toggle", function () { if (d.open && !d.dataset.done) { d.dataset.done = "1"; noticed(p, d.querySelector(".pk-noticed"), false); } });
+      if (d) d.addEventListener("toggle", function () { if (d.open && !d.dataset.done) { d.dataset.done = "1"; noticed(p, d.querySelector(".pk-noticed"), false); } });
     });
   }
   $("pk-more").onclick = function () { st.shown += C.pageSize; render(); };
@@ -387,7 +432,8 @@
         c.from("park_reviews").select("park_id,fav_saw,wildlife,why_go,season,created_at").eq("status", "approved").order("created_at", { ascending: false }),
         c.from("park_photos").select("park_id,season,storage_path,created_at").eq("status", "approved").order("created_at", { ascending: false }),
         c.from("park_settings").select("photos_enabled").eq("id", 1).maybeSingle(),
-        c.from("park_events").select("park_id,title,date_text,starts_on,ends_on,link").eq("published", true).order("starts_on", { nullsFirst: false })
+        c.from("park_events").select("park_id,title,date_text,starts_on,ends_on,link").eq("published", true).order("starts_on", { nullsFirst: false }),
+        c.from("places").select("id,name,parent_park,state,town,county,nearest_town_county,latitude,longitude,distance_miles,parking_latitude,parking_longitude,category,highlights,hours_season,fee,fee_kind,bathrooms,bathrooms_kind,drive_up_access,drive_up_kind,pets_allowed,managing_agency,official_page_url,unconfirmed,unconfirmed_note,last_checked").eq("published", true).order("distance_miles")
       ]);
       if (res[0].error) throw res[0].error;
       parks = res[0].data || [];
@@ -396,6 +442,8 @@
       (res[2].data || []).forEach(function (r) { (photos[r.park_id] = photos[r.park_id] || []).push(r); });
       photosOn = !!(res[3].data && res[3].data.photos_enabled);
       (res[4].data || []).forEach(function (e) { (events[e.park_id] = events[e.park_id] || []).push(e); });
+      placesErr = !!res[5].error; places = res[5].data || [];
+      places.forEach(function (p) { p.kind = "see"; byId[p.id] = p; });
       render(); tripFab();
     } catch (e) {
       drawRadii();

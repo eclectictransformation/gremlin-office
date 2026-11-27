@@ -15,6 +15,25 @@ window.PARKS_CONFIG = {
     { key: "electric",label: "Electric",  options: [ { value: "yes", label: "Electric" } ] }
   ],
 
+  // Filters on the "Places to see" tab (built from Nancy's columns). A value may list several categories, comma-separated.
+  seeFilters: [
+    { key: "state", label: "State", options: [ { value: "NJ", label: "New Jersey" }, { value: "NY", label: "New York" }, { value: "PA", label: "Pennsylvania" } ] },
+    { key: "type",  label: "Type",  options: [
+      { value: "hike", label: "Hikes" }, { value: "waterfall", label: "Waterfalls" }, { value: "lake", label: "Lakes" },
+      { value: "overlook", label: "Overlooks" }, { value: "historic", label: "Historic sites" }, { value: "beach,waterfront", label: "Beaches and waterfront" },
+      { value: "wildlife-refuge", label: "Wildlife refuges" }, { value: "picnic-field", label: "Picnic areas" } ] },
+    { key: "bath",  label: "Restrooms",   options: [ { value: "yes", label: "Has restrooms" } ] },
+    { key: "fee",   label: "Cost",        options: [ { value: "free", label: "Free to get in" } ] },
+    { key: "drive", label: "Getting there", options: [ { value: "yes", label: "Drive up" } ] }
+  ],
+  typeLabels: { hike: "Hike", waterfall: "Waterfall", lake: "Lake", overlook: "Overlook", historic: "Historic site", beach: "Beach",
+    waterfront: "Waterfront", "wildlife-refuge": "Wildlife refuge", "picnic-field": "Picnic area" },
+  quick: {
+    fee:   { free: "Free to get in", some: "Free, some seasonal fees", fee: "Fee to get in", unknown: "Fee not confirmed" },
+    bath:  { yes: "Restrooms", no: "No restrooms", unknown: "Restrooms not confirmed" },
+    drive: { yes: "Drive up", no: "Hike in", unknown: "Parking not confirmed" }
+  },
+
   // Card icons (at most 3 show, only the ones that apply)
   icons: {
     pets: "Pets allowed",
@@ -52,6 +71,18 @@ window.PARKS_CONFIG = {
     tabCamp: "Places to camp",
     tabSee: "Places to see",
     seeSoon: "Coming soon. We're still walking these.",
+    seeIn: "In {park}",
+    seeHours: "Hours and season",
+    seeFee: "Cost",
+    seeBath: "Restrooms",
+    seeDrive: "Getting there",
+    seePets: "Pets",
+    seeWhat: "What's there",
+    seeRunBy: "Run by",
+    notConfirmed: "Not confirmed yet",
+    notConfirmedLead: "Not confirmed yet.",
+    officialBtn: "Official page",
+    dirParking: "Directions go to the trailhead parking.",
     searchPlaceholder: "Search by name or town",
     filtersButton: "Filters",
     filtersDone: "Done",

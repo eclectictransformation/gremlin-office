@@ -1,3 +1,4 @@
+[hidden]{display:none!important}
 /* Wandering the Local Parks — soft, earthy, lots of white space. */
 :root{--bg:#FBFAF6;--card:#FFFFFF;--ink:#2B2B26;--soft:#6B6A60;--line:#E6E0D3;--forest:#3E5A45;--forest-d:#2F4A3A;--moss:#E9EEE4;--clay:#A8694C;--sand:#F3EEE3;--focus:#C98C5A}
 *{box-sizing:border-box}
@@ -122,3 +123,13 @@ dialog.trip-dlg{max-width:40rem}
   body.print-trip .leaflet-control-zoom{display:none}
 }
 .pk-icons:empty{display:none}
+
+/* ---- Places to see ---- */
+.pk-parent{margin:-.2rem 0 .25rem;color:var(--soft);font-size:.92rem}
+.pk-unconf{background:#FBF3E4;border:1px solid #E9D6AE;border-left:4px solid #C79A45;border-radius:10px;padding:.6rem .75rem;margin:0 0 .7rem;color:#4f4632;font-size:.95rem;line-height:1.5}
+.pk-unconf p{margin:0}
+.pk-unconf .pk-unconf-h{font-weight:700;color:#6d5218;margin-bottom:.2rem;font-size:.98rem}
+.pk-hours{margin:0 0 .55rem;font-size:.93rem;line-height:1.5}
+.pk-quick{list-style:none;display:flex;flex-wrap:wrap;gap:.35rem;padding:0;margin:0 0 .7rem}
+.pk-quick li{background:var(--sand);border-radius:999px;padding:.3rem .65rem;font-size:.86rem;color:#4b5246}
+.pk-dirnote{font-size:.82rem;color:var(--soft)}
