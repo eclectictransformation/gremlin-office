@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Things to Do · Eclectic Transformation</title>
+<meta name="description" content="Karaoke, trivia, open mics and town events near Hackettstown, NJ, gathered from the venues' own pages.">
+<meta name="theme-color" content="#3E5A45">
+<link rel="icon" type="image/png" sizes="32x32" href="../desks-preview-q7m4/icons/favicon-32.png">
+<link rel="stylesheet" href="things.css">
+</head>
+<body>
+<main class="pk-wrap">
+  <p class="pk-back"><a href="../?door=explore" id="td-back">&larr; Back to the Desks</a></p>
+  <p class="pk-kicker" id="td-kicker"></p>
+  <h1 id="td-title"></h1>
+  <p class="pk-intro" id="td-intro"></p>
+  <p class="pk-note" id="td-note"></p>
+  <p class="td-tellwrap"><button class="btn" type="button" id="td-tell"></button></p>
+
+  <section id="pane-list">
+    <label class="pk-hp" for="td-q">Search</label>
+    <input class="pk-search" id="td-q" type="search" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="pk-row" id="td-radii" role="group" aria-label="Filters"></div>
+    <div class="pk-panel" id="td-panel" hidden></div>
+    <div class="pk-row" id="td-active" aria-label="Active filters"></div>
+    <p class="pk-results" id="td-results" aria-live="polite"></p>
+    <div class="pk-grid" id="td-grid"></div>
+    <div class="pk-empty" id="td-empty" hidden></div>
+  </section>
+
+  <p class="pk-foot" id="td-foot"></p>
+</main>
+
+<dialog class="pk-dlg" id="dlg-corr" aria-labelledby="corr-h">
+  <form id="corr-form" novalidate>
+    <h2 id="corr-h"></h2>
+    <p class="sub" id="corr-event"></p>
+    <p class="sub" id="corr-lead"></p>
+    <p class="help" id="corr-stage"></p>
+    <p class="pk-hp" aria-hidden="true"><label for="corr-site">Website</label><input id="corr-site" type="text" tabindex="-1" autocomplete="off"></p>
+    <label for="corr-what" id="corr-what-l"></label>
+    <textarea id="corr-what" rows="4" maxlength="1500" required></textarea>
+    <label for="corr-where" id="corr-where-l"></label>
+    <input id="corr-where" type="text" maxlength="500" autocomplete="off">
+    <p class="err" id="corr-err" role="alert"></p>
+    <div class="row"><button class="btn ghost" type="button" data-close></button><button class="btn" type="submit" id="corr-send"></button></div>
+  </form>
+  <div class="ok" id="corr-ok" hidden><p id="corr-ok-msg"></p><div class="row"><button class="btn" type="button" data-close></button></div></div>
+</dialog>
+
+<script src="things-config.js"></script>
+<script src="things.js"></script>
+</body>
+</html>

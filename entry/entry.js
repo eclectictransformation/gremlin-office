@@ -51,6 +51,16 @@
       badge: "Open to everyone"
     },
     {
+      id: "things_to_do",
+      enabled: true,
+      kicker: "The bulletin",
+      title: "Things to Do",
+      blurb: "Karaoke, trivia, open mics and town events near Hackettstown, gathered by us from the venues' own pages.",
+      href: "things-to-do/",
+      action: "See what's on",
+      badge: "Open to everyone"
+    },
+    {
       id: "meet_gremlins",
       enabled: true,
       kicker: "The crew",
