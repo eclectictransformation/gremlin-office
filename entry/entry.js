@@ -91,17 +91,6 @@
       href: "game-nook/",
       action: "Open the Game Nook",
       badge: "Open to everyone"
-    },
-    {
-      id: "local_parks",
-      enabled: true,
-      soon: true,
-      kicker: "The trails",
-      title: "Wandering the Local Parks",
-      blurb: "A growing list of nearby places to camp and places to see, with filters and booking links. We'll open this door as a first look once the list is ready.",
-      action: "Coming soon",
-      badge: "Coming soon",
-      badgeKind: "soon"
     }
   ];
 
