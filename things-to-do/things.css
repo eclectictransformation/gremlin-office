@@ -66,3 +66,5 @@ dialog.pk-dlg::backdrop{background:rgba(40,40,30,.35)}
 .pk-unconf.unverified{background:#F3EEE8;border-color:#E0D3C4;border-left-color:#8A6A4A}
 .pk-unconf.unverified .pk-unconf-h{color:#6a4e32}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+.pk-where .td-mun{display:block;color:var(--soft);font-size:.88rem;margin-top:.1rem}

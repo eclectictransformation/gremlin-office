@@ -81,7 +81,7 @@
   function match(it) {
     var f = st.f;
     if (st.q) {
-      var hay = norm([it.event, it.venue, it.town, it.address, (it.types || []).map(typeLabel).join(" "), it.day_schedule, it.time].join(" "));
+      var hay = norm([it.event, it.venue, it.town, it.municipality_note, it.municipality, it.address, (it.types || []).map(typeLabel).join(" "), it.day_schedule, it.time].join(" "));
       if (norm(st.q).split(/\s+/).some(function (w) { return w && hay.indexOf(w) < 0; })) return false;
     }
     if (f.town.length && f.town.indexOf(it.town) < 0) return false;
@@ -136,7 +136,9 @@
     return '<article class="' + cls + '" data-id="' + esc(it.id) + '">' +
       banner(it) +
       "<h2>" + esc(it.event) + "</h2>" +
-      '<p class="pk-where">' + esc(it.venue) + " · " + esc(it.town) + "</p>" +
+      '<p class="pk-where">' + esc(it.venue) + " · " + esc(it.town) +
+        (it.municipality_note ? '<span class="td-mun">' + esc(it.municipality_note) + "</span>" : "") +
+      "</p>" +
       '<ul class="pk-facts">' +
         (schedule ? "<li><b>When:</b> " + esc(schedule) + "</li>" : "") +
         (it.venue_hours ? "<li><b>Venue hours:</b> " + esc(it.venue_hours) + "</li>" : "") +

@@ -11,7 +11,9 @@ window.THINGS_CONFIG = {
     "open-mic": "Open mic",
     "live-music": "Live music",
     "game-night": "Game night",
-    "community-event": "Community event"
+    "community-event": "Community event",
+    race: "Race or 5K",
+    parade: "Parade"
   },
   dayOrder: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
   dayLabels: {
